@@ -73,14 +73,12 @@
     <h1>Choose a UI to view</h1>
     <p>Pick the interface you want to load. The page will open the selected UI in the same browser tab.</p>
 
-    <div class="options">
-      <button type="button" onclick="openUI('GEMINI.html')">Open GEMINI UI</button>
-      <button type="button" onclick="openUI('CLAUDE_.html')">Open CLAUDE UI</button>
-      <button type="button" onclick="openUI('index.html')">Reload Selection Page</button>
+    <div class="options" id="uiOptions">
+      <!-- Dynamically populated from manifest.json -->
     </div>
 
     <div class="footer">
-      Note: If one of the UI files does not exist yet, add it in the repository and refresh this page.
+      <p>To add a new mockup: Create a .html file and add it to <code>manifest.json</code></p>
     </div>
   </div>
 
@@ -88,6 +86,41 @@
     function openUI(path) {
       window.location.href = path;
     }
+
+    // Load mockups from manifest.json
+    async function loadMockups() {
+      try {
+        const response = await fetch('manifest.json');
+        if (!response.ok) throw new Error('Failed to load manifest');
+        
+        const data = await response.json();
+        const container = document.getElementById('uiOptions');
+        container.innerHTML = '';
+
+        // Create a button for each mockup
+        data.mockups.forEach(mockup => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = `Open ${mockup.label} UI`;
+          button.onclick = () => openUI(mockup.file);
+          container.appendChild(button);
+        });
+
+        // Add a reload button at the end
+        const reloadButton = document.createElement('button');
+        reloadButton.type = 'button';
+        reloadButton.textContent = 'Reload Selection Page';
+        reloadButton.onclick = () => window.location.href = 'index.html';
+        container.appendChild(reloadButton);
+
+      } catch (error) {
+        console.error('Error loading mockups:', error);
+        document.getElementById('uiOptions').innerHTML = '<p style="color: #ff6b6b;">Error loading mockups. Please check manifest.json</p>';
+      }
+    }
+
+    // Load mockups when page loads
+    document.addEventListener('DOMContentLoaded', loadMockups);
   </script>
 </body>
 </html>

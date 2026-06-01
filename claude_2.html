@@ -1,0 +1,364 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.app{display:flex;flex-direction:column;min-height:100vh;background:var(--color-background-tertiary);font-size:13px}
+.topbar{display:flex;align-items:center;gap:10px;padding:0 18px;height:52px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);flex-shrink:0}
+.logo{display:flex;align-items:center;gap:7px;font-weight:500;font-size:14px;color:var(--color-text-primary);min-width:160px}
+.logo-mark{width:26px;height:26px;border-radius:7px;background:#3266ad;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:500}
+.sim-selector{display:flex;align-items:center;gap:6px;padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary);cursor:pointer;background:var(--color-background-secondary)}
+.search-bar{flex:1;max-width:320px;display:flex;align-items:center;gap:7px;padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:12px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.icon-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:var(--border-radius-md);color:var(--color-text-secondary);cursor:pointer;background:transparent;border:none;font-size:16px}
+.icon-btn:hover{background:var(--color-background-secondary)}
+.avatar{width:28px;height:28px;border-radius:50%;background:#3266ad;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:500}
+.create-btn{padding:6px 12px;background:#3266ad;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:168px;flex-shrink:0;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);padding:14px 0;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;font-size:12.5px;color:var(--color-text-secondary);cursor:pointer;border-radius:0}
+.nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.nav-item.active{background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500}
+.nav-item i{font-size:15px;width:16px;text-align:center}
+.nav-section{padding:10px 16px 4px;font-size:10.5px;color:var(--color-text-tertiary);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.main{flex:1;overflow-y:auto;padding:20px}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.kpi-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:6px}
+.kpi-value{font-size:20px;font-weight:500;color:var(--color-text-primary);line-height:1}
+.kpi-delta{font-size:11px;color:var(--color-text-success);margin-top:4px}
+.sim-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.sim-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;cursor:pointer}
+.sim-card:hover{border-color:var(--color-border-secondary)}
+.sim-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.sim-name{font-size:12.5px;font-weight:500;color:var(--color-text-primary);line-height:1.4;flex:1;padding-right:8px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:500;white-space:nowrap}
+.badge-active{background:#eaf3de;color:#3b6d11}
+.badge-running{background:#e6f1fb;color:#185fa5}
+.badge-draft{background:#f1efe8;color:#5f5e5a}
+.badge-review{background:#faeeda;color:#854f0b}
+.sim-meta{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--color-text-secondary);margin-bottom:10px}
+.sim-type{padding:2px 7px;border-radius:4px;background:var(--color-background-secondary);font-size:10.5px;color:var(--color-text-secondary)}
+.sim-kpi{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)}
+.sim-kpi-label{font-size:11px;color:var(--color-text-secondary)}
+.sim-kpi-val{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.analytics-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.chart-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px}
+.chart-title{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px}
+.ops-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:20px}
+.ops-table{width:100%;border-collapse:collapse;font-size:11.5px}
+.ops-table th{text-align:left;padding:6px 10px;font-size:10.5px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);text-transform:uppercase;letter-spacing:.03em}
+.ops-table td{padding:9px 10px;color:var(--color-text-primary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.ops-table tr:last-child td{border-bottom:none}
+.score-bar-wrap{display:flex;align-items:center;gap:8px}
+.score-bar{height:5px;border-radius:3px;background:var(--color-background-secondary);flex:1;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;background:#3266ad}
+.bottom-row{display:grid;grid-template-columns:1fr 280px;gap:10px}
+.activity-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px}
+.activity-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:6px;height:6px;border-radius:50%;background:#3266ad;margin-top:5px;flex-shrink:0}
+.activity-text{font-size:12px;color:var(--color-text-primary);flex:1;line-height:1.5}
+.activity-time{font-size:11px;color:var(--color-text-tertiary);white-space:nowrap}
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.filter-chip{padding:4px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:20px;font-size:11.5px;color:var(--color-text-secondary);cursor:pointer;background:var(--color-background-primary)}
+.filter-chip.active{background:var(--color-background-secondary);border-color:var(--color-border-secondary);color:var(--color-text-primary)}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:140px;position:relative}
+.gauge-val{font-size:26px;font-weight:500;color:var(--color-text-primary)}
+.gauge-label{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.util-bars{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.util-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--color-text-secondary)}
+.util-name{width:50px;flex-shrink:0}
+.util-track{flex:1;height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden}
+.util-fill{height:100%;border-radius:3px}
+</style>
+
+<h2 class="sr-only">Simulation Overview Platform — enterprise dashboard showing KPIs, simulation grid, analytics charts, and recent activity.</h2>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark"><i class="ti ti-topology-star" style="font-size:14px" aria-hidden="true"></i></div>
+      SimOps
+    </div>
+    <div class="sim-selector"><i class="ti ti-adjustments-horizontal" style="font-size:13px" aria-hidden="true"></i> FY27 Workspace <i class="ti ti-chevron-down" style="font-size:12px" aria-hidden="true"></i></div>
+    <div class="search-bar"><i class="ti ti-search" aria-hidden="true"></i> Search simulations, metrics…</div>
+    <div class="topbar-right">
+      <button class="icon-btn" aria-label="Notifications"><i class="ti ti-bell" aria-hidden="true"></i></button>
+      <button class="icon-btn" aria-label="Settings"><i class="ti ti-settings" aria-hidden="true"></i></button>
+      <div class="avatar" aria-label="User profile">AC</div>
+      <button class="create-btn"><i class="ti ti-plus" style="font-size:14px" aria-hidden="true"></i> Create Simulation</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="nav-item active"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+      <div class="nav-item"><i class="ti ti-topology-star" aria-hidden="true"></i> Simulations</div>
+      <div class="nav-item"><i class="ti ti-arrows-diff" aria-hidden="true"></i> Compare Runs</div>
+      <div class="nav-section">Operations</div>
+      <div class="nav-item"><i class="ti ti-circuit-board" aria-hidden="true"></i> APOS</div>
+      <div class="nav-item"><i class="ti ti-building-warehouse" aria-hidden="true"></i> ASU</div>
+      <div class="nav-item"><i class="ti ti-truck-delivery" aria-hidden="true"></i> Dispatch</div>
+      <div class="nav-section">Insights</div>
+      <div class="nav-item"><i class="ti ti-chart-line" aria-hidden="true"></i> Analytics</div>
+      <div class="nav-item"><i class="ti ti-report-analytics" aria-hidden="true"></i> Reports</div>
+      <div class="nav-item"><i class="ti ti-settings-2" aria-hidden="true"></i> Settings</div>
+    </div>
+
+    <div class="main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:500;color:var(--color-text-primary)">Dashboard</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px">FY27 · Week 22 · Last updated 2 min ago</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="filter-chip active">All</button>
+          <button class="filter-chip">Supply Chain</button>
+          <button class="filter-chip">Operations</button>
+          <button class="filter-chip">Financial</button>
+          <button style="padding:5px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);font-size:12px;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:5px"><i class="ti ti-download" style="font-size:13px" aria-hidden="true"></i> Export</button>
+        </div>
+      </div>
+
+      <div class="section-title">KPI overview</div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Total Simulations</div><div class="kpi-value">24</div><div class="kpi-delta">↑ 3 this week</div></div>
+        <div class="kpi-card"><div class="kpi-label">Running</div><div class="kpi-value" style="color:#185fa5">6</div><div class="kpi-delta" style="color:#185fa5">● Live now</div></div>
+        <div class="kpi-card"><div class="kpi-label">Active APOS</div><div class="kpi-value">142</div><div class="kpi-delta">↑ 4.4%</div></div>
+        <div class="kpi-card"><div class="kpi-label">ASU Utilization</div><div class="kpi-value">87%</div><div class="kpi-delta">↑ 2pp vs FW21</div></div>
+        <div class="kpi-card"><div class="kpi-label">Projected Savings</div><div class="kpi-value">$4.2M</div><div class="kpi-delta">↑ 12% vs plan</div></div>
+        <div class="kpi-card"><div class="kpi-label">Service Level</div><div class="kpi-value">96.2%</div><div class="kpi-delta">↑ 0.8pp MoM</div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="section-title" style="margin-bottom:0">Simulations</div>
+        <div style="display:flex;gap:6px">
+          <button class="filter-chip active">All (24)</button>
+          <button class="filter-chip">Active (9)</button>
+          <button class="filter-chip">Running (6)</button>
+          <button class="filter-chip">Draft (5)</button>
+          <button class="filter-chip">Review (4)</button>
+        </div>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">FY27 Network Optimization</div>
+            <span class="badge badge-active">Active</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> Sarah Chen <span class="sim-type">Supply Chain</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> 2 hours ago</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">Cost Reduction</span><span class="sim-kpi-val" style="color:#3b6d11">↓ 8.4%</span></div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">APOS Volume Surge — Holiday Peak</div>
+            <span class="badge badge-running">Running</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> Michael Torres <span class="sim-type">Operations</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> 35 min ago</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">Demand Surge</span><span class="sim-kpi-val" style="color:#185fa5">+35%</span></div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">ASU Capacity Balancing</div>
+            <span class="badge badge-draft">Draft</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> Priya Patel <span class="sim-type">Operations</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> 1 day ago</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">Utilization</span><span class="sim-kpi-val">88%</span></div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">Dispatch Delay Recovery</div>
+            <span class="badge badge-active">Active</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> James Wilson <span class="sim-type">Logistics</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> 3 hours ago</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">SLA Recovery</span><span class="sim-kpi-val" style="color:#3b6d11">94%</span></div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">Fuel Cost Inflation Scenario</div>
+            <span class="badge badge-active">Active</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> David Kim <span class="sim-type">Financial</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> 5 hours ago</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">Cost Impact</span><span class="sim-kpi-val" style="color:#854f0b">+15%</span></div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-header">
+            <div class="sim-name">Regional Decline Mitigation</div>
+            <span class="badge badge-review">Review</span>
+          </div>
+          <div class="sim-meta"><i class="ti ti-user" style="font-size:12px" aria-hidden="true"></i> Daniel Lee <span class="sim-type">Operations</span></div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:8px"><i class="ti ti-clock" style="font-size:11px" aria-hidden="true"></i> Yesterday</div>
+          <div class="sim-kpi"><span class="sim-kpi-label">Market Recovery</span><span class="sim-kpi-val" style="color:#3b6d11">+6%</span></div>
+        </div>
+      </div>
+
+      <div class="section-title">Analytics</div>
+      <div class="analytics-row">
+        <div class="chart-card">
+          <div class="chart-title">Simulation performance — fiscal weeks</div>
+          <div style="position:relative;height:160px"><canvas id="lineChart" role="img" aria-label="Line chart showing simulation performance trends across fiscal weeks FW01 to FW52">Performance trends across FW01–FW52 showing cost reduction, service level, and ASU utilization lines.</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">APOS performance by region</div>
+          <div style="position:relative;height:160px"><canvas id="barChart" role="img" aria-label="Bar chart comparing APOS performance across North, South, West, and Central regions">North 94, South 81, West 90, Central 87.</canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">ASU utilization</div>
+          <div class="gauge-wrap">
+            <svg width="110" height="70" viewBox="0 0 110 70" aria-hidden="true">
+              <path d="M10 65 A45 45 0 0 1 100 65" fill="none" stroke="#e5e5e3" stroke-width="9" stroke-linecap="round"/>
+              <path d="M10 65 A45 45 0 0 1 100 65" fill="none" stroke="#3266ad" stroke-width="9" stroke-linecap="round" stroke-dasharray="141.37" stroke-dashoffset="18.38"/>
+            </svg>
+            <div style="margin-top:-18px;text-align:center">
+              <div class="gauge-val">87%</div>
+              <div class="gauge-label">current utilization</div>
+            </div>
+          </div>
+          <div class="util-bars">
+            <div class="util-row"><span class="util-name">North</span><div class="util-track"><div class="util-fill" style="width:91%;background:#3266ad"></div></div><span style="min-width:30px;text-align:right">91%</span></div>
+            <div class="util-row"><span class="util-name">South</span><div class="util-track"><div class="util-fill" style="width:79%;background:#854f0b"></div></div><span style="min-width:30px;text-align:right">79%</span></div>
+            <div class="util-row"><span class="util-name">West</span><div class="util-track"><div class="util-fill" style="width:88%;background:#3b6d11"></div></div><span style="min-width:30px;text-align:right">88%</span></div>
+            <div class="util-row"><span class="util-name">Central</span><div class="util-track"><div class="util-fill" style="width:85%;background:#185fa5"></div></div><span style="min-width:30px;text-align:right">85%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Operations table</div>
+      <div class="ops-card">
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>APOS Count</th>
+              <th>ASU %</th>
+              <th>Dispatch Score</th>
+              <th>Status</th>
+              <th>Last Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>North</strong></td>
+              <td>48</td>
+              <td><div style="display:flex;align-items:center;gap:8px">91%<div style="width:50px;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden"><div style="width:91%;height:100%;background:#3b6d11;border-radius:2px"></div></div></div></td>
+              <td><div class="score-bar-wrap">94<div class="score-bar"><div class="score-fill" style="width:94%"></div></div></div></td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td style="color:var(--color-text-secondary)">2h ago</td>
+            </tr>
+            <tr>
+              <td><strong>South</strong></td>
+              <td>52</td>
+              <td><div style="display:flex;align-items:center;gap:8px">79%<div style="width:50px;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden"><div style="width:79%;height:100%;background:#854f0b;border-radius:2px"></div></div></div></td>
+              <td><div class="score-bar-wrap">81<div class="score-bar"><div class="score-fill" style="width:81%;background:#854f0b"></div></div></div></td>
+              <td><span class="badge badge-review">Review</span></td>
+              <td style="color:var(--color-text-secondary)">5h ago</td>
+            </tr>
+            <tr>
+              <td><strong>West</strong></td>
+              <td>42</td>
+              <td><div style="display:flex;align-items:center;gap:8px">88%<div style="width:50px;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden"><div style="width:88%;height:100%;background:#3b6d11;border-radius:2px"></div></div></div></td>
+              <td><div class="score-bar-wrap">90<div class="score-bar"><div class="score-fill" style="width:90%"></div></div></div></td>
+              <td><span class="badge badge-active">Active</span></td>
+              <td style="color:var(--color-text-secondary)">1h ago</td>
+            </tr>
+            <tr>
+              <td><strong>Central</strong></td>
+              <td>36</td>
+              <td><div style="display:flex;align-items:center;gap:8px">85%<div style="width:50px;height:4px;background:var(--color-background-secondary);border-radius:2px;overflow:hidden"><div style="width:85%;height:100%;background:#185fa5;border-radius:2px"></div></div></div></td>
+              <td><div class="score-bar-wrap">87<div class="score-bar"><div class="score-fill" style="width:87%"></div></div></div></td>
+              <td><span class="badge badge-running">Running</span></td>
+              <td style="color:var(--color-text-secondary)">Just now</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Recent activity</div>
+      <div class="activity-card">
+        <div class="activity-item">
+          <div class="activity-dot" style="background:#3b6d11"></div>
+          <div class="activity-text"><strong>FY27 Network Optimization</strong> completed successfully — cost reduction target met</div>
+          <div class="activity-time">09:42</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:#185fa5"></div>
+          <div class="activity-text"><strong>APOS Volume Surge</strong> simulation started by Michael Torres</div>
+          <div class="activity-time">09:15</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text"><strong>Dispatch Delay Recovery</strong> parameters updated — SLA threshold adjusted to 94%</div>
+          <div class="activity-time">08:51</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:#3b6d11"></div>
+          <div class="activity-text"><strong>ASU Capacity Balancing</strong> approved by ops lead and moved to Active</div>
+          <div class="activity-time">08:20</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-dot" style="background:#5f5e5a"></div>
+          <div class="activity-text"><strong>Regional Decline Mitigation</strong> archived — superseded by Q3 scenario</div>
+          <div class="activity-time">Yesterday</div>
+        </div>
+      </div>
+
+      <div style="height:20px"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const textColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)';
+const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+
+const fw = ['FW01','FW05','FW10','FW15','FW20','FW22','FW26','FW30','FW35','FW40','FW45','FW52'];
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: fw,
+    datasets: [
+      {label:'Cost Reduction',data:[2,3,4,5,6,8,9,10,11,12,13,14],borderColor:'#3266ad',backgroundColor:'rgba(50,102,173,0.08)',borderWidth:1.5,pointRadius:0,fill:true,tension:0.4,borderDash:[]},
+      {label:'Service Level',data:[90,91,92,93,94,95,95.5,96,96.2,96.5,96.8,97],borderColor:'#3b6d11',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,borderDash:[4,3],tension:0.4},
+      {label:'ASU Util',data:[80,82,81,84,85,86,86,87,87.5,88,88,88],borderColor:'#854f0b',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,borderDash:[2,2],tension:0.4}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:textColor,font:{size:10},maxRotation:0},grid:{color:gridColor},border:{display:false}},
+      y:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor},border:{display:false}}
+    }
+  }
+});
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['North','South','West','Central'],
+    datasets: [{
+      label:'Score',
+      data:[94,81,90,87],
+      backgroundColor:['#3266ad','#854f0b','#3b6d11','#185fa5'],
+      borderRadius:4,
+      borderSkipped:false
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:textColor,font:{size:10}},grid:{display:false},border:{display:false}},
+      y:{ticks:{color:textColor,font:{size:10}},grid:{color:gridColor},border:{display:false},min:70,max:100}
+    }
+  }
+});
+</script>

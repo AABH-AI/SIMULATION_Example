@@ -1,0 +1,16 @@
+{
+  "mockups": [
+    {
+      "file": "GEMINI.html",
+      "label": "GEMINI"
+    },
+    {
+      "file": "CLAUDE_.html",
+      "label": "CLAUDE"
+    },
+    {
+      "file": "claude_2.html",
+      "label": "CLAUDE 2"
+    }
+  ]
+}
