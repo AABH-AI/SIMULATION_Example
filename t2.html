@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Futuristic Climate Dashboard</title>
+https://cdn.jsdelivr.net/npm/chart.js
+<style>
+body { margin:0; font-family: 'Segoe UI'; background:#0d1117; color:#e6edf3; }
+header { padding:20px; text-align:center; background:#161b22; font-size:22px; }
+.dashboard { display:grid; grid-template-columns: 2fr 1fr; grid-template-rows: auto auto; gap:15px; padding:15px; }
+.card { background:#161b22; border-radius:12px; padding:15px; box-shadow:0 0 10px rgba(0,255,255,0.2); }
+.big { grid-row: span 2; }
+.row { display:flex; gap:10px; }
+.kpi { flex:1; text-align:center; padding:10px; background:#0d1117; border-radius:10px; }
+table { width:100%; border-collapse: collapse; }
+td, th { border-bottom:1px solid #30363d; padding:8px; text-align:left; }
+canvas { width:100% !important; height:250px !important; }
+
+.glow { color:#00ffff; font-weight:bold; }
+
+</style>
+</head>
+<body>
+<header>🚀 AI Climate Intelligence Dashboard (Simulated Data)</header>
+
+<div class="dashboard">
+
+<div class="card big">
+<h3>Global Risk Index Trend</h3>
+<canvas id="riskChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Live KPIs</h3>
+<div class="row">
+<div class="kpi">🌡 Temp<br><span class="glow" id="temp">--</span></div>
+<div class="kpi">🌊 Sea<br><span class="glow" id="sea">--</span></div>
+<div class="kpi">🌿 CO₂<br><span class="glow" id="co2">--</span></div>
+</div>
+</div>
+
+<div class="card">
+<h3>Extreme Events</h3>
+<table>
+<tr><th>Region</th><th>Event</th><th>Severity</th></tr>
+<tr><td>USA</td><td>Heatwave</td><td>High</td></tr>
+<tr><td>India</td><td>Flood</td><td>Medium</td></tr>
+<tr><td>Europe</td><td>Drought</td><td>High</td></tr>
+<tr><td>Australia</td><td>Wildfire</td><td>Critical</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3>Emission Breakdown</h3>
+<canvas id="pieChart"></canvas>
+</div>
+
+<div class="card">
+<h3>Prediction (AI Model)</h3>
+<canvas id="forecastChart"></canvas>
+</div>
+
+</div>
+
+<script>
+const years = ['2010','2012','2014','2016','2018','2020','2022','2024'];
+
+new Chart(document.getElementById('riskChart'), {
+ type:'line',
+ data:{ labels:years,
+ datasets:[{ data:[30,40,50,65,75,85,95,110], borderColor:'#00ffff', tension:0.4 }]
+ }
+});
+
+new Chart(document.getElementById('pieChart'), {
+ type:'doughnut',
+ data:{ labels:['Energy','Transport','Industry','Agriculture'],
+ datasets:[{ data:[40,25,20,15], backgroundColor:['red','blue','green','orange'] }]
+ }
+});
+
+new Chart(document.getElementById('forecastChart'), {
+ type:'bar',
+ data:{ labels:['2025','2030','2035','2040'],
+ datasets:[{ data:[1.2,1.5,1.9,2.3], backgroundColor:'#ff6384' }]
+ }
+});
+
+function updateKPIs(){
+ document.getElementById('temp').innerText = (1 + Math.random()).toFixed(2) + '°C';
+ document.getElementById('sea').innerText = Math.floor(80 + Math.random()*20) + ' mm';
+ document.getElementById('co2').innerText = Math.floor(410 + Math.random()*20) + ' ppm';
+}
+
+setInterval(updateKPIs,2000);
+updateKPIs();
+</script>
+
+</body>
+</html>
