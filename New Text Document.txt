@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Climate Change Dashboard</title>
+  https://cdn.jsdelivr.net/npm/chart.js
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f7fb; margin:0; }
+    header { background:#2c7be5; color:white; padding:20px; text-align:center; }
+    .container { display:grid; grid-template-columns: 1fr 1fr; gap:20px; padding:20px; }
+    .card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+    canvas { width:100% !important; height:300px !important; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌍 Climate Change Dashboard</h1>
+  <p>Global Temperature, CO₂ Levels & Sea Level Rise</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h3>Global Temperature Anomaly (°C)</h3>
+    <canvas id="tempChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Atmospheric CO₂ (ppm)</h3>
+    <canvas id="co2Chart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Sea Level Rise (mm)</h3>
+    <canvas id="seaChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>Arctic Ice Extent (Million km²)</h3>
+    <canvas id="iceChart"></canvas>
+  </div>
+</div>
+
+<script>
+// Sample Data
+const years = ['2000','2005','2010','2015','2020','2025'];
+
+new Chart(document.getElementById('tempChart'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'Temperature Anomaly',
+      data: [0.42, 0.48, 0.62, 0.87, 1.02, 1.15],
+      borderColor: 'red',
+      fill: false
+    }]
+  }
+});
+
+new Chart(document.getElementById('co2Chart'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'CO₂ ppm',
+      data: [370, 380, 395, 410, 420, 425],
+      borderColor: 'green',
+      fill: false
+    }]
+  }
+});
+
+new Chart(document.getElementById('seaChart'), {
+  type: 'bar',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'Sea Level Rise (mm)',
+      data: [20, 30, 45, 60, 75, 90],
+      backgroundColor: 'blue'
+    }]
+  }
+});
+
+new Chart(document.getElementById('iceChart'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'Ice Extent',
+      data: [6.5, 6.2, 5.8, 5.4, 5.0, 4.7],
+      borderColor: 'purple',
+      fill: false
+    }]
+  }
+});
+</script>
+
+</body>
+</html>
