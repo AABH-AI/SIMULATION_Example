@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - '**/*.html'
-      - 'manifest.json'
   workflow_dispatch: {}
 
 permissions:
@@ -24,7 +23,13 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Capture publish timestamp
+        id: set_publish_time
+        run: echo "published_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+
       - name: Update manifest.json with HTML contents
+        env:
+          PAGES_PUBLISHED_AT: ${{ steps.set_publish_time.outputs.published_at }}
         run: node scripts/updateManifest.js
 
       - name: Commit manifest updates
