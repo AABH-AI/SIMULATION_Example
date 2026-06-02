@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIMULATION Example</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      min-height: 100vh;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .page {
+      width: min(980px, 100%);
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 24px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+      overflow: hidden;
+    }
+    header {
+      padding: 28px 32px;
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(17, 24, 39, 0.95));
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3vw, 3rem);
+      color: #f8fafc;
+    }
+    p {
+      margin: 12px 0 0;
+      color: #cbd5e1;
+      max-width: 780px;
+      line-height: 1.7;
+    }
+    .meta {
+      margin-top: 18px;
+      color: #94a3b8;
+      font-size: 0.96rem;
+    }
+    .content {
+      padding: 30px 32px 36px;
+      display: grid;
+      gap: 18px;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 22px 24px;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      color: #f8fafc;
+    }
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: #2563eb;
+      color: #f8fafc;
+      text-decoration: none;
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .button:hover {
+      transform: translateY(-1px);
+      background: #1d4ed8;
+    }
+    .button.secondary {
+      background: #334155;
+      border-color: #475569;
+      color: #e2e8f0;
+    }
+    .note {
+      margin-top: 18px;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .status {
+      margin-top: 12px;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>SIMULATION Example</h1>
+      <p>GitHub Pages is publishing your mockup files and manifest-driven deployment. Use this page to open the latest deployed UI or inspect the current manifest.</p>
+      <div class="status" id="publishedAt">Loading publish status...</div>
+    </header>
+
+    <div class="content">
+      <div class="card">
+        <h2>Latest deployed UI</h2>
+        <div id="latestCard">Loading latest UI...</div>
+      </div>
+
+      <div class="card">
+        <h2>Available mockup pages</h2>
+        <div class="list" id="pageList">Loading pages...</div>
+      </div>
+
+      <div class="card">
+        <h2>Manifest status</h2>
+        <div class="note">The repository manifest file is used to track available pages automatically. Add a new <code>.html</code> file to the repository, push it, and the workflow will update <code>manifest.json</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function formatDateTime(iso) {
+      try {
+        return new Date(iso).toLocaleString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZoneName: 'short'
+        });
+      } catch (err) {
+        return iso || 'Unknown';
+      }
+    }
+
+    function buildLabel(file) {
+      return file.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function createLink(file, label) {
+      const a = document.createElement('a');
+      a.href = file;
+      a.className = 'button';
+      a.textContent = `Open ${label}`;
+      return a;
+    }
+
+    async function loadManifest() {
+      try {
+        const res = await fetch('manifest.json');
+        if (!res.ok) throw new Error('Unable to load manifest');
+        const data = await res.json();
+
+        const publishedAt = document.getElementById('publishedAt');
+        publishedAt.textContent = data.pagesPublishedAt
+          ? `Published: ${formatDateTime(data.pagesPublishedAt)}`
+          : 'Published timestamp not available yet.';
+
+        const pageList = document.getElementById('pageList');
+        pageList.innerHTML = '';
+
+        const pages = new Map();
+        if (Array.isArray(data.mockups)) {
+          data.mockups.forEach(mockup => {
+            if (mockup.file && mockup.file !== 'index.html') {
+              pages.set(mockup.file, mockup.label || buildLabel(mockup.file));
+            }
+          });
+        }
+        if (data.autoPages && typeof data.autoPages === 'object') {
+          Object.keys(data.autoPages).forEach(file => {
+            if (file !== 'index.html' && !pages.has(file)) {
+              pages.set(file, buildLabel(file));
+            }
+          });
+        }
+
+        if (!pages.size) {
+          pageList.textContent = 'No available pages found in manifest.json.';
+        } else {
+          Array.from(pages.entries())
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .forEach(([file, label]) => {
+              pageList.appendChild(createLink(file, label));
+            });
+        }
+
+        const latestCard = document.getElementById('latestCard');
+        if (data.latestAutoPage && data.latestAutoPage.file) {
+          latestCard.innerHTML = '';
+          latestCard.appendChild(createLink(data.latestAutoPage.file, buildLabel(data.latestAutoPage.file)));
+          const meta = document.createElement('div');
+          meta.className = 'status';
+          meta.textContent = `Updated: ${formatDateTime(data.latestAutoPage.updated)}`;
+          latestCard.appendChild(meta);
+        } else {
+          latestCard.textContent = 'Latest deployed UI not available.';
+        }
+      } catch (error) {
+        document.getElementById('publishedAt').textContent = 'Failed to load manifest.';
+        document.getElementById('pageList').textContent = 'Unable to display pages.';
+        document.getElementById('latestCard').textContent = 'Unable to determine latest page.';
+        console.error(error);
+      }
+    }
+
+    loadManifest();
+  </script>
+</body>
+</html>
