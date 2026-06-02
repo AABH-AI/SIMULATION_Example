@@ -1,0 +1,8 @@
+{
+  "name": "auto-html-manifest",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "update-manifest": "node scripts/updateManifest.js"
+  }
+}

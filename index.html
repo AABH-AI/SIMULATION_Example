@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Your UI</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1d3557 0%, #457b9d 100%);
+      color: #f8f9fa;
+    }
+
+    .container {
+      width: min(600px, 90%);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 24px;
+      padding: 32px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 2.1rem;
+      color: #f1faee;
+    }
+
+    p {
+      color: #e9ecef;
+      line-height: 1.6;
+    }
+
+    .options {
+      display: grid;
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.18);
+      color: #1d3557;
+      background: #a8dadc;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.22);
+    }
+
+    .footer {
+      margin-top: 24px;
+      font-size: 0.95rem;
+      color: #ced4da;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Choose a UI to view</h1>
+    <p>Pick the interface you want to load. The page will open the selected UI in the same browser tab.</p>
+
+    <div class="options" id="uiOptions">
+      <!-- Dynamically populated from manifest.json -->
+    </div>
+
+    <div class="footer">
+      <p>To add a new mockup: Create a .html file and add it to <code>manifest.json</code></p>
+    </div>
+  </div>
+
+  <script>
+    function openUI(path) {
+      window.location.href = path;
+    }
+
+    // Load mockups from manifest.json
+    async function loadMockups() {
+      try {
+        const response = await fetch('manifest.json');
+        if (!response.ok) throw new Error('Failed to load manifest');
+        
+        const data = await response.json();
+        const container = document.getElementById('uiOptions');
+        container.innerHTML = '';
+
+        // Create a button for each mockup
+        data.mockups.forEach(mockup => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = `Open ${mockup.label} UI`;
+          button.onclick = () => openUI(mockup.file);
+          container.appendChild(button);
+        });
+
+        // Add a reload button at the end
+        const reloadButton = document.createElement('button');
+        reloadButton.type = 'button';
+        reloadButton.textContent = 'Reload Selection Page';
+        reloadButton.onclick = () => window.location.href = 'index.html';
+        container.appendChild(reloadButton);
+
+      } catch (error) {
+        console.error('Error loading mockups:', error);
+        document.getElementById('uiOptions').innerHTML = '<p style="color: #ff6b6b;">Error loading mockups. Please check manifest.json</p>';
+      }
+    }
+
+    // Load mockups when page loads
+    document.addEventListener('DOMContentLoaded', loadMockups);
+  </script>
+</body>
+</html>
