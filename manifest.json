@@ -11,6 +11,14 @@
     {
       "file": "claude_2.html",
       "label": "CLAUDE 2"
+    },
+    {
+      "file": "simulation-overview-platform.html",
+      "label": "CLAUDE 3 - SimOps"
+    },
+    {
+      "file": "index.html",
+      "label": "Index"
     }
   ]
 }
