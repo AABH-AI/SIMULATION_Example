@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Goliath - Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      /* Dark Theme */
+      --bg-main: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #21262d;
+      --bg-hover: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --left-panel-bg: #002244;
+      --left-panel-hover: #003366;
+      --success: #3fb950;
+      --danger: #f85149;
+    }
+    
+    [data-theme="light"] {
+      --bg-main: #f3f4f6;
+      --bg-panel: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f9fafb;
+      --text-primary: #24292f;
+      --text-secondary: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --left-panel-bg: #003366; 
+      --left-panel-hover: #004080;
+      --success: #1a7f37;
+      --danger: #cf222e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; transition: background 0.3s, color 0.3s; }
+    
+    /* --- VIEW TOGGLES --- */
+    #home-view { display: flex; flex-direction: column; height: 100vh; }
+    #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+    
+    /* --- HOME PAGE --- */
+    .home-banner {
+      background: linear-gradient(rgba(0,34,68,0.8), rgba(0,34,68,0.8)), url('https://images.unsplash.com/photo-1586528116311-ad8ed7c1590a?auto=format&fit=crop&q=80') center/cover;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .home-banner h1 { color: white; font-size: 3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .company-logo { position: absolute; top: 20px; right: 30px; }
+    .company-logo img { height: 40px; }
+    
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-y: auto;
+    }
+    .tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 8px 12px rgba(0,0,0,0.15); border-color: var(--accent); }
+    .tile-icon { font-size: 32px; color: var(--accent); }
+    .tile-title { font-size: 1.2rem; font-weight: 600; }
+
+    /* --- DASHBOARD HEADER --- */
+    .dash-header {
+      height: 50px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .btn-icon { background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 18px; padding: 6px; border-radius: 4px; }
+    .btn-icon:hover { background: var(--bg-hover); }
+    
+    /* --- DASHBOARD LAYOUT --- */
+    .dash-body { display: flex; flex: 1; overflow: hidden; }
+    
+    /* Left Accordion Panel */
+    .left-panel {
+      width: 260px;
+      background: var(--left-panel-bg);
+      color: white;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s;
+      overflow-y: auto;
+    }
+    .left-panel.collapsed { width: 0; overflow: hidden; }
+    
+    .accordion-item { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .accordion-header {
+      padding: 14px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .accordion-header:hover { background: var(--left-panel-hover); }
+    .accordion-content { background: rgba(0,0,0,0.2); display: none; }
+    .accordion-content.active { display: block; }
+    
+    .nav-link {
+      display: block;
+      padding: 10px 20px 10px 40px;
+      color: #ccc;
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .nav-link:hover, .nav-link.active { color: white; background: var(--left-panel-hover); border-left: 3px solid var(--accent); }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--bg-main);
+    }
+    
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+    .page-section { display: none; animation: fadeIn 0.3s; }
+    .page-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* KPI Grid */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; }
+    .kpi-value { font-size: 24px; font-weight: 700; transition: color 0.3s; }
+    
+    /* Charts & Tables */
+    .visual-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .visual-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+    .visual-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { background: var(--bg-hover); color: var(--text-secondary); padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+    .data-table td { padding: 8px; border-bottom: 1px solid var(--border); }
+    .data-table tr:hover td { background: var(--bg-hover); }
+
+    /* Right Filter Panel (Power BI Style) */
+    .right-panel {
+      width: 280px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s;
+    }
+    .right-panel.collapsed { width: 0; overflow: hidden; border: none; }
+    
+    .filter-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    
+    .filter-search-box { padding: 10px 16px; }
+    .filter-search-input {
+      width: 100%;
+      padding: 6px 30px 6px 10px;
+      background: var(--bg-main) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .filter-list { overflow-y: auto; flex: 1; padding: 0 16px; }
+    
+    .filter-dropdown { margin-bottom: 12px; }
+    .filter-dropdown-btn {
+      width: 100%; text-align: left; background: var(--bg-card); border: 1px solid var(--border);
+      padding: 8px 12px; border-radius: 4px; color: var(--text-primary); cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+    }
+    .filter-dropdown-content {
+      display: none; border: 1px solid var(--border); border-top: none;
+      background: var(--bg-card); padding: 8px; border-radius: 0 0 4px 4px;
+      max-height: 150px; overflow-y: auto;
+    }
+    .filter-dropdown-content.open { display: block; }
+    
+    .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; cursor: pointer; }
+    .filter-checkbox input { cursor: pointer; }
+    
+    /* Search inside dropdown */
+    .inner-search { width: 100%; padding: 4px 8px; font-size: 11px; margin-bottom: 8px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-primary); border-radius: 2px;}
+
+    /* Suggestion Note styling */
+    .suggestion-banner {
+      background: rgba(47, 129, 247, 0.1);
+      border: 1px solid var(--accent);
+      padding: 10px 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- VIEW 1: HOME PAGE -->
+  <div id="home-view">
+    <div class="home-banner">
+      <div class="company-logo">
+        <!-- Replaced text logo with ALigned logo.png -->
+        <img src="ALigned logo.png" alt="Aligned Automation Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'40\'%3E%3Crect width=\'150\' height=\'40\' fill=\'none\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'white\' font-family=\'sans-serif\' font-size=\'16\'%3EAligned Logo%3C/text%3E%3C/svg%3E'">
+      </div>
+      <h1>Supply Chain Goliath</h1>
+    </div>
+    
+    <div class="tiles-grid">
+      <div class="tile" onclick="openDashboard('data-quality')">
+        <i class="ti ti-database tile-icon"></i>
+        <div class="tile-title">Data Quality</div>
+      </div>
+      <div class="tile" onclick="openDashboard('demand-profiling')">
+        <i class="ti ti-chart-line tile-icon"></i>
+        <div class="tile-title">Demand Profiling</div>
+      </div>
+      <div class="tile" onclick="openDashboard('forecast-accuracy')">
+        <i class="ti ti-target tile-icon"></i>
+        <div class="tile-title">Forecast Accuracy</div>
+      </div>
+      <div class="tile" onclick="openDashboard('demand-alerts')">
+        <i class="ti ti-alert-circle tile-icon"></i>
+        <div class="tile-title">Demand Planning Alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: DASHBOARD -->
+  <div id="dashboard-view">
+    <div class="dash-header">
+      <div class="header-left">
+        <button class="btn-icon" onclick="toggleLeftPanel()"><i class="ti ti-menu-2"></i></button>
+        <span id="dash-title" style="font-weight: 600; font-size: 16px;">Supply Chain Goliath | Forecast Accuracy</span>
+      </div>
+      <div>
+        <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
+        <button class="btn-icon" onclick="toggleTheme()" title="Theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+        <button class="btn-icon" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-filter"></i></button>
+      </div>
+    </div>
+    
+    <div class="dash-body">
+      <!-- Left Panel (Accordion) -->
+      <div class="left-panel" id="left-panel">
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            Module Sections <i class="ti ti-chevron-down"></i>
+          </div>
+          <div class="accordion-content active" id="left-nav-links">
+            <!-- Dynamically populated based on selected module -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        
+        <!-- ======================= -->
+        <!-- MODULE: FORECAST ACCURACY -->
+        <!-- ======================= -->
+        <div id="module-forecast-accuracy" class="module-section active">
+          
+          <div class="suggestion-banner">
+            <i class="ti ti-info-circle" style="color: var(--accent); font-size: 18px;"></i>
+            <div><strong>UX Suggestion:</strong> We added a dynamic filter listener. Try changing filters on the right pane to see charts and KPIs instantly update! Also, replaced circular charts with a Horizontal Bar Chart for better data comparison.</div>
+          </div>
+
+          <!-- PAGE 1: Forecast Overview -->
+          <div id="fa-page-overview" class="page-section active">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Tech ASU</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Work Orders</div>
+                <div class="kpi-value kpi-dynamic">86.2K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Service Request</div>
+                <div class="kpi-value kpi-dynamic">32.1K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Forecast Demand SR</div>
+                <div class="kpi-value kpi-dynamic">8.4K</div>
+              </div>
+            </div>
+            
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title">Tech ASU vs Work Orders Trend</div>
+                <div style="flex:1; min-height: 250px;"><canvas id="fa-chart-overview"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title">Region Breakdown (Horizontal Bar)</div>
+                <!-- Replaced Donut Chart with Horizontal Bar as requested (No Pie Charts) -->
+                <div style="flex:1; min-height: 250px;"><canvas id="fa-chart-hbar"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGE 2: Weekly Actuals -->
+          <div id="fa-page-actuals" class="page-section">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly SR Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--success)">8.2K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Field ASU Actuals</div>
+                <div class="kpi-value kpi-dynamic">12.1K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly AVG MDR</div>
+                <div class="kpi-value kpi-dynamic">4.5%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">MDR Work Orders</div>
+                <div class="kpi-value kpi-dynamic">3.8K</div>
+              </div>
+            </div>
+            
+            <div class="visual-card">
+              <div class="visual-title">Weekly Actuals Data Matrix</div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Region</th>
+                      <th>LOB</th>
+                      <th>Week</th>
+                      <th>Weekly SR Actuals</th>
+                      <th>Weekly Field ASU Actuals</th>
+                      <th>Weekly Tech ASU</th>
+                      <th>Forecast Demand SR Actuals</th>
+                    </tr>
+                  </thead>
+                  <tbody id="actuals-table-body">
+                    <!-- Populated via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================= -->
+        <!-- MODULE: DATA QUALITY -->
+        <!-- ======================= -->
+        <div id="module-data-quality" class="module-section">
+          <!-- PAGE: Quality Metrics -->
+          <div id="dq-page-metrics" class="page-section active">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Data Completeness</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--success)">98.2%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Anomalies Detected</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--danger)">1,204</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Duplicate Records</div>
+                <div class="kpi-value kpi-dynamic">43</div>
+              </div>
+            </div>
+            <div class="visual-card" style="margin-bottom: 20px;">
+              <div class="visual-title">Data Anomaly Trend (Line Graph)</div>
+              <div style="flex:1; min-height: 250px;"><canvas id="dq-chart-line"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================= -->
+        <!-- MODULE: DEMAND PROFILING -->
+        <!-- ======================= -->
+        <div id="module-demand-profiling" class="module-section">
+          <!-- PAGE: Profiling Overview -->
+          <div id="dp-page-overview" class="page-section active">
+             <div class="visual-card" style="margin-bottom: 20px;">
+              <div class="visual-title">Demand by LOB (Stacked Bar)</div>
+              <div style="flex:1; min-height: 350px;"><canvas id="dp-chart-stacked"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================= -->
+        <!-- MODULE: DEMAND ALERTS -->
+        <!-- ======================= -->
+        <div id="module-demand-alerts" class="module-section">
+          <!-- PAGE: Alerts Log -->
+          <div id="da-page-log" class="page-section active">
+             <div class="visual-card" style="margin-bottom: 20px;">
+              <div class="visual-title">Recent High-Priority Alerts</div>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Severity</th>
+                    <th>Alert Description</th>
+                    <th>Trigger Date</th>
+                    <th>Region</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="color:var(--danger)">High</td><td>ASU variance exceeds 10% tolerance threshold</td><td>2026-06-02</td><td>AMER</td></tr>
+                  <tr><td style="color:var(--danger)">High</td><td>Missing data for LOB: Field Services W44</td><td>2026-06-03</td><td>EMEA</td></tr>
+                  <tr><td style="color:#d29922">Medium</td><td>Partner Alpha Tech SLA missed warning</td><td>2026-06-01</td><td>APAC</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Panel (Filters) -->
+      <div class="right-panel" id="right-panel">
+        <div class="filter-header">
+          <div><i class="ti ti-filter"></i> Filters</div>
+          <i class="ti ti-x" style="cursor:pointer;" onclick="toggleRightPanel()"></i>
+        </div>
+        
+        <div class="filter-search-box">
+          <input type="text" class="filter-search-input" placeholder="Search filters...">
+        </div>
+        
+        <div class="filter-list" id="filter-container">
+          <div style="font-size: 11px; font-weight:600; color:var(--text-secondary); margin-bottom:8px; margin-top:8px;">Filters on this page</div>
+          
+          <!-- Month Dropdown -->
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Fiscal Month</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <input type="text" class="inner-search" placeholder="Search month..." onkeyup="filterChecks(this)">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M1</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M2</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M3</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Week Dropdown -->
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Fiscal Week</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <input type="text" class="inner-search" placeholder="Search week (W1-W52)..." onkeyup="filterChecks(this)">
+              <div class="check-list filter-inputs" id="week-check-list">
+                <!-- JS populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Region Dropdown -->
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Region</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> AMER</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> EMEA</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> APAC</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <script>
+    // Theme
+    let isDark = true;
+    function toggleTheme() {
+      isDark = !isDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
+      
+      // Update all charts colors when theme switches
+      Object.values(chartInstances).forEach(chart => {
+        if(chart) chart.update();
+      });
+    }
+
+    // Module definitions (determines left nav links and which section to show)
+    const modules = {
+      'data-quality': {
+        title: 'Data Quality',
+        pages: [
+          { id: 'dq-page-metrics', label: 'Quality Metrics' }
+        ]
+      },
+      'demand-profiling': {
+        title: 'Demand Profiling',
+        pages: [
+          { id: 'dp-page-overview', label: 'Profiling Overview' }
+        ]
+      },
+      'forecast-accuracy': {
+        title: 'Forecast Accuracy',
+        pages: [
+          { id: 'fa-page-overview', label: 'Forecast Overview' },
+          { id: 'fa-page-actuals', label: 'Weekly Actuals' }
+        ]
+      },
+      'demand-alerts': {
+        title: 'Demand Planning Alerts',
+        pages: [
+          { id: 'da-page-log', label: 'Alerts Log' }
+        ]
+      }
+    };
+
+    let activeModule = '';
+
+    function openDashboard(moduleId) {
+      activeModule = moduleId;
+      document.getElementById('home-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'flex';
+      document.getElementById('dash-title').innerText = `Supply Chain Goliath | ${modules[moduleId].title}`;
+      
+      // Hide all modules, show selected
+      document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+      document.getElementById('module-' + moduleId).classList.add('active');
+
+      // Build left nav
+      const navContainer = document.getElementById('left-nav-links');
+      navContainer.innerHTML = '';
+      
+      modules[moduleId].pages.forEach((page, index) => {
+        const link = document.createElement('div');
+        link.className = 'nav-link' + (index === 0 ? ' active' : '');
+        link.innerText = page.label;
+        link.onclick = () => switchPage(page.id, link, moduleId);
+        navContainer.appendChild(link);
+      });
+
+      // Switch to first page of module
+      if(modules[moduleId].pages.length > 0) {
+        switchPage(modules[moduleId].pages[0].id, navContainer.firstChild, moduleId);
+      }
+
+      setTimeout(initCharts, 100);
+    }
+    
+    function goHome() {
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('home-view').style.display = 'flex';
+    }
+
+    function toggleLeftPanel() {
+      document.getElementById('left-panel').classList.toggle('collapsed');
+    }
+    
+    function toggleRightPanel() {
+      document.getElementById('right-panel').classList.toggle('collapsed');
+    }
+
+    function toggleAccordion(el) {
+      const content = el.nextElementSibling;
+      const icon = el.querySelector('i');
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+        icon.className = 'ti ti-chevron-down';
+      } else {
+        content.classList.add('active');
+        icon.className = 'ti ti-chevron-up';
+      }
+    }
+
+    function switchPage(pageId, linkEl, moduleId) {
+      // Hide pages only within active module
+      const moduleEl = document.getElementById('module-' + moduleId);
+      moduleEl.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+      
+      // Update nav styles
+      document.getElementById('left-nav-links').querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      
+      document.getElementById(pageId).classList.add('active');
+      linkEl.classList.add('active');
+    }
+
+    // Filters Dropdown Logic
+    function toggleDropdown(btn) {
+      const content = btn.nextElementSibling;
+      content.classList.toggle('open');
+    }
+    
+    function filterChecks(input) {
+      const filter = input.value.toUpperCase();
+      const labels = input.nextElementSibling.getElementsByTagName('label');
+      for (let i = 0; i < labels.length; i++) {
+        const txtValue = labels[i].textContent || labels[i].innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          labels[i].style.display = "";
+        } else {
+          labels[i].style.display = "none";
+        }
+      }
+    }
+
+    // Generate W1-W52 checkboxes
+    const weekList = document.getElementById('week-check-list');
+    let weekHtml = '<label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>';
+    for(let i=1; i<=15; i++) { // shortened for mock to save space
+      weekHtml += `<label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> W${i}</label>`;
+    }
+    weekList.innerHTML = weekHtml;
+
+    function generateTableData() {
+      const tbody = document.getElementById('actuals-table-body');
+      if(!tbody) return;
+      let tableHtml = '';
+      for(let i=1; i<=10; i++) {
+        tableHtml += `
+          <tr>
+            <td>${['AMER','EMEA','APAC'][Math.floor(Math.random()*3)]}</td>
+            <td>${['Field Services','Remote Support'][Math.floor(Math.random()*2)]}</td>
+            <td>W${Math.floor(Math.random()*52)+1}</td>
+            <td>${Math.floor(Math.random()*5000 + 1000)}</td>
+            <td>${Math.floor(Math.random()*8000 + 2000)}</td>
+            <td>${Math.floor(Math.random()*4000 + 500)}</td>
+            <td>${Math.floor(Math.random()*6000 + 1000)}</td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = tableHtml;
+    }
+    generateTableData();
+
+    // INTERACTIVITY: Simulating data update on filter change
+    function triggerDataUpdate() {
+      // 1. Update KPI numbers slightly
+      document.querySelectorAll('.kpi-dynamic').forEach(el => {
+        let currentTxt = el.innerText;
+        let isPercentage = currentTxt.includes('%');
+        let isK = currentTxt.includes('K');
+        
+        let baseNum = parseFloat(currentTxt.replace(/[^0-9.]/g, ''));
+        // random variance +/- 10%
+        let variance = 1 + ((Math.random() * 0.2) - 0.1); 
+        let newNum = baseNum * variance;
+
+        if(isPercentage) {
+          el.innerText = newNum.toFixed(1) + '%';
+        } else if (isK) {
+          el.innerText = newNum.toFixed(1) + 'K';
+        } else {
+          el.innerText = Math.round(newNum).toLocaleString();
+        }
+      });
+
+      // 2. Regenerate Table
+      generateTableData();
+
+      // 3. Update Charts with random data
+      if (chartInstances['fa-chart-overview']) {
+        const c = chartInstances['fa-chart-overview'];
+        c.data.datasets.forEach(ds => {
+          ds.data = ds.data.map(v => v * (1 + ((Math.random() * 0.4) - 0.2)));
+        });
+        c.update();
+      }
+      if (chartInstances['fa-chart-hbar']) {
+        const c = chartInstances['fa-chart-hbar'];
+        c.data.datasets.forEach(ds => {
+          ds.data = ds.data.map(v => Math.max(10, v * (1 + ((Math.random() * 0.4) - 0.2))));
+        });
+        c.update();
+      }
+      if (chartInstances['dq-chart-line']) {
+        const c = chartInstances['dq-chart-line'];
+        c.data.datasets[0].data = c.data.datasets[0].data.map(() => Math.floor(Math.random() * 200 + 50));
+        c.update();
+      }
+      if (chartInstances['dp-chart-stacked']) {
+         const c = chartInstances['dp-chart-stacked'];
+         c.data.datasets.forEach(ds => {
+           ds.data = ds.data.map(v => Math.max(50, v * (1 + ((Math.random() * 0.3) - 0.15))));
+         });
+         c.update();
+      }
+    }
+
+    // Charts Setup
+    Chart.defaults.color = '#8b949e';
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    const chartInstances = {};
+
+    function initCharts() {
+      // Destroy existing
+      Object.values(chartInstances).forEach(c => { if(c) c.destroy(); });
+
+      // Forecast Accuracy - Chart 1: Bar
+      const ctxFA1 = document.getElementById('fa-chart-overview');
+      if(ctxFA1) {
+        chartInstances['fa-chart-overview'] = new Chart(ctxFA1.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['M1','M2','M3','M4','M5','M6'],
+            datasets: [
+              { label: 'Forecast Tech ASU', data: [120, 135, 125, 145, 155, 140], backgroundColor: '#2f81f7' },
+              { label: 'Forecast Work Orders', data: [80, 90, 85, 95, 100, 90], backgroundColor: '#3fb950' }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // Forecast Accuracy - Chart 2: HORIZONTAL BAR (Replaced Pie/Donut)
+      const ctxFA2 = document.getElementById('fa-chart-hbar');
+      if(ctxFA2) {
+        chartInstances['fa-chart-hbar'] = new Chart(ctxFA2.getContext('2d'), {
+          type: 'bar', // bar with indexAxis 'y' makes it horizontal
+          data: {
+            labels: ['AMER','EMEA','APAC'],
+            datasets: [{ 
+              label: 'Total Spend/Volume',
+              data: [450, 300, 250], 
+              backgroundColor: ['#2f81f7', '#a371f7', '#3fb950'] 
+            }]
+          },
+          options: { 
+            indexAxis: 'y',
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+      }
+
+      // Data Quality - Chart: Line Graph
+      const ctxDQ = document.getElementById('dq-chart-line');
+      if(ctxDQ) {
+        chartInstances['dq-chart-line'] = new Chart(ctxDQ.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+            datasets: [{
+              label: 'Anomalies',
+              data: [120, 150, 90, 180, 110, 80, 100],
+              borderColor: '#f85149',
+              tension: 0.3, fill: false
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // Demand Profiling - Chart: Stacked Bar
+      const ctxDP = document.getElementById('dp-chart-stacked');
+      if(ctxDP) {
+        chartInstances['dp-chart-stacked'] = new Chart(ctxDP.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['North America', 'LATAM', 'Western Europe', 'Asia'],
+            datasets: [
+              { label: 'Field Services', data: [300, 150, 200, 100], backgroundColor: '#2f81f7' },
+              { label: 'Remote Support', data: [200, 100, 150, 80], backgroundColor: '#a371f7' },
+              { label: 'Managed Services', data: [100, 50, 80, 40], backgroundColor: '#3fb950' }
+            ]
+          },
+          options: { 
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } }
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
