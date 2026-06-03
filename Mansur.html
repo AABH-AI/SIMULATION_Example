@@ -106,28 +106,35 @@ select:focus,input:focus{border-color:var(--accent)}
     </div>
 
     <div style="padding:10px 10px 0">
-      <div class="filter-group">
-        <div class="filter-label">Fiscal Year</div>
-        <select id="f-year"><option>FY2026</option><option>FY2025</option><option>FY2024</option></select>
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Fiscal Quarter</div>
-        <select id="f-qtr"><option>All Quarters</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Month</div>
-        <select id="f-month"><option>All Months</option><option>Jan</option><option>Feb</option><option>Mar</option><option>Apr</option><option>May</option><option>Jun</option></select>
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Line of Business</div>
-        <select id="f-lob"><option>All LOBs</option><option>Field Services</option><option>Remote Support</option><option>Managed Services</option></select>
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Region</div>
-        <select id="f-region"><option>All Regions</option><option>APAC</option><option>EMEA</option><option>AMER</option></select>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Region</div>
+      <select id="f-region"><option>All Regions</option><option>APAC</option><option>EMEA</option><option>AMER</option></select>
+        <div class="filter-group">
+          <div>
+
+          </div>
+          <div class="filter-label">Line of Business</div>
+          <select id="f-lob"><option>All LOBs</option><option>Field Services</option><option>Remote Support</option><option>Managed Services</option></select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Fiscal Year</div>
+          <select id="f-year"><option>FY2027</option><option>FY2026</option><option>FY2025</option><option>FY2024</option></select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Fiscal Quarter</div>
+          <select id="f-qtr"><option>All Quarters</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Fiscal Month</div>
+          <select id="f-month"><option>All Months</option><option>M1</option><option>M2</option><option>M3</option><option>M4</option><option>M5</option><option>M6</option><option>M7</option><option>M8</option><option>M9</option><option>M10</option><option>M11</option><option>M12</option></select>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">Fiscal Week</div>
+          <select id="f-week"><option>All Weeks</option><option>W1</option><option>W2</option><option>W3</option><option>W4</option><option>W5</option><option>W6</option><option>W7</option><option>W8</option><option>W9</option><option>W10</option><option>W11</option><option>W12</option><option>W13</option><option>W14</option><option>W15</option><option>W16</option><option>W17</option><option>W18</option><option>W19</option><option>W20</option><option>W21</option><option>W22</option><option>W23</option><option>W24</option><option>W25</option><option>W26</option><option>W27</option><option>W28</option><option>W29</option><option>W30</option><option>W31</option><option>W32</option><option>W33</ option><Option>W34</Option><Option>W35</Option><Option>W36</Option><Option>W37</Option><Option>W38</Option><Option>W39</Option><Option>W40</Option><Option>W41</Option><Option>W42</Option><option>W43</option><option>W44</option><option>W45</option><option>W46</option><option>W47</option><option>W48</option><option>W49</option><option>W50</option><option>W51</option><option>W52</option></select>
+        </div>
       </div>
       <button class="reset-btn" onclick="resetFilters()"><i class="ti ti-refresh" style="font-size:13px"></i> Reset All Filters</button>
-    </div>
 
     <div class="sidebar-divider"></div>
 
