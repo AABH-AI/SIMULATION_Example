@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <!-- Optional library for PDF export if desired later -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       /* Dark Theme */
@@ -98,6 +100,13 @@
     .btn-icon { background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 18px; padding: 6px; border-radius: 4px; }
     .btn-icon:hover { background: var(--bg-hover); }
     
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border); color: var(--text-primary);
+      padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn-outline:hover { background: var(--bg-hover); border-color: var(--text-secondary); }
+
     /* --- DASHBOARD LAYOUT --- */
     .dash-body { display: flex; flex: 1; overflow: hidden; }
     
@@ -152,6 +161,23 @@
     .page-section.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* AI Insights Banner */
+    .ai-insights-banner {
+      background: linear-gradient(90deg, rgba(47, 129, 247, 0.1), rgba(163, 113, 247, 0.1));
+      border: 1px solid rgba(163, 113, 247, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .ai-icon { color: #a371f7; font-size: 24px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    .ai-content h4 { font-size: 14px; margin-bottom: 6px; color: #a371f7; }
+    .ai-content ul { padding-left: 20px; font-size: 13px; line-height: 1.5; color: var(--text-primary); }
+    .ai-content li { margin-bottom: 4px; }
+
     /* KPI Grid */
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
     .kpi-card {
@@ -178,14 +204,14 @@
       display: flex;
       flex-direction: column;
     }
-    .visual-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .visual-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
     table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .data-table th { background: var(--bg-hover); color: var(--text-secondary); padding: 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap;}
     .data-table td { padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap;}
     .data-table tr:hover td { background: var(--bg-hover); }
 
-    /* Right Filter Panel (Power BI Style) */
+    /* Right Filter Panel */
     .right-panel {
       width: 280px;
       background: var(--bg-panel);
@@ -235,10 +261,8 @@
     
     .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; cursor: pointer; }
     .filter-checkbox input { cursor: pointer; }
-    
     .inner-search { width: 100%; padding: 4px 8px; font-size: 11px; margin-bottom: 8px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-primary); border-radius: 2px;}
 
-    /* Special Elements */
     .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; }
     .badge-high { background: rgba(248,81,73,0.2); color: var(--danger); }
     .badge-good { background: rgba(63,185,80,0.2); color: var(--success); }
@@ -284,7 +308,13 @@
         <span id="dash-title" style="font-weight: 600; font-size: 16px;">Supply Chain Goliath | Forecast Accuracy</span>
         <span class="badge" style="background:var(--accent); color:white; margin-left:10px;" id="global-context">FY26 | M1-M3 | All Regions</span>
       </div>
-      <div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <!-- Export Controls -->
+        <button class="btn-outline" onclick="exportToCSV()" title="Export raw data to CSV">
+          <i class="ti ti-file-spreadsheet"></i> Export CSV
+        </button>
+        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px;"></div>
+        
         <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
         <button class="btn-icon" onclick="toggleTheme()" title="Theme"><i class="ti ti-moon" id="theme-icon"></i></button>
         <button class="btn-icon" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-filter"></i></button>
@@ -305,20 +335,33 @@
       </div>
 
       <!-- Main Content -->
-      <div class="main-content">
+      <div class="main-content" id="exportable-area">
         
         <!-- ======================= -->
         <!-- MODULE: FORECAST ACCURACY -->
         <!-- ======================= -->
         <div id="module-forecast-accuracy" class="module-section active">
           
+          <!-- AI Insights Banner (Aggregated Logic) -->
+          <div class="ai-insights-banner">
+            <i class="ti ti-sparkles ai-icon"></i>
+            <div class="ai-content">
+              <h4>Smart Executive Insights (Generated on Filter Change)</h4>
+              <ul id="dynamic-insights">
+                <li><strong style="color:var(--danger)">Alert:</strong> Forecast Service Request variance is trending -1.5% below expected levels in AMER.</li>
+                <li><strong style="color:var(--success)">Positive:</strong> Forecast Tech ASU is outperforming last year's baseline by 4.0%.</li>
+                <li><strong>Observation:</strong> Omega Sys has the highest concentration of MDR Work Orders (850) this quarter.</li>
+              </ul>
+            </div>
+          </div>
+
           <!-- PAGE 1: Forecast Overview -->
           <div id="fa-page-overview" class="page-section active">
             <div class="kpi-row">
               <div class="kpi-card">
                 <div class="kpi-label">Forecast Tech ASU</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div>
-                <div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 4% vs PY</div>
+                <div class="kpi-value kpi-dynamic" id="kpi-tech-asu" style="color:var(--accent)">142.5K</div>
+                <div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 4.0% vs PY</div>
               </div>
               <div class="kpi-card">
                 <div class="kpi-label">Forecast Work Orders</div>
@@ -327,7 +370,7 @@
               </div>
               <div class="kpi-card">
                 <div class="kpi-label">Forecast Service Request</div>
-                <div class="kpi-value kpi-dynamic">32.1K</div>
+                <div class="kpi-value kpi-dynamic" id="kpi-srv-req">32.1K</div>
                 <div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div>
               </div>
               <div class="kpi-card">
@@ -370,9 +413,11 @@
             </div>
             
             <div class="visual-card">
-              <div class="visual-title">Raw Data Matrix: Actuals vs Forecast</div>
+              <div class="visual-title">
+                <span>Raw Data Matrix: Actuals vs Forecast</span>
+              </div>
               <div style="overflow-x:auto;">
-                <table class="data-table">
+                <table class="data-table" id="exportable-table">
                   <thead>
                     <tr>
                       <th>Region</th>
@@ -444,73 +489,6 @@
 
         </div>
 
-        <!-- ======================= -->
-        <!-- MODULE: DATA QUALITY -->
-        <!-- ======================= -->
-        <div id="module-data-quality" class="module-section">
-          <!-- PAGE: Quality Metrics -->
-          <div id="dq-page-metrics" class="page-section active">
-            <div class="kpi-row">
-              <div class="kpi-card">
-                <div class="kpi-label">Data Completeness</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--success)">98.2%</div>
-              </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Anomalies Detected</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--danger)">1,204</div>
-              </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Duplicate Records</div>
-                <div class="kpi-value kpi-dynamic">43</div>
-              </div>
-            </div>
-            <div class="visual-card" style="margin-bottom: 20px;">
-              <div class="visual-title">Data Anomaly Trend (Line Graph)</div>
-              <div style="flex:1; min-height: 250px;"><canvas id="dq-chart-line"></canvas></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ======================= -->
-        <!-- MODULE: DEMAND PROFILING -->
-        <!-- ======================= -->
-        <div id="module-demand-profiling" class="module-section">
-          <!-- PAGE: Profiling Overview -->
-          <div id="dp-page-overview" class="page-section active">
-             <div class="visual-card" style="margin-bottom: 20px;">
-              <div class="visual-title">Demand by LOB (Stacked Bar)</div>
-              <div style="flex:1; min-height: 350px;"><canvas id="dp-chart-stacked"></canvas></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ======================= -->
-        <!-- MODULE: DEMAND ALERTS -->
-        <!-- ======================= -->
-        <div id="module-demand-alerts" class="module-section">
-          <!-- PAGE: Alerts Log -->
-          <div id="da-page-log" class="page-section active">
-             <div class="visual-card" style="margin-bottom: 20px;">
-              <div class="visual-title">Recent High-Priority Alerts</div>
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Severity</th>
-                    <th>Alert Description</th>
-                    <th>Trigger Date</th>
-                    <th>Region</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td><span class="badge badge-high">High</span></td><td>ASU variance exceeds 10% tolerance threshold</td><td>2026-06-02</td><td>AMER</td></tr>
-                  <tr><td><span class="badge badge-high">High</span></td><td>Missing data for LOB: Field Services W44</td><td>2026-06-03</td><td>EMEA</td></tr>
-                  <tr><td><span class="badge" style="background:var(--accent); color:white;">Medium</span></td><td>Partner Alpha Tech SLA missed warning</td><td>2026-06-01</td><td>APAC</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- Right Panel (Filters) -->
@@ -579,11 +557,11 @@
             </div>
             <div class="filter-dropdown-content">
               <div class="check-list filter-inputs">
-                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> AMER (North America)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> AMER (LATAM)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> EMEA (Western Europe)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> APAC</label>
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate('Region')"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('AMER')"> AMER (North America)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('AMER')"> AMER (LATAM)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('EMEA')"> EMEA (Western Europe)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('APAC')"> APAC</label>
               </div>
             </div>
           </div>
@@ -604,37 +582,6 @@
             </div>
           </div>
 
-          <div class="filter-dropdown">
-            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
-              <span>Location Name</span> <i class="ti ti-chevron-down"></i>
-            </div>
-            <div class="filter-dropdown-content">
-              <input type="text" class="inner-search" placeholder="Search location..." onkeyup="filterChecks(this)">
-              <div class="check-list filter-inputs">
-                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> New York Hub</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> London HQ</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Tokyo Base</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Austin DC</label>
-              </div>
-            </div>
-          </div>
-
-          <div class="filter-dropdown">
-            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
-              <span>Queue Name & Bus Reporting</span> <i class="ti ti-chevron-down"></i>
-            </div>
-            <div class="filter-dropdown-content">
-              <div class="check-list filter-inputs">
-                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Queue_Alpha</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Queue_Beta</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> BR_Direct</label>
-                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> BR_Indirect</label>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
       
@@ -648,40 +595,22 @@
       isDark = !isDark;
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
       document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
-      
-      Object.values(chartInstances).forEach(chart => {
-        if(chart) chart.update();
-      });
+      Object.values(chartInstances).forEach(chart => { if(chart) chart.update(); });
     }
 
-    // Module definitions (determines left nav links and which section to show)
+    // Module definitions
     const modules = {
-      'data-quality': {
-        title: 'Data Quality',
-        pages: [
-          { id: 'dq-page-metrics', label: 'Quality Metrics' }
-        ]
-      },
-      'demand-profiling': {
-        title: 'Demand Profiling',
-        pages: [
-          { id: 'dp-page-overview', label: 'Profiling Overview' }
-        ]
-      },
-      'forecast-accuracy': {
-        title: 'Forecast Accuracy',
+      'data-quality': { title: 'Data Quality', pages: [ { id: 'dq-page-metrics', label: 'Quality Metrics' } ] },
+      'demand-profiling': { title: 'Demand Profiling', pages: [ { id: 'dp-page-overview', label: 'Profiling Overview' } ] },
+      'forecast-accuracy': { 
+        title: 'Forecast Accuracy', 
         pages: [
           { id: 'fa-page-overview', label: 'Forecast Overview' },
           { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
           { id: 'fa-page-partner', label: 'Location & Partner View' }
-        ]
+        ] 
       },
-      'demand-alerts': {
-        title: 'Demand Planning Alerts',
-        pages: [
-          { id: 'da-page-log', label: 'Alerts Log' }
-        ]
-      }
+      'demand-alerts': { title: 'Demand Planning Alerts', pages: [ { id: 'da-page-log', label: 'Alerts Log' } ] }
     };
 
     let activeModule = '';
@@ -692,11 +621,10 @@
       document.getElementById('dashboard-view').style.display = 'flex';
       document.getElementById('dash-title').innerText = `Supply Chain Goliath | ${modules[moduleId].title}`;
       
-      // Hide all modules, show selected
       document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
-      document.getElementById('module-' + moduleId).classList.add('active');
+      const activeModEl = document.getElementById('module-' + moduleId);
+      if(activeModEl) activeModEl.classList.add('active');
 
-      // Build left nav
       const navContainer = document.getElementById('left-nav-links');
       navContainer.innerHTML = '';
       
@@ -708,7 +636,6 @@
         navContainer.appendChild(link);
       });
 
-      // Switch to first page of module
       if(modules[moduleId].pages.length > 0) {
         switchPage(modules[moduleId].pages[0].id, navContainer.firstChild, moduleId);
       }
@@ -721,13 +648,8 @@
       document.getElementById('home-view').style.display = 'flex';
     }
 
-    function toggleLeftPanel() {
-      document.getElementById('left-panel').classList.toggle('collapsed');
-    }
-    
-    function toggleRightPanel() {
-      document.getElementById('right-panel').classList.toggle('collapsed');
-    }
+    function toggleLeftPanel() { document.getElementById('left-panel').classList.toggle('collapsed'); }
+    function toggleRightPanel() { document.getElementById('right-panel').classList.toggle('collapsed'); }
 
     function toggleAccordion(el) {
       const content = el.nextElementSibling;
@@ -743,8 +665,8 @@
 
     function switchPage(pageId, linkEl, moduleId) {
       const moduleEl = document.getElementById('module-' + moduleId);
+      if(!moduleEl) return;
       moduleEl.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-      
       document.getElementById('left-nav-links').querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       
       document.getElementById(pageId).classList.add('active');
@@ -752,30 +674,19 @@
     }
 
     // Filters Dropdown Logic
-    function toggleDropdown(btn) {
-      const content = btn.nextElementSibling;
-      content.classList.toggle('open');
-    }
-    
+    function toggleDropdown(btn) { btn.nextElementSibling.classList.toggle('open'); }
     function filterChecks(input) {
       const filter = input.value.toUpperCase();
       const labels = input.nextElementSibling.getElementsByTagName('label');
       for (let i = 0; i < labels.length; i++) {
         const txtValue = labels[i].textContent || labels[i].innerText;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-          labels[i].style.display = "";
-        } else {
-          labels[i].style.display = "none";
-        }
+        labels[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
       }
     }
 
-    // Generate W1-W52 checkboxes
     const weekList = document.getElementById('week-check-list');
     let weekHtml = '<label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>';
-    for(let i=1; i<=52; i++) {
-      weekHtml += `<label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> W${i}</label>`;
-    }
+    for(let i=1; i<=52; i++) { weekHtml += `<label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> W${i}</label>`; }
     weekList.innerHTML = weekHtml;
 
     function generateTableData() {
@@ -800,54 +711,59 @@
         }
         tbody1.innerHTML = tableHtml;
       }
-
-      const tbody2 = document.getElementById('partner-table-body');
-      if(tbody2) {
-        let pTableHtml = '';
-        const partners = ['Alpha Tech', 'Omega Sys', 'Sigma Global', 'Delta Services'];
-        const locs = ['New York Hub', 'London HQ', 'Tokyo Base', 'Austin DC'];
-        const queues = ['Queue_Alpha', 'Queue_Beta', 'Queue_Delta'];
-        const brs = ['BR_Direct', 'BR_Indirect'];
-        for(let i=1; i<=8; i++) {
-          pTableHtml += `
-            <tr>
-              <td>${locs[Math.floor(Math.random()*locs.length)]}</td>
-              <td>${partners[Math.floor(Math.random()*partners.length)]}</td>
-              <td>${queues[Math.floor(Math.random()*queues.length)]}</td>
-              <td>${brs[Math.floor(Math.random()*brs.length)]}</td>
-              <td>${(Math.random()*8 + 1).toFixed(1)}%</td>
-            </tr>
-          `;
-        }
-        tbody2.innerHTML = pTableHtml;
-      }
     }
     generateTableData();
 
-    // INTERACTIVITY: Simulating data update on filter change
-    function triggerDataUpdate() {
+    // INTERACTIVITY: Client-side "AI" Logic & Updates
+    function triggerDataUpdate(regionHint) {
       document.getElementById('global-context').innerText = 'Custom Filtered View';
       
+      // Update KPIs
       document.querySelectorAll('.kpi-dynamic').forEach(el => {
         let currentTxt = el.innerText;
         let isPercentage = currentTxt.includes('%');
         let isK = currentTxt.includes('K');
-        
         let baseNum = parseFloat(currentTxt.replace(/[^0-9.]/g, ''));
-        let variance = 1 + ((Math.random() * 0.2) - 0.1); 
+        let variance = 1 + ((Math.random() * 0.3) - 0.15); 
         let newNum = baseNum * variance;
 
-        if(isPercentage) {
-          el.innerText = newNum.toFixed(1) + '%';
-        } else if (isK) {
-          el.innerText = newNum.toFixed(1) + 'K';
-        } else {
-          el.innerText = Math.round(newNum).toLocaleString();
-        }
+        if(isPercentage) el.innerText = newNum.toFixed(1) + '%';
+        else if (isK) el.innerText = newNum.toFixed(1) + 'K';
+        else el.innerText = Math.round(newNum).toLocaleString();
       });
 
       generateTableData();
 
+      // Rule-based "Smart Insights" (No backend required)
+      const insightList = document.getElementById('dynamic-insights');
+      if(insightList) {
+        let techAsuVal = parseFloat(document.getElementById('kpi-tech-asu').innerText);
+        let srvReqVal = parseFloat(document.getElementById('kpi-srv-req').innerText);
+        let regionText = regionHint ? regionHint : "selected regions";
+        
+        let insightsHTML = '';
+        
+        if (techAsuVal > 140) {
+          insightsHTML += `<li><strong style="color:var(--success)">Positive:</strong> Forecast Tech ASU is performing well above the 140K benchmark across ${regionText}.</li>`;
+        } else {
+          insightsHTML += `<li><strong style="color:var(--danger)">Alert:</strong> Forecast Tech ASU has dropped below the 140K threshold. Consider adjusting capacity planning.</li>`;
+        }
+
+        if (srvReqVal < 30) {
+          insightsHTML += `<li><strong style="color:var(--danger)">Alert:</strong> Forecast Service Request is trending anomalously low (${srvReqVal}K). Check data completeness.</li>`;
+        } else {
+          insightsHTML += `<li><strong style="color:var(--success)">Stable:</strong> Service Request volumes are within normal historical bounds.</li>`;
+        }
+
+        // Random partner insight
+        const partners = ['Alpha Tech', 'Omega Sys', 'Delta Services'];
+        const randomPartner = partners[Math.floor(Math.random()*partners.length)];
+        insightsHTML += `<li><strong>Observation:</strong> Watch out for ${randomPartner} - they show the highest variation in MDR Work Orders this cycle.</li>`;
+
+        insightList.innerHTML = insightsHTML;
+      }
+
+      // Update Charts
       if (chartInstances['fa-chart-overview']) {
         const c = chartInstances['fa-chart-overview'];
         c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => v * (1 + ((Math.random() * 0.4) - 0.2))); });
@@ -858,21 +774,36 @@
         c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => Math.max(10, v * (1 + ((Math.random() * 0.4) - 0.2)))); });
         c.update();
       }
-      if (chartInstances['fa-chart-partner']) {
-        const c = chartInstances['fa-chart-partner'];
-        c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => Math.max(10, v * (1 + ((Math.random() * 0.4) - 0.2)))); });
-        c.update();
+    }
+
+    // CSV Export functionality (Client-Side)
+    function exportToCSV() {
+      const table = document.getElementById('exportable-table');
+      if(!table) {
+        alert("Please open a page with a data matrix to export.");
+        return;
       }
-      if (chartInstances['dq-chart-line']) {
-        const c = chartInstances['dq-chart-line'];
-        c.data.datasets[0].data = c.data.datasets[0].data.map(() => Math.floor(Math.random() * 200 + 50));
-        c.update();
-      }
-      if (chartInstances['dp-chart-stacked']) {
-         const c = chartInstances['dp-chart-stacked'];
-         c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => Math.max(50, v * (1 + ((Math.random() * 0.3) - 0.15)))); });
-         c.update();
-      }
+      
+      let csvContent = "data:text/csv;charset=utf-8,";
+      const rows = table.querySelectorAll('tr');
+      
+      rows.forEach((row) => {
+        const cols = row.querySelectorAll('th, td');
+        const rowData = Array.from(cols).map(col => {
+          // Clean text (remove newlines, escape quotes)
+          let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
+          return `"${text}"`;
+        }).join(",");
+        csvContent += rowData + "\r\n";
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "Supply_Chain_Goliath_Export.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
 
     // Charts Setup
@@ -910,48 +841,6 @@
             ]
           },
           options: { responsive: true, maintainAspectRatio: false }
-        });
-      }
-
-      const ctxFA3 = document.getElementById('fa-chart-partner');
-      if(ctxFA3) {
-        chartInstances['fa-chart-partner'] = new Chart(ctxFA3.getContext('2d'), {
-          type: 'bar', 
-          data: {
-            labels: ['Alpha Tech','Omega Sys','Sigma Global','Delta Serv'],
-            datasets: [
-              { label: 'MDR Work Orders', data: [1200, 850, 600, 450], backgroundColor: '#a371f7' }
-            ]
-          },
-          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
-        });
-      }
-
-      const ctxDQ = document.getElementById('dq-chart-line');
-      if(ctxDQ) {
-        chartInstances['dq-chart-line'] = new Chart(ctxDQ.getContext('2d'), {
-          type: 'line',
-          data: {
-            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            datasets: [{ label: 'Anomalies', data: [120, 150, 90, 180, 110, 80, 100], borderColor: '#f85149', tension: 0.3, fill: false }]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
-      }
-
-      const ctxDP = document.getElementById('dp-chart-stacked');
-      if(ctxDP) {
-        chartInstances['dp-chart-stacked'] = new Chart(ctxDP.getContext('2d'), {
-          type: 'bar',
-          data: {
-            labels: ['North America', 'LATAM', 'Western Europe', 'Asia'],
-            datasets: [
-              { label: 'Field Services', data: [300, 150, 200, 100], backgroundColor: '#2f81f7' },
-              { label: 'Remote Support', data: [200, 100, 150, 80], backgroundColor: '#a371f7' },
-              { label: 'Managed Services', data: [100, 50, 80, 40], backgroundColor: '#3fb950' }
-            ]
-          },
-          options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
         });
       }
     }
