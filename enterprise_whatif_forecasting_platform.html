@@ -2,32 +2,71 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans)}
-:root{--sb:220px;--top:52px;--acc:#1a6edb;--acc2:#0ea5e9;--dk:#0f1623;--dkb:#1a2436;--dkc:#243044;--dkd:#2d3c52;--txt:#e8edf5;--txt2:#94a8c4;--g1:#22c55e;--r1:#ef4444;--am:#f59e0b;--card:var(--color-background-primary);--brd:var(--color-border-tertiary)}
+:root{
+  --sb:220px;
+  --top:52px;
+  --bg-main:#0d1117;
+  --bg-panel:#161b22;
+  --bg-card:#21262d;
+  --bg-hover:#30363d;
+  --text-primary:#f0f6fc;
+  --text-secondary:#8b949e;
+  --border:#30363d;
+  --acc:#2f81f7;
+  --acc2:#0ea5e9;
+  --left-panel-bg:#002244;
+  --left-panel-hover:#003366;
+  --success:#3fb950;
+  --danger:#f85149;
+  --warning:#d29922;
+  --g1:#22c55e;
+  --r1:#ef4444;
+  --am:#f59e0b;
+  --dk:#0f1623;
+  --dkb:#1a2436;
+  --dkc:#243044;
+  --dkd:#2d3c52;
+  --txt:#f0f6fc;
+  --txt2:#8b949e;
+  --color-background-primary:#161b22;
+  --color-background-secondary:#21262d;
+  --color-background-tertiary:#0d1117;
+  --color-text-primary:#f0f6fc;
+  --color-text-secondary:#8b949e;
+  --color-text-tertiary:#6b7280;
+  --color-border-primary:#30363d;
+  --color-border-secondary:#30363d;
+  --color-border-tertiary:#30363d;
+  --border-radius-lg:12px;
+  --border-radius-md:8px;
+  --card:var(--color-background-primary);
+  --brd:var(--color-border-tertiary)
+}
 </style>
 
 <div id="app" style="display:flex;height:calc(100vh - 20px);min-height:700px;overflow:hidden;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);font-size:13px;">
 
 <!-- SIDEBAR -->
-<div id="sidebar" style="width:var(--sb);background:#0f1623;display:flex;flex-direction:column;flex-shrink:0;transition:width .25s;overflow:hidden;">
+<div id="sidebar" style="width:var(--sb);background:var(--left-panel-bg);display:flex;flex-direction:column;flex-shrink:0;transition:width .25s;overflow:hidden;">
   <div style="padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07);">
     <div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:28px;height:28px;background:linear-gradient(135deg,#1a6edb,#0ea5e9);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <div style="width:28px;height:28px;background:linear-gradient(135deg,#2f81f7,#0ea5e9);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <i class="ti ti-chart-dots" style="color:#fff;font-size:14px;" aria-hidden="true"></i>
       </div>
       <div id="logotext">
-        <div style="color:#e8edf5;font-size:13px;font-weight:500;line-height:1.2;">ForecastIQ</div>
-        <div style="color:#4a6080;font-size:10px;">Enterprise Edition</div>
+        <div style="color:#f0f6fc;font-size:13px;font-weight:500;line-height:1.2;">ForecastIQ</div>
+        <div style="color:#8b949e;font-size:10px;">Enterprise Edition</div>
       </div>
     </div>
   </div>
   <div style="padding:8px 8px;overflow-y:auto;flex:1;">
-    <div style="color:#4a6080;font-size:10px;font-weight:500;padding:8px 8px 4px;letter-spacing:.08em;text-transform:uppercase;" class="sbsec">Planning</div>
+    <div style="color:#8b949e;font-size:10px;font-weight:500;padding:8px 8px 4px;letter-spacing:.08em;text-transform:uppercase;" class="sbsec">Planning</div>
     <div id="nav-items"></div>
   </div>
   <div style="padding:12px;border-top:1px solid rgba(255,255,255,.07);">
     <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;" onmouseenter="this.style.background='rgba(255,255,255,.06)'" onmouseleave="this.style.background='transparent'">
-      <div style="width:26px;height:26px;border-radius:50%;background:#1a3a5c;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#5ea3f0;flex-shrink:0;">AR</div>
-      <div id="usertext"><div style="color:#94a8c4;font-size:12px;">Arnav R.</div><div style="color:#4a6080;font-size:10px;">Forecast Admin</div></div>
+      <div style="width:26px;height:26px;border-radius:50%;background:#003366;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#2f81f7;flex-shrink:0;">AR</div>
+      <div id="usertext"><div style="color:#f0f6fc;font-size:12px;">Arnav R.</div><div style="color:#8b949e;font-size:10px;">Forecast Admin</div></div>
     </div>
   </div>
 </div>
@@ -44,7 +83,7 @@ body{font-family:var(--font-sans)}
     <div style="height:20px;width:1px;background:var(--color-border-tertiary);flex-shrink:0;"></div>
     <div id="filters" style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow-x:auto;padding:4px 0;"></div>
     <div style="margin-left:auto;display:flex;gap:6px;flex-shrink:0;">
-      <button id="pub-btn" onclick="handlePublish()" style="background:#1a6edb;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;">
+      <button id="pub-btn" onclick="handlePublish()" style="background:#2f81f7;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;">
         <i class="ti ti-rocket" aria-hidden="true"></i> Publish
       </button>
     </div>
@@ -63,11 +102,11 @@ body{font-family:var(--font-sans)}
       <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div style="font-weight:500;font-size:14px;color:var(--color-text-primary);">Simulation Controls</div>
-          <div id="scenario-badge" style="background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Expected</div>
+          <div id="scenario-badge" style="background:rgba(47,129,247,0.15);color:#2f81f7;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Expected</div>
         </div>
         <div id="sliders-area"></div>
         <!-- IMPACT EXPLAINER -->
-        <div id="impact-box" style="margin-top:12px;background:var(--color-background-secondary);border-radius:8px;padding:12px;border-left:3px solid #1a6edb;"></div>
+        <div id="impact-box" style="margin-top:12px;background:var(--color-background-secondary);border-radius:8px;padding:12px;border-left:3px solid #2f81f7;"></div>
       </div>
 
       <!-- PIPELINE -->
@@ -128,8 +167,8 @@ body{font-family:var(--font-sans)}
       <!-- AI INSIGHTS -->
       <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
-          <div style="width:22px;height:22px;background:#dbeafe;border-radius:5px;display:flex;align-items:center;justify-content:center;">
-            <i class="ti ti-brain" style="font-size:12px;color:#1e40af;" aria-hidden="true"></i>
+          <div style="width:22px;height:22px;background:rgba(47,129,247,0.15);border-radius:5px;display:flex;align-items:center;justify-content:center;">
+            <i class="ti ti-brain" style="font-size:12px;color:#2f81f7;" aria-hidden="true"></i>
           </div>
           <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);">AI Forecast Insights</div>
         </div>
@@ -155,7 +194,7 @@ body{font-family:var(--font-sans)}
         <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:12px;">Forecast Publish Center</div>
         <div id="publish-readiness" style="margin-bottom:12px;"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="pub-actions">
-          <button onclick="handlePublish()" style="background:#1a6edb;color:#fff;border:none;padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-rocket" aria-hidden="true"></i> Publish</button>
+          <button onclick="handlePublish()" style="background:#2f81f7;color:#fff;border:none;padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-rocket" aria-hidden="true"></i> Publish</button>
           <button onclick="alert('Excel export queued!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-table-export" aria-hidden="true"></i> Export Excel</button>
           <button onclick="alert('PDF generation started!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> Export PDF</button>
           <button onclick="alert('Report shared with leadership!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-share" aria-hidden="true"></i> Share</button>
@@ -208,10 +247,10 @@ const SLIDERS = [
 
 const SCENARIOS = [
   {id:'conservative',label:'Conservative',renewal:78,growth:-5,modifier:-8,srint:0.9,disp:55,color:'#6b7280'},
-  {id:'expected',label:'Expected',renewal:85,growth:12,modifier:0,srint:1.2,disp:62,color:'#1a6edb'},
-  {id:'aggressive',label:'Aggressive',renewal:92,growth:28,modifier:10,srint:1.5,disp:72,color:'#16a34a'},
+  {id:'expected',label:'Expected',renewal:85,growth:12,modifier:0,srint:1.2,disp:62,color:'#2f81f7'},
+  {id:'aggressive',label:'Aggressive',renewal:92,growth:28,modifier:10,srint:1.5,disp:72,color:'#3fb950'},
   {id:'executive',label:'Executive Stretch',renewal:96,growth:38,modifier:15,srint:1.8,disp:80,color:'#9333ea'},
-  {id:'worst',label:'Worst Case',renewal:62,growth:-20,modifier:-18,srint:0.6,disp:40,color:'#ef4444'},
+  {id:'worst',label:'Worst Case',renewal:62,growth:-20,modifier:-18,srint:0.6,disp:40,color:'#f85149'},
 ];
 
 const QUARTERS = ['Q1','Q2','Q3','Q4','Q1 Fwd','Q2 Fwd'];
@@ -246,8 +285,8 @@ function computeForecasts(st){
 function renderNav(){
   const c=document.getElementById('nav-items');
   c.innerHTML=NAV_ITEMS.map(n=>`
-    <div onclick="setNav('${n.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background .15s;${n.id===activeNav?'background:rgba(26,110,219,.25);':''}color:${n.id===activeNav?'#7db8f7':'#94a8c4'}" 
-    onmouseenter="this.style.background='rgba(255,255,255,.07)'" onmouseleave="this.style.background='${n.id===activeNav?'rgba(26,110,219,.25)':'transparent'}'">
+    <div onclick="setNav('${n.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background .15s;${n.id===activeNav?'background:rgba(47,129,247,.25);':''}color:${n.id===activeNav?'#2f81f7':'#8b949e'}" 
+    onmouseenter="this.style.background='rgba(255,255,255,.07)'" onmouseleave="this.style.background='${n.id===activeNav?'rgba(47,129,247,.25)':'transparent'}'">
       <i class="ti ${n.icon}" style="font-size:14px;flex-shrink:0;" aria-hidden="true"></i>
       <span class="navlabel" style="font-size:12px;white-space:nowrap;overflow:hidden;">${n.label}</span>
     </div>`).join('');
@@ -271,15 +310,15 @@ function renderKPIs(){
   const fc=computeForecasts(state);
   const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
   const kpis=[
-    {label:'Base ASU',val:fmtN(base.asu),icon:'ti-chart-bar',clr:'#1a6edb'},
+    {label:'Base ASU',val:fmtN(base.asu),icon:'ti-chart-bar',clr:'#2f81f7'},
     {label:'What-If ASU',val:fmtN(fc.asu),icon:'ti-chart-arrows',clr:'#0ea5e9'},
-    {label:'ASU Delta',val:fmtD(fc.asu-base.asu),icon:'ti-trending-up',clr:fc.asu>=base.asu?'#16a34a':'#ef4444'},
+    {label:'ASU Delta',val:fmtD(fc.asu-base.asu),icon:'ti-trending-up',clr:fc.asu>=base.asu?'#3fb950':'#f85149'},
     {label:'SR Forecast',val:fmtN(fc.sr),icon:'ti-headset',clr:'#9333ea'},
-    {label:'Dispatch Forecast',val:fmtN(fc.disp),icon:'ti-truck',clr:'#f59e0b'},
-    {label:'Forecast Growth',val:((fc.asu/base.asu-1)*100).toFixed(1)+'%',icon:'ti-trending-up',clr:fc.asu>=base.asu?'#16a34a':'#ef4444'},
-    {label:'Revenue Impact',val:'$'+fmtN(fc.revenue),icon:'ti-currency-dollar',clr:'#1a6edb'},
-    {label:'Publish Score',val:Math.min(99,Math.round(75+state.renewal/10+state.disp/20))+'%',icon:'ti-circle-check',clr:'#16a34a'},
-    {label:'Risk Score',val:Math.max(5,Math.round(40-state.renewal/5-state.growth/3))+'%',icon:'ti-alert-triangle',clr:'#f59e0b'},
+    {label:'Dispatch Forecast',val:fmtN(fc.disp),icon:'ti-truck',clr:'#d29922'},
+    {label:'Forecast Growth',val:((fc.asu/base.asu-1)*100).toFixed(1)+'%',icon:'ti-trending-up',clr:fc.asu>=base.asu?'#3fb950':'#f85149'},
+    {label:'Revenue Impact',val:'$'+fmtN(fc.revenue),icon:'ti-currency-dollar',clr:'#2f81f7'},
+    {label:'Publish Score',val:Math.min(99,Math.round(75+state.renewal/10+state.disp/20))+'%',icon:'ti-circle-check',clr:'#3fb950'},
+    {label:'Risk Score',val:Math.max(5,Math.round(40-state.renewal/5-state.growth/3))+'%',icon:'ti-alert-triangle',clr:'#d29922'},
   ];
   const g=document.getElementById('kpi-grid');
   g.innerHTML=kpis.map(k=>`
@@ -302,7 +341,7 @@ function renderSliders(){
         <span id="val-${s.key}" style="font-size:13px;font-weight:500;color:var(--color-text-primary);min-width:48px;text-align:right;">${s.fmt(state[s.key])}</span>
       </div>
       <input type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${state[s.key]}" 
-      style="width:100%;accent-color:#1a6edb;"
+      style="width:100%;accent-color:#2f81f7;"
       oninput="sliderMoved('${s.key}',parseFloat(this.value),this)"
       aria-label="${s.label}">
       <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--color-text-tertiary);margin-top:2px;">
@@ -341,9 +380,9 @@ function renderImpact(){
         {icon:'ti-shield-check',label:'Confidence',val:conf+'%',pos:true},
       ].map(r=>`
         <div style="display:flex;align-items:center;gap:5px;">
-          <i class="ti ${r.icon}" style="font-size:13px;color:${r.pos?'#16a34a':'#ef4444'};" aria-hidden="true"></i>
+          <i class="ti ${r.icon}" style="font-size:13px;color:${r.pos?'#3fb950':'#f85149'};" aria-hidden="true"></i>
           <span style="font-size:11px;color:var(--color-text-secondary);">${r.label}:</span>
-          <span style="font-size:11px;font-weight:500;color:${r.pos?'#16a34a':'#ef4444'};">${r.val}</span>
+          <span style="font-size:11px;font-weight:500;color:${r.pos?'#3fb950':'#f85149'};">${r.val}</span>
         </div>`).join('')}
     </div>`;
 }
@@ -354,10 +393,10 @@ function renderPipeline(){
   const nodes=[
     {label:'New Contracts',base:base.contracts,adj:fc.contracts,icon:'ti-file-plus',clr:'#0ea5e9'},
     {label:'APOS Renewals',base:base.renewals,adj:fc.renewals,icon:'ti-refresh',clr:'#8b5cf6'},
-    {label:'ASU Forecast',base:base.asu,adj:fc.asu,icon:'ti-chart-arrows',clr:'#1a6edb'},
-    {label:'Service Requests',base:base.sr,adj:fc.sr,icon:'ti-headset',clr:'#f59e0b'},
+    {label:'ASU Forecast',base:base.asu,adj:fc.asu,icon:'ti-chart-arrows',clr:'#2f81f7'},
+    {label:'Service Requests',base:base.sr,adj:fc.sr,icon:'ti-headset',clr:'#d29922'},
     {label:'Dispatch Forecast',base:base.disp,adj:fc.disp,icon:'ti-truck',clr:'#ec4899'},
-    {label:'Publish Forecast',base:null,adj:null,icon:'ti-rocket',clr:'#16a34a',isPublish:true},
+    {label:'Publish Forecast',base:null,adj:null,icon:'ti-rocket',clr:'#3fb950',isPublish:true},
   ];
   const c=document.getElementById('pipeline-nodes');
   c.innerHTML=nodes.map((n,i)=>{
@@ -373,13 +412,13 @@ function renderPipeline(){
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);">${n.label}</div>
-          ${n.isPublish?`<div style="font-size:10px;color:#16a34a;margin-top:1px;">Ready to publish</div>`:
+          ${n.isPublish?`<div style="font-size:10px;color:#3fb950;margin-top:1px;">Ready to publish</div>`:
           `<div style="font-size:10px;color:var(--color-text-secondary);">Base: ${fmtN(n.base)}</div>`}
         </div>
         ${!n.isPublish&&n.adj?`
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);">${fmtN(n.adj)}</div>
-          <div style="font-size:10px;color:${delta>=0?'#16a34a':'#ef4444'};">${delta>=0?'+':''}${pct}%</div>
+          <div style="font-size:10px;color:${delta>=0?'#3fb950':'#f85149'};">${delta>=0?'+':''}${pct}%</div>
         </div>`:''}
       </div>
     </div>`;
@@ -403,14 +442,14 @@ function renderCharts(){
       {label:lbl2,data:d2,borderColor:c2,backgroundColor:c2+'28',borderWidth:2,pointRadius:3,fill:type==='line',tension:.4}
     ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>fmtN(v)},grid:{color:'rgba(0,0,0,.05)'}}}}});
   };
-  makeChart('chartASU','Base',qBase,'What-If',qAdj,'#6b7280','#1a6edb');
+  makeChart('chartASU','Base',qBase,'What-If',qAdj,'#6b7280','#2f81f7');
   makeChart('chartSR','Base',qBaseSR,'What-If',qAdjSR,'#6b7280','#9333ea');
-  makeChart('chartDP','Base',qBaseDP,'What-If',qAdjDP,'#6b7280','#f59e0b');
+  makeChart('chartDP','Base',qBaseDP,'What-If',qAdjDP,'#6b7280','#d29922');
   if(charts['chartWF'])charts['chartWF'].destroy();
   const ctx=document.getElementById('chartWF');
   if(ctx){
     const wfVals=[base.asu/1e6, fc.contracts/1e6-base.contracts/1e6, fc.renewals/1e6-base.renewals/1e6,(state.modifier/100)*base.asu/1e6, fc.asu/1e6];
-    charts['chartWF']=new Chart(ctx,{type:'bar',data:{labels:['Base','Contracts','Renewals','Adj','Final'],datasets:[{label:'ASU (M)',data:wfVals,backgroundColor:['#1a6edb88','#16a34a88','#9333ea88','#f59e0b88','#1a6edb'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>v.toFixed(1)+'M'},grid:{color:'rgba(0,0,0,.05)'}}}}});
+    charts['chartWF']=new Chart(ctx,{type:'bar',data:{labels:['Base','Contracts','Renewals','Adj','Final'],datasets:[{label:'ASU (M)',data:wfVals,backgroundColor:['#2f81f7cc','#3fb950cc','#9333eacc','#d29922cc','#2f81f7'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>v.toFixed(1)+'M'},grid:{color:'rgba(0,0,0,.05)'}}}}});
   }
 }
 
@@ -437,8 +476,8 @@ function renderCompTable(){
       <td style="padding:7px 10px;font-size:12px;color:var(--color-text-primary);white-space:nowrap;">${r.m}</td>
       <td style="padding:7px 10px;font-size:12px;color:var(--color-text-secondary);">${fmtN(r.b)}</td>
       <td style="padding:7px 10px;font-size:12px;font-weight:500;color:var(--color-text-primary);">${fmtN(r.a)}</td>
-      <td style="padding:7px 10px;font-size:12px;color:${pos?'#16a34a':'#ef4444'};">${fmtD(d)}</td>
-      <td style="padding:7px 10px;font-size:12px;color:${pos?'#16a34a':'#ef4444'};">${pos?'+':''}${pct}%</td>
+      <td style="padding:7px 10px;font-size:12px;color:${pos?'#3fb950':'#f85149'};">${fmtD(d)}</td>
+      <td style="padding:7px 10px;font-size:12px;color:${pos?'#3fb950':'#f85149'};">${pos?'+':''}${pct}%</td>
       <td style="padding:7px 10px;font-size:12px;color:var(--color-text-secondary);">${conf}%</td>
       <td style="padding:7px 10px;"><span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:${riskClr};color:${riskTxt};">${r.risk}</span></td>
     </tr>`;
@@ -451,15 +490,15 @@ function renderAIInsights(){
   const dPct=((fc.asu/base.asu-1)*100).toFixed(1);
   const topRegion=['EMEA','Americas','APJ'][Math.floor(Math.random()*3)];
   document.getElementById('ai-insights').innerHTML=`
-    <div style="margin-bottom:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #1a6edb;">
+    <div style="margin-bottom:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #2f81f7;">
       <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Scenario Analysis</div>
-      <div style="font-size:11px;color:var(--color-text-secondary);">At <strong>${state.renewal}%</strong> renewal rate with <strong>${state.growth>0?'+':''}${state.growth}%</strong> contract growth, ASU shifts by <strong style="color:${dPct>=0?'#16a34a':'#ef4444'}">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
+      <div style="font-size:11px;color:var(--color-text-secondary);">At <strong>${state.renewal}%</strong> renewal rate with <strong>${state.growth>0?'+':''}${state.growth}%</strong> contract growth, ASU shifts by <strong style="color:${dPct>=0?'#3fb950':'#f85149'}">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
     </div>
     <div style="margin-bottom:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #9333ea;">
       <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Service Demand Signal</div>
       <div style="font-size:11px;color:var(--color-text-secondary);">SR intensity at <strong>${state.srint.toFixed(1)}x</strong> with <strong>${state.disp}%</strong> dispatch conversion generates <strong>${fmtN(fc.sr)}</strong> service requests and <strong>${fmtN(fc.disp)}</strong> dispatches.</div>
     </div>
-    <div style="padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #16a34a;">
+    <div style="padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #3fb950;">
       <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Regional Opportunity</div>
       <div style="font-size:11px;color:var(--color-text-secondary);"><strong>${topRegion}</strong> shows the largest growth opportunity. Recommend targeting renewal uplift in that region for maximum ASU impact.</div>
     </div>`;
@@ -507,9 +546,9 @@ function renderPublishReadiness(){
   document.getElementById('publish-readiness').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
       ${[
-        {l:'Quality Score',v:conf+'%',clr:'#16a34a'},
-        {l:'Approval Status',v:'Pending',clr:'#f59e0b'},
-        {l:'Final ASU',v:fmtN(fc.asu),clr:'#1a6edb'},
+        {l:'Quality Score',v:conf+'%',clr:'#3fb950'},
+        {l:'Approval Status',v:'Pending',clr:'#d29922'},
+        {l:'Final ASU',v:fmtN(fc.asu),clr:'#2f81f7'},
         {l:'Final Dispatches',v:fmtN(fc.disp),clr:'#9333ea'},
       ].map(x=>`<div style="padding:8px;background:var(--color-background-secondary);border-radius:6px;">
         <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:2px;">${x.l}</div>
@@ -522,7 +561,7 @@ function renderPublishReadiness(){
         <span style="font-weight:500;color:var(--color-text-primary);">${conf}%</span>
       </div>
       <div style="height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:${conf}%;background:linear-gradient(90deg,#1a6edb,#16a34a);border-radius:3px;transition:width .4s;"></div>
+        <div style="height:100%;width:${conf}%;background:linear-gradient(90deg,#2f81f7,#3fb950);border-radius:3px;transition:width .4s;"></div>
       </div>
     </div>`;
 }
@@ -530,8 +569,8 @@ function renderPublishReadiness(){
 function handlePublish(){
   addAudit('Publish','Forecast published','Publish Center');
   const b=document.getElementById('pub-btn');
-  b.style.background='#16a34a';b.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Published!';
-  setTimeout(()=>{b.style.background='#1a6edb';b.innerHTML='<i class="ti ti-rocket" aria-hidden="true"></i> Publish';},2500);
+  b.style.background='#3fb950';b.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Published!';
+  setTimeout(()=>{b.style.background='#2f81f7';b.innerHTML='<i class="ti ti-rocket" aria-hidden="true"></i> Publish';},2500);
 }
 
 function addAudit(action,detail,section){
@@ -545,7 +584,7 @@ function renderAudit(){
   const c=document.getElementById('audit-log');
   c.innerHTML=auditLog.slice(0,15).map(a=>`
     <div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
-      <div style="width:22px;height:22px;border-radius:50%;background:#1a3a5c;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#5ea3f0;flex-shrink:0;">AR</div>
+      <div style="width:22px;height:22px;border-radius:50%;background:#003366;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#2f81f7;flex-shrink:0;">AR</div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;font-weight:500;color:var(--color-text-primary);">${a.action}</span>
