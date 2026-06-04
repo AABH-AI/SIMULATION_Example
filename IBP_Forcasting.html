@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IBP Forecasting View - Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #21262d;
+      --bg-hover: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --left-panel-bg: #002244;
+      --left-panel-hover: #003366;
+      --success: #3fb950;
+      --danger: #f85149;
+      --warning: #d29922;
+    }
+    [data-theme="light"] {
+      --bg-main: #f3f4f6;
+      --bg-panel: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f9fafb;
+      --text-primary: #24292f;
+      --text-secondary: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --left-panel-bg: #003366;
+      --left-panel-hover: #004080;
+      --success: #1a7f37;
+      --danger: #cf222e;
+      --warning: #9a6700;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'IBM Plex Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; transition: background 0.3s, color 0.3s; }
+
+    /* ---- VIEWS ---- */
+    #home-view { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+    #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+
+    /* ---- HOME ---- */
+    .home-banner {
+      background: linear-gradient(rgba(0,20,50,0.85), rgba(0,20,50,0.85)),
+        url('https://images.unsplash.com/photo-1586528116311-ad8ed7c1590a?auto=format&fit=crop&q=80') center/cover;
+      height: 220px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0;
+    }
+    .home-banner h1 { color: white; font-size: 2.4rem; font-weight: 700; letter-spacing: 0.04em; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+    .home-banner .sub { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 6px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
+    .home-banner-text { display: flex; flex-direction: column; align-items: center; }
+    .company-logo { position: absolute; top: 18px; right: 28px; }
+    .refresh-stamp { position: absolute; bottom: 14px; right: 28px; color: rgba(255,255,255,0.5); font-size: 11px; }
+
+    .tiles-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; padding: 36px 48px; max-width: 1200px; margin: 0 auto; width: 100%;
+    }
+    .tile {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: all 0.2s;
+    }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.2); border-color: var(--accent); }
+    .tile-icon { font-size: 30px; color: var(--accent); flex-shrink: 0; }
+    .tile-title { font-size: 1.05rem; font-weight: 600; }
+    .tile-desc { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+
+    /* ---- HEADER ---- */
+    .dash-header {
+      height: 50px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; padding: 0 14px; flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .header-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .btn-icon { background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 17px; padding: 6px 7px; border-radius: 4px; transition: background 0.15s; }
+    .btn-icon:hover { background: var(--bg-hover); }
+    .btn-sm { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; font-size: 11px; padding: 4px 10px; border-radius: 4px; display: flex; align-items: center; gap: 5px; transition: all 0.15s; }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Breadcrumb */
+    .breadcrumb { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .breadcrumb span { cursor: pointer; }
+    .breadcrumb span:hover { color: var(--accent); }
+    .breadcrumb .sep { color: var(--border); }
+
+    /* Refresh stamp */
+    .header-stamp { font-size: 10px; color: var(--text-secondary); }
+
+    /* ---- LAYOUT ---- */
+    .dash-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* Left Panel */
+    .left-panel {
+      width: 240px; background: var(--left-panel-bg); color: white; flex-shrink: 0;
+      display: flex; flex-direction: column; transition: width 0.25s ease; overflow: hidden;
+    }
+    .left-panel.collapsed { width: 0; }
+    .accordion-item { border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .accordion-header {
+      padding: 12px 18px; cursor: pointer; display: flex; justify-content: space-between;
+      align-items: center; font-weight: 600; font-size: 13px; white-space: nowrap;
+    }
+    .accordion-header:hover { background: var(--left-panel-hover); }
+    .accordion-content { background: rgba(0,0,0,0.15); display: none; }
+    .accordion-content.active { display: block; }
+    .nav-link {
+      display: block; padding: 9px 16px 9px 36px; color: rgba(255,255,255,0.7);
+      text-decoration: none; font-size: 12.5px; cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .nav-link:hover, .nav-link.active { color: white; background: var(--left-panel-hover); border-left: 3px solid var(--accent); padding-left: 33px; }
+
+    /* Main content */
+    .main-content { flex: 1; padding: 16px 20px; overflow-y: auto; background: var(--bg-main); display: flex; flex-direction: column; gap: 0; min-width: 0; }
+
+    /* Active filter chips */
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; min-height: 0; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px; background: rgba(47,129,247,0.15);
+      border: 1px solid rgba(47,129,247,0.4); border-radius: 20px; padding: 2px 10px 2px 8px;
+      font-size: 11px; color: var(--accent); cursor: pointer; transition: all 0.15s;
+    }
+    .chip:hover { background: rgba(248,81,73,0.15); border-color: var(--danger); color: var(--danger); }
+
+    /* Channel tabs (for Demand Profiling) */
+    .channel-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+    .channel-tab {
+      padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-secondary);
+      border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+    }
+    .channel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .channel-tab:hover { color: var(--text-primary); }
+
+    /* Module / page sections */
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+    .page-section { display: none; }
+    .page-section.active { display: block; animation: fadeIn 0.25s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* KPIs */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: relative; overflow: hidden;
+    }
+    .kpi-card::before { content: ''; position: absolute; top:0; left:0; width:4px; height:100%; background: var(--accent); border-radius: 8px 0 0 8px; }
+    .kpi-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 22px; font-weight: 700; }
+    .kpi-sub { font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 3px; }
+
+    /* Charts */
+    .visual-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; margin-bottom: 16px; }
+    .visual-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; min-height: 280px; display: flex; flex-direction: column;
+    }
+    .visual-title {
+      font-size: 13px; font-weight: 600; margin-bottom: 10px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+    }
+    .chart-toggle { display: flex; gap: 4px; }
+    .chart-toggle-btn {
+      background: var(--bg-hover); border: 1px solid var(--border); color: var(--text-secondary);
+      font-size: 10px; padding: 2px 8px; border-radius: 3px; cursor: pointer;
+    }
+    .chart-toggle-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* Tables */
+    .table-wrap { overflow: auto; flex: 1; }
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th {
+      background: var(--bg-hover); color: var(--text-secondary); padding: 8px 10px;
+      text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap;
+      position: sticky; top: 0; z-index: 1; cursor: pointer; user-select: none;
+    }
+    .data-table th:hover { color: var(--text-primary); }
+    .data-table th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    .data-table th.sort-asc .sort-icon::before { content: '▲'; opacity: 1; }
+    .data-table th.sort-desc .sort-icon::before { content: '▼'; opacity: 1; }
+    .data-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .data-table tr:hover td { background: var(--bg-hover); }
+    .data-table .row-num { color: var(--text-secondary); font-size: 10px; text-align: right; padding-right: 12px; }
+
+    /* Data Raw toolbar */
+    .table-toolbar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;
+    }
+    .table-search {
+      padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-primary); font-size: 12px; outline: none; min-width: 220px;
+    }
+    .table-search:focus { border-color: var(--accent); }
+    .row-count { font-size: 11px; color: var(--text-secondary); margin-left: auto; }
+    .export-btns { display: flex; gap: 6px; }
+    .export-btn {
+      display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 4px;
+      font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid; transition: all 0.15s;
+    }
+    .export-btn.csv { background: rgba(63,185,80,0.1); color: var(--success); border-color: var(--success); }
+    .export-btn.csv:hover { background: var(--success); color: #000; }
+    .export-btn.excel { background: rgba(47,129,247,0.1); color: var(--accent); border-color: var(--accent); }
+    .export-btn.excel:hover { background: var(--accent); color: white; }
+
+    /* Right Panel */
+    .right-panel {
+      width: 268px; background: var(--bg-panel); border-left: 1px solid var(--border);
+      flex-shrink: 0; display: flex; flex-direction: column; transition: width 0.25s ease; overflow: hidden;
+    }
+    .right-panel.collapsed { width: 0; border: none; }
+    .filter-header {
+      padding: 11px 14px; border-bottom: 1px solid var(--border); font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center; font-size: 13px; flex-shrink: 0;
+    }
+    .filter-search-box { padding: 8px 14px; flex-shrink: 0; }
+    .filter-search-input {
+      width: 100%; padding: 6px 28px 6px 10px; background: var(--bg-main); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-primary); outline: none; font-size: 12px;
+    }
+    .filter-search-input:focus { border-color: var(--accent); }
+    .filter-list { overflow-y: auto; flex: 1; padding: 0 14px 8px; }
+    .filter-footer { padding: 10px 14px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .reset-btn {
+      width: 100%; padding: 7px; background: rgba(248,81,73,0.1); border: 1px solid var(--danger);
+      border-radius: 4px; color: var(--danger); cursor: pointer; font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s;
+    }
+    .reset-btn:hover { background: var(--danger); color: white; }
+
+    .filter-dropdown { margin-bottom: 10px; }
+    .filter-dropdown-btn {
+      width: 100%; text-align: left; background: var(--bg-card); border: 1px solid var(--border);
+      padding: 7px 10px; border-radius: 4px; color: var(--text-primary); cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600;
+    }
+    .filter-dropdown-btn:hover { border-color: var(--accent); }
+    .filter-dropdown-content {
+      display: none; border: 1px solid var(--border); border-top: none;
+      background: var(--bg-card); padding: 8px; border-radius: 0 0 4px 4px;
+      max-height: 140px; overflow-y: auto;
+    }
+    .filter-dropdown-content.open { display: block; }
+    .filter-checkbox { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-bottom: 5px; cursor: pointer; }
+    .filter-checkbox input { cursor: pointer; accent-color: var(--accent); }
+    .inner-search {
+      width: 100%; padding: 4px 8px; font-size: 11px; margin-bottom: 6px;
+      background: var(--bg-main); border: 1px solid var(--border); color: var(--text-primary); border-radius: 3px; outline: none;
+    }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+    .badge-high { background: rgba(248,81,73,0.15); color: var(--danger); }
+    .badge-good { background: rgba(63,185,80,0.15); color: var(--success); }
+    .badge-med { background: rgba(210,153,34,0.15); color: var(--warning); }
+    .badge-accent { background: rgba(47,129,247,0.15); color: var(--accent); }
+
+    /* Severity filter toggle */
+    .severity-filter { display: flex; gap: 6px; margin-bottom: 12px; }
+    .sev-btn {
+      padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer;
+      border: 1px solid; transition: all 0.15s;
+    }
+    .sev-btn.all { border-color: var(--border); color: var(--text-secondary); background: var(--bg-card); }
+    .sev-btn.all.active { background: var(--bg-hover); color: var(--text-primary); }
+    .sev-btn.high { border-color: var(--danger); color: var(--danger); background: rgba(248,81,73,0.05); }
+    .sev-btn.high.active { background: var(--danger); color: white; }
+    .sev-btn.medium { border-color: var(--warning); color: var(--warning); background: rgba(210,153,34,0.05); }
+    .sev-btn.medium.active { background: var(--warning); color: white; }
+    .sev-btn.low { border-color: var(--success); color: var(--success); background: rgba(63,185,80,0.05); }
+    .sev-btn.low.active { background: var(--success); color: white; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+    /* Sticky first column in data tables */
+    .sticky-col { position: sticky; left: 0; background: var(--bg-card); z-index: 1; }
+    .data-table tr:hover .sticky-col { background: var(--bg-hover); }
+  </style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="home-view">
+  <div class="home-banner">
+    <div class="home-banner-text">
+      <h1>IBP FORECASTING VIEW</h1>
+      <div class="sub">Integrated Business Planning · Supply Chain Intelligence</div>
+    </div>
+    <div class="company-logo">
+      <img src="ALigned logo.png" alt="Aligned Automation" style="height:38px;"
+        onerror="this.outerHTML='<span style=\'color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;\'>Aligned Automation</span>'">
+    </div>
+    <div class="refresh-stamp" id="home-refresh-stamp"></div>
+  </div>
+
+  <div class="tiles-grid">
+    <div class="tile" onclick="openDashboard('data-raw')">
+      <i class="ti ti-table tile-icon"></i>
+      <div><div class="tile-title">Data Raw</div><div class="tile-desc">Full raw data matrix with export</div></div>
+    </div>
+    <div class="tile" onclick="openDashboard('demand-profiling')">
+      <i class="ti ti-chart-line tile-icon"></i>
+      <div><div class="tile-title">Demand Profiling</div><div class="tile-desc">Field Services · Care · Overall</div></div>
+    </div>
+    <div class="tile" onclick="openDashboard('forecast-accuracy')">
+      <i class="ti ti-target tile-icon"></i>
+      <div><div class="tile-title">Forecast Accuracy</div><div class="tile-desc">ASU · Work Orders · Service Requests</div></div>
+    </div>
+    <div class="tile" onclick="openDashboard('demand-alerts')">
+      <i class="ti ti-alert-circle tile-icon"></i>
+      <div><div class="tile-title">Demand Planning Alerts</div><div class="tile-desc">High · Medium · Low priority alerts</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboard-view">
+  <div class="dash-header">
+    <div class="header-left">
+      <button class="btn-icon" onclick="toggleLeftPanel()" title="Toggle Nav"><i class="ti ti-menu-2"></i></button>
+      <div>
+        <div style="font-weight:700; font-size:14px;" id="dash-title">IBP Forecasting View</div>
+        <div class="breadcrumb" id="breadcrumb">
+          <span onclick="goHome()">Home</span>
+          <span class="sep">›</span>
+          <span id="bc-module"></span>
+          <span class="sep bc-page-sep" style="display:none;">›</span>
+          <span id="bc-page" style="color:var(--text-primary);"></span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="header-stamp" id="refresh-stamp"></span>
+      <span class="badge badge-accent" style="margin:0 6px;" id="global-context">FY26 · All Regions</span>
+      <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
+      <button class="btn-icon" onclick="toggleTheme()" title="Toggle Theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+      <button class="btn-icon" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-filter"></i></button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- Left Panel -->
+    <div class="left-panel" id="left-panel">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span>Navigation</span> <i class="ti ti-chevron-down"></i>
+        </div>
+        <div class="accordion-content active" id="left-nav-links"></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="main-content">
+
+      <!-- Active filter chips -->
+      <div class="filter-chips" id="filter-chips-row"></div>
+
+      <!-- ===================== MODULE: FORECAST ACCURACY ===================== -->
+      <div id="module-forecast-accuracy" class="module-section">
+        <div id="fa-page-overview" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Forecast Tech ASU</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 4% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Work Orders</div><div class="kpi-value kpi-dynamic">86.2K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Service Request</div><div class="kpi-value kpi-dynamic">32.1K</div><div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Forecast Demand SR</div><div class="kpi-value kpi-dynamic">8.4K</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Tech ASU vs Work Orders Trend</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-overview','line',this)">Line</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-overview','bar',this)">Bar</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-overview"></canvas></div>
+            </div>
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Weekly Actuals vs Forecast by Region</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-hbar','bar',this)">Bar</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-hbar','line',this)">Line</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-hbar"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="fa-page-actuals" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Weekly SR Actuals</div><div class="kpi-value kpi-dynamic" style="color:var(--success)">8.2K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Field ASU Actuals</div><div class="kpi-value kpi-dynamic">12.1K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Tech ASU</div><div class="kpi-value kpi-dynamic">14.5K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Demand SR Actuals</div><div class="kpi-value kpi-dynamic">8.1K</div></div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Raw Data Matrix: Actuals vs Forecast</div>
+            <div class="table-wrap" style="max-height:340px;">
+              <table class="data-table">
+                <thead><tr>
+                  <th class="row-num">#</th>
+                  <th onclick="sortTable('actuals-table','region')">Region <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','lob')">LOB <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','week')">Week <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','sr')">Weekly SR Actuals <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fasu')">Weekly Field ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','tasu')">Weekly Tech ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fdsr')">Forecast Demand SR <span class="sort-icon"></span></th>
+                  <th>Status</th>
+                </tr></thead>
+                <tbody id="actuals-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="fa-page-partner" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Active Partners</div><div class="kpi-value kpi-dynamic">24</div></div>
+            <div class="kpi-card"><div class="kpi-label">Global Locations</div><div class="kpi-value kpi-dynamic">115</div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg MDR Work Orders</div><div class="kpi-value kpi-dynamic">3.8K</div><div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-alert-triangle"></i> Needs Attention</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly AVG MDR</div><div class="kpi-value kpi-dynamic">4.5%</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title"><span>MDR Work Orders by Partner</span></div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-partner"></canvas></div>
+            </div>
+            <div class="visual-card">
+              <div class="visual-title">Top Locations & Queue Names</div>
+              <div class="table-wrap" style="max-height:260px;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th onclick="sortTable('partner-table','loc')">Location <span class="sort-icon"></span></th>
+                    <th onclick="sortTable('partner-table','partner')">Partner <span class="sort-icon"></span></th>
+                    <th>Queue</th>
+                    <th>Bus Reporting</th>
+                    <th onclick="sortTable('partner-table','mdr')">Weekly AVG MDR <span class="sort-icon"></span></th>
+                  </tr></thead>
+                  <tbody id="partner-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== MODULE: DATA RAW ===================== -->
+      <div id="module-data-raw" class="module-section">
+        <div id="dr-page-raw" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dr-total-records">1,204</div></div>
+            <div class="kpi-card"><div class="kpi-label">Data Completeness</div><div class="kpi-value kpi-dynamic" style="color:var(--success)">98.2%</div></div>
+            <div class="kpi-card"><div class="kpi-label">Anomalies Detected</div><div class="kpi-value kpi-dynamic" style="color:var(--danger)">1,204</div></div>
+            <div class="kpi-card"><div class="kpi-label">Duplicate Records</div><div class="kpi-value kpi-dynamic">43</div></div>
+          </div>
+          <div class="visual-card" style="min-height: auto;">
+            <div class="visual-title">Full Raw Data View</div>
+            <div class="table-toolbar">
+              <input type="text" class="table-search" id="raw-search" placeholder="&#x1F50D;  Search across all columns..." oninput="filterRawTable()">
+              <div class="export-btns">
+                <button class="export-btn csv" onclick="exportCSV()"><i class="ti ti-file-type-csv"></i> Export CSV</button>
+                <button class="export-btn excel" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Export Excel</button>
+              </div>
+              <div class="row-count" id="raw-row-count">Showing 0 of 0 rows</div>
+            </div>
+            <div class="table-wrap" style="max-height: calc(100vh - 360px); border: 1px solid var(--border); border-radius: 6px;">
+              <table class="data-table" id="raw-data-table">
+                <thead>
+                  <tr>
+                    <th class="row-num sticky-col" style="min-width:36px;">#</th>
+                    <th onclick="sortRawTable('region')" style="min-width:90px;">Region <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('subregion')" style="min-width:140px;">Sub-Region <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('partner')" style="min-width:120px;">Partner <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('location')" style="min-width:130px;">Location <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('queue')" style="min-width:110px;">Queue <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('busrep')" style="min-width:100px;">Bus Reporting <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('fy')" style="min-width:60px;">FY <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('quarter')" style="min-width:60px;">Quarter <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('month')" style="min-width:60px;">Month <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('week')" style="min-width:60px;">Week <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('sr')" style="min-width:110px;">Weekly SR Actuals <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('fasu')" style="min-width:120px;">Weekly Field ASU <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('tasu')" style="min-width:120px;">Weekly Tech ASU <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('fdsr')" style="min-width:130px;">Forecast Demand SR <span class="sort-icon"></span></th>
+                    <th onclick="sortRawTable('lob')" style="min-width:120px;">LOB <span class="sort-icon"></span></th>
+                    <th style="min-width:110px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="raw-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== MODULE: DEMAND PROFILING ===================== -->
+      <div id="module-demand-profiling" class="module-section">
+        <div id="dp-page-overview" class="page-section active">
+          <div class="channel-tabs" id="channel-tabs">
+            <div class="channel-tab active" onclick="switchChannel('overall', this)">Overall</div>
+            <div class="channel-tab" onclick="switchChannel('field', this)">Field Services</div>
+            <div class="channel-tab" onclick="switchChannel('care', this)">Care</div>
+          </div>
+
+          <!-- Overall -->
+          <div id="dp-channel-overall">
+            <div class="kpi-row">
+              <div class="kpi-card"><div class="kpi-label">Total Demand Units</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">284.6K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 5.2% vs PY</div></div>
+              <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value kpi-dynamic">91.4%</div></div>
+              <div class="kpi-card"><div class="kpi-label">Total SRs</div><div class="kpi-value kpi-dynamic">40.5K</div></div>
+              <div class="kpi-card"><div class="kpi-label">Avg Weekly Volume</div><div class="kpi-value kpi-dynamic">5.5K</div></div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Demand by Region (Stacked)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-stacked"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Weekly Volume Trend – All Channels</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-trend"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Field Services -->
+          <div id="dp-channel-field" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card"><div class="kpi-label">Field Services Demand</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.3K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 3.8% vs PY</div></div>
+              <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value kpi-dynamic">89.7%</div></div>
+              <div class="kpi-card"><div class="kpi-label">Field ASU Units</div><div class="kpi-value kpi-dynamic">84.1K</div></div>
+              <div class="kpi-card"><div class="kpi-label">Avg Field Dispatch/Wk</div><div class="kpi-value kpi-dynamic">2.7K</div></div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Field Services Demand by Region</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-field-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Weekly Field Dispatch Trend</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-field-trend"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Care -->
+          <div id="dp-channel-care" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card"><div class="kpi-label">Care Demand Volume</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.3K</div><div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div></div>
+              <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value kpi-dynamic">93.2%</div></div>
+              <div class="kpi-card"><div class="kpi-label">Care SRs Opened</div><div class="kpi-value kpi-dynamic">22.4K</div></div>
+              <div class="kpi-card"><div class="kpi-label">Avg Handle Time (min)</div><div class="kpi-value kpi-dynamic">14.2</div></div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Care Volume by Sub-Region</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Weekly Care SR Trend</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-trend"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ===================== MODULE: DEMAND ALERTS ===================== -->
+      <div id="module-demand-alerts" class="module-section">
+        <div id="da-page-log" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Total Alerts</div><div class="kpi-value kpi-dynamic" style="color:var(--danger)" id="da-total">12</div></div>
+            <div class="kpi-card"><div class="kpi-label">High Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--danger)">5</div></div>
+            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--warning)">4</div></div>
+            <div class="kpi-card"><div class="kpi-label">Low Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--success)">3</div></div>
+          </div>
+          <div class="visual-card" style="min-height:auto;">
+            <div class="visual-title">Alerts Log</div>
+            <div class="severity-filter">
+              <button class="sev-btn all active" onclick="filterAlerts('all',this)">All</button>
+              <button class="sev-btn high" onclick="filterAlerts('High',this)">High</button>
+              <button class="sev-btn medium" onclick="filterAlerts('Medium',this)">Medium</button>
+              <button class="sev-btn low" onclick="filterAlerts('Low',this)">Low</button>
+            </div>
+            <div class="table-wrap" style="max-height:380px;">
+              <table class="data-table" id="alerts-table">
+                <thead><tr>
+                  <th onclick="sortTable('alerts-table','sev')">Severity <span class="sort-icon"></span></th>
+                  <th>Alert Description</th>
+                  <th onclick="sortTable('alerts-table','date')">Trigger Date <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('alerts-table','region')">Region <span class="sort-icon"></span></th>
+                  <th>Sub-Region</th>
+                </tr></thead>
+                <tbody id="alerts-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Panel (Filters) -->
+    <div class="right-panel" id="right-panel">
+      <div class="filter-header">
+        <div><i class="ti ti-adjustments-horizontal"></i>&nbsp; Filters</div>
+        <i class="ti ti-x" style="cursor:pointer;font-size:15px;" onclick="toggleRightPanel()"></i>
+      </div>
+      <div class="filter-search-box">
+        <input type="text" class="filter-search-input" placeholder="&#x1F50D;  Search filters..." oninput="searchFilters(this)">
+      </div>
+      <div class="filter-list" id="filter-container">
+
+        <div class="filter-dropdown" data-filter="fy-quarter">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Year / Quarter</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content open">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY26" checked onchange="onFilterChange()"> FY26</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY25" onchange="onFilterChange()"> FY25</label>
+              <hr style="border:0;border-top:1px solid var(--border);margin:4px 0;">
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q1" checked onchange="onFilterChange()"> Q1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q2" onchange="onFilterChange()"> Q2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q3" onchange="onFilterChange()"> Q3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q4" onchange="onFilterChange()"> Q4</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="month">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Month</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search month..." oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M1" onchange="onFilterChange()"> M1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M2" onchange="onFilterChange()"> M2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M3" onchange="onFilterChange()"> M3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M4" onchange="onFilterChange()"> M4</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M5" onchange="onFilterChange()"> M5</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M6" onchange="onFilterChange()"> M6</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="week">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Week</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search week (W1–W52)..." oninput="filterInner(this)">
+            <div class="check-list" id="week-check-list"></div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="region">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="AMER" onchange="onFilterChange()"> AMER</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="EMEA" onchange="onFilterChange()"> EMEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APAC" onchange="onFilterChange()"> APAC</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="subregion">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Sub-Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="North America" onchange="onFilterChange()"> North America</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="LATAM" onchange="onFilterChange()"> LATAM</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Western Europe" onchange="onFilterChange()"> Western Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Eastern Europe" onchange="onFilterChange()"> Eastern Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="SEA" onchange="onFilterChange()"> SEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="ANZ" onchange="onFilterChange()"> ANZ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Japan" onchange="onFilterChange()"> Japan</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="partner">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Partner Name</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search partner..." oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Alpha Tech" onchange="onFilterChange()"> Alpha Tech</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Omega Sys" onchange="onFilterChange()"> Omega Sys</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Sigma Global" onchange="onFilterChange()"> Sigma Global</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Delta Services" onchange="onFilterChange()"> Delta Services</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="location">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Location Name</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search location..." oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="New York Hub" onchange="onFilterChange()"> New York Hub</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="London HQ" onchange="onFilterChange()"> London HQ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Tokyo Base" onchange="onFilterChange()"> Tokyo Base</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Austin DC" onchange="onFilterChange()"> Austin DC</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-dropdown" data-filter="queue">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Queue &amp; Bus Reporting</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Alpha" onchange="onFilterChange()"> Queue_Alpha</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Beta" onchange="onFilterChange()"> Queue_Beta</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Direct" onchange="onFilterChange()"> BR_Direct</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Indirect" onchange="onFilterChange()"> BR_Indirect</label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="filter-footer">
+        <button class="reset-btn" onclick="resetFilters()"><i class="ti ti-refresh"></i> Reset All Filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// DATA GENERATION
+// =========================================================
+const REGIONS = ['AMER','AMER','EMEA','APAC'];
+const SUBREGIONS = {
+  'AMER': ['North America','LATAM'],
+  'EMEA': ['Western Europe','Eastern Europe'],
+  'APAC': ['SEA','ANZ','Japan']
+};
+const PARTNERS = ['Alpha Tech','Omega Sys','Sigma Global','Delta Services'];
+const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
+const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
+const BRS = ['BR_Direct','BR_Indirect'];
+const LOBS = ['Field Services','Remote Support','Managed Services','Care'];
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randFloat(min, max, dec=1) { return parseFloat((Math.random() * (max - min) + min).toFixed(dec)); }
+
+// Generate large raw dataset (150 rows)
+let rawData = [];
+function generateRawData() {
+  rawData = [];
+  for (let i = 0; i < 150; i++) {
+    const region = randFrom(REGIONS);
+    const subregion = randFrom(SUBREGIONS[region]);
+    const partner = randFrom(PARTNERS);
+    const location = randFrom(LOCATIONS);
+    const queue = randFrom(QUEUES);
+    const br = randFrom(BRS);
+    const fy = Math.random() > 0.3 ? 'FY26' : 'FY25';
+    const quarter = randFrom(['Q1','Q2','Q3','Q4']);
+    const month = randFrom(['M1','M2','M3','M4','M5','M6']);
+    const weekNum = randInt(1, 52);
+    const week = `W${weekNum}`;
+    const sr = randInt(1000, 8000);
+    const fasu = randInt(2000, 12000);
+    const tasu = randInt(500, 6000);
+    const fdsr = randInt(1000, 9000);
+    const lob = randFrom(LOBS);
+    const diff = Math.abs(sr - fdsr);
+    const pct = diff / fdsr;
+    const status = pct < 0.1 ? 'Within Tolerance' : 'Out of Bounds';
+    rawData.push({ i: i+1, region, subregion, partner, location, queue, br, fy, quarter, month, week, weekNum, sr, fasu, tasu, fdsr, lob, status });
+  }
+}
+generateRawData();
+
+const ALERTS_DATA = [
+  { sev:'High', desc:'ASU variance exceeds 10% tolerance threshold', date:'2026-06-02', region:'AMER', subregion:'North America' },
+  { sev:'High', desc:'Missing data for LOB: Field Services W44', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
+  { sev:'High', desc:'Forecast demand drop >15% for Care queue — APAC', date:'2026-06-03', region:'APAC', subregion:'SEA' },
+  { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
+  { sev:'High', desc:'Partner SLA breach — Omega Sys dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
+  { sev:'Medium', desc:'Partner Alpha Tech SLA missed warning', date:'2026-06-01', region:'APAC', subregion:'ANZ' },
+  { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
+  { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
+  { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APAC', subregion:'Japan' },
+  { sev:'Low', desc:'Forecast model retrain scheduled — W26', date:'2026-06-01', region:'AMER', subregion:'North America' },
+  { sev:'Low', desc:'Minor duplicate records detected — 43 rows', date:'2026-05-29', region:'EMEA', subregion:'Eastern Europe' },
+  { sev:'Low', desc:'New York Hub location data lag — 2hr delay observed', date:'2026-06-04', region:'AMER', subregion:'North America' },
+];
+
+// =========================================================
+// THEME
+// =========================================================
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
+  Object.values(chartInstances).forEach(c => { if(c) { updateChartTheme(c); c.update(); }});
+}
+function updateChartTheme(chart) {
+  chart.options.scales && Object.values(chart.options.scales).forEach(s => {
+    if(s.grid) s.grid.color = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    if(s.ticks) s.ticks.color = isDark ? '#8b949e' : '#57606a';
+  });
+}
+
+// =========================================================
+// MODULE CONFIG
+// =========================================================
+const modules = {
+  'data-raw': { title: 'Data Raw', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
+  'demand-profiling': { title: 'Demand Profiling', pages: [{ id: 'dp-page-overview', label: 'Profiling Overview' }] },
+  'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
+    { id: 'fa-page-overview', label: 'Forecast Overview' },
+    { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
+    { id: 'fa-page-partner', label: 'Location & Partner View' }
+  ]},
+  'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] }
+};
+
+let activeModule = '';
+let activePageLabel = '';
+
+function openDashboard(moduleId) {
+  activeModule = moduleId;
+  document.getElementById('home-view').style.display = 'none';
+  const dv = document.getElementById('dashboard-view');
+  dv.style.display = 'flex';
+  document.getElementById('dash-title').innerText = modules[moduleId].title;
+  document.getElementById('bc-module').innerText = modules[moduleId].title;
+
+  document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+  document.getElementById('module-' + moduleId).classList.add('active');
+
+  const navContainer = document.getElementById('left-nav-links');
+  navContainer.innerHTML = '';
+  modules[moduleId].pages.forEach((page, idx) => {
+    const link = document.createElement('div');
+    link.className = 'nav-link' + (idx === 0 ? ' active' : '');
+    link.innerText = page.label;
+    link.onclick = () => switchPage(page.id, link, moduleId, page.label);
+    navContainer.appendChild(link);
+  });
+
+  if (modules[moduleId].pages.length > 0) {
+    const first = modules[moduleId].pages[0];
+    switchPage(first.id, navContainer.firstChild, moduleId, first.label);
+  }
+
+  updateFilterChips();
+  setTimeout(initCharts, 80);
+}
+
+function goHome() {
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('home-view').style.display = 'flex';
+}
+
+function switchPage(pageId, linkEl, moduleId, label) {
+  const moduleEl = document.getElementById('module-' + moduleId);
+  moduleEl.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('left-nav-links').querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  linkEl.classList.add('active');
+  activePageLabel = label;
+
+  const bcPage = document.getElementById('bc-page');
+  const bcSep = document.querySelector('.bc-page-sep');
+  bcPage.innerText = label;
+  bcSep.style.display = 'inline';
+
+  if (pageId === 'dr-page-raw') renderRawTable();
+  if (pageId === 'da-page-log') renderAlerts('all');
+  if (pageId === 'fa-page-actuals') generateActualsTable();
+  if (pageId === 'fa-page-partner') generatePartnerTable();
+}
+
+// =========================================================
+// LEFT + RIGHT PANEL TOGGLES
+// =========================================================
+function toggleLeftPanel() { document.getElementById('left-panel').classList.toggle('collapsed'); }
+function toggleRightPanel() { document.getElementById('right-panel').classList.toggle('collapsed'); }
+function toggleAccordion(el) {
+  const content = el.nextElementSibling;
+  const icon = el.querySelector('i');
+  content.classList.toggle('active');
+  icon.className = content.classList.contains('active') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
+}
+function toggleDropdown(btn) {
+  btn.nextElementSibling.classList.toggle('open');
+  const icon = btn.querySelector('i');
+  icon.className = btn.nextElementSibling.classList.contains('open') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
+}
+
+// =========================================================
+// FILTER INNER SEARCH
+// =========================================================
+function filterInner(input) {
+  const q = input.value.toUpperCase();
+  const labels = input.nextElementSibling.querySelectorAll('label');
+  labels.forEach(l => l.style.display = l.textContent.toUpperCase().includes(q) ? '' : 'none');
+}
+function searchFilters(input) {
+  const q = input.value.toUpperCase();
+  document.querySelectorAll('.filter-dropdown').forEach(dd => {
+    const label = dd.querySelector('.filter-dropdown-btn span').textContent.toUpperCase();
+    dd.style.display = label.includes(q) ? '' : 'none';
+  });
+}
+
+// =========================================================
+// WEEK CHECKBOXES
+// =========================================================
+const weekList = document.getElementById('week-check-list');
+let wHtml = '<label class="filter-checkbox"><input type="checkbox" data-group="week" value="All" checked onchange="onFilterChange()"> (All)</label>';
+for (let i = 1; i <= 52; i++) {
+  wHtml += `<label class="filter-checkbox"><input type="checkbox" data-group="week" value="W${i}" onchange="onFilterChange()"> W${i}</label>`;
+}
+weekList.innerHTML = wHtml;
+
+// =========================================================
+// FILTER DEFAULTS (snapshot for reset)
+// =========================================================
+const DEFAULT_FILTER_STATES = {}; // captured after DOM build
+
+function captureDefaults() {
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
+    const key = (cb.dataset.group || '') + '::' + (cb.value || '');
+    DEFAULT_FILTER_STATES[key] = cb.checked;
+  });
+}
+setTimeout(captureDefaults, 100);
+
+function resetFilters() {
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
+    const key = (cb.dataset.group || '') + '::' + (cb.value || '');
+    if (key in DEFAULT_FILTER_STATES) cb.checked = DEFAULT_FILTER_STATES[key];
+    else cb.checked = false;
+  });
+  document.getElementById('global-context').innerText = 'FY26 · All Regions';
+  updateFilterChips();
+  triggerDataUpdate();
+}
+
+// =========================================================
+// FILTER CHIPS
+// =========================================================
+function getActiveFilters() {
+  const active = {};
+  document.querySelectorAll('#filter-container input[type=checkbox]:checked').forEach(cb => {
+    const group = cb.dataset.group;
+    if (!group || cb.value === 'All') return;
+    if (!active[group]) active[group] = [];
+    active[group].push(cb.value);
+  });
+  return active;
+}
+
+function updateFilterChips() {
+  const row = document.getElementById('filter-chips-row');
+  row.innerHTML = '';
+  const active = getActiveFilters();
+  Object.entries(active).forEach(([group, values]) => {
+    values.forEach(v => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<i class="ti ti-x" style="font-size:9px;"></i> ${group}: ${v}`;
+      chip.title = 'Click to remove';
+      chip.onclick = () => {
+        const cb = document.querySelector(`#filter-container input[data-group="${group}"][value="${v}"]`);
+        if (cb) { cb.checked = false; onFilterChange(); }
+      };
+      row.appendChild(chip);
+    });
+  });
+
+  // Update global context badge
+  const fyChecked = [...document.querySelectorAll('input[data-group="fy"]:checked')].map(c=>c.value);
+  const regionChecked = [...document.querySelectorAll('input[data-group="region"]:checked')].map(c=>c.value);
+  const fyText = fyChecked.length ? fyChecked.join(', ') : 'All FY';
+  const regionText = regionChecked.length ? regionChecked.join(', ') : 'All Regions';
+  document.getElementById('global-context').innerText = `${fyText} · ${regionText}`;
+}
+
+function onFilterChange() {
+  updateFilterChips();
+  triggerDataUpdate();
+}
+
+// =========================================================
+// DATA UPDATE (filter simulation)
+// =========================================================
+function triggerDataUpdate() {
+  document.querySelectorAll('.kpi-dynamic:not(#dr-total-records):not(#da-total)').forEach(el => {
+    let t = el.innerText;
+    let isP = t.includes('%'), isK = t.includes('K');
+    let n = parseFloat(t.replace(/[^0-9.]/g,''));
+    let v = n * (1 + (Math.random() * 0.2 - 0.1));
+    el.innerText = isP ? v.toFixed(1)+'%' : isK ? v.toFixed(1)+'K' : Math.round(v).toLocaleString();
+  });
+
+  if (activeModule === 'data-raw') renderRawTable();
+  if (activeModule === 'demand-alerts') renderAlerts(currentAlertFilter);
+  if (activeModule === 'forecast-accuracy') { generateActualsTable(); generatePartnerTable(); }
+
+  Object.entries(chartInstances).forEach(([id, c]) => {
+    if (!c) return;
+    c.data.datasets.forEach(ds => {
+      ds.data = ds.data.map(v => Math.max(10, v * (1 + (Math.random() * 0.3 - 0.15))));
+    });
+    c.update();
+  });
+}
+
+// =========================================================
+// CHARTS
+// =========================================================
+Chart.defaults.color = '#8b949e';
+Chart.defaults.font.family = "'IBM Plex Sans', 'Segoe UI', sans-serif";
+const chartInstances = {};
+const chartTypeState = {};
+
+function gridColor() { return isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; }
+function axisColor() { return isDark ? '#8b949e' : '#57606a'; }
+
+function baseLineOptions(stacked = false) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: axisColor(), boxWidth: 14, font: { size: 11 } } } },
+    scales: {
+      x: { stacked, grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } },
+      y: { stacked, grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } }
+    }
+  };
+}
+
+function switchChartType(chartId, newType, btnEl) {
+  const chart = chartInstances[chartId];
+  if (!chart) return;
+  chart.config.type = newType;
+  chart.update();
+  btnEl.closest('.chart-toggle').querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+}
+
+function initCharts() {
+  Object.values(chartInstances).forEach(c => { if (c) c.destroy(); });
+  Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+
+  function mk(id, type, data, options) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    chartInstances[id] = new Chart(el.getContext('2d'), { type, data, options: options || baseLineOptions() });
+  }
+
+  // Forecast Accuracy
+  mk('fa-chart-overview', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Forecast Tech ASU', data: [120,135,125,145,155,140,160,150], borderColor: '#2f81f7', backgroundColor: 'rgba(47,129,247,0.08)', tension: 0.4, fill: true },
+      { label: 'Forecast Work Orders', data: [80,90,85,95,100,90,105,98], borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,0.06)', tension: 0.4, fill: true }
+    ]
+  });
+  mk('fa-chart-hbar', 'bar', {
+    labels: ['AMER','EMEA','APAC'],
+    datasets: [
+      { label: 'Weekly Actuals', data: [450,300,250], backgroundColor: '#2f81f7' },
+      { label: 'Forecast Demand', data: [420,310,230], backgroundColor: '#3fb950' }
+    ]
+  });
+  mk('fa-chart-partner', 'bar', {
+    labels: ['Alpha Tech','Omega Sys','Sigma Global','Delta Serv'],
+    datasets: [{ label: 'MDR Work Orders', data: [1200,850,600,450], backgroundColor: ['#a371f7','#2f81f7','#3fb950','#f78166'] }]
+  }, { ...baseLineOptions(), indexAxis: 'y' });
+
+  // Demand Profiling
+  mk('dp-chart-overall-stacked', 'bar', {
+    labels: ['North America','LATAM','Western Europe','SEA','ANZ'],
+    datasets: [
+      { label: 'Field Services', data: [300,150,200,120,80], backgroundColor: '#2f81f7' },
+      { label: 'Care', data: [200,100,150,90,60], backgroundColor: '#a371f7' },
+      { label: 'Managed Services', data: [100,50,80,40,30], backgroundColor: '#3fb950' }
+    ]
+  }, baseLineOptions(true));
+
+  mk('dp-chart-overall-trend', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Field Services', data: [500,520,510,560,580,540,600,580], borderColor: '#2f81f7', tension: 0.4 },
+      { label: 'Care', data: [380,400,390,420,440,410,460,440], borderColor: '#a371f7', tension: 0.4 },
+      { label: 'Managed Services', data: [200,210,205,220,230,215,240,225], borderColor: '#3fb950', tension: 0.4 }
+    ]
+  });
+
+  mk('dp-chart-field-region', 'bar', {
+    labels: ['North America','LATAM','Western Europe','SEA'],
+    datasets: [{ label: 'Field Services Demand', data: [420,180,310,160], backgroundColor: '#2f81f7' }]
+  });
+  mk('dp-chart-field-trend', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Field Dispatch', data: [620,640,610,680,700,660,720,700], borderColor: '#2f81f7', tension: 0.4, fill: false },
+      { label: 'Forecast', data: [600,620,600,660,690,650,710,690], borderColor: '#f0883e', tension: 0.4, borderDash: [5,4] }
+    ]
+  });
+
+  mk('dp-chart-care-region', 'bar', {
+    labels: ['Western Europe','North America','Japan','ANZ'],
+    datasets: [{ label: 'Care Volume', data: [380,290,140,110], backgroundColor: '#a371f7' }]
+  });
+  mk('dp-chart-care-trend', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Care SRs', data: [480,500,490,510,530,510,550,530], borderColor: '#a371f7', tension: 0.4, fill: false },
+      { label: 'Forecast', data: [500,510,495,520,540,515,560,540], borderColor: '#f0883e', tension: 0.4, borderDash: [5,4] }
+    ]
+  });
+}
+
+// =========================================================
+// DEMAND PROFILING CHANNEL TABS
+// =========================================================
+let activeChannel = 'overall';
+function switchChannel(channel, tabEl) {
+  activeChannel = channel;
+  ['overall','field','care'].forEach(c => {
+    const el = document.getElementById('dp-channel-' + c);
+    if (el) el.style.display = c === channel ? 'block' : 'none';
+  });
+  document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  // Re-draw the charts for this channel after show
+  setTimeout(() => {
+    ['dp-chart-' + channel + '-region', 'dp-chart-' + channel + '-trend',
+     'dp-chart-overall-stacked', 'dp-chart-overall-trend'].forEach(id => {
+      const c = chartInstances[id];
+      if (c) c.update();
+    });
+  }, 30);
+}
+
+// =========================================================
+// TABLES
+// =========================================================
+function generateActualsTable() {
+  const tbody = document.getElementById('actuals-table-body');
+  if (!tbody) return;
+  let html = '';
+  for (let i = 0; i < 10; i++) {
+    const row = rawData[i % rawData.length];
+    const good = row.status === 'Within Tolerance';
+    html += `<tr>
+      <td class="row-num">${i+1}</td>
+      <td>${row.region}</td><td>${row.lob}</td><td>${row.week}</td>
+      <td>${row.sr.toLocaleString()}</td><td>${row.fasu.toLocaleString()}</td>
+      <td>${row.tasu.toLocaleString()}</td><td>${row.fdsr.toLocaleString()}</td>
+      <td><span class="badge ${good?'badge-good':'badge-high'}">${row.status}</span></td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+function generatePartnerTable() {
+  const tbody = document.getElementById('partner-table-body');
+  if (!tbody) return;
+  let html = '';
+  for (let i = 0; i < 8; i++) {
+    const row = rawData[i];
+    html += `<tr>
+      <td>${row.location}</td><td>${row.partner}</td>
+      <td>${row.queue}</td><td>${row.br}</td>
+      <td>${randFloat(1,9)}%</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+// =========================================================
+// RAW DATA TABLE (full view, filterable)
+// =========================================================
+let rawSortCol = null, rawSortDir = 1;
+let filteredRawData = [...rawData];
+
+function getFilteredRawData() {
+  const active = getActiveFilters();
+  const search = (document.getElementById('raw-search')?.value || '').toLowerCase();
+
+  return rawData.filter(row => {
+    if (active.region && !active.region.includes(row.region)) return false;
+    if (active.subregion && !active.subregion.includes(row.subregion)) return false;
+    if (active.partner && !active.partner.includes(row.partner)) return false;
+    if (active.location && !active.location.includes(row.location)) return false;
+    if (active.queue && !active.queue.includes(row.queue) && !active.queue.includes(row.br)) return false;
+    if (active.fy && !active.fy.includes(row.fy)) return false;
+    if (active.quarter && !active.quarter.includes(row.quarter)) return false;
+    if (active.month && !active.month.includes(row.month)) return false;
+    if (active.week && !active.week.includes(row.week)) return false;
+    if (search) {
+      const rowStr = Object.values(row).join(' ').toLowerCase();
+      if (!rowStr.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderRawTable() {
+  filteredRawData = getFilteredRawData();
+
+  if (rawSortCol) {
+    filteredRawData.sort((a,b) => {
+      let av = a[rawSortCol], bv = b[rawSortCol];
+      if (rawSortCol === 'weekNum' || rawSortCol === 'sr' || rawSortCol === 'fasu' || rawSortCol === 'tasu' || rawSortCol === 'fdsr') {
+        av = Number(av); bv = Number(bv);
+      }
+      return av < bv ? -rawSortDir : av > bv ? rawSortDir : 0;
+    });
+  }
+
+  const tbody = document.getElementById('raw-table-body');
+  const colMap = { region:'region', subregion:'subregion', partner:'partner', location:'location', queue:'queue', busrep:'br', fy:'fy', quarter:'quarter', month:'month', week:'week', sr:'sr', fasu:'fasu', tasu:'tasu', fdsr:'fdsr', lob:'lob' };
+
+  let html = '';
+  filteredRawData.forEach((row, idx) => {
+    const good = row.status === 'Within Tolerance';
+    html += `<tr>
+      <td class="row-num sticky-col">${idx+1}</td>
+      <td>${row.region}</td><td>${row.subregion}</td><td>${row.partner}</td>
+      <td>${row.location}</td><td>${row.queue}</td><td>${row.br}</td>
+      <td>${row.fy}</td><td>${row.quarter}</td><td>${row.month}</td><td>${row.week}</td>
+      <td>${row.sr.toLocaleString()}</td><td>${row.fasu.toLocaleString()}</td>
+      <td>${row.tasu.toLocaleString()}</td><td>${row.fdsr.toLocaleString()}</td>
+      <td>${row.lob}</td>
+      <td><span class="badge ${good?'badge-good':'badge-high'}">${row.status}</span></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+
+  const total = document.getElementById('raw-row-count');
+  if (total) total.innerText = `Showing ${filteredRawData.length} of ${rawData.length} rows`;
+  const drTotal = document.getElementById('dr-total-records');
+  if (drTotal) drTotal.innerText = filteredRawData.length.toLocaleString();
+}
+
+function sortRawTable(col) {
+  const colKeyMap = { region:'region', subregion:'subregion', partner:'partner', location:'location', queue:'queue', busrep:'br', fy:'fy', quarter:'quarter', month:'month', week:'weekNum', sr:'sr', fasu:'fasu', tasu:'tasu', fdsr:'fdsr', lob:'lob' };
+  const key = colKeyMap[col] || col;
+  if (rawSortCol === key) rawSortDir *= -1;
+  else { rawSortCol = key; rawSortDir = 1; }
+  renderRawTable();
+}
+
+function filterRawTable() { renderRawTable(); }
+
+// =========================================================
+// EXPORT CSV
+// =========================================================
+function exportCSV() {
+  const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'ibp_raw_data.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =========================================================
+// EXPORT EXCEL
+// =========================================================
+function exportExcel() {
+  const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // Style header row width
+  ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'IBP Raw Data');
+  XLSX.writeFile(wb, 'ibp_raw_data.xlsx');
+}
+
+// =========================================================
+// ALERTS TABLE
+// =========================================================
+let currentAlertFilter = 'all';
+function filterAlerts(sev, btn) {
+  currentAlertFilter = sev;
+  document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAlerts(sev);
+}
+
+function renderAlerts(sev) {
+  const tbody = document.getElementById('alerts-body');
+  if (!tbody) return;
+  const filtered = sev === 'all' ? ALERTS_DATA : ALERTS_DATA.filter(a => a.sev === sev);
+  const sevClass = { High: 'badge-high', Medium: 'badge-med', Low: 'badge-good' };
+  tbody.innerHTML = filtered.map(a => `
+    <tr>
+      <td><span class="badge ${sevClass[a.sev]}">${a.sev}</span></td>
+      <td>${a.desc}</td>
+      <td>${a.date}</td>
+      <td>${a.region}</td>
+      <td>${a.subregion}</td>
+    </tr>`).join('');
+  const daTotal = document.getElementById('da-total');
+  if (daTotal) daTotal.innerText = filtered.length;
+}
+
+// =========================================================
+// GENERIC TABLE SORT (for smaller tables)
+// =========================================================
+function sortTable(tableId, col) { /* placeholder for future */ }
+
+// =========================================================
+// REFRESH STAMP
+// =========================================================
+function setRefreshStamp() {
+  const now = new Date();
+  const s = `Last refreshed: ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  const el = document.getElementById('refresh-stamp');
+  const hel = document.getElementById('home-refresh-stamp');
+  if (el) el.innerText = s;
+  if (hel) hel.innerText = s;
+}
+setRefreshStamp();
+setInterval(setRefreshStamp, 60000);
+</script>
+</body>
+</html>
