@@ -1,0 +1,582 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+:root{--sb:220px;--top:52px;--acc:#1a6edb;--acc2:#0ea5e9;--dk:#0f1623;--dkb:#1a2436;--dkc:#243044;--dkd:#2d3c52;--txt:#e8edf5;--txt2:#94a8c4;--g1:#22c55e;--r1:#ef4444;--am:#f59e0b;--card:var(--color-background-primary);--brd:var(--color-border-tertiary)}
+</style>
+
+<div id="app" style="display:flex;height:calc(100vh - 20px);min-height:700px;overflow:hidden;border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);font-size:13px;">
+
+<!-- SIDEBAR -->
+<div id="sidebar" style="width:var(--sb);background:#0f1623;display:flex;flex-direction:column;flex-shrink:0;transition:width .25s;overflow:hidden;">
+  <div style="padding:18px 16px 12px;border-bottom:1px solid rgba(255,255,255,.07);">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:28px;height:28px;background:linear-gradient(135deg,#1a6edb,#0ea5e9);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="ti ti-chart-dots" style="color:#fff;font-size:14px;" aria-hidden="true"></i>
+      </div>
+      <div id="logotext">
+        <div style="color:#e8edf5;font-size:13px;font-weight:500;line-height:1.2;">ForecastIQ</div>
+        <div style="color:#4a6080;font-size:10px;">Enterprise Edition</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:8px 8px;overflow-y:auto;flex:1;">
+    <div style="color:#4a6080;font-size:10px;font-weight:500;padding:8px 8px 4px;letter-spacing:.08em;text-transform:uppercase;" class="sbsec">Planning</div>
+    <div id="nav-items"></div>
+  </div>
+  <div style="padding:12px;border-top:1px solid rgba(255,255,255,.07);">
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;" onmouseenter="this.style.background='rgba(255,255,255,.06)'" onmouseleave="this.style.background='transparent'">
+      <div style="width:26px;height:26px;border-radius:50%;background:#1a3a5c;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#5ea3f0;flex-shrink:0;">AR</div>
+      <div id="usertext"><div style="color:#94a8c4;font-size:12px;">Arnav R.</div><div style="color:#4a6080;font-size:10px;">Forecast Admin</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-tertiary);">
+
+  <!-- TOP BAR -->
+  <div style="height:var(--top);background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px;padding:0 16px;flex-shrink:0;overflow-x:auto;">
+    <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:4px;color:var(--color-text-secondary);flex-shrink:0;" aria-label="Toggle sidebar">
+      <i class="ti ti-menu-2" style="font-size:18px;" aria-hidden="true"></i>
+    </button>
+    <div style="color:var(--color-text-primary);font-weight:500;font-size:14px;margin-right:8px;flex-shrink:0;" id="page-title">What-If Simulation</div>
+    <div style="height:20px;width:1px;background:var(--color-border-tertiary);flex-shrink:0;"></div>
+    <div id="filters" style="display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow-x:auto;padding:4px 0;"></div>
+    <div style="margin-left:auto;display:flex;gap:6px;flex-shrink:0;">
+      <button id="pub-btn" onclick="handlePublish()" style="background:#1a6edb;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px;">
+        <i class="ti ti-rocket" aria-hidden="true"></i> Publish
+      </button>
+    </div>
+  </div>
+
+  <!-- SCROLLABLE BODY -->
+  <div style="flex:1;overflow-y:auto;padding:14px 16px;" id="main-body">
+
+    <!-- KPI CARDS -->
+    <div id="kpi-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px;"></div>
+
+    <!-- SIMULATION + PIPELINE ROW -->
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:12px;margin-bottom:12px;" id="sim-row">
+
+      <!-- SIMULATION PANEL -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-weight:500;font-size:14px;color:var(--color-text-primary);">Simulation Controls</div>
+          <div id="scenario-badge" style="background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;">Expected</div>
+        </div>
+        <div id="sliders-area"></div>
+        <!-- IMPACT EXPLAINER -->
+        <div id="impact-box" style="margin-top:12px;background:var(--color-background-secondary);border-radius:8px;padding:12px;border-left:3px solid #1a6edb;"></div>
+      </div>
+
+      <!-- PIPELINE -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;">
+        <div style="font-weight:500;font-size:14px;color:var(--color-text-primary);margin-bottom:14px;">Forecast Pipeline</div>
+        <div id="pipeline-nodes" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:4px;">ASU Forecast Trend</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;">Base vs What-If scenario</div>
+        <div style="position:relative;height:180px;"><canvas id="chartASU" role="img" aria-label="ASU forecast trend comparing base vs what-if scenario">ASU trend data</canvas></div>
+      </div>
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:4px;">Service Request Trend</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;">Base vs Scenario</div>
+        <div style="position:relative;height:180px;"><canvas id="chartSR" role="img" aria-label="Service request trend chart">SR trend data</canvas></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:4px;">Forecast Waterfall</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;">Contribution by source</div>
+        <div style="position:relative;height:180px;"><canvas id="chartWF" role="img" aria-label="Forecast contribution waterfall chart">Waterfall data</canvas></div>
+      </div>
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:4px;">Dispatch Trend</div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:10px;">Base vs Scenario</div>
+        <div style="position:relative;height:180px;"><canvas id="chartDP" role="img" aria-label="Dispatch forecast trend chart">Dispatch trend data</canvas></div>
+      </div>
+    </div>
+
+    <!-- SCENARIO COMPARISON TABLE -->
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-weight:500;font-size:14px;color:var(--color-text-primary);">Scenario Comparison</div>
+          <div style="font-size:11px;color:var(--color-text-secondary);">Live delta analysis</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="exportCSV()" style="font-size:11px;padding:4px 10px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-download" aria-hidden="true"></i> Export
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="comp-table" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+      </div>
+    </div>
+
+    <!-- AI INSIGHTS + SCENARIOS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <!-- AI INSIGHTS -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">
+          <div style="width:22px;height:22px;background:#dbeafe;border-radius:5px;display:flex;align-items:center;justify-content:center;">
+            <i class="ti ti-brain" style="font-size:12px;color:#1e40af;" aria-hidden="true"></i>
+          </div>
+          <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);">AI Forecast Insights</div>
+        </div>
+        <div id="ai-insights" style="font-size:12px;color:var(--color-text-secondary);line-height:1.7;"></div>
+      </div>
+
+      <!-- SCENARIOS -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);">Scenario Playground</div>
+          <button onclick="saveScenario()" style="font-size:11px;padding:3px 9px;border-radius:5px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <i class="ti ti-plus" aria-hidden="true"></i> Save
+          </button>
+        </div>
+        <div id="scenario-list"></div>
+      </div>
+    </div>
+
+    <!-- AUDIT + PUBLISH -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <!-- PUBLISH CENTER -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:12px;">Forecast Publish Center</div>
+        <div id="publish-readiness" style="margin-bottom:12px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="pub-actions">
+          <button onclick="handlePublish()" style="background:#1a6edb;color:#fff;border:none;padding:7px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-rocket" aria-hidden="true"></i> Publish</button>
+          <button onclick="alert('Excel export queued!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-table-export" aria-hidden="true"></i> Export Excel</button>
+          <button onclick="alert('PDF generation started!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-file-type-pdf" aria-hidden="true"></i> Export PDF</button>
+          <button onclick="alert('Report shared with leadership!')" style="background:transparent;color:var(--color-text-secondary);border:0.5px solid var(--color-border-secondary);padding:7px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;"><i class="ti ti-share" aria-hidden="true"></i> Share</button>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;">
+        <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);margin-bottom:12px;">Audit Log</div>
+        <div id="audit-log" style="max-height:200px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+  </div><!-- /main-body -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const NAV_ITEMS = [
+  {id:'overview',label:'Forecast Overview',icon:'ti-layout-dashboard'},
+  {id:'whatif',label:'What-If Simulation',icon:'ti-adjustments-horizontal',active:true},
+  {id:'contracts',label:'New Contracts',icon:'ti-file-plus'},
+  {id:'apos',label:'APOS Renewals',icon:'ti-refresh'},
+  {id:'asu',label:'ASU Forecast',icon:'ti-chart-arrows'},
+  {id:'sr',label:'Service Requests',icon:'ti-headset'},
+  {id:'dispatch',label:'Dispatch Forecast',icon:'ti-truck'},
+  {id:'compare',label:'Forecast Comparison',icon:'ti-arrows-diff'},
+  {id:'cube',label:'Adjustment Cube',icon:'ti-cube'},
+  {id:'publish',label:'Forecast Publish',icon:'ti-rocket'},
+  {id:'audit',label:'Audit Logs',icon:'ti-clipboard-list'},
+];
+
+const FILTERS = [
+  {key:'fy',label:'FY',opts:['FY 2025','FY 2026','FY 2027'],val:1},
+  {key:'q',label:'Q',opts:['Q1','Q2','Q3','Q4'],val:1},
+  {key:'region',label:'Region',opts:['All Regions','Americas','EMEA','APJ'],val:0},
+  {key:'bu',label:'BU',opts:['All BUs','Servers','Storage','Networking'],val:0},
+  {key:'ver',label:'Version',opts:['Baseline','Working','Executive','Published'],val:1},
+];
+
+const SLIDERS = [
+  {key:'renewal',label:'APOS Renewal Rate',min:50,max:100,val:85,unit:'%',fmt:v=>v+'%'},
+  {key:'growth',label:'New Contract Growth',min:-25,max:50,val:12,unit:'%',fmt:v=>(v>0?'+':'')+v+'%'},
+  {key:'units',label:'Renewed Units Override',min:0,max:1000000,val:450000,step:10000,unit:'',fmt:v=>fmtN(v)},
+  {key:'modifier',label:'Forecast Modifier',min:-20,max:20,val:0,unit:'%',fmt:v=>(v>0?'+':'')+v+'%'},
+  {key:'srint',label:'Service Request Intensity',min:0.5,max:2.0,step:0.1,val:1.2,unit:'x',fmt:v=>v.toFixed(1)+'x'},
+  {key:'disp',label:'Dispatch Conversion',min:0,max:100,val:62,unit:'%',fmt:v=>v+'%'},
+];
+
+const SCENARIOS = [
+  {id:'conservative',label:'Conservative',renewal:78,growth:-5,modifier:-8,srint:0.9,disp:55,color:'#6b7280'},
+  {id:'expected',label:'Expected',renewal:85,growth:12,modifier:0,srint:1.2,disp:62,color:'#1a6edb'},
+  {id:'aggressive',label:'Aggressive',renewal:92,growth:28,modifier:10,srint:1.5,disp:72,color:'#16a34a'},
+  {id:'executive',label:'Executive Stretch',renewal:96,growth:38,modifier:15,srint:1.8,disp:80,color:'#9333ea'},
+  {id:'worst',label:'Worst Case',renewal:62,growth:-20,modifier:-18,srint:0.6,disp:40,color:'#ef4444'},
+];
+
+const QUARTERS = ['Q1','Q2','Q3','Q4','Q1 Fwd','Q2 Fwd'];
+
+let state = {};
+SLIDERS.forEach(s=>state[s.key]=s.val);
+let activeNav = 'whatif';
+let sidebarOpen = true;
+let auditLog = [];
+let savedScenarios = [...SCENARIOS];
+let charts = {};
+let lastChanged = null;
+
+function fmtN(v){return v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?Math.round(v/1000)+'K':Math.round(v).toString();}
+function fmtD(v){return v>=0?'+'+fmtN(v):'-'+fmtN(Math.abs(v));}
+
+function computeForecasts(st){
+  const base={asu:2400000,sr:320000,disp:195000,contracts:180000,renewals:420000};
+  const rMult = st.renewal/85;
+  const gMult = 1+(st.growth/100);
+  const modMult = 1+(st.modifier/100);
+  const asu=Math.round(base.asu*rMult*gMult*modMult);
+  const sr=Math.round(base.sr*st.srint*rMult*gMult);
+  const disp=Math.round(sr*(st.disp/100));
+  const contracts=Math.round(base.contracts*gMult);
+  const renewals=Math.round(base.renewals*rMult);
+  const revenue=Math.round(asu*1.8);
+  const opCost=Math.round(disp*420+sr*85);
+  return{asu,sr,disp,contracts,renewals,revenue,opCost,base};
+}
+
+function renderNav(){
+  const c=document.getElementById('nav-items');
+  c.innerHTML=NAV_ITEMS.map(n=>`
+    <div onclick="setNav('${n.id}')" style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;margin-bottom:2px;transition:background .15s;${n.id===activeNav?'background:rgba(26,110,219,.25);':''}color:${n.id===activeNav?'#7db8f7':'#94a8c4'}" 
+    onmouseenter="this.style.background='rgba(255,255,255,.07)'" onmouseleave="this.style.background='${n.id===activeNav?'rgba(26,110,219,.25)':'transparent'}'">
+      <i class="ti ${n.icon}" style="font-size:14px;flex-shrink:0;" aria-hidden="true"></i>
+      <span class="navlabel" style="font-size:12px;white-space:nowrap;overflow:hidden;">${n.label}</span>
+    </div>`).join('');
+}
+
+function setNav(id){activeNav=id;renderNav();document.getElementById('page-title').textContent=NAV_ITEMS.find(n=>n.id===id)?.label||'Dashboard';}
+
+function renderFilters(){
+  const c=document.getElementById('filters');
+  c.innerHTML=FILTERS.map(f=>`
+    <select onchange="filterChanged('${f.key}',this.value)" style="font-size:11px;padding:3px 6px;border-radius:5px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);cursor:pointer;max-width:110px;">
+      ${f.opts.map((o,i)=>`<option ${i===f.val?'selected':''}>${o}</option>`).join('')}
+    </select>`).join('');
+}
+
+function filterChanged(key,val){
+  addAudit('Filter',`${key} → ${val}`,'Global');
+}
+
+function renderKPIs(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const kpis=[
+    {label:'Base ASU',val:fmtN(base.asu),icon:'ti-chart-bar',clr:'#1a6edb'},
+    {label:'What-If ASU',val:fmtN(fc.asu),icon:'ti-chart-arrows',clr:'#0ea5e9'},
+    {label:'ASU Delta',val:fmtD(fc.asu-base.asu),icon:'ti-trending-up',clr:fc.asu>=base.asu?'#16a34a':'#ef4444'},
+    {label:'SR Forecast',val:fmtN(fc.sr),icon:'ti-headset',clr:'#9333ea'},
+    {label:'Dispatch Forecast',val:fmtN(fc.disp),icon:'ti-truck',clr:'#f59e0b'},
+    {label:'Forecast Growth',val:((fc.asu/base.asu-1)*100).toFixed(1)+'%',icon:'ti-trending-up',clr:fc.asu>=base.asu?'#16a34a':'#ef4444'},
+    {label:'Revenue Impact',val:'$'+fmtN(fc.revenue),icon:'ti-currency-dollar',clr:'#1a6edb'},
+    {label:'Publish Score',val:Math.min(99,Math.round(75+state.renewal/10+state.disp/20))+'%',icon:'ti-circle-check',clr:'#16a34a'},
+    {label:'Risk Score',val:Math.max(5,Math.round(40-state.renewal/5-state.growth/3))+'%',icon:'ti-alert-triangle',clr:'#f59e0b'},
+  ];
+  const g=document.getElementById('kpi-grid');
+  g.innerHTML=kpis.map(k=>`
+    <div style="background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;cursor:default;"
+    onmouseenter="this.style.borderColor='${k.clr}'" onmouseleave="this.style.borderColor='var(--color-border-tertiary)'">
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;">
+        <i class="ti ${k.icon}" style="font-size:13px;color:${k.clr};" aria-hidden="true"></i>
+        <span style="font-size:10px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k.label}</span>
+      </div>
+      <div style="font-size:17px;font-weight:500;color:var(--color-text-primary);">${k.val}</div>
+    </div>`).join('');
+}
+
+function renderSliders(){
+  const c=document.getElementById('sliders-area');
+  c.innerHTML=SLIDERS.map(s=>`
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <label style="font-size:12px;color:var(--color-text-secondary);">${s.label}</label>
+        <span id="val-${s.key}" style="font-size:13px;font-weight:500;color:var(--color-text-primary);min-width:48px;text-align:right;">${s.fmt(state[s.key])}</span>
+      </div>
+      <input type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${state[s.key]}" 
+      style="width:100%;accent-color:#1a6edb;"
+      oninput="sliderMoved('${s.key}',parseFloat(this.value),this)"
+      aria-label="${s.label}">
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--color-text-tertiary);margin-top:2px;">
+        <span>${s.fmt(s.min)}</span><span>${s.fmt(s.max)}</span>
+      </div>
+    </div>`).join('');
+}
+
+function sliderMoved(key,val,el){
+  const prev=state[key];
+  state[key]=val;
+  const s=SLIDERS.find(x=>x.key===key);
+  document.getElementById('val-'+key).textContent=s.fmt(val);
+  lastChanged={key,prev,val,s};
+  renderAll();
+  addAudit('Slider',`${s.label}: ${s.fmt(prev)} → ${s.fmt(val)}`,'Simulation');
+}
+
+function renderImpact(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const dASU=fc.asu-base.asu;
+  const dSR=fc.sr-base.sr;
+  const dDisp=fc.disp-base.disp;
+  const conf=Math.min(98,Math.round(70+state.renewal/8+state.disp/15));
+  const c=document.getElementById('impact-box');
+  const src=lastChanged;
+  const intro=src?`You changed <strong>${src.s.label}</strong> to <strong>${src.s.fmt(src.val)}</strong>.`:'Current scenario impact:';
+  c.innerHTML=`
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:8px;">${intro}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      ${[
+        {icon:'ti-chart-arrows',label:'ASU Delta',val:fmtD(dASU),pos:dASU>=0},
+        {icon:'ti-headset',label:'SR Delta',val:fmtD(dSR),pos:dSR>=0},
+        {icon:'ti-truck',label:'Dispatch Delta',val:fmtD(dDisp),pos:dDisp>=0},
+        {icon:'ti-shield-check',label:'Confidence',val:conf+'%',pos:true},
+      ].map(r=>`
+        <div style="display:flex;align-items:center;gap:5px;">
+          <i class="ti ${r.icon}" style="font-size:13px;color:${r.pos?'#16a34a':'#ef4444'};" aria-hidden="true"></i>
+          <span style="font-size:11px;color:var(--color-text-secondary);">${r.label}:</span>
+          <span style="font-size:11px;font-weight:500;color:${r.pos?'#16a34a':'#ef4444'};">${r.val}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderPipeline(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const nodes=[
+    {label:'New Contracts',base:base.contracts,adj:fc.contracts,icon:'ti-file-plus',clr:'#0ea5e9'},
+    {label:'APOS Renewals',base:base.renewals,adj:fc.renewals,icon:'ti-refresh',clr:'#8b5cf6'},
+    {label:'ASU Forecast',base:base.asu,adj:fc.asu,icon:'ti-chart-arrows',clr:'#1a6edb'},
+    {label:'Service Requests',base:base.sr,adj:fc.sr,icon:'ti-headset',clr:'#f59e0b'},
+    {label:'Dispatch Forecast',base:base.disp,adj:fc.disp,icon:'ti-truck',clr:'#ec4899'},
+    {label:'Publish Forecast',base:null,adj:null,icon:'ti-rocket',clr:'#16a34a',isPublish:true},
+  ];
+  const c=document.getElementById('pipeline-nodes');
+  c.innerHTML=nodes.map((n,i)=>{
+    const delta=n.adj&&n.base?n.adj-n.base:0;
+    const pct=n.base?((delta/n.base)*100).toFixed(1):null;
+    return `
+    <div>
+      ${i>0?`<div style="width:2px;height:8px;background:linear-gradient(${n.clr},${n.clr});margin:0 auto 0 17px;opacity:.4;"></div>`:''}
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);transition:border-color .2s;"
+      onmouseenter="this.style.borderColor='${n.clr}'" onmouseleave="this.style.borderColor='var(--color-border-tertiary)'">
+        <div style="width:30px;height:30px;border-radius:7px;background:${n.clr}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ${n.icon}" style="font-size:14px;color:${n.clr};" aria-hidden="true"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;font-weight:500;color:var(--color-text-primary);">${n.label}</div>
+          ${n.isPublish?`<div style="font-size:10px;color:#16a34a;margin-top:1px;">Ready to publish</div>`:
+          `<div style="font-size:10px;color:var(--color-text-secondary);">Base: ${fmtN(n.base)}</div>`}
+        </div>
+        ${!n.isPublish&&n.adj?`
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;font-weight:500;color:var(--color-text-primary);">${fmtN(n.adj)}</div>
+          <div style="font-size:10px;color:${delta>=0?'#16a34a':'#ef4444'};">${delta>=0?'+':''}${pct}%</div>
+        </div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCharts(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const qBase=[1.8,2.0,2.1,2.4,2.6,2.8].map(v=>Math.round(base.asu*v/2.4));
+  const qAdj=[1.8,2.0,2.1,2.4,2.6,2.8].map(v=>Math.round(fc.asu*v/2.4));
+  const qBaseSR=[1.9,2.1,2.0,2.3,2.5,2.7].map(v=>Math.round(base.sr*v/2.3));
+  const qAdjSR=[1.9,2.1,2.0,2.3,2.5,2.7].map(v=>Math.round(fc.sr*v/2.3));
+  const qBaseDP=[1.7,1.9,2.0,2.2,2.4,2.6].map(v=>Math.round(base.disp*v/2.2));
+  const qAdjDP=[1.7,1.9,2.0,2.2,2.4,2.6].map(v=>Math.round(fc.disp*v/2.2));
+  const makeChart=(id,lbl1,d1,lbl2,d2,c1,c2,type='line')=>{
+    if(charts[id])charts[id].destroy();
+    const ctx=document.getElementById(id);if(!ctx)return;
+    charts[id]=new Chart(ctx,{type,data:{labels:QUARTERS,datasets:[
+      {label:lbl1,data:d1,borderColor:c1,backgroundColor:c1+'28',borderWidth:2,pointRadius:3,fill:type==='line',tension:.4,borderDash:type==='line'?[]:undefined},
+      {label:lbl2,data:d2,borderColor:c2,backgroundColor:c2+'28',borderWidth:2,pointRadius:3,fill:type==='line',tension:.4}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>fmtN(v)},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  };
+  makeChart('chartASU','Base',qBase,'What-If',qAdj,'#6b7280','#1a6edb');
+  makeChart('chartSR','Base',qBaseSR,'What-If',qAdjSR,'#6b7280','#9333ea');
+  makeChart('chartDP','Base',qBaseDP,'What-If',qAdjDP,'#6b7280','#f59e0b');
+  if(charts['chartWF'])charts['chartWF'].destroy();
+  const ctx=document.getElementById('chartWF');
+  if(ctx){
+    const wfVals=[base.asu/1e6, fc.contracts/1e6-base.contracts/1e6, fc.renewals/1e6-base.renewals/1e6,(state.modifier/100)*base.asu/1e6, fc.asu/1e6];
+    charts['chartWF']=new Chart(ctx,{type:'bar',data:{labels:['Base','Contracts','Renewals','Adj','Final'],datasets:[{label:'ASU (M)',data:wfVals,backgroundColor:['#1a6edb88','#16a34a88','#9333ea88','#f59e0b88','#1a6edb'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>v.toFixed(1)+'M'},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  }
+}
+
+function renderCompTable(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const conf=Math.min(98,Math.round(70+state.renewal/8+state.disp/15));
+  const rows=[
+    {m:'New Contracts',b:base.contracts,a:fc.contracts,risk:'Low'},
+    {m:'APOS Renewals',b:base.renewals,a:fc.renewals,risk:'Low'},
+    {m:'ASU Total',b:base.asu,a:fc.asu,risk:'Medium'},
+    {m:'Service Requests',b:base.sr,a:fc.sr,risk:'Medium'},
+    {m:'Dispatch Forecast',b:base.disp,a:fc.disp,risk:'Low'},
+    {m:'Revenue ($)',b:base.revenue,a:fc.revenue,risk:'Low'},
+    {m:'Op. Cost ($)',b:base.opCost,a:fc.opCost,risk:'Medium'},
+  ];
+  const t=document.getElementById('comp-table');
+  t.innerHTML=`<thead><tr>${['Metric','Base','Scenario','Delta','Impact %','Confidence','Risk'].map(h=>`<th style="padding:7px 10px;text-align:left;font-size:11px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;">${h}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map((r,i)=>{
+    const d=r.a-r.b;const pct=((d/r.b)*100).toFixed(1);const pos=d>=0;
+    const riskClr={Low:'#dcfce7',Medium:'#fef9c3',High:'#fee2e2'}[r.risk];
+    const riskTxt={Low:'#166534',Medium:'#854d0e',High:'#991b1b'}[r.risk];
+    return `<tr style="background:${i%2===0?'transparent':'var(--color-background-secondary)'}">
+      <td style="padding:7px 10px;font-size:12px;color:var(--color-text-primary);white-space:nowrap;">${r.m}</td>
+      <td style="padding:7px 10px;font-size:12px;color:var(--color-text-secondary);">${fmtN(r.b)}</td>
+      <td style="padding:7px 10px;font-size:12px;font-weight:500;color:var(--color-text-primary);">${fmtN(r.a)}</td>
+      <td style="padding:7px 10px;font-size:12px;color:${pos?'#16a34a':'#ef4444'};">${fmtD(d)}</td>
+      <td style="padding:7px 10px;font-size:12px;color:${pos?'#16a34a':'#ef4444'};">${pos?'+':''}${pct}%</td>
+      <td style="padding:7px 10px;font-size:12px;color:var(--color-text-secondary);">${conf}%</td>
+      <td style="padding:7px 10px;"><span style="padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:${riskClr};color:${riskTxt};">${r.risk}</span></td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+function renderAIInsights(){
+  const fc=computeForecasts(state);
+  const base=computeForecasts({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000});
+  const dPct=((fc.asu/base.asu-1)*100).toFixed(1);
+  const topRegion=['EMEA','Americas','APJ'][Math.floor(Math.random()*3)];
+  document.getElementById('ai-insights').innerHTML=`
+    <div style="margin-bottom:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #1a6edb;">
+      <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Scenario Analysis</div>
+      <div style="font-size:11px;color:var(--color-text-secondary);">At <strong>${state.renewal}%</strong> renewal rate with <strong>${state.growth>0?'+':''}${state.growth}%</strong> contract growth, ASU shifts by <strong style="color:${dPct>=0?'#16a34a':'#ef4444'}">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
+    </div>
+    <div style="margin-bottom:8px;padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #9333ea;">
+      <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Service Demand Signal</div>
+      <div style="font-size:11px;color:var(--color-text-secondary);">SR intensity at <strong>${state.srint.toFixed(1)}x</strong> with <strong>${state.disp}%</strong> dispatch conversion generates <strong>${fmtN(fc.sr)}</strong> service requests and <strong>${fmtN(fc.disp)}</strong> dispatches.</div>
+    </div>
+    <div style="padding:8px;background:var(--color-background-secondary);border-radius:6px;border-left:2px solid #16a34a;">
+      <div style="font-weight:500;font-size:12px;color:var(--color-text-primary);margin-bottom:3px;">Regional Opportunity</div>
+      <div style="font-size:11px;color:var(--color-text-secondary);"><strong>${topRegion}</strong> shows the largest growth opportunity. Recommend targeting renewal uplift in that region for maximum ASU impact.</div>
+    </div>`;
+}
+
+function renderScenarios(){
+  const c=document.getElementById('scenario-list');
+  c.innerHTML=savedScenarios.map(s=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;border:0.5px solid var(--color-border-tertiary);margin-bottom:6px;cursor:pointer;transition:border-color .15s;"
+    onmouseenter="this.style.borderColor='${s.color}'" onmouseleave="this.style.borderColor='var(--color-border-tertiary)'" onclick="loadScenario('${s.id}')">
+      <div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+      <span style="flex:1;font-size:12px;color:var(--color-text-primary);">${s.label}</span>
+      <span style="font-size:10px;color:var(--color-text-secondary);">R:${s.renewal}% G:${s.growth>=0?'+':''}${s.growth}%</span>
+      <button onclick="deleteScenario(event,'${s.id}')" style="background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);padding:2px;" aria-label="Delete scenario"><i class="ti ti-trash" style="font-size:12px;" aria-hidden="true"></i></button>
+    </div>`).join('');
+  document.getElementById('scenario-badge').textContent=savedScenarios.find(s=>s.renewal===state.renewal&&s.growth===state.growth)?.label||'Custom';
+}
+
+function loadScenario(id){
+  const s=savedScenarios.find(x=>x.id===id);if(!s)return;
+  if(s.renewal!==undefined)state.renewal=s.renewal;
+  if(s.growth!==undefined)state.growth=s.growth;
+  if(s.modifier!==undefined)state.modifier=s.modifier;
+  if(s.srint!==undefined)state.srint=s.srint;
+  if(s.disp!==undefined)state.disp=s.disp;
+  renderSliders();renderAll();
+  addAudit('Scenario',`Loaded: ${s.label}`,'Playground');
+}
+
+function saveScenario(){
+  const id='custom_'+Date.now();
+  savedScenarios.push({id,label:'Custom '+savedScenarios.length,renewal:state.renewal,growth:state.growth,modifier:state.modifier,srint:state.srint,disp:state.disp,color:'#6b7280'});
+  renderScenarios();addAudit('Scenario','Saved new scenario','Playground');
+}
+
+function deleteScenario(e,id){
+  e.stopPropagation();
+  savedScenarios=savedScenarios.filter(s=>s.id!==id);
+  renderScenarios();
+}
+
+function renderPublishReadiness(){
+  const conf=Math.min(99,Math.round(75+state.renewal/10+state.disp/20));
+  const fc=computeForecasts(state);
+  document.getElementById('publish-readiness').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      ${[
+        {l:'Quality Score',v:conf+'%',clr:'#16a34a'},
+        {l:'Approval Status',v:'Pending',clr:'#f59e0b'},
+        {l:'Final ASU',v:fmtN(fc.asu),clr:'#1a6edb'},
+        {l:'Final Dispatches',v:fmtN(fc.disp),clr:'#9333ea'},
+      ].map(x=>`<div style="padding:8px;background:var(--color-background-secondary);border-radius:6px;">
+        <div style="font-size:10px;color:var(--color-text-secondary);margin-bottom:2px;">${x.l}</div>
+        <div style="font-size:14px;font-weight:500;color:${x.clr};">${x.v}</div>
+      </div>`).join('')}
+    </div>
+    <div style="background:var(--color-background-secondary);border-radius:6px;padding:8px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+        <span style="color:var(--color-text-secondary);">Publish Readiness</span>
+        <span style="font-weight:500;color:var(--color-text-primary);">${conf}%</span>
+      </div>
+      <div style="height:6px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${conf}%;background:linear-gradient(90deg,#1a6edb,#16a34a);border-radius:3px;transition:width .4s;"></div>
+      </div>
+    </div>`;
+}
+
+function handlePublish(){
+  addAudit('Publish','Forecast published','Publish Center');
+  const b=document.getElementById('pub-btn');
+  b.style.background='#16a34a';b.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Published!';
+  setTimeout(()=>{b.style.background='#1a6edb';b.innerHTML='<i class="ti ti-rocket" aria-hidden="true"></i> Publish';},2500);
+}
+
+function addAudit(action,detail,section){
+  const now=new Date();
+  auditLog.unshift({user:'Arnav R.',time:now.toLocaleTimeString(),action,detail,section});
+  if(auditLog.length>50)auditLog.pop();
+  renderAudit();
+}
+
+function renderAudit(){
+  const c=document.getElementById('audit-log');
+  c.innerHTML=auditLog.slice(0,15).map(a=>`
+    <div style="display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <div style="width:22px;height:22px;border-radius:50%;background:#1a3a5c;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#5ea3f0;flex-shrink:0;">AR</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;font-weight:500;color:var(--color-text-primary);">${a.action}</span>
+          <span style="font-size:9px;color:var(--color-text-tertiary);">${a.time}</span>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.detail}</div>
+      </div>
+    </div>`).join('');
+}
+
+function exportCSV(){
+  alert('CSV export initiated for current scenario comparison.');
+}
+
+function toggleSidebar(){
+  sidebarOpen=!sidebarOpen;
+  const sb=document.getElementById('sidebar');
+  sb.style.width=sidebarOpen?'220px':'52px';
+  document.querySelectorAll('.navlabel,.sbsec,#logotext,#usertext').forEach(el=>{
+    el.style.display=sidebarOpen?'':'none';
+  });
+}
+
+function renderAll(){
+  renderKPIs();renderImpact();renderPipeline();
+  renderCharts();renderCompTable();renderAIInsights();
+  renderScenarios();renderPublishReadiness();renderAudit();
+}
+
+renderNav();renderFilters();renderSliders();
+addAudit('Session','Platform loaded','System');
+addAudit('Filter','FY 2026, Q2, All Regions','Global');
+setTimeout(renderAll,100);
+</script>
