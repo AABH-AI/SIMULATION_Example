@@ -37,26 +37,29 @@
       --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
     }
     [data-theme="light"] {
-      --bg:         #f0f3fc;
-      --surface:    #ffffff;
-      --card:       #f8faff;
-      --card-hi:    #eef1fc;
-      --border:     #dde2f4;
-      --border-hi:  #b4bde8;
-      --text-1:     #0d1020;
-      --text-2:     #5a6280;
-      --text-3:     #a0a8cc;
-      --accent:     #3a6ef0;
-      --accent-glow:rgba(58,110,240,0.12);
-      --accent-dim: rgba(58,110,240,0.06);
-      --green:      #16a34a;
-      --green-dim:  rgba(22,163,74,0.08);
-      --red:        #dc2626;
-      --red-dim:    rgba(220,38,38,0.08);
-      --amber:      #d97706;
-      --amber-dim:  rgba(217,119,6,0.08);
-      --nav-bg:     #0f1328;
-      --nav-hover:  #1a2040;
+      --bg:          #f0f3fc;
+      --surface:     #ffffff;
+      --card:        #ffffff;
+      --card-hi:     #eef1fc;
+      --border:      #dde2f4;
+      --border-hi:   #b4bde8;
+      --text-1:      #0d1020;
+      --text-2:      #5a6280;
+      --text-3:      #9099be;
+      --accent:      #3a6ef0;
+      --accent-glow: rgba(58,110,240,0.12);
+      --accent-dim:  rgba(58,110,240,0.07);
+      --blue:        #3a6ef0;
+      --blue-dim:    rgba(58,110,240,0.07);
+      --green:       #16a34a;
+      --green-dim:   rgba(22,163,74,0.09);
+      --red:         #dc2626;
+      --red-dim:     rgba(220,38,38,0.09);
+      --amber:       #b45309;
+      --amber-dim:   rgba(180,83,9,0.09);
+      --purple:      #6d28d9;
+      --nav-bg:      #ffffff;
+      --nav-hover:   #eef1fc;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -70,6 +73,18 @@
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
       transition: background 0.3s, color 0.3s;
+    }
+    /* Uniform theme transition across all structural surfaces */
+    .left-panel, .right-panel, .dash-header, .home-status-bar,
+    .home-hero, .tiles-section, .kpi-card, .visual-card, .tile,
+    .accordion-header, .nav-link, .btn-icon, .btn-sm,
+    .filter-dropdown-btn, .filter-dropdown-content, .filter-checkbox,
+    .filter-header, .filter-search-input, .table-search,
+    .data-table th, .data-table td, .channel-tab,
+    .chip, .badge, .sev-btn, .export-btn, .reset-btn,
+    .page-row, .home-banner, .home-hero::before {
+      transition: background 0.3s, background-color 0.3s,
+                  border-color 0.3s, color 0.3s;
     }
 
     /* ── VIEWS ─────────────────────────────────────────────── */
@@ -1225,12 +1240,18 @@ function toggleTheme() {
   isDark = !isDark;
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
+  // Update all chart instances — IBP module charts
   Object.values(chartInstances).forEach(c => { if(c) { updateChartTheme(c); c.update(); }});
+  // Update What-If module charts
+  Object.values(wiCharts).forEach(c => { if(c) { updateChartTheme(c); c.update(); }});
 }
 function updateChartTheme(chart) {
-  chart.options.scales && Object.values(chart.options.scales).forEach(s => {
-    if(s.grid) s.grid.color = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
-    if(s.ticks) s.ticks.color = isDark ? '#6b758f' : '#5a6280';
+  const grid  = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  const ticks = isDark ? '#6b758f' : '#5a6280';
+  if (!chart.options.scales) return;
+  Object.values(chart.options.scales).forEach(s => {
+    if (s.grid)  s.grid.color  = grid;
+    if (s.ticks) s.ticks.color = ticks;
   });
 }
 
