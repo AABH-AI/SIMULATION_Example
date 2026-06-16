@@ -4,243 +4,250 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ISG BPA: Business Planning and Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: Inter, Arial, sans-serif;
+      font-family: 'Plus Jakarta Sans', Inter, Arial, sans-serif;
       min-height: 100vh;
-      background: #0a0f1e;
+      background: #07090f;
       color: #e2e8f0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 24px 48px;
+      padding: 32px 24px 56px;
+      -webkit-font-smoothing: antialiased;
     }
-    .page {
-      width: min(1020px, 100%);
-    }
+    .page { width: min(1060px, 100%); }
 
     /* ── Header ── */
     header {
-      padding: 36px 36px 28px;
-      background: linear-gradient(135deg, #0f1f4a 0%, #111827 100%);
-      border: 1px solid #1e3a6e;
+      padding: 40px 40px 32px;
+      background: linear-gradient(135deg, #0c1830 0%, #0d1018 100%);
+      border: 1px solid #1d2135;
       border-radius: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       position: relative;
       overflow: hidden;
     }
     header::before {
       content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 60% 80% at 100% 0%, rgba(59,130,246,0.12) 0%, transparent 60%);
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 55% 70% at 100% 0%, rgba(76,126,248,0.1) 0%, transparent 60%);
       pointer-events: none;
     }
+    header::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(76,126,248,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .header-inner { position: relative; z-index: 1; }
     .header-eyebrow {
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: #60a5fa;
-      margin: 0 0 10px;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: #4c7ef8; margin: 0 0 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .header-eyebrow::before {
+      content: ''; display: block;
+      width: 20px; height: 2px;
+      background: #4c7ef8; border-radius: 2px;
     }
     h1 {
-      margin: 0;
-      font-size: clamp(1.6rem, 3vw, 2.4rem);
-      color: #f8fafc;
-      font-weight: 700;
-      line-height: 1.2;
-    }
-    h1 span {
-      color: #93c5fd;
-    }
-    .header-sub {
-      margin: 10px 0 0;
-      color: #94a3b8;
-      font-size: 0.97rem;
-      line-height: 1.6;
-      max-width: 640px;
-    }
-    .header-meta {
-      margin-top: 18px;
-      color: #64748b;
-      font-size: 0.88rem;
-    }
-
-    /* ── Featured card ── */
-    .featured {
-      background: linear-gradient(135deg, #1e3a5f 0%, #1a2744 100%);
-      border: 1px solid #2563eb;
-      border-radius: 18px;
-      padding: 24px 28px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    .featured-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #60a5fa;
-      margin-bottom: 6px;
-    }
-    .featured h2 {
       margin: 0 0 6px;
-      font-size: 1.2rem;
-      color: #f8fafc;
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      color: #eceef8; font-weight: 800;
+      line-height: 1.1; letter-spacing: -0.03em;
     }
-    .featured p {
+    h1 span { color: #818ab0; font-weight: 300; }
+    .header-sub {
       margin: 0;
-      color: #94a3b8;
-      font-size: 0.93rem;
-      line-height: 1.5;
+      color: #6b758f; font-size: 0.95rem; line-height: 1.7; max-width: 600px;
     }
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 22px;
-      border-radius: 12px;
-      background: #2563eb;
-      color: #f8fafc;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.95rem;
-      white-space: nowrap;
-      transition: background 0.15s, transform 0.15s;
-      flex-shrink: 0;
-    }
-    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .header-meta { margin-top: 20px; color: #3a4060; font-size: 0.82rem; font-family: monospace; }
 
-    /* ── Section ── */
-    .section-title {
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #64748b;
-      margin: 0 0 14px;
+    /* ── Primary Tools Section ── */
+    .section-label {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: #3a4060; margin: 0 0 14px;
+    }
+    .primary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .primary-card {
+      background: #111521;
+      border: 1px solid #1d2135;
+      border-radius: 16px;
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+    }
+    .primary-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--card-accent, #4c7ef8);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .primary-card:hover {
+      border-color: var(--card-accent, #4c7ef8);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .primary-card:hover::before { opacity: 1; }
+    .card-tag {
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--card-accent, #4c7ef8);
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-tag::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--card-accent, #4c7ef8);
+    }
+    .card-title {
+      font-size: 1.05rem; font-weight: 700;
+      color: #eceef8; margin-bottom: 8px; line-height: 1.3;
+    }
+    .card-desc { font-size: 0.85rem; color: #6b758f; line-height: 1.65; flex: 1; }
+    .card-footer {
+      margin-top: 20px; padding-top: 16px;
+      border-top: 1px solid #1d2135;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-file { font-size: 0.75rem; color: #3a4060; font-family: monospace; }
+    .card-cta {
+      font-size: 0.78rem; font-weight: 700;
+      color: var(--card-accent, #4c7ef8);
+      display: flex; align-items: center; gap: 4px;
+      transition: gap 0.15s;
+    }
+    .primary-card:hover .card-cta { gap: 8px; }
+
+    /* ── All Modules Card ── */
+    .modules-card {
+      background: #111521;
+      border: 1px solid #1d2135;
+      border-radius: 18px;
+      padding: 24px;
     }
 
     /* ── Search ── */
-    .search-wrap {
-      margin-bottom: 14px;
-    }
+    .search-wrap { margin-bottom: 16px; }
     .search-input {
       width: 100%;
-      padding: 11px 16px 11px 40px;
-      background: #111827;
-      border: 1px solid #334155;
-      border-radius: 12px;
+      padding: 11px 16px 11px 42px;
+      background: #0d1018;
+      border: 1px solid #1d2135;
+      border-radius: 10px;
       color: #e2e8f0;
-      font-size: 0.94rem;
+      font-size: 0.9rem;
+      font-family: inherit;
       outline: none;
       transition: border-color 0.15s;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%2364748b' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%2364748b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%233a4060' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%233a4060' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: 14px center;
     }
-    .search-input::placeholder { color: #475569; }
-    .search-input:focus { border-color: #3b82f6; }
+    .search-input::placeholder { color: #3a4060; }
+    .search-input:focus { border-color: #4c7ef8; }
 
     /* ── Page list ── */
-    .page-grid {
-      display: grid;
-      gap: 10px;
-    }
+    .page-grid { display: grid; gap: 8px; }
     .page-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: #111827;
-      border: 1px solid #1e293b;
-      border-radius: 14px;
-      padding: 14px 18px;
-      text-decoration: none;
-      color: #e2e8f0;
+      display: flex; align-items: center; gap: 14px;
+      background: #0d1018; border: 1px solid #1d2135;
+      border-radius: 12px; padding: 13px 16px;
+      text-decoration: none; color: #e2e8f0;
       transition: border-color 0.15s, background 0.15s, transform 0.12s;
     }
-    .page-row:hover {
-      border-color: #3b82f6;
-      background: #0f1f3a;
-      transform: translateX(3px);
-    }
+    .page-row:hover { border-color: #2c3460; background: #111521; transform: translateX(3px); }
     .page-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: #1e293b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 1rem;
+      width: 34px; height: 34px; border-radius: 9px;
+      background: #1d2135; display: flex;
+      align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 0.95rem;
     }
-    .page-row-label {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: #f1f5f9;
-    }
-    .page-row-file {
-      font-size: 0.78rem;
-      color: #475569;
-      margin-top: 2px;
-    }
-    .page-arrow {
-      margin-left: auto;
-      color: #334155;
-      font-size: 1rem;
-      flex-shrink: 0;
-      transition: color 0.15s;
-    }
-    .page-row:hover .page-arrow { color: #60a5fa; }
-    .empty-state {
-      color: #475569;
-      font-size: 0.94rem;
-      padding: 16px 0;
-      text-align: center;
-    }
+    .page-row-label { font-weight: 600; font-size: 0.9rem; color: #d1d5e8; }
+    .page-row-file { font-size: 0.72rem; color: #3a4060; margin-top: 2px; font-family: monospace; }
+    .page-arrow { margin-left: auto; color: #2c3460; font-size: 0.9rem; flex-shrink: 0; transition: color 0.15s; }
+    .page-row:hover .page-arrow { color: #4c7ef8; }
+    .empty-state { color: #3a4060; font-size: 0.9rem; padding: 20px 0; text-align: center; }
 
-    /* ── Shell card ── */
-    .card {
-      background: #111827;
-      border: 1px solid #1e293b;
-      border-radius: 18px;
-      padding: 22px 24px;
-      margin-bottom: 24px;
+    /* Primary tool badge in list */
+    .primary-badge {
+      font-size: 0.65rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 4px;
+      background: rgba(76,126,248,0.1);
+      color: #4c7ef8; white-space: nowrap; flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <div class="page">
     <header>
-      <p class="header-eyebrow">Aligned Automation Services</p>
-      <h1>ISG BPA: <span>Business Planning and Analytics</span></h1>
-      <p class="header-sub">Interactive simulation demos and analytical dashboards. Browse available modules below or open the primary planning tool directly.</p>
-      <div class="header-meta" id="publishedAt">Loading publish status…</div>
+      <div class="header-inner">
+        <p class="header-eyebrow">Aligned Automation Services</p>
+        <h1>ISG BPA <span>/ Business Planning and Analytics</span></h1>
+        <p class="header-sub">Interactive simulation demos and analytical dashboards. Open a primary tool directly or browse all available modules below.</p>
+        <div class="header-meta" id="publishedAt">Loading…</div>
+      </div>
     </header>
 
-    <!-- Featured -->
-    <div class="featured" id="featuredCard" style="display:none">
-      <div>
-        <div class="featured-label">Primary Tool</div>
-        <h2>ISG BPA: Business Planning and Analytics</h2>
-        <p>Integrated demand forecasting, scenario planning, and supply chain analytics platform.</p>
-      </div>
-      <a href="IBP_Forcasting.html" class="btn-primary">
-        Open Tool &#8594;
+    <!-- Primary Tools -->
+    <p class="section-label">Primary Tools</p>
+    <div class="primary-grid">
+
+      <a href="IBP_Forcasting.html" class="primary-card" style="--card-accent:#4c7ef8;">
+        <div class="card-tag">Core Platform</div>
+        <div class="card-title">ISG BPA: Business Planning and Analytics</div>
+        <div class="card-desc">Integrated demand forecasting dashboard with Forecast Accuracy, Demand Profiling, Planning Alerts, and full raw data export across AMER · EMEA · APJ.</div>
+        <div class="card-footer">
+          <span class="card-file">IBP_Forcasting.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
       </a>
+
+      <a href="enterprise_whatif_forecasting_platform.html" class="primary-card" style="--card-accent:#9d78f0;">
+        <div class="card-tag">Scenario Planning</div>
+        <div class="card-title">What-If Simulation</div>
+        <div class="card-desc">Slider-driven parametric exploration — adjust renewal rates, contract growth, dispatch conversion, and SR intensity to model scenario outcomes across ASU, revenue, and cost.</div>
+        <div class="card-footer">
+          <span class="card-file">enterprise_whatif_forecasting_platform.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
+
+      <a href="bend_the_curve.html" class="primary-card" style="--card-accent:#22d472;">
+        <div class="card-tag">Goal-First Planning</div>
+        <div class="card-title">Bend the Curve</div>
+        <div class="card-desc">Set a target ASU or revenue goal, then activate strategic levers — partner onboarding, renewals acceleration, geographic expansion — and see the forecast curve bend toward it.</div>
+        <div class="card-footer">
+          <span class="card-file">bend_the_curve.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
+
     </div>
 
-    <!-- All pages -->
-    <div class="card">
-      <p class="section-title">All available modules</p>
+    <!-- All Modules -->
+    <p class="section-label">All Available Modules</p>
+    <div class="modules-card">
       <div class="search-wrap">
         <input class="search-input" type="search" id="searchInput" placeholder="Search modules…" autocomplete="off" />
       </div>
@@ -249,32 +256,38 @@
   </div>
 
   <script>
-    /* Label overrides — map filename → display name */
+    const PRIMARY = new Set([
+      'IBP_Forcasting.html',
+      'enterprise_whatif_forecasting_platform.html',
+      'bend_the_curve.html',
+    ]);
+
     const LABELS = {
-      'IBP_Forcasting.html': 'ISG BPA: Business Planning and Analytics',
-      'dell_workflow.html': 'Dell Workflow',
-      'simulation-overview-platform.html': 'Simulation Overview Platform',
-      'enterprise_whatif_forecasting_platform.html': 'Enterprise What-If Forecasting Platform',
-      'executive_forecast_operational_dashboard.html': 'Executive Forecast & Operational Dashboard',
-      'epic_dashboard_mockup.html': 'Epic Dashboard Mockup',
+      'IBP_Forcasting.html':                          'ISG BPA: Business Planning and Analytics',
+      'enterprise_whatif_forecasting_platform.html':  'What-If Simulation',
+      'bend_the_curve.html':                          'Bend the Curve',
+      'dell_workflow.html':                           'Dell Workflow',
+      'simulation-overview-platform.html':            'Simulation Overview Platform',
+      'executive_forecast_operational_dashboard.html':'Executive Forecast & Operational Dashboard',
+      'epic_dashboard_mockup.html':                   'Epic Dashboard Mockup',
     };
 
-    /* Icon heuristics */
     function iconFor(file) {
       const f = file.toLowerCase();
-      if (f.includes('ibp') || f.includes('forecast') || f.includes('planning')) return '📊';
+      if (f.includes('ibp') || f.includes('forcasting')) return '📊';
+      if (f.includes('whatif') || f.includes('enterprise_whatif')) return '🔮';
+      if (f.includes('bend') || f.includes('curve')) return '📈';
       if (f.includes('workflow')) return '🔄';
-      if (f.includes('dashboard')) return '📈';
-      if (f.includes('whatif') || f.includes('scenario')) return '🔮';
-      if (f.includes('climate')) return '🌱';
+      if (f.includes('dashboard')) return '🏢';
       if (f.includes('executive')) return '🏢';
+      if (f.includes('climate')) return '🌱';
       if (f.includes('overview')) return '🗺️';
+      if (f.includes('forecast')) return '📊';
       return '📄';
     }
 
     function buildLabel(file) {
-      if (LABELS[file]) return LABELS[file];
-      return file.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      return LABELS[file] || file.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
     function formatDateTime(iso) {
@@ -289,10 +302,12 @@
     function renderRows(pages, filter) {
       const list = document.getElementById('pageList');
       const q = (filter || '').toLowerCase().trim();
+
       const entries = Array.from(pages.entries())
         .filter(([, label]) => !q || label.toLowerCase().includes(q))
         .sort((a, b) => {
-          /* Pin IBP at top */
+          const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
+          if (aP !== bP) return aP ? -1 : 1;
           if (a[0] === 'IBP_Forcasting.html') return -1;
           if (b[0] === 'IBP_Forcasting.html') return 1;
           return a[1].localeCompare(b[1]);
@@ -307,12 +322,14 @@
         const a = document.createElement('a');
         a.href = file;
         a.className = 'page-row';
+        const isPrimary = PRIMARY.has(file);
         a.innerHTML = `
           <div class="page-icon">${iconFor(file)}</div>
-          <div>
+          <div style="flex:1;min-width:0;">
             <div class="page-row-label">${label}</div>
             <div class="page-row-file">${file}</div>
           </div>
+          ${isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
           <span class="page-arrow">&#8594;</span>`;
         list.appendChild(a);
       });
@@ -321,11 +338,11 @@
     async function loadManifest() {
       try {
         const res = await fetch('manifest.json');
-        if (!res.ok) throw new Error('Unable to load manifest');
+        if (!res.ok) throw new Error();
         const data = await res.json();
 
-        const publishedAt = document.getElementById('publishedAt');
-        publishedAt.textContent = data.pagesPublishedAt
+        const el = document.getElementById('publishedAt');
+        el.textContent = data.pagesPublishedAt
           ? `Last published: ${formatDateTime(data.pagesPublishedAt)}`
           : '';
 
@@ -343,21 +360,13 @@
           });
         }
 
-        /* Show featured card if IBP page exists */
-        if (pages.has('IBP_Forcasting.html')) {
-          document.getElementById('featuredCard').style.display = 'flex';
-        }
-
         renderRows(pages, '');
-
         document.getElementById('searchInput').addEventListener('input', e => {
           renderRows(pages, e.target.value);
         });
-
-      } catch (error) {
+      } catch {
         document.getElementById('publishedAt').textContent = 'Failed to load manifest.';
         document.getElementById('pageList').textContent = 'Unable to display pages.';
-        console.error(error);
       }
     }
 

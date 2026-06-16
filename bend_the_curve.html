@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bend the Curve — ISG BPA</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg:         #07090f;
+      --surface:    #0d1018;
+      --card:       #111521;
+      --card-hi:    #161c2c;
+      --border:     #1d2135;
+      --border-hi:  #2c3460;
+      --text-1:     #e9ecf7;
+      --text-2:     #6b758f;
+      --text-3:     #3a4060;
+      --accent:     #22d472;
+      --accent-dim: rgba(34,212,114,0.08);
+      --blue:       #4c7ef8;
+      --blue-dim:   rgba(76,126,248,0.08);
+      --amber:      #f0a830;
+      --amber-dim:  rgba(240,168,48,0.08);
+      --red:        #f06060;
+      --red-dim:    rgba(240,96,96,0.08);
+      --purple:     #9d78f0;
+      --font-ui:    'Plus Jakarta Sans', sans-serif;
+      --font-mono:  'IBM Plex Mono', monospace;
+    }
+    [data-theme="light"] {
+      --bg:         #f0f3fc;
+      --surface:    #ffffff;
+      --card:       #f8faff;
+      --card-hi:    #eef1fc;
+      --border:     #dde2f4;
+      --border-hi:  #b4bde8;
+      --text-1:     #0d1020;
+      --text-2:     #5a6280;
+      --text-3:     #a0a8cc;
+      --accent:     #16a34a;
+      --accent-dim: rgba(22,163,74,0.07);
+      --blue:       #3a6ef0;
+      --blue-dim:   rgba(58,110,240,0.07);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text-1);
+      font-family: var(--font-ui); font-size: 14px;
+      line-height: 1.5; overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── APP SHELL ─────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ── TOP BAR ───────────────────────────────────────────── */
+    .topbar {
+      height: 54px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 14px; flex-shrink: 0;
+    }
+    .topbar-logo {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), #16a34a);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: #000; flex-shrink: 0;
+    }
+    .logo-text { font-size: 13px; font-weight: 700; color: var(--text-1); }
+    .logo-sub { font-size: 10px; color: var(--text-2); }
+    .topbar-sep { width: 1px; height: 20px; background: var(--border); }
+    .topbar-title { font-size: 13px; font-weight: 600; color: var(--text-1); }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .btn-icon {
+      width: 32px; height: 32px; background: transparent;
+      border: 1px solid transparent; color: var(--text-2);
+      cursor: pointer; font-size: 16px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; text-decoration: none;
+    }
+    .btn-icon:hover { background: var(--card); border-color: var(--border); color: var(--text-1); }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 8px;
+      background: var(--accent); color: #000;
+      font-size: 12px; font-weight: 700; cursor: pointer; border: none;
+      font-family: var(--font-ui); transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+
+    /* ── FILTER CHIPS ──────────────────────────────────────── */
+    .filter-bar {
+      height: 44px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 10px; flex-shrink: 0;
+    }
+    .filter-label { font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    .filter-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; color: var(--text-2);
+      cursor: pointer; transition: all 0.15s; font-family: var(--font-ui);
+    }
+    .filter-chip.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+    .target-display {
+      margin-left: auto; display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-2);
+    }
+    .target-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--amber); }
+
+    /* ── BODY ──────────────────────────────────────────────── */
+    .body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LEFT: LEVER PANEL ─────────────────────────────────── */
+    .lever-panel {
+      width: 300px; background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; flex-shrink: 0;
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 16px 18px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-title { font-size: 12px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+    .panel-sub { font-size: 11px; color: var(--text-2); }
+    .panel-body { flex: 1; overflow-y: auto; padding: 12px; }
+
+    /* Target Slider */
+    .target-section { margin-bottom: 16px; }
+    .target-section-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 10px;
+    }
+    .target-slider-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px;
+    }
+    .target-row {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    }
+    .target-row-label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+    .target-row-val { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--amber); }
+    input[type=range] { width: 100%; accent-color: var(--amber); margin-bottom: 4px; }
+    .range-ticks { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+
+    /* Lever cards */
+    .levers-section-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 10px; margin-top: 4px;
+    }
+    .lever-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 8px; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .lever-card:hover { border-color: var(--border-hi); }
+    .lever-card.on { border-color: var(--l-color, var(--accent)); background: var(--l-dim, var(--accent-dim)); }
+    .lever-head {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+    }
+    .lever-icon-wrap {
+      width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--card-hi); font-size: 14px;
+      color: var(--l-color, var(--text-2));
+      transition: background 0.15s;
+    }
+    .lever-card.on .lever-icon-wrap { background: var(--l-dim, var(--accent-dim)); }
+    .lever-name { font-size: 12px; font-weight: 600; color: var(--text-1); flex: 1; line-height: 1.3; }
+    .lever-toggle {
+      width: 32px; height: 18px; border-radius: 9px;
+      background: var(--border); flex-shrink: 0;
+      position: relative; transition: background 0.2s;
+    }
+    .lever-toggle::after {
+      content: ''; position: absolute;
+      top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--text-3); transition: transform 0.2s, background 0.2s;
+    }
+    .lever-card.on .lever-toggle { background: var(--l-color, var(--accent)); }
+    .lever-card.on .lever-toggle::after { transform: translateX(14px); background: #fff; }
+    .lever-meta {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+    }
+    .lever-meta-item { text-align: center; }
+    .lever-meta-val { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-1); }
+    .lever-meta-label { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* Panel footer */
+    .panel-footer {
+      padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .lever-count { font-size: 11px; color: var(--text-2); text-align: center; }
+    .lever-count strong { color: var(--accent); }
+
+    /* ── MAIN CONTENT ──────────────────────────────────────── */
+    .main { flex: 1; overflow-y: auto; padding: 18px 22px; background: var(--bg); }
+
+    /* KPI row */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 16px 12px;
+      position: relative; overflow: hidden;
+    }
+    .kpi-card::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 16px; right: 16px; height: 1px;
+      background: linear-gradient(90deg, var(--kpi-color, var(--blue)), transparent);
+      opacity: 0.3;
+    }
+    .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+    .kpi-value { font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: var(--kpi-color, var(--text-1)); line-height: 1; }
+    .kpi-sub { font-size: 11px; margin-top: 6px; color: var(--text-2); }
+
+    /* Chart section */
+    .chart-section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px; margin-bottom: 16px;
+    }
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .section-title { font-size: 13px; font-weight: 700; color: var(--text-1); }
+    .section-sub { font-size: 11px; color: var(--text-2); margin-top: 3px; }
+    .legend { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-2); }
+    .legend-line { width: 20px; height: 2px; border-radius: 1px; }
+    .legend-dashed { background: repeating-linear-gradient(90deg, var(--legend-color) 0, var(--legend-color) 5px, transparent 5px, transparent 9px); }
+
+    /* Two column row */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+    /* Achievement panel */
+    .achieve-card {
+      background: linear-gradient(135deg, rgba(34,212,114,0.06) 0%, rgba(76,126,248,0.04) 100%);
+      border: 1px solid rgba(34,212,114,0.2);
+      border-radius: 12px; padding: 18px;
+    }
+    .achieve-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 14px; }
+    .achieve-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .achieve-label { font-size: 12px; color: var(--text-2); }
+    .achieve-val { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+    .progress-wrap { margin-bottom: 8px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); margin-bottom: 5px; }
+    .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+
+    /* Contribution table */
+    .contrib-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .contrib-table th {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-2);
+      padding: 7px 10px; border-bottom: 1px solid var(--border);
+      text-align: left; white-space: nowrap;
+    }
+    .contrib-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-1); }
+    .contrib-table tr:last-child td { border-bottom: none; }
+    .conf-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+    .conf-high { background: rgba(34,212,114,0.12); color: #22d472; }
+    .conf-med  { background: rgba(240,168,48,0.12); color: #f0a830; }
+    .conf-low  { background: rgba(240,96,96,0.12); color: #f06060; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-icon"><i class="ti ti-trending-up"></i></div>
+      <div>
+        <div class="logo-text">Bend the Curve</div>
+        <div class="logo-sub">Goal-First Strategic Planner</div>
+      </div>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-title">ISG BPA · Business Planning and Analytics</div>
+    <div class="topbar-right">
+      <a href="index.html" class="btn-icon" title="Back to home"><i class="ti ti-home"></i></a>
+      <a href="enterprise_whatif_forecasting_platform.html" class="btn-icon" title="What-If Simulation"><i class="ti ti-adjustments-horizontal"></i></a>
+      <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+      <button class="btn-primary" onclick="exportScenario()"><i class="ti ti-download"></i> Export</button>
+    </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar">
+    <span class="filter-label">Period</span>
+    <button class="filter-chip active" onclick="setFilter('fy','FY26',this)">FY 2026</button>
+    <button class="filter-chip" onclick="setFilter('fy','FY27',this)">FY 2027</button>
+    <span class="topbar-sep"></span>
+    <span class="filter-label">Metric</span>
+    <button class="filter-chip active" onclick="setMetric('asu',this)">ASU</button>
+    <button class="filter-chip" onclick="setMetric('sr',this)">Service Requests</button>
+    <button class="filter-chip" onclick="setMetric('revenue',this)">Revenue</button>
+    <div class="target-display">
+      <span>Target:</span>
+      <span class="target-val" id="topbar-target">—</span>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- LEFT: LEVERS PANEL -->
+    <div class="lever-panel">
+      <div class="panel-head">
+        <div class="panel-title">Strategic Levers</div>
+        <div class="panel-sub">Toggle initiatives to bend the forecast curve toward your target</div>
+      </div>
+      <div class="panel-body">
+
+        <!-- Target -->
+        <div class="target-section">
+          <div class="target-section-title">Set Your Target</div>
+          <div class="target-slider-card">
+            <div class="target-row">
+              <span class="target-row-label" id="target-metric-label">ASU Target</span>
+              <span class="target-row-val" id="target-display-val">2.80M</span>
+            </div>
+            <input type="range" id="target-slider" min="0" max="100" value="40" oninput="onTargetChange(this.value)">
+            <div class="range-ticks">
+              <span id="target-min-label">2.58M</span>
+              <span id="target-max-label">3.50M</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="levers-section-title">Initiatives</div>
+        <div id="lever-cards"></div>
+      </div>
+      <div class="panel-footer">
+        <div class="lever-count" id="lever-count-text">0 levers active · 0% gap closed</div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+
+      <!-- KPI Row -->
+      <div class="kpi-row" id="kpi-row">
+        <div class="kpi-card" style="--kpi-color:#6b758f">
+          <div class="kpi-label">Current Trajectory</div>
+          <div class="kpi-value" id="kpi-current">—</div>
+          <div class="kpi-sub">End-state baseline</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:var(--amber)">
+          <div class="kpi-label">Target</div>
+          <div class="kpi-value" id="kpi-target">—</div>
+          <div class="kpi-sub">Goal to achieve</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:var(--red)">
+          <div class="kpi-label">Gap to Close</div>
+          <div class="kpi-value" id="kpi-gap">—</div>
+          <div class="kpi-sub" id="kpi-gap-pct">—% of target</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:var(--accent)">
+          <div class="kpi-label">Gap Closed</div>
+          <div class="kpi-value" id="kpi-closed">0</div>
+          <div class="kpi-sub" id="kpi-closed-pct">0% via active levers</div>
+        </div>
+        <div class="kpi-card" style="--kpi-color:var(--blue)">
+          <div class="kpi-label">Adjusted End-State</div>
+          <div class="kpi-value" id="kpi-adjusted">—</div>
+          <div class="kpi-sub">With active levers</div>
+        </div>
+      </div>
+
+      <!-- Main Bend Chart -->
+      <div class="chart-section">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Forecast Curve — Baseline vs Adjusted Path</div>
+            <div class="section-sub">Each active lever bends the adjusted path toward your target (lag effects applied)</div>
+          </div>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-line" style="background:#6b758f;border-top:2px dashed #6b758f;background:none;"></div>
+              Current Path
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background:var(--blue);"></div>
+              Adjusted Path
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background:var(--amber);border-top:2px dotted var(--amber);background:none;"></div>
+              Target
+            </div>
+          </div>
+        </div>
+        <div style="position:relative;height:240px;"><canvas id="bend-chart"></canvas></div>
+      </div>
+
+      <!-- Two column: Achievement + Contribution -->
+      <div class="two-col">
+
+        <!-- Achievement -->
+        <div class="achieve-card">
+          <div class="achieve-title">Achievement Forecast</div>
+          <div class="achieve-row">
+            <span class="achieve-label">Gap Closed</span>
+            <span class="achieve-val" id="ach-closed" style="color:var(--accent)">0%</span>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span>Baseline</span>
+              <span>Target</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="gap-progress" style="width:0%;background:linear-gradient(90deg,var(--blue),var(--accent));"></div>
+            </div>
+          </div>
+          <div class="achieve-row" style="margin-top:12px;">
+            <span class="achieve-label">Achievable By</span>
+            <span class="achieve-val" id="ach-date" style="color:var(--text-1);font-family:var(--font-mono);">—</span>
+          </div>
+          <div class="achieve-row">
+            <span class="achieve-label">Remaining Gap</span>
+            <span class="achieve-val" id="ach-remaining" style="color:var(--red);">—</span>
+          </div>
+          <div class="achieve-row">
+            <span class="achieve-label">Confidence</span>
+            <span class="achieve-val" id="ach-conf" style="color:var(--amber);">—</span>
+          </div>
+          <div id="ach-message" style="margin-top:12px;padding:10px;background:var(--card);border-radius:8px;font-size:11px;color:var(--text-2);line-height:1.6;border-left:2px solid var(--accent);"></div>
+        </div>
+
+        <!-- Lever Contribution chart -->
+        <div class="chart-section" style="margin-bottom:0;">
+          <div class="section-head" style="margin-bottom:12px;">
+            <div>
+              <div class="section-title">Lever Contributions</div>
+              <div class="section-sub">Gap closed per active initiative</div>
+            </div>
+          </div>
+          <div style="position:relative;height:190px;"><canvas id="contrib-chart"></canvas></div>
+          <div id="no-levers-msg" style="display:none;text-align:center;padding:40px 0;color:var(--text-3);font-size:12px;">Toggle levers on the left to see contributions</div>
+        </div>
+      </div>
+
+      <!-- Active Levers table -->
+      <div class="chart-section">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Active Initiative Detail</div>
+            <div class="section-sub">Impact, lag, and confidence for each active lever</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="contrib-table" id="lever-table">
+            <thead>
+              <tr>
+                <th>Initiative</th>
+                <th>Impact</th>
+                <th>Lag (weeks)</th>
+                <th>Confidence</th>
+                <th>Gap Closed</th>
+                <th>Effective From</th>
+              </tr>
+            </thead>
+            <tbody id="lever-table-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:20px;">No levers active — toggle initiatives in the left panel</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<script>
+// =========================================================
+// CONFIGURATION
+// =========================================================
+const PERIODS = ['Q1 FY26','Q2 FY26','Q3 FY26','Q4 FY26','Q1 FY27','Q2 FY27','Q3 FY27','Q4 FY27'];
+const N = PERIODS.length;
+
+const METRICS = {
+  asu:     { label: 'ASU',              min: 2580000, max: 3500000, base: 2400000, unit: 'M', scale: 1e6, fmt: v => (v/1e6).toFixed(2)+'M' },
+  sr:      { label: 'Service Requests', min:  330000, max:  520000, base:  300000, unit: 'K', scale: 1e3, fmt: v => (v/1e3).toFixed(0)+'K' },
+  revenue: { label: 'Revenue ($)',      min: 4500000, max: 6500000, base: 4320000, unit: 'M', scale: 1e6, fmt: v => '$'+(v/1e6).toFixed(2)+'M' },
+};
+
+// Base trajectories: gentle organic growth
+function makeBase(cfg) {
+  const growth = [0, 0.008, 0.017, 0.028, 0.041, 0.054, 0.069, 0.085];
+  return growth.map(g => Math.round(cfg.base * (1 + g)));
+}
+
+const LEVERS = [
+  { id:'renewals', label:'Accelerate APOS Renewals',      impact:0.068, lag:6,  conf:'High',   icon:'ti-refresh',         color:'#4c7ef8',  dim:'rgba(76,126,248,0.1)',  asuMult:1, srMult:0.8, revMult:1.1 },
+  { id:'partners', label:'New Partner Onboarding',         impact:0.092, lag:12, conf:'Medium', icon:'ti-users-plus',      color:'#22d472',  dim:'rgba(34,212,114,0.1)', asuMult:1, srMult:0.9, revMult:1.0 },
+  { id:'geo',      label:'Geographic Expansion (SEA)',     impact:0.110, lag:20, conf:'Low',    icon:'ti-world',           color:'#9d78f0',  dim:'rgba(157,120,240,0.1)', asuMult:1, srMult:1.2, revMult:0.9 },
+  { id:'dispatch', label:'Dispatch Optimization',          impact:0.038, lag:4,  conf:'High',   icon:'ti-truck',           color:'#f0a830',  dim:'rgba(240,168,48,0.1)', asuMult:0.5, srMult:0.3, revMult:0.6 },
+  { id:'warranty', label:'Warranty Extension Campaigns',   impact:0.052, lag:8,  conf:'Medium', icon:'ti-shield-check',    color:'#4c7ef8',  dim:'rgba(76,126,248,0.1)',  asuMult:0.8, srMult:0.6, revMult:1.2 },
+  { id:'pricing',  label:'Pricing Strategy Refresh',       impact:0.055, lag:2,  conf:'High',   icon:'ti-coin',            color:'#22d472',  dim:'rgba(34,212,114,0.1)', asuMult:0.3, srMult:0.2, revMult:1.4 },
+  { id:'care',     label:'Care Channel Expansion',         impact:0.078, lag:10, conf:'Medium', icon:'ti-headset',         color:'#f06060',  dim:'rgba(240,96,96,0.1)',  asuMult:0.6, srMult:1.4, revMult:0.8 },
+  { id:'field',    label:'Field Technician Augmentation',  impact:0.115, lag:16, conf:'Low',    icon:'ti-tool',            color:'#9d78f0',  dim:'rgba(157,120,240,0.1)', asuMult:0.9, srMult:1.1, revMult:0.7 },
+];
+
+// =========================================================
+// STATE
+// =========================================================
+let activeLevers = new Set();
+let currentMetric = 'asu';
+let targetPct = 40; // 0-100 slider → lerp between min and max
+let isDark = true;
+let charts = {};
+
+function getMetricCfg() { return METRICS[currentMetric]; }
+
+function getTarget() {
+  const cfg = getMetricCfg();
+  const endBase = makeBase(cfg)[N-1];
+  return Math.round(endBase + (cfg.max - endBase) * (targetPct / 100));
+}
+
+function getLeverImpact(lever, qIdx) {
+  const lagQ = Math.ceil(lever.lag / 13);
+  if (qIdx < lagQ) return 0;
+  const ramp = Math.min(1, (qIdx - lagQ + 1) / 2);
+  const confMult = lever.conf === 'High' ? 1.0 : lever.conf === 'Medium' ? 0.72 : 0.45;
+  const metricMult = currentMetric === 'asu' ? lever.asuMult : currentMetric === 'sr' ? lever.srMult : lever.revMult;
+  return lever.impact * ramp * confMult * metricMult;
+}
+
+function computeAdjusted() {
+  const cfg = getMetricCfg();
+  const base = makeBase(cfg);
+  const adj = base.map((v, q) => {
+    let total = v;
+    activeLevers.forEach(id => {
+      const l = LEVERS.find(x => x.id === id);
+      if (l) total += base[q] * getLeverImpact(l, q);
+    });
+    return Math.round(total);
+  });
+  return { base, adj };
+}
+
+function fmtN(v) {
+  const cfg = getMetricCfg();
+  return cfg.fmt(v);
+}
+
+// =========================================================
+// RENDER
+// =========================================================
+function render() {
+  const cfg = getMetricCfg();
+  const target = getTarget();
+  const { base, adj } = computeAdjusted();
+  const endBase = base[N-1];
+  const endAdj  = adj[N-1];
+  const gapTotal   = target - endBase;
+  const gapClosed  = endAdj - endBase;
+  const gapPct     = gapTotal > 0 ? Math.round((gapClosed / gapTotal) * 100) : 100;
+  const remaining  = Math.max(0, target - endAdj);
+
+  // KPIs
+  document.getElementById('kpi-current').textContent   = fmtN(endBase);
+  document.getElementById('kpi-target').textContent    = fmtN(target);
+  document.getElementById('kpi-gap').textContent       = fmtN(gapTotal);
+  document.getElementById('kpi-gap-pct').textContent   = `${((gapTotal/target)*100).toFixed(1)}% of target`;
+  document.getElementById('kpi-closed').textContent    = fmtN(Math.max(0, gapClosed));
+  document.getElementById('kpi-closed-pct').textContent = `${Math.max(0, gapPct)}% via active levers`;
+  document.getElementById('kpi-adjusted').textContent  = fmtN(endAdj);
+  document.getElementById('topbar-target').textContent = fmtN(target);
+
+  // Achievement panel
+  const clampedPct = Math.min(100, Math.max(0, gapPct));
+  document.getElementById('ach-closed').textContent = clampedPct + '%';
+  document.getElementById('gap-progress').style.width = clampedPct + '%';
+  document.getElementById('ach-remaining').textContent = fmtN(remaining);
+
+  const activeArr = [...activeLevers];
+  const avgConf = activeArr.length === 0 ? 0 :
+    activeArr.reduce((s, id) => {
+      const l = LEVERS.find(x => x.id === id);
+      return s + (l ? (l.conf === 'High' ? 90 : l.conf === 'Medium' ? 70 : 45) : 0);
+    }, 0) / activeArr.length;
+  document.getElementById('ach-conf').textContent = activeArr.length ? Math.round(avgConf) + '%' : '—';
+
+  // Achievable by
+  let achievableQ = '—';
+  if (activeArr.length > 0 && gapPct > 0) {
+    for (let q = 0; q < N; q++) {
+      if (adj[q] >= target) { achievableQ = PERIODS[q]; break; }
+    }
+    if (achievableQ === '—' && gapPct >= 80) achievableQ = 'Near Q4 FY27';
+  }
+  document.getElementById('ach-date').textContent = achievableQ;
+
+  // Message
+  let msg = '';
+  if (activeArr.length === 0) {
+    msg = 'No levers active. Toggle initiatives on the left to see how the forecast curve bends toward your target.';
+  } else if (clampedPct >= 100) {
+    msg = `<strong style="color:var(--accent)">Target achievable!</strong> Your active levers close the full gap. The adjusted path reaches ${fmtN(target)} by ${achievableQ}.`;
+  } else if (clampedPct >= 60) {
+    msg = `Good coverage — ${clampedPct}% of the gap is closed. Consider adding higher-confidence levers to reach the final ${100-clampedPct}%.`;
+  } else {
+    msg = `${clampedPct}% of the gap is closed. Add more initiatives or lower your target to improve achievability.`;
+  }
+  document.getElementById('ach-message').innerHTML = msg;
+
+  // Lever count footer
+  document.getElementById('lever-count-text').innerHTML = `<strong>${activeArr.length}</strong> lever${activeArr.length !== 1 ? 's' : ''} active &nbsp;·&nbsp; <strong style="color:var(--accent)">${clampedPct}%</strong> gap closed`;
+
+  renderBendChart(base, adj, target);
+  renderContribChart(base);
+  renderTable(base);
+}
+
+// =========================================================
+// CHARTS
+// =========================================================
+function gridColor() { return isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'; }
+function axisColor() { return isDark ? '#3a4060' : '#a0a8cc'; }
+function tickColor() { return isDark ? '#6b758f' : '#5a6280'; }
+
+function renderBendChart(base, adj, target) {
+  const ctx = document.getElementById('bend-chart');
+  if (!ctx) return;
+
+  if (charts.bend) { charts.bend.destroy(); }
+
+  const targetLine = Array(N).fill(target);
+
+  charts.bend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: PERIODS,
+      datasets: [
+        {
+          label: 'Current Path',
+          data: base,
+          borderColor: '#6b758f',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 3,
+          pointBackgroundColor: '#6b758f',
+          tension: 0.35,
+        },
+        {
+          label: 'Adjusted Path',
+          data: adj,
+          borderColor: '#4c7ef8',
+          backgroundColor: 'rgba(76,126,248,0.05)',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: '#4c7ef8',
+          fill: false,
+          tension: 0.4,
+        },
+        {
+          label: 'Target',
+          data: targetLine,
+          borderColor: '#f0a830',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          borderDash: [3, 3],
+          pointRadius: 0,
+          tension: 0,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#111521' : '#fff',
+          borderColor: isDark ? '#1d2135' : '#dde2f4',
+          borderWidth: 1,
+          titleColor: isDark ? '#e9ecf7' : '#0d1020',
+          bodyColor: isDark ? '#6b758f' : '#5a6280',
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${getMetricCfg().fmt(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: gridColor() }, ticks: { color: tickColor(), font: { size: 11 } } },
+        y: {
+          grid: { color: gridColor() },
+          ticks: { color: tickColor(), font: { size: 11 }, callback: v => getMetricCfg().fmt(v) }
+        }
+      }
+    }
+  });
+}
+
+function renderContribChart(base) {
+  const ctx = document.getElementById('contrib-chart');
+  if (!ctx) return;
+  if (charts.contrib) { charts.contrib.destroy(); }
+
+  const activeArr = [...activeLevers].map(id => LEVERS.find(x => x.id === id)).filter(Boolean);
+  const noLeversMsg = document.getElementById('no-levers-msg');
+
+  if (activeArr.length === 0) {
+    noLeversMsg.style.display = 'block';
+    ctx.style.display = 'none';
+    return;
+  }
+  noLeversMsg.style.display = 'none';
+  ctx.style.display = 'block';
+
+  const endBase = base[N-1];
+  const labels = activeArr.map(l => l.label.length > 20 ? l.label.slice(0,18)+'…' : l.label);
+  const data = activeArr.map(l => {
+    const contribution = endBase * getLeverImpact(l, N-1);
+    return Math.round(contribution);
+  });
+
+  charts.contrib = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Gap Contribution',
+        data,
+        backgroundColor: activeArr.map(l => l.color + 'cc'),
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ` ${getMetricCfg().fmt(ctx.raw)}` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickColor(), font: { size: 10 }, maxRotation: 30 } },
+        y: {
+          grid: { color: gridColor() },
+          ticks: { color: tickColor(), font: { size: 10 }, callback: v => getMetricCfg().fmt(v) }
+        }
+      }
+    }
+  });
+}
+
+function renderTable(base) {
+  const tbody = document.getElementById('lever-table-body');
+  const activeArr = [...activeLevers].map(id => LEVERS.find(x => x.id === id)).filter(Boolean);
+  const endBase = base[N-1];
+
+  if (activeArr.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:20px;">No levers active — toggle initiatives in the left panel</td></tr>';
+    return;
+  }
+
+  const target = getTarget();
+  const gapTotal = target - endBase;
+
+  tbody.innerHTML = activeArr.map(l => {
+    const contrib = Math.round(endBase * getLeverImpact(l, N-1));
+    const gapClosed = gapTotal > 0 ? Math.round((contrib / gapTotal) * 100) : '—';
+    const lagQ = Math.ceil(l.lag / 13);
+    const effectiveFrom = PERIODS[lagQ] || PERIODS[PERIODS.length - 1];
+    const confClass = l.conf === 'High' ? 'conf-high' : l.conf === 'Medium' ? 'conf-med' : 'conf-low';
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:${l.color};"><i class="ti ${l.icon}"></i></span>
+          <span>${l.label}</span>
+        </div>
+      </td>
+      <td style="font-family:var(--font-mono);color:var(--accent)">+${(l.impact*100).toFixed(1)}%</td>
+      <td style="font-family:var(--font-mono);">${l.lag}w</td>
+      <td><span class="conf-badge ${confClass}">${l.conf}</span></td>
+      <td style="font-family:var(--font-mono);color:var(--blue);">${getMetricCfg().fmt(contrib)}</td>
+      <td style="font-family:var(--font-mono);color:var(--text-2);">${effectiveFrom}</td>
+    </tr>`;
+  }).join('');
+}
+
+// =========================================================
+// LEVER CARDS
+// =========================================================
+function buildLeverCards() {
+  const container = document.getElementById('lever-cards');
+  container.innerHTML = LEVERS.map(l => `
+    <div class="lever-card" id="lever-${l.id}"
+      style="--l-color:${l.color};--l-dim:${l.dim};"
+      onclick="toggleLever('${l.id}')">
+      <div class="lever-head">
+        <div class="lever-icon-wrap"><i class="ti ${l.icon}"></i></div>
+        <div class="lever-name">${l.label}</div>
+        <div class="lever-toggle"></div>
+      </div>
+      <div class="lever-meta">
+        <div class="lever-meta-item">
+          <div class="lever-meta-val">+${(l.impact*100).toFixed(0)}%</div>
+          <div class="lever-meta-label">Impact</div>
+        </div>
+        <div class="lever-meta-item">
+          <div class="lever-meta-val">${l.lag}w</div>
+          <div class="lever-meta-label">Lag</div>
+        </div>
+        <div class="lever-meta-item">
+          <div class="lever-meta-val" style="color:${l.conf==='High'?'var(--accent)':l.conf==='Medium'?'var(--amber)':'var(--red)'}">${l.conf}</div>
+          <div class="lever-meta-label">Confidence</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleLever(id) {
+  if (activeLevers.has(id)) activeLevers.delete(id);
+  else activeLevers.add(id);
+  document.getElementById('lever-' + id).classList.toggle('on', activeLevers.has(id));
+  render();
+}
+
+// =========================================================
+// TARGET SLIDER
+// =========================================================
+function onTargetChange(val) {
+  targetPct = parseFloat(val);
+  updateTargetDisplay();
+  render();
+}
+
+function updateTargetDisplay() {
+  const target = getTarget();
+  document.getElementById('target-display-val').textContent = getMetricCfg().fmt(target);
+
+  // Update min/max labels
+  const cfg = getMetricCfg();
+  const endBase = makeBase(cfg)[N-1];
+  document.getElementById('target-min-label').textContent = cfg.fmt(endBase);
+  document.getElementById('target-max-label').textContent = cfg.fmt(cfg.max);
+  document.getElementById('target-metric-label').textContent = cfg.label + ' Target';
+}
+
+// =========================================================
+// FILTERS
+// =========================================================
+function setFilter(key, val, btn) {
+  btn.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(b => {
+    if (b.textContent.trim().startsWith('FY')) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  render();
+}
+
+function setMetric(key, btn) {
+  currentMetric = key;
+  btn.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(b => {
+    if (['ASU','Service Requests','Revenue'].includes(b.textContent.trim())) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  updateTargetDisplay();
+  render();
+}
+
+// =========================================================
+// THEME
+// =========================================================
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'light');
+  document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
+  render();
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+function exportScenario() {
+  const cfg = getMetricCfg();
+  const target = getTarget();
+  const { base, adj } = computeAdjusted();
+  const activeArr = [...activeLevers].map(id => LEVERS.find(x => x.id === id)).filter(Boolean);
+  const rows = [['Period', 'Baseline', 'Adjusted', 'Target']];
+  PERIODS.forEach((p, i) => rows.push([p, base[i], adj[i], target]));
+  rows.push([]);
+  rows.push(['Active Levers', 'Impact', 'Lag (weeks)', 'Confidence']);
+  activeArr.forEach(l => rows.push([l.label, (l.impact*100).toFixed(1)+'%', l.lag, l.conf]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'bend_the_curve.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =========================================================
+// INIT
+// =========================================================
+buildLeverCards();
+updateTargetDisplay();
+render();
+</script>
+</body>
+</html>
