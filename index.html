@@ -3,155 +3,319 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SIMULATION Example</title>
+  <title>ISG BPA: Business Planning and Analytics</title>
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Inter, Arial, sans-serif;
       min-height: 100vh;
-      background: #0f172a;
+      background: #0a0f1e;
       color: #e2e8f0;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 24px;
+      padding: 32px 24px 48px;
     }
     .page {
-      width: min(980px, 100%);
-      background: #111827;
-      border: 1px solid #374151;
-      border-radius: 24px;
-      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+      width: min(1020px, 100%);
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 36px 36px 28px;
+      background: linear-gradient(135deg, #0f1f4a 0%, #111827 100%);
+      border: 1px solid #1e3a6e;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      position: relative;
       overflow: hidden;
     }
-    header {
-      padding: 28px 32px;
-      background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(17, 24, 39, 0.95));
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 100% 0%, rgba(59,130,246,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .header-eyebrow {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin: 0 0 10px;
     }
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 3vw, 3rem);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
       color: #f8fafc;
+      font-weight: 700;
+      line-height: 1.2;
     }
-    p {
-      margin: 12px 0 0;
-      color: #cbd5e1;
-      max-width: 780px;
-      line-height: 1.7;
+    h1 span {
+      color: #93c5fd;
     }
-    .meta {
-      margin-top: 18px;
+    .header-sub {
+      margin: 10px 0 0;
       color: #94a3b8;
-      font-size: 0.96rem;
+      font-size: 0.97rem;
+      line-height: 1.6;
+      max-width: 640px;
     }
-    .content {
-      padding: 30px 32px 36px;
-      display: grid;
-      gap: 18px;
+    .header-meta {
+      margin-top: 18px;
+      color: #64748b;
+      font-size: 0.88rem;
     }
-    .card {
-      background: #111827;
-      border: 1px solid #334155;
+
+    /* ── Featured card ── */
+    .featured {
+      background: linear-gradient(135deg, #1e3a5f 0%, #1a2744 100%);
+      border: 1px solid #2563eb;
       border-radius: 18px;
-      padding: 22px 24px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .card h2 {
-      margin: 0 0 10px;
-      font-size: 1.05rem;
+    .featured-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 6px;
+    }
+    .featured h2 {
+      margin: 0 0 6px;
+      font-size: 1.2rem;
       color: #f8fafc;
     }
-    .list {
-      display: grid;
-      gap: 12px;
+    .featured p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 0.93rem;
+      line-height: 1.5;
     }
-    .button {
+    .btn-primary {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 12px 18px;
-      border-radius: 14px;
-      border: 1px solid transparent;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 12px;
       background: #2563eb;
       color: #f8fafc;
       text-decoration: none;
       font-weight: 600;
-      transition: transform 0.15s ease, background 0.15s ease;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.15s;
+      flex-shrink: 0;
     }
-    .button:hover {
-      transform: translateY(-1px);
-      background: #1d4ed8;
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    /* ── Section ── */
+    .section-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin: 0 0 14px;
     }
-    .button.secondary {
-      background: #334155;
-      border-color: #475569;
+
+    /* ── Search ── */
+    .search-wrap {
+      margin-bottom: 14px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 11px 16px 11px 40px;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 12px;
       color: #e2e8f0;
+      font-size: 0.94rem;
+      outline: none;
+      transition: border-color 0.15s;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%2364748b' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%2364748b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: 14px center;
     }
-    .note {
-      margin-top: 18px;
-      color: #cbd5e1;
-      font-size: 0.95rem;
-      line-height: 1.7;
+    .search-input::placeholder { color: #475569; }
+    .search-input:focus { border-color: #3b82f6; }
+
+    /* ── Page list ── */
+    .page-grid {
+      display: grid;
+      gap: 10px;
     }
-    .status {
-      margin-top: 12px;
-      color: #94a3b8;
+    .page-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 14px;
+      padding: 14px 18px;
+      text-decoration: none;
+      color: #e2e8f0;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .page-row:hover {
+      border-color: #3b82f6;
+      background: #0f1f3a;
+      transform: translateX(3px);
+    }
+    .page-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+    .page-row-label {
+      font-weight: 600;
       font-size: 0.95rem;
+      color: #f1f5f9;
+    }
+    .page-row-file {
+      font-size: 0.78rem;
+      color: #475569;
+      margin-top: 2px;
+    }
+    .page-arrow {
+      margin-left: auto;
+      color: #334155;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .page-row:hover .page-arrow { color: #60a5fa; }
+    .empty-state {
+      color: #475569;
+      font-size: 0.94rem;
+      padding: 16px 0;
+      text-align: center;
+    }
+
+    /* ── Shell card ── */
+    .card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
     }
   </style>
 </head>
 <body>
   <div class="page">
     <header>
-      <h1>SIMULATION Example</h1>
-      <p>GitHub Pages is publishing your mockup files and manifest-driven deployment. Use this page to open the latest deployed UI or inspect the current manifest.</p>
-      <div class="status" id="publishedAt">Loading publish status...</div>
+      <p class="header-eyebrow">Aligned Automation Services</p>
+      <h1>ISG BPA: <span>Business Planning and Analytics</span></h1>
+      <p class="header-sub">Interactive simulation demos and analytical dashboards. Browse available modules below or open the primary planning tool directly.</p>
+      <div class="header-meta" id="publishedAt">Loading publish status…</div>
     </header>
 
-    <div class="content">
-      <div class="card">
-        <h2>Latest deployed UI</h2>
-        <div id="latestCard">Loading latest UI...</div>
+    <!-- Featured -->
+    <div class="featured" id="featuredCard" style="display:none">
+      <div>
+        <div class="featured-label">Primary Tool</div>
+        <h2>ISG BPA: Business Planning and Analytics</h2>
+        <p>Integrated demand forecasting, scenario planning, and supply chain analytics platform.</p>
       </div>
+      <a href="IBP_Forcasting.html" class="btn-primary">
+        Open Tool &#8594;
+      </a>
+    </div>
 
-      <div class="card">
-        <h2>Available mockup pages</h2>
-        <div class="list" id="pageList">Loading pages...</div>
+    <!-- All pages -->
+    <div class="card">
+      <p class="section-title">All available modules</p>
+      <div class="search-wrap">
+        <input class="search-input" type="search" id="searchInput" placeholder="Search modules…" autocomplete="off" />
       </div>
-
-      <div class="card">
-        <h2>Manifest status</h2>
-        <div class="note">The repository manifest file is used to track available pages automatically. Add a new <code>.html</code> file to the repository, push it, and the workflow will update <code>manifest.json</code>.</div>
-      </div>
+      <div class="page-grid" id="pageList">Loading pages…</div>
     </div>
   </div>
 
   <script>
-    function formatDateTime(iso) {
-      try {
-        return new Date(iso).toLocaleString(undefined, {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-          timeZoneName: 'short'
-        });
-      } catch (err) {
-        return iso || 'Unknown';
-      }
+    /* Label overrides — map filename → display name */
+    const LABELS = {
+      'IBP_Forcasting.html': 'ISG BPA: Business Planning and Analytics',
+      'dell_workflow.html': 'Dell Workflow',
+      'simulation-overview-platform.html': 'Simulation Overview Platform',
+      'enterprise_whatif_forecasting_platform.html': 'Enterprise What-If Forecasting Platform',
+      'executive_forecast_operational_dashboard.html': 'Executive Forecast & Operational Dashboard',
+      'epic_dashboard_mockup.html': 'Epic Dashboard Mockup',
+    };
+
+    /* Icon heuristics */
+    function iconFor(file) {
+      const f = file.toLowerCase();
+      if (f.includes('ibp') || f.includes('forecast') || f.includes('planning')) return '📊';
+      if (f.includes('workflow')) return '🔄';
+      if (f.includes('dashboard')) return '📈';
+      if (f.includes('whatif') || f.includes('scenario')) return '🔮';
+      if (f.includes('climate')) return '🌱';
+      if (f.includes('executive')) return '🏢';
+      if (f.includes('overview')) return '🗺️';
+      return '📄';
     }
 
     function buildLabel(file) {
+      if (LABELS[file]) return LABELS[file];
       return file.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    function createLink(file, label) {
-      const a = document.createElement('a');
-      a.href = file;
-      a.className = 'button';
-      a.textContent = `Open ${label}`;
-      return a;
+    function formatDateTime(iso) {
+      try {
+        return new Date(iso).toLocaleString(undefined, {
+          year: 'numeric', month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short'
+        });
+      } catch { return iso || 'Unknown'; }
+    }
+
+    function renderRows(pages, filter) {
+      const list = document.getElementById('pageList');
+      const q = (filter || '').toLowerCase().trim();
+      const entries = Array.from(pages.entries())
+        .filter(([, label]) => !q || label.toLowerCase().includes(q))
+        .sort((a, b) => {
+          /* Pin IBP at top */
+          if (a[0] === 'IBP_Forcasting.html') return -1;
+          if (b[0] === 'IBP_Forcasting.html') return 1;
+          return a[1].localeCompare(b[1]);
+        });
+
+      list.innerHTML = '';
+      if (!entries.length) {
+        list.innerHTML = '<div class="empty-state">No modules match your search.</div>';
+        return;
+      }
+      entries.forEach(([file, label]) => {
+        const a = document.createElement('a');
+        a.href = file;
+        a.className = 'page-row';
+        a.innerHTML = `
+          <div class="page-icon">${iconFor(file)}</div>
+          <div>
+            <div class="page-row-label">${label}</div>
+            <div class="page-row-file">${file}</div>
+          </div>
+          <span class="page-arrow">&#8594;</span>`;
+        list.appendChild(a);
+      });
     }
 
     async function loadManifest() {
@@ -162,53 +326,37 @@
 
         const publishedAt = document.getElementById('publishedAt');
         publishedAt.textContent = data.pagesPublishedAt
-          ? `Published: ${formatDateTime(data.pagesPublishedAt)}`
-          : 'Published timestamp not available yet.';
-
-        const pageList = document.getElementById('pageList');
-        pageList.innerHTML = '';
+          ? `Last published: ${formatDateTime(data.pagesPublishedAt)}`
+          : '';
 
         const pages = new Map();
         if (Array.isArray(data.mockups)) {
-          data.mockups.forEach(mockup => {
-            if (mockup.file && mockup.file !== 'index.html') {
-              pages.set(mockup.file, mockup.label || buildLabel(mockup.file));
-            }
+          data.mockups.forEach(m => {
+            if (m.file && m.file !== 'index.html')
+              pages.set(m.file, m.label || buildLabel(m.file));
           });
         }
         if (data.autoPages && typeof data.autoPages === 'object') {
           Object.keys(data.autoPages).forEach(file => {
-            if (file !== 'index.html' && !pages.has(file)) {
+            if (file !== 'index.html' && !pages.has(file))
               pages.set(file, buildLabel(file));
-            }
           });
         }
 
-        if (!pages.size) {
-          pageList.textContent = 'No available pages found in manifest.json.';
-        } else {
-          Array.from(pages.entries())
-            .sort((a, b) => a[1].localeCompare(b[1]))
-            .forEach(([file, label]) => {
-              pageList.appendChild(createLink(file, label));
-            });
+        /* Show featured card if IBP page exists */
+        if (pages.has('IBP_Forcasting.html')) {
+          document.getElementById('featuredCard').style.display = 'flex';
         }
 
-        const latestCard = document.getElementById('latestCard');
-        if (data.latestAutoPage && data.latestAutoPage.file) {
-          latestCard.innerHTML = '';
-          latestCard.appendChild(createLink(data.latestAutoPage.file, buildLabel(data.latestAutoPage.file)));
-          const meta = document.createElement('div');
-          meta.className = 'status';
-          meta.textContent = `Updated: ${formatDateTime(data.latestAutoPage.updated)}`;
-          latestCard.appendChild(meta);
-        } else {
-          latestCard.textContent = 'Latest deployed UI not available.';
-        }
+        renderRows(pages, '');
+
+        document.getElementById('searchInput').addEventListener('input', e => {
+          renderRows(pages, e.target.value);
+        });
+
       } catch (error) {
         document.getElementById('publishedAt').textContent = 'Failed to load manifest.';
         document.getElementById('pageList').textContent = 'Unable to display pages.';
-        document.getElementById('latestCard').textContent = 'Unable to determine latest page.';
         console.error(error);
       }
     }
