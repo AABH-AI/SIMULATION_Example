@@ -519,7 +519,7 @@
           <!-- Overall -->
           <div id="dp-channel-overall">
             <div class="kpi-row">
-              <div class="kpi-card"><div class="kpi-label">Total Demand Units</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">284.6K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 5.2% vs PY</div></div>
+              <div class="kpi-card"><div class="kpi-label">Total Demand</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">284.6K</div><div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 5.2% vs PY</div></div>
               <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value kpi-dynamic">91.4%</div></div>
               <div class="kpi-card"><div class="kpi-label">Total SRs</div><div class="kpi-value kpi-dynamic">40.5K</div></div>
               <div class="kpi-card"><div class="kpi-label">Avg Weekly Volume</div><div class="kpi-value kpi-dynamic">5.5K</div></div>
@@ -561,8 +561,8 @@
             <div class="kpi-row">
               <div class="kpi-card"><div class="kpi-label">Care Demand Volume</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.3K</div><div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div></div>
               <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value kpi-dynamic">93.2%</div></div>
-              <div class="kpi-card"><div class="kpi-label">Care SRs Opened</div><div class="kpi-value kpi-dynamic">22.4K</div></div>
-              <div class="kpi-card"><div class="kpi-label">Avg Handle Time (min)</div><div class="kpi-value kpi-dynamic">14.2</div></div>
+              <div class="kpi-card"><div class="kpi-label">Care SRs</div><div class="kpi-value kpi-dynamic">22.4K</div></div>
+              <div class="kpi-card"><div class="kpi-label">Weekly Avg SRs for Care</div><div class="kpi-value kpi-dynamic">5.8K</div></div>
             </div>
             <div class="visual-row">
               <div class="visual-card">
@@ -630,6 +630,7 @@
           <div class="filter-dropdown-content open">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY26" checked onchange="onFilterChange()"> FY26</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY27" onchange="onFilterChange()"> FY27</label>
               <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY25" onchange="onFilterChange()"> FY25</label>
               <hr style="border:0;border-top:1px solid var(--border);margin:4px 0;">
               <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q1" checked onchange="onFilterChange()"> Q1</label>
@@ -671,7 +672,7 @@
               <label class="filter-checkbox"><input type="checkbox" data-group="region" value="All" checked onchange="onFilterChange()"> (All)</label>
               <label class="filter-checkbox"><input type="checkbox" data-group="region" value="AMER" onchange="onFilterChange()"> AMER</label>
               <label class="filter-checkbox"><input type="checkbox" data-group="region" value="EMEA" onchange="onFilterChange()"> EMEA</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APAC" onchange="onFilterChange()"> APAC</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APJ" onchange="onFilterChange()"> APJ</label>
             </div>
           </div>
         </div>
@@ -698,10 +699,8 @@
             <input type="text" class="inner-search" placeholder="Search partner..." oninput="filterInner(this)">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Alpha Tech" onchange="onFilterChange()"> Alpha Tech</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Omega Sys" onchange="onFilterChange()"> Omega Sys</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Sigma Global" onchange="onFilterChange()"> Sigma Global</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Delta Services" onchange="onFilterChange()"> Delta Services</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="Dell" onchange="onFilterChange()"> Dell</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="partner" value="OSP" onchange="onFilterChange()"> OSP</label>
             </div>
           </div>
         </div>
@@ -745,13 +744,13 @@
 // =========================================================
 // DATA GENERATION
 // =========================================================
-const REGIONS = ['AMER','AMER','EMEA','APAC'];
+const REGIONS = ['AMER','AMER','EMEA','APJ'];
 const SUBREGIONS = {
   'AMER': ['North America','LATAM'],
   'EMEA': ['Western Europe','Eastern Europe'],
-  'APAC': ['SEA','ANZ','Japan']
+  'APJ': ['SEA','ANZ','Japan']
 };
-const PARTNERS = ['Alpha Tech','Omega Sys','Sigma Global','Delta Services'];
+const PARTNERS = ['Dell','OSP'];
 const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
 const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
 const BRS = ['BR_Direct','BR_Indirect'];
@@ -772,7 +771,8 @@ function generateRawData() {
     const location = randFrom(LOCATIONS);
     const queue = randFrom(QUEUES);
     const br = randFrom(BRS);
-    const fy = Math.random() > 0.3 ? 'FY26' : 'FY25';
+    const r2 = Math.random();
+    const fy = r2 > 0.55 ? 'FY26' : r2 > 0.25 ? 'FY27' : 'FY25';
     const quarter = randFrom(['Q1','Q2','Q3','Q4']);
     const month = randFrom(['M1','M2','M3','M4','M5','M6']);
     const weekNum = randInt(1, 52);
@@ -793,13 +793,13 @@ generateRawData();
 const ALERTS_DATA = [
   { sev:'High', desc:'ASU variance exceeds 10% tolerance threshold', date:'2026-06-02', region:'AMER', subregion:'North America' },
   { sev:'High', desc:'Missing data for LOB: Field Services W44', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
-  { sev:'High', desc:'Forecast demand drop >15% for Care queue — APAC', date:'2026-06-03', region:'APAC', subregion:'SEA' },
+  { sev:'High', desc:'Forecast demand drop >15% for Care queue — APJ', date:'2026-06-03', region:'APJ', subregion:'SEA' },
   { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
-  { sev:'High', desc:'Partner SLA breach — Omega Sys dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
-  { sev:'Medium', desc:'Partner Alpha Tech SLA missed warning', date:'2026-06-01', region:'APAC', subregion:'ANZ' },
+  { sev:'High', desc:'Partner SLA breach — OSP dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
+  { sev:'Medium', desc:'Partner Dell SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
   { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
   { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
-  { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APAC', subregion:'Japan' },
+  { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APJ', subregion:'Japan' },
   { sev:'Low', desc:'Forecast model retrain scheduled — W26', date:'2026-06-01', region:'AMER', subregion:'North America' },
   { sev:'Low', desc:'Minor duplicate records detected — 43 rows', date:'2026-05-29', region:'EMEA', subregion:'Eastern Europe' },
   { sev:'Low', desc:'New York Hub location data lag — 2hr delay observed', date:'2026-06-04', region:'AMER', subregion:'North America' },
@@ -964,12 +964,22 @@ function resetFilters() {
 // FILTER CHIPS
 // =========================================================
 function getActiveFilters() {
-  const active = {};
-  document.querySelectorAll('#filter-container input[type=checkbox]:checked').forEach(cb => {
+  // Scan ALL checkboxes (not just checked) so we know when a group has nothing selected.
+  // Return value per group:
+  //   key absent  → "All" checkbox was checked → no restriction
+  //   key = []    → nothing selected at all     → show NO data
+  //   key = [...]  → specific items selected    → filter to those
+  const groupState = {};
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
     const group = cb.dataset.group;
-    if (!group || cb.value === 'All') return;
-    if (!active[group]) active[group] = [];
-    active[group].push(cb.value);
+    if (!group) return;
+    if (!groupState[group]) groupState[group] = { allChecked: false, values: [] };
+    if (cb.value === 'All') { if (cb.checked) groupState[group].allChecked = true; }
+    else if (cb.checked) groupState[group].values.push(cb.value);
+  });
+  const active = {};
+  Object.entries(groupState).forEach(([group, state]) => {
+    if (!state.allChecked) active[group] = state.values;
   });
   return active;
 }
@@ -1008,6 +1018,13 @@ function onFilterChange() {
 // =========================================================
 // DATA UPDATE (filter simulation)
 // =========================================================
+// Charts whose data is fully controlled by filter logic — skip from random jitter
+const FILTER_AWARE_CHARTS = new Set([
+  'fa-chart-hbar','fa-chart-partner',
+  'dp-chart-overall-stacked','dp-chart-field-region',
+  'dp-chart-care-region','dp-chart-care-trend'
+]);
+
 function triggerDataUpdate() {
   document.querySelectorAll('.kpi-dynamic:not(#dr-total-records):not(#da-total)').forEach(el => {
     let t = el.innerText;
@@ -1021,13 +1038,17 @@ function triggerDataUpdate() {
   if (activeModule === 'demand-alerts') renderAlerts(currentAlertFilter);
   if (activeModule === 'forecast-accuracy') { generateActualsTable(); generatePartnerTable(); }
 
+  // Jitter only trend/overview charts (not filter-aware ones)
   Object.entries(chartInstances).forEach(([id, c]) => {
-    if (!c) return;
+    if (!c || FILTER_AWARE_CHARTS.has(id)) return;
     c.data.datasets.forEach(ds => {
       ds.data = ds.data.map(v => Math.max(10, v * (1 + (Math.random() * 0.3 - 0.15))));
     });
     c.update();
   });
+
+  // Re-apply filter logic to all filter-aware charts across all tabs
+  applyAllFilteredCharts();
 }
 
 // =========================================================
@@ -1080,24 +1101,24 @@ function initCharts() {
     ]
   });
   mk('fa-chart-hbar', 'bar', {
-    labels: ['AMER','EMEA','APAC'],
+    labels: ['AMER','EMEA','APJ'],
     datasets: [
       { label: 'Weekly Actuals', data: [450,300,250], backgroundColor: '#2f81f7' },
       { label: 'Forecast Demand', data: [420,310,230], backgroundColor: '#3fb950' }
     ]
   });
   mk('fa-chart-partner', 'bar', {
-    labels: ['Alpha Tech','Omega Sys','Sigma Global','Delta Serv'],
-    datasets: [{ label: 'MDR Work Orders', data: [1200,850,600,450], backgroundColor: ['#a371f7','#2f81f7','#3fb950','#f78166'] }]
+    labels: ['Dell','OSP'],
+    datasets: [{ label: 'MDR Work Orders', data: [1200,850], backgroundColor: ['#2f81f7','#3fb950'] }]
   }, { ...baseLineOptions(), indexAxis: 'y' });
 
   // Demand Profiling
   mk('dp-chart-overall-stacked', 'bar', {
-    labels: ['North America','LATAM','Western Europe','SEA','ANZ'],
+    labels: DP_OVERALL_BASE.map(d => d.subregion),
     datasets: [
-      { label: 'Field Services', data: [300,150,200,120,80], backgroundColor: '#2f81f7' },
-      { label: 'Care', data: [200,100,150,90,60], backgroundColor: '#a371f7' },
-      { label: 'Managed Services', data: [100,50,80,40,30], backgroundColor: '#3fb950' }
+      { label: 'Field Services',   data: DP_OVERALL_BASE.map(d => d.fs),   backgroundColor: '#2f81f7' },
+      { label: 'Care',             data: DP_OVERALL_BASE.map(d => d.care), backgroundColor: '#a371f7' },
+      { label: 'Managed Services', data: DP_OVERALL_BASE.map(d => d.ms),   backgroundColor: '#3fb950' }
     ]
   }, baseLineOptions(true));
 
@@ -1111,8 +1132,8 @@ function initCharts() {
   });
 
   mk('dp-chart-field-region', 'bar', {
-    labels: ['North America','LATAM','Western Europe','SEA'],
-    datasets: [{ label: 'Field Services Demand', data: [420,180,310,160], backgroundColor: '#2f81f7' }]
+    labels: DP_FIELD_BASE.map(d => d.subregion),
+    datasets: [{ label: 'Field Services Demand', data: DP_FIELD_BASE.map(d => d.demand), backgroundColor: '#2f81f7' }]
   });
   mk('dp-chart-field-trend', 'line', {
     labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
@@ -1123,16 +1144,19 @@ function initCharts() {
   });
 
   mk('dp-chart-care-region', 'bar', {
-    labels: ['Western Europe','North America','Japan','ANZ'],
-    datasets: [{ label: 'Care Volume', data: [380,290,140,110], backgroundColor: '#a371f7' }]
+    labels: CARE_SUBREGION_BASE.map(d => d.subregion),
+    datasets: [{ label: 'Care Volume', data: CARE_SUBREGION_BASE.map(d => d.volume), backgroundColor: '#a371f7' }]
   });
   mk('dp-chart-care-trend', 'line', {
     labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
     datasets: [
-      { label: 'Care SRs', data: [480,500,490,510,530,510,550,530], borderColor: '#a371f7', tension: 0.4, fill: false },
-      { label: 'Forecast', data: [500,510,495,520,540,515,560,540], borderColor: '#f0883e', tension: 0.4, borderDash: [5,4] }
+      { label: 'AMER', data: [480,500,490,510,530,510,550,530], borderColor: '#2f81f7', tension: 0.4, fill: false },
+      { label: 'EMEA', data: [320,340,330,350,370,350,385,365], borderColor: '#a371f7', tension: 0.4, fill: false },
+      { label: 'APJ',  data: [200,210,205,220,235,215,240,228], borderColor: '#3fb950', tension: 0.4, fill: false }
     ]
   });
+  // Apply filter state to all charts after init
+  applyAllFilteredCharts();
 }
 
 // =========================================================
@@ -1154,7 +1178,273 @@ function switchChannel(channel, tabEl) {
       const c = chartInstances[id];
       if (c) c.update();
     });
+    applyAllFilteredCharts();
   }, 30);
+}
+
+// =========================================================
+// FILTER-AWARE CHART BASE DATA
+// =========================================================
+// Single source of truth for all charts. When real data replaces mock,
+// swap these constants — the filter functions below stay unchanged.
+
+const FA_REGION_BASE = {
+  AMER: { actuals: 450, forecast: 420 },
+  EMEA: { actuals: 300, forecast: 310 },
+  APJ:  { actuals: 250, forecast: 230 }
+};
+
+const DP_OVERALL_BASE = [
+  { subregion: 'North America', region: 'AMER', fs: 300, care: 200, ms: 100 },
+  { subregion: 'LATAM',         region: 'AMER', fs: 150, care: 100, ms:  50 },
+  { subregion: 'Western Europe',region: 'EMEA', fs: 200, care: 150, ms:  80 },
+  { subregion: 'Eastern Europe',region: 'EMEA', fs: 120, care:  90, ms:  45 },
+  { subregion: 'SEA',           region: 'APJ',  fs: 120, care:  90, ms:  40 },
+  { subregion: 'ANZ',           region: 'APJ',  fs:  80, care:  60, ms:  30 },
+  { subregion: 'Japan',         region: 'APJ',  fs: 140, care: 110, ms:  55 },
+];
+
+const DP_FIELD_BASE = [
+  { subregion: 'North America', region: 'AMER', demand: 420 },
+  { subregion: 'LATAM',         region: 'AMER', demand: 180 },
+  { subregion: 'Western Europe',region: 'EMEA', demand: 310 },
+  { subregion: 'Eastern Europe',region: 'EMEA', demand: 140 },
+  { subregion: 'SEA',           region: 'APJ',  demand: 160 },
+  { subregion: 'ANZ',           region: 'APJ',  demand: 100 },
+  { subregion: 'Japan',         region: 'APJ',  demand: 120 },
+];
+
+const CARE_SUBREGION_BASE = [
+  { subregion: 'Western Europe', region: 'EMEA', volume: 380 },
+  { subregion: 'North America',  region: 'AMER', volume: 290 },
+  { subregion: 'Japan',          region: 'APJ',  volume: 140 },
+  { subregion: 'ANZ',            region: 'APJ',  volume: 110 },
+  { subregion: 'Eastern Europe', region: 'EMEA', volume: 160 },
+  { subregion: 'LATAM',          region: 'AMER', volume: 130 },
+  { subregion: 'SEA',            region: 'APJ',  volume: 120 },
+];
+
+const FA_PARTNER_BASE = [
+  { name: 'Dell', mdr: 1200, color: '#2f81f7' },
+  { name: 'OSP',  mdr: 850,  color: '#3fb950' }
+];
+
+// =========================================================
+// TIME FILTER MAPPING (Quarter / Month / Week → indices)
+// =========================================================
+const Q_WEEKS = {
+  Q1: Array.from({length: 13}, (_, i) => i + 1),   // W1 – W13
+  Q2: Array.from({length: 13}, (_, i) => i + 14),  // W14 – W26
+  Q3: Array.from({length: 13}, (_, i) => i + 27),  // W27 – W39
+  Q4: Array.from({length: 13}, (_, i) => i + 40),  // W40 – W52
+};
+const M_WEEKS = {
+  M1: [1,2,3,4], M2: [5,6,7,8], M3: [9,10,11,12,13],
+  M4: [14,15,16,17], M5: [18,19,20,21,22], M6: [23,24,25,26],
+};
+
+// FY-level scaling for mock YoY growth
+const FY_SCALE = { FY25: 0.92, FY26: 1.0, FY27: 1.08 };
+
+// Deterministic 52-week sinusoidal data (quarterly cycle, no Math.random)
+function _makeTrend(base, amp, phase) {
+  return Array.from({length: 52}, (_, i) =>
+    Math.max(10, Math.round(base + amp * Math.sin(2 * Math.PI * (i + (phase || 0)) / 13)))
+  );
+}
+const TREND_DATA_52 = {
+  'fa-asu':       _makeTrend(140, 20, 0),
+  'fa-wo':        _makeTrend(90,  12, 0),
+  'dp-ov-fs':     _makeTrend(540, 60, 0),
+  'dp-ov-care':   _makeTrend(420, 45, 2),
+  'dp-ov-ms':     _makeTrend(215, 25, 4),
+  'dp-fld-dis':   _makeTrend(660, 70, 1),
+  'dp-fld-fct':   _makeTrend(650, 65, 1),
+  'dp-care-amer': _makeTrend(510, 50, 0),
+  'dp-care-emea': _makeTrend(350, 35, 3),
+  'dp-care-apj':  _makeTrend(220, 22, 6),
+};
+
+// Returns 0-based week indices derived from FY / Quarter / Month / Week filter combo
+function getSelectedWeekIndices() {
+  const active = getActiveFilters();
+  let idx = Array.from({length: 52}, (_, i) => i); // start: all 52
+
+  if (active.quarter !== undefined) {
+    if (active.quarter.length === 0) return [];
+    const qNums = active.quarter.flatMap(q => Q_WEEKS[q] || []);
+    idx = idx.filter(i => qNums.includes(i + 1));
+  }
+  if (active.month !== undefined) {
+    if (active.month.length === 0) return [];
+    const mNums = active.month.flatMap(m => M_WEEKS[m] || []);
+    if (mNums.length) idx = idx.filter(i => mNums.includes(i + 1));
+  }
+  if (active.week !== undefined) {
+    if (active.week.length === 0) return [];
+    const wNums = active.week.map(w => parseInt(w.slice(1)));
+    idx = idx.filter(i => wNums.includes(i + 1));
+  }
+  return idx;
+}
+
+// Average scale multiplier for selected FYs (drives mock YoY differences)
+function getActiveFYMultiplier() {
+  const active = getActiveFilters();
+  const fys = active.fy;
+  if (fys === undefined) return (FY_SCALE.FY26 + FY_SCALE.FY27) / 2; // All
+  if (fys.length === 0)  return 0;                                      // Nothing → no data
+  return fys.reduce((s, f) => s + (FY_SCALE[f] || 1.0), 0) / fys.length;
+}
+
+// =========================================================
+// FILTER-AWARE CHART UPDATE FUNCTIONS
+// =========================================================
+// Filter contract (from getActiveFilters):
+//   active.region === undefined  → "All" selected → no restriction
+//   active.region === []          → nothing selected → show NO data
+//   active.region === ['AMER']    → show only matching data
+
+function _filterByRegion(data) {
+  const r = getActiveFilters().region;
+  if (r === undefined) return data;
+  return data.filter(d => r.includes(d.region));
+}
+
+// Forecast Accuracy – Weekly Actuals vs Forecast by Region (bar)
+function updateFARegionChart() {
+  const chart = chartInstances['fa-chart-hbar'];
+  if (!chart) return;
+  const r = getActiveFilters().region;
+  const allR = ['AMER','EMEA','APJ'];
+  const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  chart.data.labels = regions;
+  chart.data.datasets[0].data = regions.map(x => FA_REGION_BASE[x].actuals);
+  chart.data.datasets[1].data = regions.map(x => FA_REGION_BASE[x].forecast);
+  chart.update();
+}
+
+// Forecast Accuracy – MDR Work Orders by Partner (bar)
+function updateFAPartnerChart() {
+  const chart = chartInstances['fa-chart-partner'];
+  if (!chart) return;
+  const p = getActiveFilters().partner;
+  const filtered = p === undefined ? FA_PARTNER_BASE : FA_PARTNER_BASE.filter(x => p.includes(x.name));
+  chart.data.labels = filtered.map(x => x.name);
+  chart.data.datasets[0].data = filtered.map(x => x.mdr);
+  chart.data.datasets[0].backgroundColor = filtered.map(x => x.color);
+  chart.update();
+}
+
+// Demand Profiling – Overall stacked bar by sub-region
+function updateDPOverallStackedChart() {
+  const chart = chartInstances['dp-chart-overall-stacked'];
+  if (!chart) return;
+  const filtered = _filterByRegion(DP_OVERALL_BASE);
+  chart.data.labels = filtered.map(d => d.subregion);
+  chart.data.datasets[0].data = filtered.map(d => d.fs);
+  chart.data.datasets[1].data = filtered.map(d => d.care);
+  chart.data.datasets[2].data = filtered.map(d => d.ms);
+  chart.update();
+}
+
+// Demand Profiling – Field Services bar by sub-region
+function updateDPFieldRegionChart() {
+  const chart = chartInstances['dp-chart-field-region'];
+  if (!chart) return;
+  const filtered = _filterByRegion(DP_FIELD_BASE);
+  chart.data.labels = filtered.map(d => d.subregion);
+  chart.data.datasets[0].data = filtered.map(d => d.demand);
+  chart.update();
+}
+
+// Demand Profiling – Care Volume by Sub-Region (bar)
+function updateCareRegionChart() {
+  const chart = chartInstances['dp-chart-care-region'];
+  if (!chart) return;
+  const filtered = _filterByRegion(CARE_SUBREGION_BASE);
+  chart.data.labels = filtered.map(d => d.subregion);
+  chart.data.datasets[0].data = filtered.map(d => d.volume);
+  chart.update();
+}
+
+// Demand Profiling – Weekly Care SR Trend (one line per region, week-filtered)
+function updateCareChartByRegion() {
+  const chart = chartInstances['dp-chart-care-trend'];
+  if (!chart) return;
+  const r    = getActiveFilters().region;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const keyMap = { AMER: 'dp-care-amer', EMEA: 'dp-care-emea', APJ: 'dp-care-apj' };
+  chart.data.labels = idx.map(i => `W${i + 1}`);
+  chart.data.datasets.forEach(ds => {
+    if (r === undefined) { ds.hidden = false; }        // All → show every line
+    else { ds.hidden = !r.includes(ds.label); }        // [] → hide all; [...] → match
+    const key = keyMap[ds.label];
+    if (key) ds.data = idx.map(i => Math.round(TREND_DATA_52[key][i] * mult));
+  });
+  chart.update();
+}
+
+// Forecast Accuracy – Tech ASU vs Work Orders trend (week + FY filtered)
+function updateFAOverviewChart() {
+  const chart = chartInstances['fa-chart-overview'];
+  if (!chart) return;
+  const r    = getActiveFilters().region;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const hideAll = (r !== undefined && r.length === 0) || mult === 0;
+  chart.data.labels = idx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = idx.map(i => Math.round(TREND_DATA_52['fa-asu'][i] * mult));
+  chart.data.datasets[1].data = idx.map(i => Math.round(TREND_DATA_52['fa-wo'][i]  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+// Demand Profiling – Weekly Volume Trend All Channels (week + FY filtered)
+function updateDPOverallTrendChart() {
+  const chart = chartInstances['dp-chart-overall-trend'];
+  if (!chart) return;
+  const r    = getActiveFilters().region;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const hideAll = (r !== undefined && r.length === 0) || mult === 0;
+  chart.data.labels = idx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = idx.map(i => Math.round(TREND_DATA_52['dp-ov-fs'][i]   * mult));
+  chart.data.datasets[1].data = idx.map(i => Math.round(TREND_DATA_52['dp-ov-care'][i] * mult));
+  chart.data.datasets[2].data = idx.map(i => Math.round(TREND_DATA_52['dp-ov-ms'][i]   * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+// Demand Profiling – Weekly Field Dispatch Trend (week + FY filtered)
+function updateDPFieldTrendChart() {
+  const chart = chartInstances['dp-chart-field-trend'];
+  if (!chart) return;
+  const r    = getActiveFilters().region;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const hideAll = (r !== undefined && r.length === 0) || mult === 0;
+  chart.data.labels = idx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = idx.map(i => Math.round(TREND_DATA_52['dp-fld-dis'][i] * mult));
+  chart.data.datasets[1].data = idx.map(i => Math.round(TREND_DATA_52['dp-fld-fct'][i] * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+// Master call — run after every filter change; safe to call from any tab
+function applyAllFilteredCharts() {
+  // Bar charts (region / subregion / partner filtered)
+  updateFARegionChart();
+  updateFAPartnerChart();
+  updateDPOverallStackedChart();
+  updateDPFieldRegionChart();
+  updateCareRegionChart();
+  // Trend charts (week + FY + region filtered)
+  updateFAOverviewChart();
+  updateDPOverallTrendChart();
+  updateDPFieldTrendChart();
+  updateCareChartByRegion();
 }
 
 // =========================================================
@@ -1312,16 +1602,33 @@ function filterAlerts(sev, btn) {
 function renderAlerts(sev) {
   const tbody = document.getElementById('alerts-body');
   if (!tbody) return;
-  const filtered = sev === 'all' ? ALERTS_DATA : ALERTS_DATA.filter(a => a.sev === sev);
+  const active = getActiveFilters();
+  let filtered = sev === 'all' ? ALERTS_DATA : ALERTS_DATA.filter(a => a.sev === sev);
+
+  // Apply region filter: undefined = All (pass), [] = none (block all), [...] = match
+  if (active.region !== undefined) {
+    filtered = active.region.length > 0
+      ? filtered.filter(a => active.region.includes(a.region))
+      : [];
+  }
+  // Apply subregion filter
+  if (active.subregion !== undefined) {
+    filtered = active.subregion.length > 0
+      ? filtered.filter(a => active.subregion.includes(a.subregion))
+      : [];
+  }
+
   const sevClass = { High: 'badge-high', Medium: 'badge-med', Low: 'badge-good' };
-  tbody.innerHTML = filtered.map(a => `
-    <tr>
-      <td><span class="badge ${sevClass[a.sev]}">${a.sev}</span></td>
-      <td>${a.desc}</td>
-      <td>${a.date}</td>
-      <td>${a.region}</td>
-      <td>${a.subregion}</td>
-    </tr>`).join('');
+  tbody.innerHTML = filtered.length
+    ? filtered.map(a => `
+      <tr>
+        <td><span class="badge ${sevClass[a.sev]}">${a.sev}</span></td>
+        <td>${a.desc}</td>
+        <td>${a.date}</td>
+        <td>${a.region}</td>
+        <td>${a.subregion}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-secondary);">No alerts match the active filters.</td></tr>';
   const daTotal = document.getElementById('da-total');
   if (daTotal) daTotal.innerText = filtered.length;
 }
