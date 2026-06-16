@@ -2122,14 +2122,16 @@ function wiRenderSliders() {
       </div>
     </div>`).join('');
 
+  const displayVal = wiState.unitsOverride ? Number(wiState.unitsOverride).toLocaleString('en-IN') : '';
   const textInputHTML = `
     <div style="margin-bottom:20px;">
       <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:8px;">Renewed Units Override</div>
-      <input type="number" id="wi-units-input" value="${wiState.unitsOverride}"
-        placeholder="e.g. 250,000"
-        style="width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-1);font-size:13px;font-family:var(--font-ui);outline:none;"
+      <input type="text" id="wi-units-input" value="${displayVal}"
+        placeholder="e.g. 2,50,000"
+        inputmode="numeric"
+        style="width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-1);font-size:13px;font-family:var(--font-mono);outline:none;letter-spacing:0.02em;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-        oninput="wiUnitsChanged(this.value)">
+        oninput="wiUnitsInput(this)">
       <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to use calculated value</div>
     </div>`;
 
@@ -2140,14 +2142,31 @@ function wiSliderMoved(key, val) {
   wiState[key] = val;
   const s = WI_SLIDERS.find(x => x.key === key);
   document.getElementById('wi-val-' + key).textContent = s.fmt(val);
-  wiRenderAll();
+  // Targeted updates — fast, no full re-render
+  wiRenderKPIs();
+  wiRenderImpact();
+  wiRenderPipeline();
+  wiRenderCharts(); // smart: updates existing chart data in-place
   wiAddAudit('Slider', `${s.label} → ${s.fmt(val)}`);
 }
 
-function wiUnitsChanged(val) {
-  wiState.unitsOverride = val;
-  wiRenderAll();
-  if (val) wiAddAudit('Override', `Renewed Units set to ${parseInt(val).toLocaleString()}`);
+function wiUnitsInput(el) {
+  // Strip everything except digits
+  const digits = el.value.replace(/[^0-9]/g, '');
+  if (!digits) {
+    wiState.unitsOverride = '';
+    el.value = '';
+    wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
+    return;
+  }
+  const n = parseInt(digits, 10);
+  // Format with Indian number system: 5,00,000
+  const formatted = n.toLocaleString('en-IN');
+  // Preserve cursor at end after reformat
+  el.value = formatted;
+  wiState.unitsOverride = n;
+  wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
+  wiAddAudit('Override', `Renewed Units → ${formatted}`);
 }
 
 function wiRenderImpact() {
@@ -2190,98 +2209,90 @@ function wiRenderPipeline() {
     </div>`).join('');
 }
 
-function wiRenderCharts() {
+function _wiChartData() {
   const fc = wiCompute(wiState);
-  const ratio = fc.whatifASU / WI_BASE.asu;
-  const srRatio = fc.whatifSR / WI_BASE.sr;
+  const ratio   = fc.whatifASU  / WI_BASE.asu;
+  const srRatio = fc.whatifSR   / WI_BASE.sr;
   const dpRatio = fc.whatifDisp / WI_BASE.disp;
+  return {
+    asuBase: WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12)),
+    asuAdj:  WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12 * ratio)),
+    srBase:  WI_SR_SHAPE.map(s   => Math.round(WI_BASE.sr   * s  / 12 / 1e3)),
+    srAdj:   WI_SR_SHAPE.map(s   => parseFloat((WI_BASE.sr  * s  / 12 / 1e3 * srRatio).toFixed(1))),
+    dpBase:  WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3)),
+    dpAdj:   WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3 * dpRatio)),
+  };
+}
 
+function wiRenderCharts() {
+  const d     = _wiChartData();
   const gridC = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
   const tickC = isDark ? '#6b758f' : '#9099be';
   const baseC = isDark ? '#4b5563' : '#9ca3af';
 
-  // Monthly base data (monthly ASU shape × annual total / 12)
-  const asuBase = WI_ASU_SHAPE.map(s => Math.round(WI_BASE.asu * s / 12));
-  const asuAdj  = asuBase.map(v => Math.round(v * ratio));
-  const srBase  = WI_SR_SHAPE.map(s => Math.round(WI_BASE.sr * s / 12 / 1e3)); // in K
-  const srAdj   = srBase.map(v => parseFloat((v * srRatio).toFixed(1)));
-  const dpBase  = WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s / 12 / 1e3));
-  const dpAdj   = dpBase.map(v => Math.round(v * dpRatio));
+  // ── Smart update: if charts already exist, only update the What-If dataset ──
+  if (wiCharts['wi-chart-asu'] && wiCharts['wi-chart-sr'] && wiCharts['wi-chart-dp']) {
+    wiCharts['wi-chart-asu'].data.datasets[1].data = d.asuAdj;
+    wiCharts['wi-chart-asu'].update('none');
+    wiCharts['wi-chart-sr'].data.datasets[1].data = d.srAdj;
+    wiCharts['wi-chart-sr'].update('none');
+    wiCharts['wi-chart-dp'].data.datasets[1].data = d.dpAdj;
+    wiCharts['wi-chart-dp'].update('none');
+    return;
+  }
 
-  function mkLine(id, baseD, adjD, adjColor, fillBetween) {
-    if (wiCharts[id]) wiCharts[id].destroy();
+  // ── First render: create charts from scratch ──
+  function mkLine(id, baseD, adjD, adjColor) {
     const el = document.getElementById(id); if (!el) return;
+    if (wiCharts[id]) wiCharts[id].destroy();
     wiCharts[id] = new Chart(el.getContext('2d'), {
       type: 'line',
       data: { labels: WI_MONTHS, datasets: [
-        {
-          label: 'Base',
-          data: baseD,
-          borderColor: baseC,
-          backgroundColor: 'transparent',
-          borderWidth: 1.5,
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          tension: 0.45,
-          fill: false,
-        },
-        {
-          label: 'What-If',
-          data: adjD,
-          borderColor: adjColor,
-          backgroundColor: adjColor + '18',
-          borderWidth: 2.5,
-          pointRadius: 0,
-          pointHoverRadius: 5,
-          tension: 0.45,
-          fill: fillBetween ? '-1' : false,
-        },
+        { label:'Base',    data:baseD, borderColor:baseC, backgroundColor:'transparent',
+          borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.45, fill:false },
+        { label:'What-If', data:adjD,  borderColor:adjColor, backgroundColor:adjColor+'18',
+          borderWidth:2.5, pointRadius:0, pointHoverRadius:5, tension:0.45, fill:'-1' },
       ]},
       options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: isDark ? '#111521' : '#fff',
-            borderColor: isDark ? '#1d2135' : '#dde2f4',
-            borderWidth: 1,
-            titleColor: isDark ? '#e9ecf7' : '#0d1020',
-            bodyColor: isDark ? '#6b758f' : '#5a6280',
-            callbacks: {
-              label: ctx => ` ${ctx.dataset.label}: ${ctx.formattedValue}`
-            }
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            backgroundColor: isDark?'#111521':'#fff',
+            borderColor:     isDark?'#1d2135':'#dde2f4',
+            borderWidth:1,
+            titleColor:      isDark?'#e9ecf7':'#0d1020',
+            bodyColor:       isDark?'#6b758f':'#5a6280',
+            callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.formattedValue}` }
           }
         },
-        scales: {
-          x: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 }, maxRotation: 0 }, border: { display: false } },
-          y: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 } }, border: { display: false } }
+        scales:{
+          x:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10},maxRotation:0}, border:{display:false} },
+          y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}},               border:{display:false} }
         }
       }
     });
   }
 
-  // ASU Trend — filled band between base and what-if
-  mkLine('wi-chart-asu', asuBase, asuAdj, '#3b82f6', true);
+  mkLine('wi-chart-asu', d.asuBase, d.asuAdj, '#3b82f6');
+  mkLine('wi-chart-sr',  d.srBase,  d.srAdj,  '#06b6d4');
 
-  // SR — teal/cyan what-if line, fill between
-  mkLine('wi-chart-sr', srBase, srAdj, '#06b6d4', true);
-
-  // Dispatch — grouped bar chart
-  if (wiCharts['wi-chart-dp']) wiCharts['wi-chart-dp'].destroy();
+  // Dispatch — grouped bar
   const dpEl = document.getElementById('wi-chart-dp'); if (!dpEl) return;
+  if (wiCharts['wi-chart-dp']) wiCharts['wi-chart-dp'].destroy();
   wiCharts['wi-chart-dp'] = new Chart(dpEl.getContext('2d'), {
-    type: 'bar',
-    data: { labels: WI_MONTHS, datasets: [
-      { label:'Base',    data:dpBase, backgroundColor: isDark?'rgba(107,114,128,0.5)':'rgba(156,163,175,0.55)', borderRadius:2 },
-      { label:'What-If', data:dpAdj,  backgroundColor: '#3b82f6cc', borderRadius:2 },
+    type:'bar',
+    data:{ labels:WI_MONTHS, datasets:[
+      { label:'Base',    data:d.dpBase, backgroundColor:isDark?'rgba(107,114,128,0.5)':'rgba(156,163,175,0.55)', borderRadius:2 },
+      { label:'What-If', data:d.dpAdj,  backgroundColor:'#3b82f6cc', borderRadius:2 },
     ]},
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: tickC, font: { size: 9 }, maxRotation: 0 }, border: { display: false } },
-        y: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 } }, border: { display: false } }
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:tickC,font:{size:9},maxRotation:0}, border:{display:false} },
+        y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}}, border:{display:false} }
       }
     }
   });
