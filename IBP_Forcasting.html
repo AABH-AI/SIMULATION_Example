@@ -896,112 +896,130 @@
       <!-- ══ MODULE: WHAT-IF SIMULATION ══ -->
       <div id="module-whatif" class="module-section">
 
-        <!-- Page 1: Simulation Controls -->
+        <!-- ── PAGE 1: SIMULATION CONTROLS ── -->
         <div id="wi-page-sim" class="page-section active">
 
-          <!-- KPI strip -->
-          <div class="kpi-row" id="wi-kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:18px;"></div>
+          <!-- 6 KPI cards 3×2 -->
+          <div id="wi-kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
 
-          <!-- Controls + Pipeline row -->
-          <div style="display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:16px;">
-
-            <!-- Sliders panel -->
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">
-                <div>
-                  <div>Simulation Controls</div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Adjust levers to model scenario outcomes</div>
-                </div>
-                <div id="wi-scenario-badge" style="background:rgba(157,120,240,0.12);color:var(--purple);border:1px solid rgba(157,120,240,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">Expected</div>
-              </div>
-              <div id="wi-sliders-area" style="padding:4px 0;"></div>
-              <!-- Impact box -->
-              <div id="wi-impact-box" style="margin-top:12px;background:var(--surface);border-radius:8px;padding:12px;border-left:2px solid var(--purple);"></div>
-            </div>
-
-            <!-- Pipeline -->
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">Forecast Pipeline</div>
-              <div id="wi-pipeline" style="display:flex;flex-direction:column;gap:6px;"></div>
-            </div>
-          </div>
-
-          <!-- Charts row 1 -->
-          <div class="visual-row" style="margin-bottom:16px;">
-            <div class="visual-card">
-              <div class="visual-title">
-                <div>
-                  <div>ASU Forecast Trend</div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs What-If scenario</div>
-                </div>
-                <div style="display:flex;gap:10px;align-items:center;">
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--text-3);border-top:2px dashed var(--text-3);"></span>Base</div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--purple);"></span>What-If</div>
-                </div>
-              </div>
-              <div style="flex:1;min-height:180px;"><canvas id="wi-chart-asu"></canvas></div>
-            </div>
-            <div class="visual-card">
-              <div class="visual-title">
-                <div>
-                  <div>Service Request Trend</div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs Scenario</div>
-                </div>
-                <div style="display:flex;gap:10px;align-items:center;">
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--text-3);border-top:2px dashed var(--text-3);"></span>Base</div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--accent);"></span>What-If</div>
-                </div>
-              </div>
-              <div style="flex:1;min-height:180px;"><canvas id="wi-chart-sr"></canvas></div>
-            </div>
-          </div>
-
-          <!-- Charts row 2 -->
-          <div class="visual-row" style="margin-bottom:16px;">
-            <div class="visual-card">
-              <div class="visual-title">
-                <div>
-                  <div>Forecast Waterfall</div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">ASU contribution by source</div>
-                </div>
-              </div>
-              <div style="flex:1;min-height:180px;"><canvas id="wi-chart-wf"></canvas></div>
-            </div>
-            <div class="visual-card">
-              <div class="visual-title">
-                <div>
-                  <div>Dispatch Trend</div>
-                  <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs Scenario</div>
-                </div>
-                <div style="display:flex;gap:10px;align-items:center;">
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--text-3);border-top:2px dashed var(--text-3);"></span>Base</div>
-                  <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);"><span style="display:inline-block;width:16px;height:2px;background:var(--amber);"></span>What-If</div>
-                </div>
-              </div>
-              <div style="flex:1;min-height:180px;"><canvas id="wi-chart-dp"></canvas></div>
-            </div>
-          </div>
-
-          <!-- Comparison table -->
+          <!-- Horizontal Forecast Propagation Pipeline -->
           <div class="visual-card" style="min-height:auto;margin-bottom:16px;">
             <div class="visual-title">
               <div>
-                <div>Scenario Comparison</div>
-                <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Live delta analysis vs baseline</div>
+                <div>Forecast Propagation</div>
+                <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Live downstream impact across the forecasting pipeline</div>
               </div>
-              <button onclick="wiExportCSV()" class="btn-sm"><i class="ti ti-download"></i> Export</button>
+              <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;">Auto-flowing</span>
             </div>
-            <div class="table-wrap">
-              <table class="data-table" id="wi-comp-table"></table>
-            </div>
+            <div id="wi-pipeline" style="display:flex;align-items:stretch;overflow-x:auto;padding:2px 0;gap:0;"></div>
           </div>
-        </div>
 
-        <!-- Page 2: Scenario Playground -->
+          <!-- Main 2-column: left=charts, right=inputs+impact -->
+          <div style="display:grid;grid-template-columns:1fr 350px;gap:16px;align-items:start;">
+
+            <!-- LEFT: Charts + Base Table -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+
+              <!-- ASU Trend — area band fill between base and what-if -->
+              <div class="visual-card">
+                <div class="visual-title">
+                  <div>
+                    <div>ASU Trend</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs What-If projection</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
+                      <span style="display:inline-block;width:14px;height:2px;background:#9ca3af;border-radius:2px;"></span>Base
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
+                      <span style="display:inline-block;width:14px;height:2px;background:var(--accent);border-radius:2px;"></span>What-If
+                    </div>
+                  </div>
+                </div>
+                <div style="flex:1;min-height:220px;"><canvas id="wi-chart-asu"></canvas></div>
+              </div>
+
+              <!-- SR + Dispatch side by side -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div class="visual-card">
+                  <div class="visual-title">
+                    <div>
+                      <div>Service Request Forecast</div>
+                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Monthly volume in thousands</div>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-sr"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title">
+                    <div>
+                      <div>Dispatch Forecast</div>
+                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Field dispatches projected (K)</div>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-dp"></canvas></div>
+                </div>
+              </div>
+
+              <!-- Base Input table -->
+              <div class="visual-card" style="min-height:auto;">
+                <div class="visual-title">
+                  <div>
+                    <div>Base Input</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Current period baseline measures</div>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="data-table">
+                    <thead><tr>
+                      <th>Measure</th>
+                      <th style="text-align:right;">Base Value</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr><td>Renewal Opportunity Quantity</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">284,500 units</td></tr>
+                      <tr><td>Base Renewal Rate</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">85.3%</td></tr>
+                      <tr><td>Renewed Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">242,678</td></tr>
+                      <tr><td>Expired Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">41,822</td></tr>
+                      <tr><td>New Contracts Forecast</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">73,140 units</td></tr>
+                      <tr><td>Base ASU Contribution</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--accent);">$612.4M</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div><!-- /left -->
+
+            <!-- RIGHT: Inputs + Impact card -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+
+              <!-- What-If Inputs -->
+              <div class="visual-card" style="min-height:auto;">
+                <div class="visual-title">
+                  <div>
+                    <div>What-If Inputs</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Adjust assumptions to model scenarios</div>
+                  </div>
+                  <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">Live</span>
+                </div>
+                <div id="wi-sliders-area"></div>
+              </div>
+
+              <!-- Scenario Impact — deep blue card -->
+              <div style="border-radius:12px;padding:22px;background:linear-gradient(135deg,#2d52e0 0%,#1a3ab8 100%);border:1px solid rgba(76,126,248,0.35);">
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-sparkles"></i> Scenario Impact
+                </div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.2;">Projected uplift<br>vs baseline</div>
+                <div id="wi-impact-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+                <button onclick="wiSaveScenario()" style="width:100%;padding:11px;border-radius:8px;background:#fff;color:#1a3ab8;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.01em;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Save Scenario</button>
+              </div>
+
+            </div><!-- /right -->
+          </div><!-- /main 2-col -->
+        </div><!-- /wi-page-sim -->
+
+        <!-- ── PAGE 2: SCENARIO PLAYGROUND ── -->
         <div id="wi-page-scenarios" class="page-section">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-
-            <!-- AI Insights -->
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -1011,11 +1029,9 @@
               </div>
               <div id="wi-ai-insights" style="font-size:12px;color:var(--text-2);line-height:1.7;"></div>
             </div>
-
-            <!-- Saved Scenarios -->
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">
-                <span>Scenario Playground</span>
+                <span>Saved Scenarios</span>
                 <button onclick="wiSaveScenario()" class="btn-sm"><i class="ti ti-plus"></i> Save Current</button>
               </div>
               <div id="wi-scenario-list"></div>
@@ -1023,11 +1039,9 @@
           </div>
         </div>
 
-        <!-- Page 3: Publish Center -->
+        <!-- ── PAGE 3: PUBLISH CENTER ── -->
         <div id="wi-page-publish" class="page-section">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-
-            <!-- Publish readiness -->
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">Forecast Publish Center</div>
               <div id="wi-publish-readiness" style="margin-bottom:14px;"></div>
@@ -1038,8 +1052,6 @@
                 <button onclick="alert('Report shared!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-share"></i> Share</button>
               </div>
             </div>
-
-            <!-- Audit Log -->
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">Audit Log</div>
               <div id="wi-audit-log" style="max-height:340px;overflow-y:auto;"></div>
@@ -2009,287 +2021,299 @@ function sortTable(tableId, col) { /* placeholder */ }
 // =========================================================
 // WHAT-IF SIMULATION MODULE
 // =========================================================
+// Monthly axis — Feb → Jan (fiscal year)
+const WI_MONTHS = ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'];
+
+// Base data matching Lovable screenshots
+const WI_BASE = {
+  asu:              1350000,
+  sr:               587000,
+  disp:             233700,
+  renewalOppQty:    284500,
+  baseRenewalRate:  85.3,
+  renewedUnits:     242678,
+  newContracts:     73140,
+  asuContrib:       612.4e6,
+};
+
+// Monthly seasonality indices (Feb → Jan), normalised so average=1
+const WI_ASU_SHAPE  = [0.756,0.793,0.831,0.815,0.800,0.808,0.816,0.920,1.020,1.095,1.148,1.125];
+const WI_SR_SHAPE   = [0.970,1.020,0.985,0.880,0.815,0.780,0.815,0.969,1.055,1.122,1.156,1.190];
+const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.105,1.155,1.200];
+
 const WI_SLIDERS = [
-  { key:'renewal',  label:'APOS Renewal Rate',         min:50,  max:100,   step:1,   val:85,     fmt: v => v+'%' },
-  { key:'growth',   label:'New Contract Growth',        min:-25, max:50,    step:1,   val:12,     fmt: v => (v>0?'+':'')+v+'%' },
-  { key:'modifier', label:'Forecast Modifier',          min:-20, max:20,    step:1,   val:0,      fmt: v => (v>0?'+':'')+v+'%' },
-  { key:'srint',    label:'Service Request Intensity',  min:0.5, max:2.0,   step:0.1, val:1.2,    fmt: v => v.toFixed(1)+'x' },
-  { key:'disp',     label:'Dispatch Conversion',        min:0,   max:100,   step:1,   val:62,     fmt: v => v+'%' },
-  { key:'units',    label:'Renewed Units Override',     min:0,   max:1e6,   step:1e4, val:450000, fmt: v => wiN(v) },
+  { key:'renewal',  label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
+  { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
+  { key:'modifier', label:'Forecast Modifier',     min:-15, max:25,  step:1,   val:2,    fmt: v => (v>=0?'+':'')+v+'%' },
 ];
 
 const WI_SAVED_SCENARIOS_DEFAULT = [
-  { id:'conservative', label:'Conservative',      renewal:78, growth:-5,  modifier:-8, srint:0.9, disp:55, color:'#6b758f' },
-  { id:'expected',     label:'Expected',           renewal:85, growth:12,  modifier:0,  srint:1.2, disp:62, color:'#9d78f0' },
-  { id:'aggressive',   label:'Aggressive',         renewal:92, growth:28,  modifier:10, srint:1.5, disp:72, color:'#22d472' },
-  { id:'executive',    label:'Executive Stretch',  renewal:96, growth:38,  modifier:15, srint:1.8, disp:80, color:'#4c7ef8' },
-  { id:'worst',        label:'Worst Case',         renewal:62, growth:-20, modifier:-18,srint:0.6, disp:40, color:'#f06060' },
+  { id:'conservative', label:'Conservative',     renewal:78, growth:-5,  modifier:-8, color:'#6b758f' },
+  { id:'expected',     label:'Expected',          renewal:89.5, growth:8, modifier:2,  color:'#9d78f0' },
+  { id:'aggressive',   label:'Aggressive',        renewal:94, growth:28,  modifier:10, color:'#22d472' },
+  { id:'executive',    label:'Executive Stretch', renewal:97, growth:38,  modifier:15, color:'#4c7ef8' },
+  { id:'worst',        label:'Worst Case',        renewal:72, growth:-18, modifier:-12,color:'#f06060' },
 ];
 
-const WI_QUARTERS = ['Q1','Q2','Q3','Q4','Q1 Fwd','Q2 Fwd'];
-
-let wiState = {};
-WI_SLIDERS.forEach(s => wiState[s.key] = s.val);
-let wiLastChanged = null;
+let wiState = { renewal:89.5, growth:8, modifier:2, unitsOverride:'' };
 let wiSavedScenarios = WI_SAVED_SCENARIOS_DEFAULT.map(s => ({...s}));
 let wiAuditLog = [];
 let wiCharts = {};
 
-function wiN(v) { return v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':Math.round(v).toString(); }
-function wiD(v) { return v>=0?'+'+wiN(v):'-'+wiN(Math.abs(v)); }
+function wiN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3)+'K':Math.round(v).toString(); }
+function wiNK(v) { return (v/1e3).toFixed(1); } // for chart labels in K
+function wiD(v) { return (v>=0?'+':'')+wiN(v); }
 
 function wiCompute(st) {
-  const base = { asu:2400000, sr:320000, disp:195000, contracts:180000, renewals:420000 };
-  const rM = st.renewal/85, gM = 1+(st.growth/100), mM = 1+(st.modifier/100);
-  const asu = Math.round(base.asu*rM*gM*mM);
-  const sr  = Math.round(base.sr*st.srint*rM*gM);
-  return {
-    asu, sr,
-    disp:      Math.round(sr*(st.disp/100)),
-    contracts: Math.round(base.contracts*gM),
-    renewals:  Math.round(base.renewals*rM),
-    revenue:   Math.round(asu*1.8),
-    opCost:    Math.round(sr*(st.disp/100)*420 + sr*85),
-    base
-  };
+  const rRate  = st.renewal / 100;
+  const baseR  = WI_BASE.baseRenewalRate / 100;
+  const gMult  = 1 + (st.growth / 100);
+  const mMult  = 1 + (st.modifier / 100);
+  // calibrated so default inputs produce +8.6% ASU lift matching screenshot
+  const asuMult = 1 + (st.growth/100)*0.8 + (st.modifier/100)*0.5 + (rRate/baseR - 1)*0.25;
+  const whatifASU  = Math.round(WI_BASE.asu  * asuMult);
+  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2  + (st.modifier/100)*0.3));
+  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15 + (st.modifier/100)*0.2));
+  const renewedUnits   = st.unitsOverride ? (parseInt(st.unitsOverride)||WI_BASE.renewedUnits) : Math.round(WI_BASE.renewalOppQty * rRate);
+  const newContracts   = Math.round(WI_BASE.newContracts * gMult);
+  const aposRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
+  const newContractsVal= Math.round(newContracts * 2754);    // $2754 per unit
+  return { whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, aposRenewals, newContractsVal,
+           asuDelta: whatifASU - WI_BASE.asu, srDelta: whatifSR - WI_BASE.sr, dispDelta: whatifDisp - WI_BASE.disp,
+           growthPct: (whatifASU / WI_BASE.asu - 1) * 100 };
 }
 
-function wiBaseFC() { return wiCompute({renewal:85,growth:0,modifier:0,srint:1.0,disp:62,units:450000}); }
-
 function wiRenderKPIs() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
+  const fc = wiCompute(wiState);
+  const pos = v => v >= 0 ? 'var(--green)' : 'var(--red)';
   const kpis = [
-    { label:'Base ASU',         val:wiN(b.asu),                                       color:'var(--text-2)' },
-    { label:'What-If ASU',      val:wiN(fc.asu),                                      color:'var(--purple)' },
-    { label:'ASU Delta',        val:wiD(fc.asu-b.asu),                                color:fc.asu>=b.asu?'var(--green)':'var(--red)' },
-    { label:'SR Forecast',      val:wiN(fc.sr),                                       color:'var(--accent)' },
-    { label:'Dispatch Fcst',    val:wiN(fc.disp),                                     color:'var(--amber)' },
-    { label:'Fcst Growth',      val:((fc.asu/b.asu-1)*100).toFixed(1)+'%',            color:fc.asu>=b.asu?'var(--green)':'var(--red)' },
-    { label:'Revenue Impact',   val:'$'+wiN(fc.revenue),                              color:'var(--blue)' },
-    { label:'Publish Score',    val:Math.min(99,Math.round(75+wiState.renewal/10+wiState.disp/20))+'%', color:'var(--green)' },
-    { label:'Risk Score',       val:Math.max(5,Math.round(40-wiState.renewal/5-wiState.growth/3))+'%',  color:'var(--amber)' },
+    { label:'BASE ASU',         val:wiN(WI_BASE.asu),             sub:'+3.2% YoY',          subColor:'var(--green)', icon:'ti-chart-bar' },
+    { label:'WHAT-IF ASU',      val:wiN(fc.whatifASU),            sub:`+${fc.growthPct.toFixed(1)}% lift`, subColor:'var(--green)', icon:'ti-chart-arrows' },
+    { label:'ASU DELTA',        val:wiD(fc.asuDelta),             sub:'vs baseline',        subColor:pos(fc.asuDelta), icon:'ti-plus-minus' },
+    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),             sub:wiD(fc.srDelta),      subColor:pos(fc.srDelta),  icon:'ti-headset' },
+    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),           sub:wiD(fc.dispDelta),    subColor:pos(fc.dispDelta),icon:'ti-truck' },
+    { label:'FORECAST GROWTH',  val:fc.growthPct.toFixed(1)+'%', sub:'blended uplift',     subColor:'var(--green)', icon:'ti-trending-up' },
   ];
   document.getElementById('wi-kpi-row').innerHTML = kpis.map(k => `
-    <div class="kpi-card" style="--kpi-color:${k.color};">
-      <div class="kpi-label">${k.label}</div>
-      <div class="kpi-value" style="font-size:20px;color:${k.color};">${k.val}</div>
+    <div class="kpi-card" style="--kpi-color:var(--text-1);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div class="kpi-label">${k.label}</div>
+        <i class="ti ${k.icon}" style="font-size:14px;color:var(--text-3);"></i>
+      </div>
+      <div class="kpi-value" style="font-size:22px;color:var(--text-1);">${k.val}</div>
+      <div class="kpi-sub" style="color:${k.subColor};margin-top:6px;">
+        <i class="ti ti-arrow-up-right" style="font-size:11px;"></i> ${k.sub}
+      </div>
     </div>`).join('');
 }
 
 function wiRenderSliders() {
-  document.getElementById('wi-sliders-area').innerHTML = WI_SLIDERS.map(s => `
-    <div style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-        <label style="font-size:12px;color:var(--text-2);">${s.label}</label>
-        <span id="wi-val-${s.key}" style="font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-1);min-width:52px;text-align:right;">${s.fmt(wiState[s.key])}</span>
+  const sliderHTML = WI_SLIDERS.map(s => `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-1);">${s.label}</label>
+        <span id="wi-val-${s.key}" style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--accent);">${s.fmt(wiState[s.key])}</span>
       </div>
       <input type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${wiState[s.key]}"
-        style="width:100%;accent-color:var(--purple);"
+        style="width:100%;accent-color:var(--accent);height:4px;"
         oninput="wiSliderMoved('${s.key}',parseFloat(this.value))">
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3);margin-top:2px;font-family:var(--font-mono);">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--font-mono);">
         <span>${s.fmt(s.min)}</span><span>${s.fmt(s.max)}</span>
       </div>
     </div>`).join('');
+
+  const textInputHTML = `
+    <div style="margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:8px;">Renewed Units Override</div>
+      <input type="number" id="wi-units-input" value="${wiState.unitsOverride}"
+        placeholder="e.g. 250,000"
+        style="width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-1);font-size:13px;font-family:var(--font-ui);outline:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+        oninput="wiUnitsChanged(this.value)">
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to use calculated value</div>
+    </div>`;
+
+  document.getElementById('wi-sliders-area').innerHTML = sliderHTML + textInputHTML;
 }
 
 function wiSliderMoved(key, val) {
-  const prev = wiState[key];
   wiState[key] = val;
   const s = WI_SLIDERS.find(x => x.key === key);
   document.getElementById('wi-val-' + key).textContent = s.fmt(val);
-  wiLastChanged = { key, prev, val, s };
   wiRenderAll();
-  wiAddAudit('Slider', `${s.label}: ${s.fmt(prev)} → ${s.fmt(val)}`);
+  wiAddAudit('Slider', `${s.label} → ${s.fmt(val)}`);
+}
+
+function wiUnitsChanged(val) {
+  wiState.unitsOverride = val;
+  wiRenderAll();
+  if (val) wiAddAudit('Override', `Renewed Units set to ${parseInt(val).toLocaleString()}`);
 }
 
 function wiRenderImpact() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
-  const conf = Math.min(98, Math.round(70+wiState.renewal/8+wiState.disp/15));
-  const src = wiLastChanged;
-  const intro = src ? `You set <strong style="color:var(--text-1)">${src.s.label}</strong> to <strong style="color:var(--purple)">${src.s.fmt(src.val)}</strong>.` : 'Current scenario impact:';
-  const items = [
-    { icon:'ti-chart-arrows', label:'ASU Delta',      val:wiD(fc.asu-b.asu),  pos:fc.asu>=b.asu },
-    { icon:'ti-headset',      label:'SR Delta',        val:wiD(fc.sr-b.sr),    pos:fc.sr>=b.sr },
-    { icon:'ti-truck',        label:'Dispatch Delta',  val:wiD(fc.disp-b.disp),pos:fc.disp>=b.disp },
-    { icon:'ti-shield-check', label:'Confidence',      val:conf+'%',           pos:true },
+  const fc = wiCompute(wiState);
+  const rows = [
+    { icon:'ti-trending-up', label:'ASU increase',     val:wiD(fc.asuDelta),  pos:fc.asuDelta>=0 },
+    { icon:'ti-headset',     label:'Service Requests',  val:wiD(fc.srDelta),   pos:fc.srDelta>=0 },
+    { icon:'ti-truck',       label:'Dispatches',        val:wiD(fc.dispDelta), pos:fc.dispDelta>=0 },
   ];
-  document.getElementById('wi-impact-box').innerHTML = `
-    <div style="font-size:11px;color:var(--text-2);margin-bottom:10px;">${intro}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      ${items.map(r => `
-        <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ti ${r.icon}" style="font-size:13px;color:${r.pos?'var(--green)':'var(--red)'}"></i>
-          <span style="font-size:11px;color:var(--text-2);">${r.label}:</span>
-          <span style="font-size:11px;font-weight:700;font-family:var(--font-mono);color:${r.pos?'var(--green)':'var(--red)'};">${r.val}</span>
-        </div>`).join('')}
-    </div>`;
+  document.getElementById('wi-impact-rows').innerHTML = rows.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.12);border-radius:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ${r.icon}" style="color:#fff;font-size:13px;"></i>
+        </div>
+        <span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:500;">${r.label}</span>
+      </div>
+      <span style="color:#fff;font-family:var(--font-mono);font-size:15px;font-weight:700;">${r.val}</span>
+    </div>`).join('');
 }
 
 function wiRenderPipeline() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
+  const fc = wiCompute(wiState);
   const nodes = [
-    { label:'New Contracts',    base:b.contracts, adj:fc.contracts, icon:'ti-file-plus',    color:'#4c7ef8' },
-    { label:'APOS Renewals',    base:b.renewals,  adj:fc.renewals,  icon:'ti-refresh',      color:'#9d78f0' },
-    { label:'ASU Forecast',     base:b.asu,       adj:fc.asu,       icon:'ti-chart-arrows', color:'#9d78f0' },
-    { label:'Service Requests', base:b.sr,        adj:fc.sr,        icon:'ti-headset',      color:'#22d472' },
-    { label:'Dispatch Forecast',base:b.disp,      adj:fc.disp,      icon:'ti-truck',        color:'#f0a830' },
-    { label:'Publish Forecast', base:null,        adj:null,         icon:'ti-rocket',       color:'#22d472', isPublish:true },
+    { label:'NEW CONTRACTS',    val:'$'+wiN(fc.newContractsVal), icon:'ti-file-plus',    grad:'linear-gradient(135deg,#3b6fd4,#5b8ff9)' },
+    { label:'APOS RENEWALS',    val:'$'+wiN(fc.aposRenewals),   icon:'ti-refresh',       grad:'linear-gradient(135deg,#2d52e0,#4c7ef8)' },
+    { label:'ASU FORECAST',     val:wiN(fc.whatifASU),           icon:'ti-chart-arrows',  grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
+    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),            icon:'ti-headset',       grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
+    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),          icon:'ti-truck',         grad:'linear-gradient(135deg,#1c4ed8,#3b82f6)' },
   ];
-  document.getElementById('wi-pipeline').innerHTML = nodes.map((n, i) => {
-    const delta = n.adj && n.base ? n.adj - n.base : 0;
-    const pct = n.base ? ((delta/n.base)*100).toFixed(1) : null;
-    return `
-    <div>
-      ${i>0?`<div style="width:2px;height:6px;background:${n.color};margin:0 auto 0 16px;opacity:0.3;"></div>`:''}
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface);transition:border-color 0.15s;"
-        onmouseenter="this.style.borderColor='${n.color}'" onmouseleave="this.style.borderColor='var(--border)'">
-        <div style="width:28px;height:28px;border-radius:7px;background:${n.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <i class="ti ${n.icon}" style="font-size:13px;color:${n.color};"></i>
-        </div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:11px;font-weight:600;color:var(--text-1);">${n.label}</div>
-          ${n.isPublish ? `<div style="font-size:10px;color:var(--green);">Ready to publish</div>`
-            : `<div style="font-size:10px;color:var(--text-2);">Base: ${wiN(n.base)}</div>`}
-        </div>
-        ${!n.isPublish && n.adj ? `
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-1);">${wiN(n.adj)}</div>
-          <div style="font-size:10px;color:${delta>=0?'var(--green)':'var(--red)'};">${delta>=0?'+':''}${pct}%</div>
-        </div>` : ''}
+  const chevron = `<div style="display:flex;align-items:center;flex-shrink:0;padding:0 6px;"><i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-3);"></i></div>`;
+  document.getElementById('wi-pipeline').innerHTML = nodes.map((n, i) => `
+    ${i > 0 ? chevron : ''}
+    <div style="flex:1;min-width:140px;border-radius:12px;padding:14px 16px;background:${n.grad};position:relative;overflow:hidden;">
+      <div style="position:absolute;top:10px;right:12px;opacity:0.25;">
+        <i class="ti ${n.icon}" style="font-size:28px;color:#fff;"></i>
       </div>
-    </div>`;
-  }).join('');
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:8px;text-transform:uppercase;">${n.label}</div>
+      <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#fff;">${n.val}</div>
+    </div>`).join('');
 }
 
 function wiRenderCharts() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
-  const qBase = [1.8,2.0,2.1,2.4,2.6,2.8].map(v => Math.round(b.asu*v/2.4));
-  const qAdj  = [1.8,2.0,2.1,2.4,2.6,2.8].map(v => Math.round(fc.asu*v/2.4));
-  const qBaseSR = [1.9,2.1,2.0,2.3,2.5,2.7].map(v => Math.round(b.sr*v/2.3));
-  const qAdjSR  = [1.9,2.1,2.0,2.3,2.5,2.7].map(v => Math.round(fc.sr*v/2.3));
-  const qBaseDP = [1.7,1.9,2.0,2.2,2.4,2.6].map(v => Math.round(b.disp*v/2.2));
-  const qAdjDP  = [1.7,1.9,2.0,2.2,2.4,2.6].map(v => Math.round(fc.disp*v/2.2));
+  const fc = wiCompute(wiState);
+  const ratio = fc.whatifASU / WI_BASE.asu;
+  const srRatio = fc.whatifSR / WI_BASE.sr;
+  const dpRatio = fc.whatifDisp / WI_BASE.disp;
 
   const gridC = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
-  const tickC = isDark ? '#3a4060' : '#a0a8cc';
+  const tickC = isDark ? '#6b758f' : '#9099be';
+  const baseC = isDark ? '#4b5563' : '#9ca3af';
 
-  function mk(id, d1, d2, c1, c2) {
+  // Monthly base data (monthly ASU shape × annual total / 12)
+  const asuBase = WI_ASU_SHAPE.map(s => Math.round(WI_BASE.asu * s / 12));
+  const asuAdj  = asuBase.map(v => Math.round(v * ratio));
+  const srBase  = WI_SR_SHAPE.map(s => Math.round(WI_BASE.sr * s / 12 / 1e3)); // in K
+  const srAdj   = srBase.map(v => parseFloat((v * srRatio).toFixed(1)));
+  const dpBase  = WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s / 12 / 1e3));
+  const dpAdj   = dpBase.map(v => Math.round(v * dpRatio));
+
+  function mkLine(id, baseD, adjD, adjColor, fillBetween) {
     if (wiCharts[id]) wiCharts[id].destroy();
     const el = document.getElementById(id); if (!el) return;
     wiCharts[id] = new Chart(el.getContext('2d'), {
       type: 'line',
-      data: { labels: WI_QUARTERS, datasets: [
-        { label:'Base',    data:d1, borderColor:c1, backgroundColor:'transparent', borderWidth:2, borderDash:[5,4], pointRadius:3, tension:0.4 },
-        { label:'What-If', data:d2, borderColor:c2, backgroundColor:c2+'18',      borderWidth:2.5, pointRadius:4, fill:true, tension:0.4 },
+      data: { labels: WI_MONTHS, datasets: [
+        {
+          label: 'Base',
+          data: baseD,
+          borderColor: baseC,
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.45,
+          fill: false,
+        },
+        {
+          label: 'What-If',
+          data: adjD,
+          borderColor: adjColor,
+          backgroundColor: adjColor + '18',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          tension: 0.45,
+          fill: fillBetween ? '-1' : false,
+        },
       ]},
-      options: { responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{ display:false } },
-        scales:{
-          x:{ grid:{ color:gridC }, ticks:{ color:tickC, font:{ size:10 } } },
-          y:{ grid:{ color:gridC }, ticks:{ color:tickC, font:{ size:10 }, callback:v=>wiN(v) } }
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: isDark ? '#111521' : '#fff',
+            borderColor: isDark ? '#1d2135' : '#dde2f4',
+            borderWidth: 1,
+            titleColor: isDark ? '#e9ecf7' : '#0d1020',
+            bodyColor: isDark ? '#6b758f' : '#5a6280',
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ${ctx.formattedValue}`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 }, maxRotation: 0 }, border: { display: false } },
+          y: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 } }, border: { display: false } }
         }
       }
     });
   }
-  mk('wi-chart-asu', qBase, qAdj,  isDark?'#3a4060':'#a0a8cc', '#9d78f0');
-  mk('wi-chart-sr',  qBaseSR, qAdjSR, isDark?'#3a4060':'#a0a8cc', '#22d472');
-  mk('wi-chart-dp',  qBaseDP, qAdjDP, isDark?'#3a4060':'#a0a8cc', '#f0a830');
 
-  // Waterfall
-  if (wiCharts['wi-chart-wf']) wiCharts['wi-chart-wf'].destroy();
-  const wfEl = document.getElementById('wi-chart-wf'); if (!wfEl) return;
-  const wfVals = [
-    b.asu/1e6,
-    (fc.contracts-b.contracts)/1e6,
-    (fc.renewals-b.renewals)/1e6,
-    (wiState.modifier/100)*b.asu/1e6,
-    fc.asu/1e6
-  ];
-  wiCharts['wi-chart-wf'] = new Chart(wfEl.getContext('2d'), {
+  // ASU Trend — filled band between base and what-if
+  mkLine('wi-chart-asu', asuBase, asuAdj, '#3b82f6', true);
+
+  // SR — teal/cyan what-if line, fill between
+  mkLine('wi-chart-sr', srBase, srAdj, '#06b6d4', true);
+
+  // Dispatch — grouped bar chart
+  if (wiCharts['wi-chart-dp']) wiCharts['wi-chart-dp'].destroy();
+  const dpEl = document.getElementById('wi-chart-dp'); if (!dpEl) return;
+  wiCharts['wi-chart-dp'] = new Chart(dpEl.getContext('2d'), {
     type: 'bar',
-    data: { labels:['Base','Contracts','Renewals','Adj','Final'],
-      datasets:[{ data:wfVals, backgroundColor:['#4c7ef8cc','#22d472cc','#9d78f0cc','#f0a830cc','#4c7ef8'], borderRadius:5 }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ grid:{ display:false }, ticks:{ color:tickC, font:{ size:10 } } },
-        y:{ grid:{ color:gridC }, ticks:{ color:tickC, font:{ size:10 }, callback:v=>v.toFixed(1)+'M' } }
+    data: { labels: WI_MONTHS, datasets: [
+      { label:'Base',    data:dpBase, backgroundColor: isDark?'rgba(107,114,128,0.5)':'rgba(156,163,175,0.55)', borderRadius:2 },
+      { label:'What-If', data:dpAdj,  backgroundColor: '#3b82f6cc', borderRadius:2 },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tickC, font: { size: 9 }, maxRotation: 0 }, border: { display: false } },
+        y: { grid: { color: gridC, drawTicks: false }, ticks: { color: tickC, font: { size: 10 } }, border: { display: false } }
       }
     }
   });
 }
 
-function wiRenderCompTable() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
-  const conf = Math.min(98, Math.round(70+wiState.renewal/8+wiState.disp/15));
-  const rows = [
-    { m:'New Contracts',    base:b.contracts, adj:fc.contracts, risk:'Low' },
-    { m:'APOS Renewals',    base:b.renewals,  adj:fc.renewals,  risk:'Low' },
-    { m:'ASU Total',        base:b.asu,       adj:fc.asu,       risk:'Medium' },
-    { m:'Service Requests', base:b.sr,        adj:fc.sr,        risk:'Medium' },
-    { m:'Dispatch Forecast',base:b.disp,      adj:fc.disp,      risk:'Low' },
-    { m:'Revenue ($)',      base:b.revenue,   adj:fc.revenue,   risk:'Low' },
-    { m:'Op. Cost ($)',     base:b.opCost,    adj:fc.opCost,    risk:'Medium' },
-  ];
-  const riskStyle = {
-    Low:    { bg:'rgba(34,212,114,0.1)',  color:'var(--green)' },
-    Medium: { bg:'rgba(240,168,48,0.1)', color:'var(--amber)' },
-    High:   { bg:'rgba(240,96,96,0.1)',  color:'var(--red)' },
-  };
-  document.getElementById('wi-comp-table').innerHTML = `
-    <thead><tr>
-      ${['Metric','Base','Scenario','Delta','Impact %','Confidence','Risk'].map(h =>
-        `<th>${h}</th>`).join('')}
-    </tr></thead>
-    <tbody>
-      ${rows.map((r, i) => {
-        const d = r.adj - r.base, pct = ((d/r.base)*100).toFixed(1), pos = d >= 0;
-        const rs = riskStyle[r.risk];
-        return `<tr>
-          <td style="font-weight:500;">${r.m}</td>
-          <td style="color:var(--text-2);font-family:var(--font-mono);">${wiN(r.base)}</td>
-          <td style="font-family:var(--font-mono);font-weight:600;">${wiN(r.adj)}</td>
-          <td style="font-family:var(--font-mono);color:${pos?'var(--green)':'var(--red)'};">${wiD(d)}</td>
-          <td style="font-family:var(--font-mono);color:${pos?'var(--green)':'var(--red)'};">${pos?'+':''}${pct}%</td>
-          <td style="font-family:var(--font-mono);color:var(--text-2);">${conf}%</td>
-          <td><span style="padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;background:${rs.bg};color:${rs.color};">${r.risk}</span></td>
-        </tr>`;
-      }).join('')}
-    </tbody>`;
-}
-
 function wiRenderAIInsights() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
-  const dPct = ((fc.asu/b.asu-1)*100).toFixed(1);
+  const fc = wiCompute(wiState);
+  const dPct = fc.growthPct.toFixed(1);
   const regions = ['EMEA','Americas','APJ'];
-  const topRegion = regions[Math.floor(Math.random()*3)];
-  const conf = Math.min(98, Math.round(70+wiState.renewal/8+wiState.disp/15));
+  const topRegion = regions[Math.abs(Math.round(wiState.renewal * 7)) % 3];
+  const conf = Math.min(98, Math.round(72 + wiState.renewal/9 + wiState.growth/8));
   document.getElementById('wi-ai-insights').innerHTML = `
     <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--blue);">
       <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Scenario Analysis</div>
-      <div style="font-size:11px;line-height:1.7;">At <strong style="color:var(--text-1)">${wiState.renewal}%</strong> renewal rate with <strong style="color:var(--text-1)">${wiState.growth>0?'+':''}${wiState.growth}%</strong> contract growth, ASU shifts by <strong style="color:${dPct>=0?'var(--green)':'var(--red)'};">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
+      <div style="font-size:11px;line-height:1.7;">At <strong style="color:var(--text-1)">${wiState.renewal.toFixed(1)}%</strong> renewal rate with <strong style="color:var(--text-1)">${wiState.growth>=0?'+':''}${wiState.growth}%</strong> contracts growth, ASU shifts by <strong style="color:${dPct>=0?'var(--green)':'var(--red)'};">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
     </div>
     <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--purple);">
       <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Service Demand Signal</div>
-      <div style="font-size:11px;line-height:1.7;">SR intensity at <strong style="color:var(--text-1)">${wiState.srint.toFixed(1)}x</strong> with <strong style="color:var(--text-1)">${wiState.disp}%</strong> dispatch conversion yields <strong style="color:var(--text-1)">${wiN(fc.sr)}</strong> SRs and <strong style="color:var(--text-1)">${wiN(fc.disp)}</strong> dispatches. Confidence: ${conf}%.</div>
+      <div style="font-size:11px;line-height:1.7;">Dispatch forecast reaches <strong style="color:var(--text-1)">${wiN(fc.whatifDisp)}</strong> units with <strong style="color:var(--text-1)">${wiN(fc.whatifSR)}</strong> service requests projected. Confidence: <strong style="color:var(--text-1)">${conf}%</strong>.</div>
     </div>
     <div style="padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--green);">
       <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Regional Opportunity</div>
-      <div style="font-size:11px;line-height:1.7;"><strong style="color:var(--text-1)">${topRegion}</strong> shows the highest growth leverage. Targeting renewal uplift there adds the most ASU delta per % improvement.</div>
+      <div style="font-size:11px;line-height:1.7;"><strong style="color:var(--text-1)">${topRegion}</strong> shows the highest renewal uplift leverage. Targeting that region adds the most ASU delta per percentage point.</div>
     </div>`;
 }
 
 function wiRenderScenarios() {
-  const fc = wiCompute(wiState), b = wiBaseFC();
-  const match = wiSavedScenarios.find(s => s.renewal===wiState.renewal && s.growth===wiState.growth);
-  document.getElementById('wi-scenario-badge').textContent = match?.label || 'Custom';
-
   document.getElementById('wi-scenario-list').innerHTML = wiSavedScenarios.map(s => `
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:border-color 0.15s;"
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:border-color 0.15s;"
       onmouseenter="this.style.borderColor='${s.color}'" onmouseleave="this.style.borderColor='var(--border)'"
       onclick="wiLoadScenario('${s.id}')">
-      <div style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
       <span style="flex:1;font-size:12px;color:var(--text-1);font-weight:600;">${s.label}</span>
       <span style="font-size:10px;color:var(--text-2);font-family:var(--font-mono);">R:${s.renewal}% G:${s.growth>=0?'+':''}${s.growth}%</span>
       <button onclick="wiDeleteScenario(event,'${s.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;"><i class="ti ti-trash" style="font-size:12px;"></i></button>
@@ -2298,7 +2322,7 @@ function wiRenderScenarios() {
 
 function wiLoadScenario(id) {
   const s = wiSavedScenarios.find(x => x.id === id); if (!s) return;
-  ['renewal','growth','modifier','srint','disp'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
+  ['renewal','growth','modifier'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
   wiRenderSliders(); wiRenderAll();
   wiAddAudit('Scenario', `Loaded: ${s.label}`);
 }
@@ -2306,9 +2330,8 @@ function wiLoadScenario(id) {
 function wiSaveScenario() {
   const id = 'custom_' + Date.now();
   wiSavedScenarios.push({ id, label:'Custom '+(wiSavedScenarios.length+1),
-    renewal:wiState.renewal, growth:wiState.growth, modifier:wiState.modifier,
-    srint:wiState.srint, disp:wiState.disp, color:'#6b758f' });
-  wiRenderScenarios(); wiAddAudit('Scenario', 'Saved new custom scenario');
+    renewal:wiState.renewal, growth:wiState.growth, modifier:wiState.modifier, color:'#6b758f' });
+  wiRenderScenarios(); wiAddAudit('Scenario', 'Saved scenario');
 }
 
 function wiDeleteScenario(e, id) {
@@ -2318,13 +2341,13 @@ function wiDeleteScenario(e, id) {
 }
 
 function wiRenderPublishReadiness() {
-  const conf = Math.min(99, Math.round(75+wiState.renewal/10+wiState.disp/20));
+  const conf = Math.min(99, Math.round(74 + wiState.renewal/9 + wiState.growth/12));
   const fc = wiCompute(wiState);
   const items = [
-    { l:'Quality Score',    v:conf+'%',      color:'var(--green)' },
-    { l:'Approval Status',  v:'Pending',     color:'var(--amber)' },
-    { l:'Final ASU',        v:wiN(fc.asu),   color:'var(--blue)' },
-    { l:'Final Dispatches', v:wiN(fc.disp),  color:'var(--purple)' },
+    { l:'Quality Score',    v:conf+'%',             color:'var(--green)' },
+    { l:'Approval Status',  v:'Pending',             color:'var(--amber)' },
+    { l:'Final ASU',        v:wiN(fc.whatifASU),     color:'var(--blue)' },
+    { l:'Final Dispatches', v:wiN(fc.whatifDisp),    color:'var(--purple)' },
   ];
   document.getElementById('wi-publish-readiness').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -2383,10 +2406,14 @@ function wiExportCSV() {
 }
 
 function wiRenderAll() {
-  wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline();
-  wiRenderCharts(); wiRenderCompTable();
-  wiRenderAIInsights(); wiRenderScenarios();
-  wiRenderPublishReadiness(); wiRenderAudit();
+  wiRenderKPIs();
+  wiRenderImpact();
+  wiRenderPipeline();
+  wiRenderCharts();
+  wiRenderAIInsights();
+  wiRenderScenarios();
+  wiRenderPublishReadiness();
+  wiRenderAudit();
 }
 
 function wiInit() {
