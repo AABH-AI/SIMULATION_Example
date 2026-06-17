@@ -288,21 +288,6 @@
     .channel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .channel-tab:hover { color: var(--text-1); }
 
-    /* Care sub-tabs (secondary navigation) */
-    .care-subtabs {
-      display: flex; gap: 0; margin-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      overflow-x: auto; flex-shrink: 0;
-    }
-    .care-subtab {
-      padding: 5px 14px; font-size: 12px; font-weight: 600;
-      cursor: pointer; color: var(--text-3); white-space: nowrap;
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-      transition: all 0.15s;
-    }
-    .care-subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .care-subtab:hover { color: var(--text-2); }
-
     /* Sections */
     .module-section { display: none; }
     .module-section.active { display: block; }
@@ -791,6 +776,10 @@
             <div class="channel-tab active" onclick="switchChannel('overall', this)">Overall</div>
             <div class="channel-tab" onclick="switchChannel('field', this)">Field Services</div>
             <div class="channel-tab" onclick="switchChannel('care', this)">Care</div>
+            <div class="channel-tab" onclick="switchChannel('cf', this)">Contracts Forecast</div>
+            <div class="channel-tab" onclick="switchChannel('apos', this)">APOS</div>
+            <div class="channel-tab" onclick="switchChannel('sr', this)">Service Requests</div>
+            <div class="channel-tab" onclick="switchChannel('dsp', this)">Dispatch</div>
           </div>
           <div id="dp-channel-overall">
             <div class="kpi-row">
@@ -876,217 +865,201 @@
             </div>
           </div>
           <div id="dp-channel-care" style="display:none;">
-            <!-- Care sub-tab bar -->
-            <div class="care-subtabs">
-              <div class="care-subtab active" onclick="switchCareSubTab('overview',this)">Overview</div>
-              <div class="care-subtab" onclick="switchCareSubTab('cf',this)">Contracts Forecast</div>
-              <div class="care-subtab" onclick="switchCareSubTab('apos',this)">APOS</div>
-              <div class="care-subtab" onclick="switchCareSubTab('sr',this)">Service Requests</div>
-              <div class="care-subtab" onclick="switchCareSubTab('dsp',this)">Dispatch</div>
-            </div>
-
-            <!-- Overview -->
-            <div id="care-sub-overview">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">Care Actuals</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="care-kpi-actuals">142.3K</div>
-                  <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Care Accuracy</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="care-kpi-accuracy">93.2%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Care Variance</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="care-kpi-variance">+2.9%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
-                </div>
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Care Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="care-kpi-actuals">142.3K</div>
+                <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Region Wise — Care Forecast vs Actuals</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-region"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Quarter on Quarter</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-qoq"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Care Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="care-kpi-accuracy">93.2%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Month on Month</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-mom"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-wow"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Care Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="care-kpi-variance">+2.9%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
               </div>
             </div>
-
-            <!-- Contracts Forecast -->
-            <div id="care-sub-cf" style="display:none;">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">Contracts Actuals</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">38.2K</div>
-                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4.1% vs PY</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Contracts Accuracy</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">94.1%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Contracts Variance</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+3.2%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
-                </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise — Care Forecast vs Actuals</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-region"></canvas></div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Region Wise</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-region"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Quarter on Quarter</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-qoq"></canvas></div>
-                </div>
-              </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Month on Month</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-mom"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-wow"></canvas></div>
-                </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-qoq"></canvas></div>
               </div>
             </div>
-
-            <!-- APOS -->
-            <div id="care-sub-apos" style="display:none;">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">APOS Actuals</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">28.4K</div>
-                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.8% vs PY</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">APOS Accuracy</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.0%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">APOS Variance</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.5%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
-                </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-mom"></canvas></div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Region Wise</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-region"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Quarter on Quarter</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-qoq"></canvas></div>
-                </div>
-              </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Month on Month</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-mom"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-wow"></canvas></div>
-                </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-wow"></canvas></div>
               </div>
             </div>
+          </div>
 
-            <!-- Service Requests -->
-            <div id="care-sub-sr" style="display:none;">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">SR Actuals</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">42.1K</div>
-                  <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -0.8% vs PY</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">SR Accuracy</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">93.2%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">SR Variance</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+4.1%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
-                </div>
+          <div id="dp-channel-cf" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Contracts Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">38.2K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4.1% vs PY</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Region Wise</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-region"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Quarter on Quarter</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-qoq"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Contracts Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)">94.1%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Month on Month</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-mom"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-wow"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Contracts Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+3.2%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
               </div>
             </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-cf-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-cf-qoq"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-cf-mom"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-cf-wow"></canvas></div>
+              </div>
+            </div>
+          </div>
 
-            <!-- Dispatch -->
-            <div id="care-sub-dsp" style="display:none;">
-              <div class="kpi-row">
-                <div class="kpi-card">
-                  <div class="kpi-label">Dispatch Actuals</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">33.6K</div>
-                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 1.9% vs PY</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Dispatch Accuracy</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.5%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
-                </div>
-                <div class="kpi-card">
-                  <div class="kpi-label">Dispatch Variance</div>
-                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.0%</div>
-                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
-                </div>
+          <div id="dp-channel-apos" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">APOS Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">28.4K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.8% vs PY</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Region Wise</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-region"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Quarter on Quarter</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-qoq"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">APOS Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.0%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
               </div>
-              <div class="visual-row">
-                <div class="visual-card">
-                  <div class="visual-title"><span>Month on Month</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-mom"></canvas></div>
-                </div>
-                <div class="visual-card">
-                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-wow"></canvas></div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">APOS Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.5%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-apos-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-apos-qoq"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-apos-mom"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-apos-wow"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="dp-channel-sr" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">SR Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">42.1K</div>
+                <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -0.8% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">SR Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)">93.2%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">SR Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+4.1%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-sr-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-sr-qoq"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-sr-mom"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-sr-wow"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="dp-channel-dsp" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Dispatch Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)">33.6K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 1.9% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Dispatch Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.5%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Dispatch Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.0%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-dsp-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-dsp-qoq"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-dsp-mom"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="care-dsp-wow"></canvas></div>
               </div>
             </div>
           </div>
@@ -1927,7 +1900,7 @@ function initCharts() {
 let activeChannel = 'overall';
 function switchChannel(channel, tabEl) {
   activeChannel = channel;
-  ['overall','field','care'].forEach(c => {
+  ['overall','field','care','cf','apos','sr','dsp'].forEach(c => {
     const el = document.getElementById('dp-channel-' + c);
     if (el) el.style.display = c === channel ? 'block' : 'none';
   });
@@ -2311,25 +2284,6 @@ function updateDPCareWoWChart() {
   chart.data.datasets[1].data = wIdx.map(i => Math.round(TREND_DATA_52['dp-care-actuals'][i]  * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
-}
-
-// =========================================================
-// CARE SUB-TABS
-// =========================================================
-function switchCareSubTab(tab, tabEl) {
-  ['overview','cf','apos','sr','dsp'].forEach(t => {
-    const el = document.getElementById('care-sub-' + t);
-    if (el) el.style.display = t === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.care-subtab').forEach(t => t.classList.remove('active'));
-  tabEl.classList.add('active');
-  setTimeout(() => {
-    ['region','qoq','mom','wow'].forEach(type => {
-      const c = chartInstances[`care-${tab}-${type}`] || chartInstances[`dp-chart-care-${type}`];
-      if (c) c.update();
-    });
-    updateCareSubTabCharts();
-  }, 30);
 }
 
 function updateCareSubTabCharts() {
