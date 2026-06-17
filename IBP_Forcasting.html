@@ -288,6 +288,21 @@
     .channel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
     .channel-tab:hover { color: var(--text-1); }
 
+    /* Care sub-tabs (secondary navigation) */
+    .care-subtabs {
+      display: flex; gap: 0; margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .care-subtab {
+      padding: 5px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; color: var(--text-3); white-space: nowrap;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .care-subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .care-subtab:hover { color: var(--text-2); }
+
     /* Sections */
     .module-section { display: none; }
     .module-section.active { display: block; }
@@ -861,41 +876,217 @@
             </div>
           </div>
           <div id="dp-channel-care" style="display:none;">
-            <div class="kpi-row">
-              <div class="kpi-card">
-                <div class="kpi-label">Care Actuals</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="care-kpi-actuals">142.3K</div>
-                <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div>
+            <!-- Care sub-tab bar -->
+            <div class="care-subtabs">
+              <div class="care-subtab active" onclick="switchCareSubTab('overview',this)">Overview</div>
+              <div class="care-subtab" onclick="switchCareSubTab('cf',this)">Contracts Forecast</div>
+              <div class="care-subtab" onclick="switchCareSubTab('apos',this)">APOS</div>
+              <div class="care-subtab" onclick="switchCareSubTab('sr',this)">Service Requests</div>
+              <div class="care-subtab" onclick="switchCareSubTab('dsp',this)">Dispatch</div>
+            </div>
+
+            <!-- Overview -->
+            <div id="care-sub-overview">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="kpi-label">Care Actuals</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="care-kpi-actuals">142.3K</div>
+                  <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.1% vs PY</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Care Accuracy</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="care-kpi-accuracy">93.2%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Care Variance</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="care-kpi-variance">+2.9%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+                </div>
               </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Care Accuracy</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="care-kpi-accuracy">93.2%</div>
-                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Region Wise — Care Forecast vs Actuals</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-region"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Quarter on Quarter</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-qoq"></canvas></div>
+                </div>
               </div>
-              <div class="kpi-card">
-                <div class="kpi-label">Care Variance</div>
-                <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="care-kpi-variance">+2.9%</div>
-                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Month on Month</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-mom"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-wow"></canvas></div>
+                </div>
               </div>
             </div>
-            <div class="visual-row">
-              <div class="visual-card">
-                <div class="visual-title"><span>Region Wise — Care Forecast vs Actuals</span></div>
-                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-region"></canvas></div>
+
+            <!-- Contracts Forecast -->
+            <div id="care-sub-cf" style="display:none;">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="kpi-label">Contracts Actuals</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">38.2K</div>
+                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4.1% vs PY</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Contracts Accuracy</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">94.1%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Contracts Variance</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+3.2%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+                </div>
               </div>
-              <div class="visual-card">
-                <div class="visual-title"><span>Quarter on Quarter</span></div>
-                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-qoq"></canvas></div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Region Wise</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-region"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Quarter on Quarter</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-qoq"></canvas></div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Month on Month</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-mom"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-cf-wow"></canvas></div>
+                </div>
               </div>
             </div>
-            <div class="visual-row">
-              <div class="visual-card">
-                <div class="visual-title"><span>Month on Month</span></div>
-                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-mom"></canvas></div>
+
+            <!-- APOS -->
+            <div id="care-sub-apos" style="display:none;">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="kpi-label">APOS Actuals</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">28.4K</div>
+                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.8% vs PY</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">APOS Accuracy</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.0%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">APOS Variance</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.5%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+                </div>
               </div>
-              <div class="visual-card">
-                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
-                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-care-wow"></canvas></div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Region Wise</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-region"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Quarter on Quarter</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-qoq"></canvas></div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Month on Month</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-mom"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-apos-wow"></canvas></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Service Requests -->
+            <div id="care-sub-sr" style="display:none;">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="kpi-label">SR Actuals</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">42.1K</div>
+                  <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -0.8% vs PY</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">SR Accuracy</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">93.2%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">SR Variance</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+4.1%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Region Wise</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-region"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Quarter on Quarter</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-qoq"></canvas></div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Month on Month</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-mom"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-sr-wow"></canvas></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dispatch -->
+            <div id="care-sub-dsp" style="display:none;">
+              <div class="kpi-row">
+                <div class="kpi-card">
+                  <div class="kpi-label">Dispatch Actuals</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--accent)">33.6K</div>
+                  <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 1.9% vs PY</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Dispatch Accuracy</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--green)">95.5%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Dispatch Variance</div>
+                  <div class="kpi-value kpi-dynamic" style="color:var(--amber)">+2.0%</div>
+                  <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Region Wise</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-region"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Quarter on Quarter</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-qoq"></canvas></div>
+                </div>
+              </div>
+              <div class="visual-row">
+                <div class="visual-card">
+                  <div class="visual-title"><span>Month on Month</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-mom"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                  <div style="flex:1;min-height:240px;"><canvas id="care-dsp-wow"></canvas></div>
+                </div>
               </div>
             </div>
           </div>
@@ -1501,7 +1692,11 @@ const FILTER_AWARE_CHARTS = new Set([
   'fa-chart-hbar','fa-chart-partner',
   'dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow',
   'dp-chart-field-region','dp-chart-field-qoq','dp-chart-field-mom','dp-chart-field-wow',
-  'dp-chart-care-region','dp-chart-care-qoq','dp-chart-care-mom','dp-chart-care-wow'
+  'dp-chart-care-region','dp-chart-care-qoq','dp-chart-care-mom','dp-chart-care-wow',
+  'care-cf-region','care-cf-qoq','care-cf-mom','care-cf-wow',
+  'care-apos-region','care-apos-qoq','care-apos-mom','care-apos-wow',
+  'care-sr-region','care-sr-qoq','care-sr-mom','care-sr-wow',
+  'care-dsp-region','care-dsp-qoq','care-dsp-mom','care-dsp-wow'
 ]);
 
 function triggerDataUpdate() {
@@ -1688,6 +1883,41 @@ function initCharts() {
       { label: 'Care Actuals',  data: TREND_DATA_52['dp-care-actuals'].slice(0,9),  borderColor: '#9d78f0', backgroundColor: 'rgba(157,120,240,0.07)', tension: 0.4, fill: true }
     ]
   });
+
+  // Care sub-tab charts (Contracts Forecast, APOS, Service Requests, Dispatch)
+  Object.keys(CARE_SUBTAB_DATA).forEach(tab => {
+    const d  = CARE_SUBTAB_DATA[tab];
+    const rg = CARE_SUBTAB_REGION[tab];
+    mk(`care-${tab}-region`, 'bar', {
+      labels: ['AMER','EMEA','APJ'],
+      datasets: [
+        { label: 'Forecast', data: ['AMER','EMEA','APJ'].map(x => rg[x].f), backgroundColor: '#3a6ef0' },
+        { label: 'Actuals',  data: ['AMER','EMEA','APJ'].map(x => rg[x].a), backgroundColor: '#9d78f0' }
+      ]
+    });
+    mk(`care-${tab}-qoq`, 'bar', {
+      labels: ['Q1','Q2','Q3','Q4'],
+      datasets: [
+        { label: 'Forecast', data: d.qoqF, backgroundColor: 'rgba(58,110,240,0.75)' },
+        { label: 'Actuals',  data: d.qoqA, backgroundColor: 'rgba(157,120,240,0.75)' }
+      ]
+    });
+    mk(`care-${tab}-mom`, 'line', {
+      labels: ['M1','M2','M3','M4','M5','M6'],
+      datasets: [
+        { label: 'Forecast', data: d.momF, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+        { label: 'Actuals',  data: d.momA, borderColor: '#9d78f0', backgroundColor: 'rgba(157,120,240,0.07)', tension: 0.4, fill: true }
+      ]
+    });
+    mk(`care-${tab}-wow`, 'line', {
+      labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9'],
+      datasets: [
+        { label: 'Forecast', data: TREND_DATA_52[`care-${tab}-fct`].slice(0,9), borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+        { label: 'Actuals',  data: TREND_DATA_52[`care-${tab}-act`].slice(0,9), borderColor: '#9d78f0', backgroundColor: 'rgba(157,120,240,0.07)', tension: 0.4, fill: true }
+      ]
+    });
+  });
+
   applyAllFilteredCharts();
 }
 
@@ -1706,7 +1936,11 @@ function switchChannel(channel, tabEl) {
   setTimeout(() => {
     ['dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow',
      'dp-chart-field-region','dp-chart-field-qoq','dp-chart-field-mom','dp-chart-field-wow',
-     'dp-chart-care-region','dp-chart-care-qoq','dp-chart-care-mom','dp-chart-care-wow'].forEach(id => {
+     'dp-chart-care-region','dp-chart-care-qoq','dp-chart-care-mom','dp-chart-care-wow',
+     'care-cf-region','care-cf-qoq','care-cf-mom','care-cf-wow',
+     'care-apos-region','care-apos-qoq','care-apos-mom','care-apos-wow',
+     'care-sr-region','care-sr-qoq','care-sr-mom','care-sr-wow',
+     'care-dsp-region','care-dsp-qoq','care-dsp-mom','care-dsp-wow'].forEach(id => {
       const c = chartInstances[id];
       if (c) c.update();
     });
@@ -1793,6 +2027,22 @@ const DP_CARE_MOM_BASE = {
   actuals:  [751, 798, 846, 789, 741, 684],
 };
 
+// Care sub-tab data (QoQ, MoM per category)
+const CARE_SUBTAB_DATA = {
+  cf:   { qoqF:[1800,2100,2300,2000], qoqA:[1710,1995,2185,1900], momF:[580,640,720,650,610,550], momA:[551,608,684,618,580,523] },
+  apos: { qoqF:[ 840, 950,1020, 890], qoqA:[ 798, 903, 969, 846], momF:[260,290,320,285,268,240], momA:[247,276,304,271,255,228] },
+  sr:   { qoqF:[1350,1500,1650,1420], qoqA:[1283,1425,1568,1349], momF:[430,480,530,470,440,405], momA:[409,456,504,447,418,385] },
+  dsp:  { qoqF:[1050,1200,1280,1100], qoqA:[ 998,1140,1216,1045], momF:[330,370,410,365,340,310], momA:[314,352,390,347,323,295] },
+};
+
+// Care sub-tab region data { f: forecast, a: actuals }
+const CARE_SUBTAB_REGION = {
+  cf:   { AMER:{f: 850,a: 808}, EMEA:{f: 620,a: 589}, APJ:{f: 330,a: 314} },
+  apos: { AMER:{f: 380,a: 361}, EMEA:{f: 280,a: 266}, APJ:{f: 180,a: 171} },
+  sr:   { AMER:{f: 620,a: 589}, EMEA:{f: 440,a: 418}, APJ:{f: 290,a: 276} },
+  dsp:  { AMER:{f: 470,a: 447}, EMEA:{f: 360,a: 342}, APJ:{f: 220,a: 209} },
+};
+
 // =========================================================
 // TIME FILTER MAPPING
 // =========================================================
@@ -1825,6 +2075,14 @@ const TREND_DATA_52 = {
   'dp-fld-fct':      _makeTrend(650,  65, 1),
   'dp-care-forecast':_makeTrend(1080, 107, 2),
   'dp-care-actuals': _makeTrend(1025, 102, 2),
+  'care-cf-fct':     _makeTrend( 950,  95, 1),
+  'care-cf-act':     _makeTrend( 900,  90, 1),
+  'care-apos-fct':   _makeTrend( 420,  42, 3),
+  'care-apos-act':   _makeTrend( 399,  40, 3),
+  'care-sr-fct':     _makeTrend( 680,  68, 2),
+  'care-sr-act':     _makeTrend( 646,  65, 2),
+  'care-dsp-fct':    _makeTrend( 520,  52, 4),
+  'care-dsp-act':    _makeTrend( 494,  49, 4),
   'dp-care-amer':    _makeTrend(510,  50, 0),
   'dp-care-emea':    _makeTrend(350,  35, 3),
   'dp-care-apj':     _makeTrend(220,  22, 6),
@@ -2055,6 +2313,71 @@ function updateDPCareWoWChart() {
   chart.update();
 }
 
+// =========================================================
+// CARE SUB-TABS
+// =========================================================
+function switchCareSubTab(tab, tabEl) {
+  ['overview','cf','apos','sr','dsp'].forEach(t => {
+    const el = document.getElementById('care-sub-' + t);
+    if (el) el.style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.care-subtab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  setTimeout(() => {
+    ['region','qoq','mom','wow'].forEach(type => {
+      const c = chartInstances[`care-${tab}-${type}`] || chartInstances[`dp-chart-care-${type}`];
+      if (c) c.update();
+    });
+    updateCareSubTabCharts();
+  }, 30);
+}
+
+function updateCareSubTabCharts() {
+  const mult  = getActiveFYMultiplier();
+  const r     = getActiveFilters().region;
+  const idx   = getSelectedWeekIndices();
+  const allR  = ['AMER','EMEA','APJ'];
+  const wIdx  = idx.length ? idx.slice(0, 9) : Array.from({length: 9}, (_, i) => i);
+  const hideAll = mult === 0;
+  const hideWoW = (r !== undefined && r.length === 0) || mult === 0;
+
+  Object.keys(CARE_SUBTAB_DATA).forEach(tab => {
+    const d  = CARE_SUBTAB_DATA[tab];
+    const rg = CARE_SUBTAB_REGION[tab];
+    const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+
+    const rc = chartInstances[`care-${tab}-region`];
+    if (rc) {
+      rc.data.labels = regions;
+      rc.data.datasets[0].data = regions.map(x => Math.round(rg[x].f * mult));
+      rc.data.datasets[1].data = regions.map(x => Math.round(rg[x].a * mult));
+      rc.update();
+    }
+    const qc = chartInstances[`care-${tab}-qoq`];
+    if (qc) {
+      qc.data.datasets[0].data = d.qoqF.map(v => Math.round(v * mult));
+      qc.data.datasets[1].data = d.qoqA.map(v => Math.round(v * mult));
+      qc.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+      qc.update();
+    }
+    const mc = chartInstances[`care-${tab}-mom`];
+    if (mc) {
+      mc.data.datasets[0].data = d.momF.map(v => Math.round(v * mult));
+      mc.data.datasets[1].data = d.momA.map(v => Math.round(v * mult));
+      mc.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+      mc.update();
+    }
+    const wc = chartInstances[`care-${tab}-wow`];
+    if (wc) {
+      wc.data.labels = wIdx.map(i => `W${i + 1}`);
+      wc.data.datasets[0].data = wIdx.map(i => Math.round(TREND_DATA_52[`care-${tab}-fct`][i] * mult));
+      wc.data.datasets[1].data = wIdx.map(i => Math.round(TREND_DATA_52[`care-${tab}-act`][i] * mult));
+      wc.data.datasets.forEach(ds => { ds.hidden = hideWoW; });
+      wc.update();
+    }
+  });
+}
+
 function applyAllFilteredCharts() {
   updateFARegionChart();
   updateFAPartnerChart();
@@ -2070,6 +2393,7 @@ function applyAllFilteredCharts() {
   updateDPCareQoQChart();
   updateDPCareMoMChart();
   updateDPCareWoWChart();
+  updateCareSubTabCharts();
   updateFAOverviewChart();
 }
 
