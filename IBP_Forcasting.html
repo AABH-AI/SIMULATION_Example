@@ -1930,6 +1930,24 @@ function getSelectedFiscalMonthIndices() {
 // =========================================================
 // FILTER-AWARE CHART UPDATE FUNCTIONS
 // =========================================================
+
+// Returns true if ANY filter group has zero items selected (nothing to show)
+function shouldHideAll() {
+  const active = getActiveFilters();
+  if (getActiveFYMultiplier() === 0) return true;
+  if (active.quarter !== undefined && active.quarter.length === 0) return true;
+  if (active.month   !== undefined && active.month.length   === 0) return true;
+  if (active.region  !== undefined && active.region.length  === 0) return true;
+  return false;
+}
+
+// Returns which of the 4 quarters to render based on the quarter filter
+function getSelectedQuarters() {
+  const active = getActiveFilters();
+  const allQ = ['Q1','Q2','Q3','Q4'];
+  return active.quarter === undefined ? allQ : allQ.filter(q => active.quarter.includes(q));
+}
+
 function _filterByRegion(data) {
   const r = getActiveFilters().region;
   if (r === undefined) return data;
@@ -1939,36 +1957,42 @@ function _filterByRegion(data) {
 function updateFARegionChart() {
   const chart = chartInstances['fa-chart-hbar'];
   if (!chart) return;
-  const r = getActiveFilters().region;
+  const mult = getActiveFYMultiplier();
+  const r    = getActiveFilters().region;
   const allR = ['AMER','EMEA','APJ'];
   const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
-  chart.data.labels = regions;
-  chart.data.datasets[0].data = regions.map(x => FA_REGION_BASE[x].actuals);
-  chart.data.datasets[1].data = regions.map(x => FA_REGION_BASE[x].forecast);
+  const hideAll = shouldHideAll();
+  chart.data.labels = hideAll ? [] : regions;
+  chart.data.datasets[0].data = hideAll ? [] : regions.map(x => Math.round(FA_REGION_BASE[x].actuals  * mult));
+  chart.data.datasets[1].data = hideAll ? [] : regions.map(x => Math.round(FA_REGION_BASE[x].forecast * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
 
 function updateFAPartnerChart() {
   const chart = chartInstances['fa-chart-partner'];
   if (!chart) return;
-  const p = getActiveFilters().partner;
-  const filtered = p === undefined ? FA_PARTNER_BASE : FA_PARTNER_BASE.filter(x => p.includes(x.name));
+  const hideAll = shouldHideAll();
+  const filtered = hideAll ? [] : FA_PARTNER_BASE;
   chart.data.labels = filtered.map(x => x.name);
   chart.data.datasets[0].data = filtered.map(x => x.mdr);
   chart.data.datasets[0].backgroundColor = filtered.map(x => x.color);
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
 
 function updateDPOverallRegionChart() {
   const chart = chartInstances['dp-chart-overall-region'];
   if (!chart) return;
-  const r = getActiveFilters().region;
-  const mult = getActiveFYMultiplier();
-  const allR = ['AMER','EMEA','APJ'];
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const allR    = ['AMER','EMEA','APJ'];
   const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
-  chart.data.labels = regions;
-  chart.data.datasets[0].data = regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].forecast * mult));
-  chart.data.datasets[1].data = regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].actuals  * mult));
+  const hideAll = shouldHideAll();
+  chart.data.labels = hideAll ? [] : regions;
+  chart.data.datasets[0].data = hideAll ? [] : regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].forecast * mult));
+  chart.data.datasets[1].data = hideAll ? [] : regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].actuals  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
 
@@ -1976,9 +2000,12 @@ function updateDPOverallQoQChart() {
   const chart = chartInstances['dp-chart-overall-qoq'];
   if (!chart) return;
   const mult = getActiveFYMultiplier();
-  const hideAll = mult === 0;
-  chart.data.datasets[0].data = DP_OVERALL_QOQ_BASE.forecast.map(v => Math.round(v * mult));
-  chart.data.datasets[1].data = DP_OVERALL_QOQ_BASE.actuals.map(v  => Math.round(v * mult));
+  const allQ = ['Q1','Q2','Q3','Q4'];
+  const selQ = getSelectedQuarters();
+  const hideAll = shouldHideAll() || selQ.length === 0;
+  chart.data.labels = hideAll ? [] : selQ;
+  chart.data.datasets[0].data = hideAll ? [] : selQ.map(q => Math.round(DP_OVERALL_QOQ_BASE.forecast[allQ.indexOf(q)] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : selQ.map(q => Math.round(DP_OVERALL_QOQ_BASE.actuals[allQ.indexOf(q)]  * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -1986,26 +2013,26 @@ function updateDPOverallQoQChart() {
 function updateDPOverallMoMChart() {
   const chart = chartInstances['dp-chart-overall-mom'];
   if (!chart) return;
-  const mult = getActiveFYMultiplier();
-  const hideAll = mult === 0;
-  chart.data.datasets[0].data = DP_OVERALL_MOM_BASE.forecast.map(v => Math.round(v * mult));
-  chart.data.datasets[1].data = DP_OVERALL_MOM_BASE.actuals.map(v  => Math.round(v * mult));
+  const mult     = getActiveFYMultiplier();
+  const momLabels = ['M1','M2','M3','M4','M5','M6'];
+  const idx      = getSelectedFiscalMonthIndices().filter(i => i < 6);
+  const hideAll  = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => momLabels[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(DP_OVERALL_MOM_BASE.forecast[i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(DP_OVERALL_MOM_BASE.actuals[i]  * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
 
-
-
 function updateFAOverviewChart() {
   const chart = chartInstances['fa-chart-overview'];
   if (!chart) return;
-  const r    = getActiveFilters().region;
   const mult = getActiveFYMultiplier();
   const idx  = getSelectedWeekIndices();
-  const hideAll = (r !== undefined && r.length === 0) || mult === 0;
-  chart.data.labels = idx.map(i => `W${i + 1}`);
-  chart.data.datasets[0].data = idx.map(i => Math.round(TREND_DATA_52['fa-asu'][i] * mult));
-  chart.data.datasets[1].data = idx.map(i => Math.round(TREND_DATA_52['fa-wo'][i]  * mult));
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(TREND_DATA_52['fa-asu'][i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(TREND_DATA_52['fa-wo'][i]  * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -2013,15 +2040,13 @@ function updateFAOverviewChart() {
 function updateDPOverallWoWChart() {
   const chart = chartInstances['dp-chart-overall-wow'];
   if (!chart) return;
-  const r    = getActiveFilters().region;
   const mult = getActiveFYMultiplier();
   const idx  = getSelectedWeekIndices();
-  // Always show 9 weeks from the filtered set (or first 9 if no week filter)
-  const wIdx = idx.length ? idx.slice(0, 9) : Array.from({length: 9}, (_, i) => i);
-  const hideAll = (r !== undefined && r.length === 0) || mult === 0;
-  chart.data.labels = wIdx.map(i => `W${i + 1}`);
-  chart.data.datasets[0].data = wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-forecast'][i] * mult));
-  chart.data.datasets[1].data = wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-actuals'][i]  * mult));
+  const wIdx = idx.slice(0, 9);
+  const hideAll = shouldHideAll() || wIdx.length === 0;
+  chart.data.labels = hideAll ? [] : wIdx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = hideAll ? [] : wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-forecast'][i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-actuals'][i]  * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -2030,12 +2055,12 @@ function updateDPOverallWoWChart() {
 function updateAPAsuTrendChart() {
   const chart = chartInstances['ap-asu-trend'];
   if (!chart) return;
-  const mult = getActiveFYMultiplier();
-  const idx  = getSelectedFiscalMonthIndices();
-  const hideAll = mult === 0 || idx.length === 0;
-  chart.data.labels = idx.map(i => AP_MONTHS[i]);
-  chart.data.datasets[0].data = idx.map(i => parseFloat((AP_ASU_TREND_BASE.actuals[i]  * mult).toFixed(2)));
-  chart.data.datasets[1].data = idx.map(i => parseFloat((AP_ASU_TREND_BASE.forecast[i] * mult).toFixed(2)));
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => parseFloat((AP_ASU_TREND_BASE.actuals[i]  * mult).toFixed(2)));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => parseFloat((AP_ASU_TREND_BASE.forecast[i] * mult).toFixed(2)));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -2043,11 +2068,11 @@ function updateAPAsuTrendChart() {
 function updateAPNewContractsChart() {
   const chart = chartInstances['ap-new-contracts'];
   if (!chart) return;
-  const mult = getActiveFYMultiplier();
-  const idx  = getSelectedFiscalMonthIndices();
-  const hideAll = mult === 0 || idx.length === 0;
-  chart.data.labels = idx.map(i => AP_MONTHS[i]);
-  chart.data.datasets[0].data = idx.map(i => Math.round(AP_NEW_CONTRACTS_BASE[i] * mult));
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_NEW_CONTRACTS_BASE[i] * mult));
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -2055,13 +2080,13 @@ function updateAPNewContractsChart() {
 function updateAPAposRenewalChart() {
   const chart = chartInstances['ap-apos-renewal'];
   if (!chart) return;
-  const mult = getActiveFYMultiplier();
-  const idx  = getSelectedFiscalMonthIndices();
-  const hideAll = mult === 0 || idx.length === 0;
-  chart.data.labels = idx.map(i => AP_MONTHS[i]);
-  chart.data.datasets[0].data = idx.map(i => Math.round(AP_APOS_BASE.opportunity[i] * mult));
-  chart.data.datasets[1].data = idx.map(i => Math.round(AP_APOS_BASE.renewed[i]     * mult));
-  chart.data.datasets[2].data = idx.map(i => AP_APOS_BASE.rate[i]);
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_APOS_BASE.opportunity[i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_APOS_BASE.renewed[i]     * mult));
+  chart.data.datasets[2].data = hideAll ? [] : idx.map(i => AP_APOS_BASE.rate[i]);
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
   chart.update();
 }
@@ -2069,11 +2094,11 @@ function updateAPAposRenewalChart() {
 function updateAPDeclineChart() {
   const chart = chartInstances['ap-decline'];
   if (!chart) return;
-  const mult = getActiveFYMultiplier();
-  const idx  = getSelectedFiscalMonthIndices();
-  const hideAll = mult === 0 || idx.length === 0;
-  chart.data.labels = idx.map(i => AP_MONTHS[i]);
-  const data = idx.map(i => Math.round(AP_DECLINE_BASE[i] * mult));
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  const data = hideAll ? [] : idx.map(i => Math.round(AP_DECLINE_BASE[i] * mult));
   chart.data.datasets[0].data = data;
   chart.data.datasets[0].backgroundColor = data.map(v => v > 3000 ? '#dc2626' : '#f87171');
   chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
@@ -2081,51 +2106,55 @@ function updateAPDeclineChart() {
 }
 
 function updateAPDspCharts() {
-  const mult = getActiveFYMultiplier();
-  const r    = getActiveFilters().region;
-  const idx  = getSelectedFiscalMonthIndices();
-  const allR = ['AMER','EMEA','APJ'];
-  const hideAll = mult === 0 || idx.length === 0;
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const idx     = getSelectedFiscalMonthIndices();
+  const allR    = ['AMER','EMEA','APJ'];
   const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll() || idx.length === 0;
+  const hideReg = shouldHideAll();
   const DSP_REGION = { AMER:{f:9800,a:9540}, EMEA:{f:7200,a:7060}, APJ:{f:6100,a:5980} };
   const tChart = chartInstances['ap-dsp-trend'];
   if (tChart) {
-    tChart.data.labels = idx.map(i => AP_MONTHS[i]);
-    tChart.data.datasets[0].data = idx.map(i => Math.round(AP_DSP_TREND_BASE.forecast[i] * mult));
-    tChart.data.datasets[1].data = idx.map(i => Math.round(AP_DSP_TREND_BASE.actuals[i]  * mult));
+    tChart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+    tChart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_DSP_TREND_BASE.forecast[i] * mult));
+    tChart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_DSP_TREND_BASE.actuals[i]  * mult));
     tChart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
     tChart.update();
   }
   const rChart = chartInstances['ap-dsp-region'];
   if (rChart) {
-    rChart.data.labels = regions;
-    rChart.data.datasets[0].data = regions.map(x => Math.round(DSP_REGION[x].f * mult));
-    rChart.data.datasets[1].data = regions.map(x => Math.round(DSP_REGION[x].a * mult));
+    rChart.data.labels = hideReg ? [] : regions;
+    rChart.data.datasets[0].data = hideReg ? [] : regions.map(x => Math.round(DSP_REGION[x].f * mult));
+    rChart.data.datasets[1].data = hideReg ? [] : regions.map(x => Math.round(DSP_REGION[x].a * mult));
+    rChart.data.datasets.forEach(ds => { ds.hidden = hideReg; });
     rChart.update();
   }
 }
 
 function updateAPSrCharts() {
-  const mult = getActiveFYMultiplier();
-  const r    = getActiveFilters().region;
-  const idx  = getSelectedFiscalMonthIndices();
-  const allR = ['AMER','EMEA','APJ'];
-  const hideAll = mult === 0 || idx.length === 0;
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const idx     = getSelectedFiscalMonthIndices();
+  const allR    = ['AMER','EMEA','APJ'];
   const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll() || idx.length === 0;
+  const hideReg = shouldHideAll();
   const SR_REGION = { AMER:{f:18200,a:17650}, EMEA:{f:13400,a:13020}, APJ:{f:11200,a:10870} };
   const tChart = chartInstances['ap-sr-trend'];
   if (tChart) {
-    tChart.data.labels = idx.map(i => AP_MONTHS[i]);
-    tChart.data.datasets[0].data = idx.map(i => Math.round(AP_SR_TREND_BASE.forecast[i] * mult));
-    tChart.data.datasets[1].data = idx.map(i => Math.round(AP_SR_TREND_BASE.actuals[i]  * mult));
+    tChart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+    tChart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_SR_TREND_BASE.forecast[i] * mult));
+    tChart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_SR_TREND_BASE.actuals[i]  * mult));
     tChart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
     tChart.update();
   }
   const rChart = chartInstances['ap-sr-region'];
   if (rChart) {
-    rChart.data.labels = regions;
-    rChart.data.datasets[0].data = regions.map(x => Math.round(SR_REGION[x].f * mult));
-    rChart.data.datasets[1].data = regions.map(x => Math.round(SR_REGION[x].a * mult));
+    rChart.data.labels = hideReg ? [] : regions;
+    rChart.data.datasets[0].data = hideReg ? [] : regions.map(x => Math.round(SR_REGION[x].f * mult));
+    rChart.data.datasets[1].data = hideReg ? [] : regions.map(x => Math.round(SR_REGION[x].a * mult));
+    rChart.data.datasets.forEach(ds => { ds.hidden = hideReg; });
     rChart.update();
   }
 }
