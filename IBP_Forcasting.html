@@ -556,7 +556,7 @@
           <div class="tile-icon"><i class="ti ti-table"></i></div>
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
-        <div class="tile-title">Data Raw</div>
+        <div class="tile-title">Data Management</div>
         <div class="tile-desc">Full data matrix across all regions, partners, queues, and fiscal periods with CSV/Excel export.</div>
         <div class="tile-stat">150 records &nbsp;·&nbsp; <span>Exportable</span></div>
       </div>
@@ -604,7 +604,7 @@
       <span class="header-stamp" id="refresh-stamp"></span>
       <span class="ctx-badge" id="global-context">FY26 · All Regions</span>
       <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
-      <button class="btn-icon" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-adjustments-horizontal"></i></button>
+      <button class="btn-icon" id="filter-toggle-btn" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-adjustments-horizontal"></i></button>
     </div>
   </div>
 
@@ -1337,7 +1337,7 @@ function updateChartTheme(chart) {
 // MODULE CONFIG
 // =========================================================
 const modules = {
-  'data-raw': { title: 'Data Raw', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
+  'data-raw': { title: 'Data Management', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
   'demand-profiling': { title: 'Actuals Profiling', pages: [{ id: 'dp-page-overview', label: 'Profiling Overview' }] },
   'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
     { id: 'fa-page-overview', label: 'Forecast Overview' },
@@ -1382,8 +1382,14 @@ function openDashboard(moduleId) {
   }
 
   updateFilterChips();
-  if (moduleId === 'whatif') { setTimeout(wiInit, 80); }
-  else { setTimeout(initCharts, 80); }
+  const filterBtn = document.getElementById('filter-toggle-btn');
+  if (filterBtn) filterBtn.style.display = moduleId === 'whatif' ? 'none' : '';
+  if (moduleId === 'whatif') {
+    if (!document.getElementById('right-panel').classList.contains('collapsed')) {
+      document.getElementById('right-panel').classList.add('collapsed');
+    }
+    setTimeout(wiInit, 80);
+  } else { setTimeout(initCharts, 80); }
 }
 
 function goHome() {
@@ -2288,18 +2294,17 @@ const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.1
 const WI_SLIDERS = [
   { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
   { key:'renewal',  label:'APOS Renewal Rate',     min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
-  { key:'modifier', label:'Forecast Modifier',     min:-15, max:25,  step:1,   val:2,    fmt: v => (v>=0?'+':'')+v+'%' },
 ];
 
 const WI_SAVED_SCENARIOS_DEFAULT = [
-  { id:'conservative', label:'Conservative',     renewal:78, growth:-5,  modifier:-8, color:'#6b758f' },
-  { id:'expected',     label:'Expected',          renewal:89.5, growth:8, modifier:2,  color:'#9d78f0' },
-  { id:'aggressive',   label:'Aggressive',        renewal:94, growth:28,  modifier:10, color:'#22d472' },
-  { id:'executive',    label:'Executive Stretch', renewal:97, growth:38,  modifier:15, color:'#4c7ef8' },
-  { id:'worst',        label:'Worst Case',        renewal:72, growth:-18, modifier:-12,color:'#f06060' },
+  { id:'conservative', label:'Conservative',     renewal:78,   growth:-5,  color:'#6b758f' },
+  { id:'expected',     label:'Expected',          renewal:89.5, growth:8,  color:'#9d78f0' },
+  { id:'aggressive',   label:'Aggressive',        renewal:94,   growth:28, color:'#22d472' },
+  { id:'executive',    label:'Executive Stretch', renewal:97,   growth:38, color:'#4c7ef8' },
+  { id:'worst',        label:'Worst Case',        renewal:72,   growth:-18,color:'#f06060' },
 ];
 
-let wiState = { renewal:89.5, growth:8, modifier:2, unitsOverride:'' };
+let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
 let wiSavedScenarios = WI_SAVED_SCENARIOS_DEFAULT.map(s => ({...s}));
 let wiAuditLog = [];
 let wiCharts = {};
@@ -2312,12 +2317,10 @@ function wiCompute(st) {
   const rRate  = st.renewal / 100;
   const baseR  = WI_BASE.baseRenewalRate / 100;
   const gMult  = 1 + (st.growth / 100);
-  const mMult  = 1 + (st.modifier / 100);
-  // calibrated so default inputs produce +8.6% ASU lift matching screenshot
-  const asuMult = 1 + (st.growth/100)*0.8 + (st.modifier/100)*0.5 + (rRate/baseR - 1)*0.25;
+  const asuMult = 1 + (st.growth/100)*0.8 + (rRate/baseR - 1)*0.25;
   const whatifASU  = Math.round(WI_BASE.asu  * asuMult);
-  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2  + (st.modifier/100)*0.3));
-  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15 + (st.modifier/100)*0.2));
+  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2));
+  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15));
   const renewedUnits   = st.unitsOverride ? (parseInt(st.unitsOverride)||WI_BASE.renewedUnits) : Math.round(WI_BASE.renewalOppQty * rRate);
   const newContracts   = Math.round(WI_BASE.newContracts * gMult);
   const aposRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
@@ -2577,7 +2580,7 @@ function wiRenderScenarios() {
 
 function wiLoadScenario(id) {
   const s = wiSavedScenarios.find(x => x.id === id); if (!s) return;
-  ['renewal','growth','modifier'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
+  ['renewal','growth'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
   wiRenderSliders(); wiRenderAll();
   wiAddAudit('Scenario', `Loaded: ${s.label}`);
 }
@@ -2585,7 +2588,7 @@ function wiLoadScenario(id) {
 function wiSaveScenario() {
   const id = 'custom_' + Date.now();
   wiSavedScenarios.push({ id, label:'Custom '+(wiSavedScenarios.length+1),
-    renewal:wiState.renewal, growth:wiState.growth, modifier:wiState.modifier, color:'#6b758f' });
+    renewal:wiState.renewal, growth:wiState.growth, color:'#6b758f' });
   wiRenderScenarios(); wiAddAudit('Scenario', 'Saved scenario');
 }
 
