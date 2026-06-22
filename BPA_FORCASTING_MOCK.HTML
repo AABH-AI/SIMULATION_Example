@@ -1,0 +1,2614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISG BPA: Business Planning and Analytics</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg:          #f0f3fc;
+      --surface:     #ffffff;
+      --card:        #ffffff;
+      --card-hi:     #eef1fc;
+      --border:      #dde2f4;
+      --border-hi:   #b4bde8;
+      --text-1:      #0d1020;
+      --text-2:      #5a6280;
+      --text-3:      #9099be;
+      --accent:      #3a6ef0;
+      --accent-glow: rgba(58,110,240,0.12);
+      --accent-dim:  rgba(58,110,240,0.07);
+      --blue:        #3a6ef0;
+      --blue-dim:    rgba(58,110,240,0.07);
+      --green:       #16a34a;
+      --green-dim:   rgba(22,163,74,0.09);
+      --red:         #dc2626;
+      --red-dim:     rgba(220,38,38,0.09);
+      --amber:       #b45309;
+      --amber-dim:   rgba(180,83,9,0.09);
+      --purple:      #6d28d9;
+      --nav-bg:      #ffffff;
+      --nav-hover:   #eef1fc;
+      --font-ui:     'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+      --font-mono:   'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+    /* Uniform theme transition across all structural surfaces */
+    .left-panel, .right-panel, .dash-header, .home-status-bar,
+    .home-hero, .tiles-section, .kpi-card, .visual-card, .tile,
+    .accordion-header, .nav-link, .btn-icon, .btn-sm,
+    .filter-dropdown-btn, .filter-dropdown-content, .filter-checkbox,
+    .filter-header, .filter-search-input, .table-search,
+    .data-table th, .data-table td, .channel-tab,
+    .chip, .badge, .sev-btn, .export-btn, .reset-btn,
+    .page-row, .home-banner, .home-hero::before {
+      transition: background 0.3s, background-color 0.3s,
+                  border-color 0.3s, color 0.3s;
+    }
+
+    /* ── VIEWS ─────────────────────────────────────────────── */
+    #home-view      { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+    #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+
+    /* ── HOME: TOP STATUS BAR ──────────────────────────────── */
+    .home-status-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 36px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; color: var(--text-2);
+      letter-spacing: 0.04em; flex-shrink: 0;
+    }
+    .pulse-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      animation: pulse-ring 2.2s ease-out infinite;
+    }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(34,212,114,0.55); }
+      70%  { box-shadow: 0 0 0 8px rgba(34,212,114,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,212,114,0); }
+    }
+    .status-live { color: var(--green); font-weight: 700; }
+    .status-sep  { color: var(--border-hi); margin: 0 3px; }
+
+    /* ── HOME: HERO ────────────────────────────────────────── */
+    .home-hero {
+      position: relative; padding: 60px 36px 48px;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .home-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(76,126,248,0.07) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .home-hero::after {
+      content: '';
+      position: absolute; top: -100px; right: -100px;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(76,126,248,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .home-hero-inner { position: relative; z-index: 1; max-width: 700px; }
+    .home-eyebrow {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .home-eyebrow::before {
+      content: ''; display: block;
+      width: 22px; height: 2px;
+      background: var(--accent); border-radius: 2px;
+    }
+    .home-title {
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 800; line-height: 1.05;
+      letter-spacing: -0.03em; color: var(--text-1);
+      margin-bottom: 6px;
+    }
+    .home-title-sub {
+      font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+      font-weight: 300; color: var(--text-2);
+      letter-spacing: -0.01em; margin-bottom: 22px;
+    }
+    .home-desc {
+      font-size: 14px; color: var(--text-2);
+      line-height: 1.75; max-width: 540px;
+    }
+    .home-logo { position: absolute; top: 28px; right: 36px; z-index: 1; }
+
+    /* ── HOME: MODULE TILES ────────────────────────────────── */
+    .tiles-section { padding: 0 36px 48px; }
+    .tiles-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 14px; padding-top: 4px;
+    }
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 14px;
+    }
+    .tile {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 20px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+    }
+    .tile::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .tile:hover { border-color: var(--border-hi); transform: translateY(-2px); box-shadow: 0 14px 40px rgba(0,0,0,0.35); }
+    .tile:hover::before { opacity: 1; }
+    .tile-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .tile-icon {
+      width: 40px; height: 40px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(76,126,248,0.18);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--accent);
+    }
+    .tile-arrow { color: var(--text-3); font-size: 16px; transition: color 0.2s, transform 0.2s; }
+    .tile:hover .tile-arrow { color: var(--accent); transform: translate(2px,-2px); }
+    .tile-title { font-size: 0.97rem; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+    .tile-desc { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+    .tile-stat {
+      margin-top: 16px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 11px; color: var(--text-3);
+    }
+    .tile-stat span { color: var(--accent); font-weight: 600; }
+
+    /* ── DASHBOARD HEADER ──────────────────────────────────── */
+    .dash-header {
+      height: 54px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 16px; flex-shrink: 0; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .header-right { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .header-brand { font-weight: 700; font-size: 13px; color: var(--text-1); white-space: nowrap; }
+    .breadcrumb { font-size: 12px; color: var(--text-2); display: flex; align-items: center; gap: 5px; }
+    .breadcrumb span { cursor: pointer; }
+    .breadcrumb span:hover { color: var(--accent); }
+    .breadcrumb .sep { color: var(--border-hi); }
+    .header-stamp { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+    .ctx-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(76,126,248,0.2);
+      font-size: 11px; font-weight: 600; color: var(--accent); white-space: nowrap;
+    }
+    .btn-icon {
+      width: 32px; height: 32px; background: transparent;
+      border: 1px solid transparent; color: var(--text-2);
+      cursor: pointer; font-size: 16px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover { background: var(--card); border-color: var(--border); color: var(--text-1); }
+    .btn-sm {
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text-2); cursor: pointer; font-size: 11px;
+      padding: 5px 10px; border-radius: 6px;
+      display: flex; align-items: center; gap: 5px;
+      font-family: var(--font-ui); transition: all 0.15s;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── LAYOUT ────────────────────────────────────────────── */
+    .dash-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── LEFT NAV ──────────────────────────────────────────── */
+    .left-panel {
+      width: 220px; background: var(--nav-bg);
+      border-right: 1px solid var(--border); flex-shrink: 0;
+      display: flex; flex-direction: column;
+      transition: width 0.25s ease; overflow: hidden;
+    }
+    .left-panel.collapsed { width: 0; border: none; }
+    .accordion-header {
+      padding: 14px 16px; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      font-weight: 700; font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-3); white-space: nowrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .accordion-header:hover { color: var(--text-2); }
+    .accordion-content { display: none; padding: 6px 0; }
+    .accordion-content.active { display: block; }
+    .nav-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 16px; color: var(--text-2);
+      text-decoration: none; font-size: 13px;
+      cursor: pointer; white-space: nowrap;
+      border-left: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--text-1); background: var(--nav-hover); }
+    .nav-link.active { color: var(--text-1); background: var(--nav-hover); border-left-color: var(--accent); }
+
+    /* ── MAIN CONTENT ──────────────────────────────────────── */
+    .main-content {
+      flex: 1; padding: 18px 22px;
+      overflow-y: auto; background: var(--bg);
+      display: flex; flex-direction: column; gap: 0; min-width: 0;
+    }
+
+    /* Filter chips */
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(76,126,248,0.3);
+      border-radius: 20px; padding: 3px 10px 3px 8px;
+      font-size: 11px; color: var(--accent);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .chip:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+    /* Channel tabs */
+    .channel-tabs {
+      display: flex; gap: 0; margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .channel-tab {
+      padding: 8px 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; color: var(--text-2);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .channel-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .channel-tab:hover { color: var(--text-1); }
+
+    /* Sections */
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+    .page-section { display: none; }
+    .page-section.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── KPI CARDS ─────────────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px; margin-bottom: 18px;
+    }
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 18px 14px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .kpi-card:hover { border-color: var(--border-hi); }
+    .kpi-card::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 18px; right: 18px; height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0.2;
+    }
+    .kpi-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-2); margin-bottom: 10px;
+    }
+    .kpi-value {
+      font-family: var(--font-mono);
+      font-size: 26px; font-weight: 600;
+      letter-spacing: -0.02em; color: var(--text-1); line-height: 1;
+    }
+    .kpi-sub {
+      font-size: 11px; margin-top: 8px;
+      display: flex; align-items: center; gap: 4px; color: var(--text-2);
+    }
+
+    /* ── CHART CARDS ───────────────────────────────────────── */
+    .visual-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 14px; margin-bottom: 18px;
+    }
+    .visual-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+      min-height: 280px; display: flex; flex-direction: column;
+    }
+    .visual-title {
+      font-size: 12px; font-weight: 600; color: var(--text-1);
+      margin-bottom: 14px; padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .chart-toggle { display: flex; gap: 4px; }
+    .chart-toggle-btn {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-2); font-size: 10px; padding: 3px 9px;
+      border-radius: 4px; cursor: pointer; font-family: var(--font-ui);
+      transition: all 0.15s;
+    }
+    .chart-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .chart-toggle-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+    /* ── TABLES ────────────────────────────────────────────── */
+    .table-wrap { overflow: auto; flex: 1; }
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th {
+      background: var(--surface); color: var(--text-2);
+      padding: 9px 12px; text-align: left;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+      position: sticky; top: 0; z-index: 1;
+      cursor: pointer; user-select: none;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .data-table th:hover { color: var(--text-1); }
+    .data-table th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+    .data-table th.sort-asc .sort-icon::before { content: '▲'; opacity: 1; }
+    .data-table th.sort-desc .sort-icon::before { content: '▼'; opacity: 1; }
+    .data-table td {
+      padding: 9px 12px; border-bottom: 1px solid var(--border);
+      white-space: nowrap; color: var(--text-1);
+    }
+    .data-table tr:hover td { background: var(--card-hi); }
+    .data-table .row-num {
+      color: var(--text-3); font-family: var(--font-mono);
+      font-size: 10px; text-align: right; padding-right: 12px;
+    }
+    .table-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .table-search {
+      padding: 8px 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text-1); font-size: 12px; font-family: var(--font-ui);
+      outline: none; min-width: 240px; transition: border-color 0.15s;
+    }
+    .table-search:focus { border-color: var(--accent); }
+    .table-search::placeholder { color: var(--text-3); }
+    .row-count { font-size: 11px; color: var(--text-2); margin-left: auto; font-family: var(--font-mono); }
+    .export-btns { display: flex; gap: 6px; }
+    .export-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 7px;
+      font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid;
+      font-family: var(--font-ui); transition: all 0.15s;
+    }
+    .export-btn.csv  { background: var(--green-dim); color: var(--green); border-color: rgba(34,212,114,0.3); }
+    .export-btn.csv:hover  { background: var(--green); color: #000; }
+    .export-btn.excel { background: var(--accent-dim); color: var(--accent); border-color: rgba(76,126,248,0.3); }
+    .export-btn.excel:hover { background: var(--accent); color: white; }
+
+    /* ── RIGHT PANEL ───────────────────────────────────────── */
+    .right-panel {
+      width: 258px; background: var(--surface);
+      border-left: 1px solid var(--border); flex-shrink: 0;
+      display: flex; flex-direction: column;
+      transition: width 0.25s ease; overflow: hidden;
+    }
+    .right-panel.collapsed { width: 0; border: none; }
+    .filter-header {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-weight: 700; font-size: 10px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-2);
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    .filter-search-box { padding: 10px 12px; flex-shrink: 0; }
+    .filter-search-input {
+      width: 100%; padding: 7px 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text-1);
+      font-family: var(--font-ui); outline: none; font-size: 12px;
+      transition: border-color 0.15s;
+    }
+    .filter-search-input:focus { border-color: var(--accent); }
+    .filter-list { overflow-y: auto; flex: 1; padding: 4px 12px 8px; }
+    .filter-footer { padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .reset-btn {
+      width: 100%; padding: 8px;
+      background: var(--red-dim); border: 1px solid rgba(240,96,96,0.3);
+      border-radius: 7px; color: var(--red); cursor: pointer;
+      font-size: 12px; font-weight: 600; font-family: var(--font-ui);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover { background: var(--red); color: white; }
+    .filter-dropdown { margin-bottom: 8px; }
+    .filter-dropdown-btn {
+      width: 100%; text-align: left; background: transparent;
+      border: 1px solid var(--border); padding: 8px 10px; border-radius: 7px;
+      color: var(--text-1); cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; font-weight: 600; font-family: var(--font-ui);
+      transition: all 0.15s;
+    }
+    .filter-dropdown-btn:hover { border-color: var(--accent); }
+    .filter-dropdown-content {
+      display: none; border: 1px solid var(--border); border-top: none;
+      background: var(--card); padding: 8px; border-radius: 0 0 7px 7px;
+      max-height: 140px; overflow-y: auto;
+    }
+    .filter-dropdown-content.open { display: block; }
+    .filter-checkbox {
+      display: flex; align-items: center; gap: 8px; font-size: 12px;
+      margin-bottom: 5px; cursor: pointer; color: var(--text-2);
+      transition: color 0.15s;
+    }
+    .filter-checkbox:hover { color: var(--text-1); }
+    .filter-checkbox input { cursor: pointer; accent-color: var(--accent); }
+    .inner-search {
+      width: 100%; padding: 5px 8px; font-size: 11px; margin-bottom: 6px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-1); border-radius: 4px; outline: none; font-family: var(--font-ui);
+    }
+
+    /* ── BADGES ────────────────────────────────────────────── */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .badge-high   { background: var(--red-dim);   color: var(--red); }
+    .badge-good   { background: var(--green-dim);  color: var(--green); }
+    .badge-med    { background: var(--amber-dim);  color: var(--amber); }
+    .badge-accent { background: var(--accent-dim); color: var(--accent); }
+
+    /* Severity filter */
+    .severity-filter { display: flex; gap: 6px; margin-bottom: 14px; }
+    .sev-btn {
+      padding: 4px 12px; border-radius: 20px; font-size: 11px;
+      font-weight: 700; cursor: pointer; border: 1px solid;
+      font-family: var(--font-ui); transition: all 0.15s;
+    }
+    .sev-btn.all    { border-color: var(--border); color: var(--text-2); background: transparent; }
+    .sev-btn.all.active  { background: var(--card); color: var(--text-1); border-color: var(--border-hi); }
+    .sev-btn.high   { border-color: rgba(240,96,96,0.4); color: var(--red); background: var(--red-dim); }
+    .sev-btn.high.active { background: var(--red); color: white; }
+    .sev-btn.medium { border-color: rgba(240,168,48,0.4); color: var(--amber); background: var(--amber-dim); }
+    .sev-btn.medium.active { background: var(--amber); color: white; }
+    .sev-btn.low    { border-color: rgba(34,212,114,0.4); color: var(--green); background: var(--green-dim); }
+    .sev-btn.low.active   { background: var(--green); color: #000; }
+
+    /* Sticky col */
+    .sticky-col { position: sticky; left: 0; background: var(--card); z-index: 1; }
+    .data-table tr:hover .sticky-col { background: var(--card-hi); }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
+
+    hr.rule { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+    /* ── Demand Profiling 4-Quadrant Matrix ── */
+    .dp-matrix-wrap { display:flex; gap:0; margin:16px 0 10px; }
+    .dp-y-label {
+      display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+      gap:4px; padding:0 10px 38px 0; min-width:38px;
+    }
+    .dp-y-arrow { font-size:20px; color:var(--text-2); line-height:1; }
+    .dp-y-text {
+      writing-mode:vertical-rl; transform:rotate(180deg);
+      font-size:11px; font-weight:600; color:var(--text-2); letter-spacing:0.04em;
+      white-space:nowrap;
+    }
+    .dp-y-50pct {
+      font-size:10px; font-weight:700; color:var(--text-3);
+      border-top:2px dashed var(--border-hi); padding-top:5px; margin-top:6px;
+      white-space:nowrap;
+    }
+    .dp-matrix-body { flex:1; display:flex; flex-direction:column; }
+    .dp-quadrant-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      border-left:2px solid var(--text-2); border-bottom:2px solid var(--text-2);
+      padding:4px 4px 0 10px;
+    }
+    .dp-x-axis-row {
+      display:flex; align-items:center; gap:8px;
+      padding:7px 0 0 10px;
+    }
+    .dp-x-50pct { font-size:10px; font-weight:700; color:var(--text-3); }
+    .dp-x-arrow  { font-size:18px; color:var(--text-2); line-height:1; }
+    .dp-x-text   { font-size:11px; font-weight:600; color:var(--text-2); letter-spacing:0.04em; }
+
+    .dp-quad {
+      background:var(--surface); border-radius:8px; padding:10px 12px 10px;
+      border:1px solid var(--border); display:flex; flex-direction:column;
+    }
+    .dp-quad-title { font-size:12px; font-weight:700; margin-bottom:6px; }
+    .dp-quad-canvas { flex:1; min-height:175px; position:relative; }
+
+    .dp-quad-consistent  { border-top:3px solid #16a34a; }
+    .dp-quad-erratic     { border-top:3px solid #d97706; }
+    .dp-quad-intermittent{ border-top:3px solid #2563eb; }
+    .dp-quad-lumpy       { border-top:3px solid #db2777; }
+
+    .dp-quad-consistent  .dp-quad-title { color:#16a34a; }
+    .dp-quad-erratic     .dp-quad-title { color:#d97706; }
+    .dp-quad-intermittent .dp-quad-title{ color:#2563eb; }
+    .dp-quad-lumpy       .dp-quad-title { color:#db2777; }
+
+    .dp-legend-box {
+      background:var(--card-hi); border:1px solid var(--border);
+      border-radius:8px; padding:10px 16px;
+    }
+    .dp-legend-row { display:flex; gap:16px; margin-bottom:6px; }
+    .dp-legend-row:last-child { margin-bottom:0; }
+    .dp-legend-item {
+      flex:1; font-size:11.5px; line-height:1.5;
+      display:flex; align-items:flex-start; gap:7px;
+    }
+    .dp-legend-dot {
+      width:9px; height:9px; border-radius:50%;
+      display:inline-block; margin-top:3px; flex-shrink:0;
+    }
+
+    /* CV info button & tooltip */
+    .cv-info-btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:16px; height:16px; border-radius:50%;
+      border:1.5px solid var(--accent); background:transparent;
+      color:var(--accent); font-size:10px; font-weight:700;
+      font-family:'Plus Jakarta Sans',sans-serif;
+      cursor:pointer; padding:0; line-height:1;
+      vertical-align:middle; margin-left:5px;
+      transition:background 0.15s, color 0.15s;
+    }
+    .cv-info-btn:hover { background:var(--accent); color:#fff; }
+    .cv-tooltip-wrap { position:relative; display:inline-flex; align-items:center; }
+    .cv-tooltip-box {
+      position:absolute; bottom:calc(100% + 10px); left:50%;
+      transform:translateX(-50%);
+      background:var(--surface); border:1px solid var(--border-hi);
+      border-radius:10px; padding:14px 16px;
+      box-shadow:0 6px 24px rgba(0,0,0,0.14);
+      width:300px; z-index:400;
+      font-size:12px; line-height:1.65; color:var(--text-1);
+    }
+    .cv-tooltip-box::after {
+      content:''; position:absolute; top:100%; left:50%;
+      transform:translateX(-50%);
+      border:7px solid transparent;
+      border-top-color:var(--border-hi);
+    }
+    .cv-tooltip-title {
+      font-size:13px; font-weight:700; color:var(--text-1); margin-bottom:6px;
+    }
+    .cv-tooltip-formula {
+      background:var(--card-hi); border-radius:6px;
+      padding:5px 10px; font-family:'IBM Plex Mono',monospace;
+      font-size:11.5px; color:var(--accent); margin:6px 0;
+      text-align:center; letter-spacing:0.02em;
+    }
+    .cv-tooltip-rules { padding-left:0; margin:7px 0 0; list-style:none; }
+    .cv-tooltip-rules li { padding:2px 0; font-size:11.5px; }
+    .cv-tooltip-rules li::before { content:'• '; color:var(--accent); font-weight:700; }
+
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════ HOME ══════════════════════════ -->
+<div id="home-view">
+  <div class="home-status-bar">
+    <div class="pulse-dot"></div>
+    <span class="status-live">Live</span>
+    <span class="status-sep">·</span>
+    <span id="home-refresh-stamp"></span>
+  </div>
+
+  <div class="home-hero">
+    <div class="home-hero-inner">
+      <p class="home-eyebrow">Aligned Automation Services &nbsp;·&nbsp; ISG</p>
+      <h1 class="home-title">Business Planning<br>and Analytics</h1>
+      <p class="home-title-sub">Demand Intelligence Platform</p>
+      <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
+    </div>
+    <div class="home-logo">
+      <img src="D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations\Aligned logo.png" alt="Aligned Automation" style="height:34px;"
+        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>Aligned Automation</span>'">
+    </div>
+  </div>
+
+  <div class="tiles-section">
+    <p class="tiles-label">Modules</p>
+    <div class="tiles-grid">
+      <div class="tile" onclick="openDashboard('forecast-accuracy')">
+        <div class="tile-head">
+          <div class="tile-icon"><i class="ti ti-target"></i></div>
+          <i class="ti ti-arrow-up-right tile-arrow"></i>
+        </div>
+        <div class="tile-title">Forecast Accuracy</div>
+        <div class="tile-desc">Tech ASU, Work Orders, and Service Request forecast performance across regions and partners.</div>
+        <div class="tile-stat">3 views &nbsp;·&nbsp; <span>ASU · WO · SR</span></div>
+      </div>
+
+      <div class="tile" onclick="openDashboard('demand-profiling')">
+        <div class="tile-head">
+          <div class="tile-icon"><i class="ti ti-chart-line"></i></div>
+          <i class="ti ti-arrow-up-right tile-arrow"></i>
+        </div>
+        <div class="tile-title">Actuals Profiling</div>
+        <div class="tile-desc">ISG demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
+        <div class="tile-stat">1 view &nbsp;·&nbsp; <span>Overall · Region · Trend</span></div>
+      </div>
+
+
+      <div class="tile" onclick="openDashboard('data-raw')">
+        <div class="tile-head">
+          <div class="tile-icon"><i class="ti ti-table"></i></div>
+          <i class="ti ti-arrow-up-right tile-arrow"></i>
+        </div>
+        <div class="tile-title">Data Management</div>
+        <div class="tile-desc">Full data matrix across all regions, partners, queues, and fiscal periods with CSV/Excel export.</div>
+        <div class="tile-stat">150 records &nbsp;·&nbsp; <span>Exportable</span></div>
+      </div>
+
+      <div class="tile" onclick="openDashboard('whatif')">
+        <div class="tile-head">
+          <div class="tile-icon" style="background:rgba(157,120,240,0.1);border-color:rgba(157,120,240,0.2);color:var(--purple);"><i class="ti ti-adjustments-horizontal"></i></div>
+          <i class="ti ti-arrow-up-right tile-arrow"></i>
+        </div>
+        <div class="tile-title">What-If Simulation</div>
+        <div class="tile-desc">Slider-driven scenario explorer — model renewal rates, contract growth, and dispatch conversion to forecast ASU, SR, and revenue outcomes.</div>
+        <div class="tile-stat">New Contract Growth &nbsp;·&nbsp; <span style="color:var(--purple);">APOS Renewal</span></div>
+      </div>
+
+      <a href="bend_the_curve.html" class="tile" style="text-decoration:none;">
+        <div class="tile-head">
+          <div class="tile-icon" style="background:var(--green-dim);border-color:rgba(34,212,114,0.2);color:var(--green);"><i class="ti ti-trending-up"></i></div>
+          <i class="ti ti-arrow-up-right tile-arrow"></i>
+        </div>
+        <div class="tile-title" style="color:var(--text-1);">Bend the Curve</div>
+        <div class="tile-desc">Goal-first strategic planner — set an ASU or revenue target and activate initiatives to bend the forecast curve toward it, with lag and confidence modelling.</div>
+        <div class="tile-stat">8 levers &nbsp;·&nbsp; <span style="color:var(--green);">Gap-to-target</span></div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ DASHBOARD ═════════════════════ -->
+<div id="dashboard-view">
+  <div class="dash-header">
+    <div class="header-left">
+      <button class="btn-icon" onclick="toggleLeftPanel()" title="Toggle Nav"><i class="ti ti-menu-2"></i></button>
+      <div>
+        <div class="header-brand" id="dash-title">ISG BPA: Business Planning and Analytics</div>
+        <div class="breadcrumb" id="breadcrumb">
+          <span onclick="goHome()">Home</span>
+          <span class="sep">›</span>
+          <span id="bc-module"></span>
+          <span class="sep bc-page-sep" style="display:none;">›</span>
+          <span id="bc-page" style="color:var(--text-1);"></span>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="header-stamp" id="refresh-stamp"></span>
+      <span class="ctx-badge" id="global-context">FY26 · All Regions</span>
+      <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
+      <button class="btn-icon" id="filter-toggle-btn" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-adjustments-horizontal"></i></button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <div class="left-panel" id="left-panel">
+      <div class="accordion-item">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <span>Navigation</span><i class="ti ti-chevron-down"></i>
+        </div>
+        <div class="accordion-content active" id="left-nav-links"></div>
+      </div>
+    </div>
+
+    <div class="main-content" id="main-content">
+      <div class="filter-chips" id="filter-chips-row"></div>
+
+      <!-- ══ MODULE: FORECAST ACCURACY ══ -->
+      <div id="module-forecast-accuracy" class="module-section">
+        <div id="fa-page-overview" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Forecast Tech ASU</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Work Orders</div><div class="kpi-value kpi-dynamic">86.2K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Service Request</div><div class="kpi-value kpi-dynamic">32.1K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Forecast Demand SR</div><div class="kpi-value kpi-dynamic">8.4K</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Tech ASU vs Work Orders Trend</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-overview','line',this)">Line</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-overview','bar',this)">Bar</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-overview"></canvas></div>
+            </div>
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Weekly Actuals vs Forecast by Region</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-hbar','bar',this)">Bar</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-hbar','line',this)">Line</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-hbar"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="fa-page-actuals" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Weekly SR Actuals</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">8.2K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Field ASU Actuals</div><div class="kpi-value kpi-dynamic">12.1K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Tech ASU</div><div class="kpi-value kpi-dynamic">14.5K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Demand SR Actuals</div><div class="kpi-value kpi-dynamic">8.1K</div></div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Raw Data Matrix: Actuals vs Forecast</div>
+            <div class="table-wrap" style="max-height:340px;">
+              <table class="data-table">
+                <thead><tr>
+                  <th class="row-num">#</th>
+                  <th onclick="sortTable('actuals-table','region')">Region <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','lob')">LOB <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','week')">Week <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','sr')">Weekly SR Actuals <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fasu')">Weekly Field ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','tasu')">Weekly Tech ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fdsr')">Forecast Demand SR <span class="sort-icon"></span></th>
+                  <th>Status</th>
+                </tr></thead>
+                <tbody id="actuals-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="fa-page-partner" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Active Partners</div><div class="kpi-value kpi-dynamic">24</div></div>
+            <div class="kpi-card"><div class="kpi-label">Global Locations</div><div class="kpi-value kpi-dynamic">115</div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg MDR Work Orders</div><div class="kpi-value kpi-dynamic">3.8K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Needs Attention</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly AVG MDR</div><div class="kpi-value kpi-dynamic">4.5%</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title"><span>MDR Work Orders by Partner</span></div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-partner"></canvas></div>
+            </div>
+            <div class="visual-card">
+              <div class="visual-title">Top Locations &amp; Queue Names</div>
+              <div class="table-wrap" style="max-height:260px;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th onclick="sortTable('partner-table','loc')">Location <span class="sort-icon"></span></th>
+                    <th onclick="sortTable('partner-table','partner')">Partner <span class="sort-icon"></span></th>
+                    <th>Queue</th>
+                    <th>Bus Reporting</th>
+                    <th onclick="sortTable('partner-table','mdr')">Weekly AVG MDR <span class="sort-icon"></span></th>
+                  </tr></thead>
+                  <tbody id="partner-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: DATA RAW ══ -->
+      <div id="module-data-raw" class="module-section">
+        <div id="dr-page-raw" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dr-total-records">1,204</div></div>
+            <div class="kpi-card"><div class="kpi-label">Data Completeness</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">98.2%</div></div>
+            <div class="kpi-card"><div class="kpi-label">Anomalies Detected</div><div class="kpi-value kpi-dynamic" style="color:var(--red)">1,204</div></div>
+            <div class="kpi-card"><div class="kpi-label">Duplicate Records</div><div class="kpi-value kpi-dynamic">43</div></div>
+          </div>
+          <div class="visual-card" style="min-height:auto;">
+            <div class="visual-title">Full Raw Data View</div>
+            <div class="table-toolbar">
+              <input type="text" class="table-search" id="raw-search" placeholder="Search across all columns…" oninput="filterRawTable()">
+              <div class="export-btns">
+                <button class="export-btn csv" onclick="exportCSV()"><i class="ti ti-file-type-csv"></i> CSV</button>
+                <button class="export-btn excel" onclick="exportExcel()"><i class="ti ti-file-spreadsheet"></i> Excel</button>
+              </div>
+              <div class="row-count" id="raw-row-count">0 of 0 rows</div>
+            </div>
+            <div class="table-wrap" style="max-height:calc(100vh - 360px);border:1px solid var(--border);border-radius:8px;">
+              <table class="data-table" id="raw-data-table">
+                <thead><tr>
+                  <th class="row-num sticky-col" style="min-width:36px;">#</th>
+                  <th onclick="sortRawTable('region')" style="min-width:90px;">Region <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('subregion')" style="min-width:140px;">Sub-Region <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('partner')" style="min-width:120px;">Partner <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('location')" style="min-width:130px;">Location <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('queue')" style="min-width:110px;">Queue <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('busrep')" style="min-width:100px;">Bus Reporting <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('fy')" style="min-width:60px;">FY <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('quarter')" style="min-width:60px;">Quarter <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('month')" style="min-width:60px;">Month <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('week')" style="min-width:60px;">Week <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('sr')" style="min-width:110px;">Weekly SR Actuals <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('fasu')" style="min-width:120px;">Weekly Field ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('tasu')" style="min-width:120px;">Weekly Tech ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('fdsr')" style="min-width:130px;">Forecast Demand SR <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('lob')" style="min-width:120px;">LOB <span class="sort-icon"></span></th>
+                  <th style="min-width:110px;">Status</th>
+                </tr></thead>
+                <tbody id="raw-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: ACTUALS PROFILING ══ -->
+      <div id="module-demand-profiling" class="module-section">
+        <div id="dp-page-overview" class="page-section active">
+
+          <!-- KPI Summary Row -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Consistent SKUs</div>
+              <div class="kpi-value kpi-dynamic" style="color:#16a34a">1,842</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Occ &gt; 50% · CV &lt; 50%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Erratic SKUs</div>
+              <div class="kpi-value kpi-dynamic" style="color:#d97706">634</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Occ &ge; 50% · CV &ge; 50%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Intermittent SKUs</div>
+              <div class="kpi-value kpi-dynamic" style="color:#2563eb">412</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &lt; 50%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Lumpy SKUs</div>
+              <div class="kpi-value kpi-dynamic" style="color:#db2777">218</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &ge; 50%</div>
+            </div>
+          </div>
+
+          <!-- 4-Quadrant Demand Classification Matrix -->
+          <div class="dp-matrix-wrap">
+            <div class="dp-y-label">
+              <div class="dp-y-arrow">&#8593;</div>
+              <div class="dp-y-text">Frequency % (Occurrence variation)</div>
+              <div class="dp-y-50pct">50%</div>
+            </div>
+            <div class="dp-matrix-body">
+              <div class="dp-quadrant-grid">
+                <div class="dp-quad dp-quad-consistent">
+                  <div class="dp-quad-title">Consistent Demand</div>
+                  <div class="dp-quad-canvas"><canvas id="dp-chart-consistent"></canvas></div>
+                </div>
+                <div class="dp-quad dp-quad-erratic">
+                  <div class="dp-quad-title">Erratic Demand</div>
+                  <div class="dp-quad-canvas"><canvas id="dp-chart-erratic"></canvas></div>
+                </div>
+                <div class="dp-quad dp-quad-intermittent">
+                  <div class="dp-quad-title">Intermittent Demand</div>
+                  <div class="dp-quad-canvas"><canvas id="dp-chart-intermittent"></canvas></div>
+                </div>
+                <div class="dp-quad dp-quad-lumpy">
+                  <div class="dp-quad-title">Lumpy Demand</div>
+                  <div class="dp-quad-canvas"><canvas id="dp-chart-lumpy"></canvas></div>
+                </div>
+              </div>
+              <div class="dp-x-axis-row">
+                <div class="dp-x-50pct">50%</div>
+                <div class="dp-x-arrow">&#8594;</div>
+                <div class="cv-tooltip-wrap">
+                  <span class="dp-x-text">Coefficient of Variation (Demand)</span>
+                  <button class="cv-info-btn" onclick="toggleCVTooltip(event)" aria-label="What is Coefficient of Variation?">i</button>
+                  <div id="cv-tooltip-box" class="cv-tooltip-box" style="display:none;">
+                    <div class="cv-tooltip-title">Coefficient of Variation (CV)</div>
+                    <div style="font-size:11.5px; color:var(--text-2); margin-bottom:4px;">Measures how much demand fluctuates relative to its average.</div>
+                    <div class="cv-tooltip-formula">CV = Standard Deviation &divide; Mean</div>
+                    <div style="font-size:11.5px; font-weight:600; color:var(--text-2); margin-top:8px; margin-bottom:2px;">How to interpret:</div>
+                    <ul class="cv-tooltip-rules">
+                      <li><strong style="color:var(--green)">Low CV (&lt;50%)</strong> &rarr; Stable and consistent demand</li>
+                      <li><strong style="color:var(--red)">High CV (&ge;50%)</strong> &rarr; Irregular and unpredictable demand</li>
+                    </ul>
+                    <div style="font-size:11px; color:var(--text-3); margin-top:8px; border-top:1px solid var(--border); padding-top:7px;">Use this to identify whether demand is steady or highly variable over time.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legend Table -->
+          <div class="dp-legend-box">
+            <div class="dp-legend-row">
+              <div class="dp-legend-item">
+                <span class="dp-legend-dot" style="background:#16a34a"></span>
+                <span><strong>Consistent Demand</strong> :- Occurrence &gt; 50% &amp; Coefficient of Variation &lt; 50%</span>
+              </div>
+              <div class="dp-legend-item">
+                <span class="dp-legend-dot" style="background:#2563eb"></span>
+                <span><strong>Intermittent Demand</strong> :- Occurrence &lt; 50% &amp; Coefficient of Variation &lt; 50%</span>
+              </div>
+            </div>
+            <div class="dp-legend-row">
+              <div class="dp-legend-item">
+                <span class="dp-legend-dot" style="background:#d97706"></span>
+                <span><strong>Erratic Demand</strong> :- Occurrence &gt;= 50% &amp; Coefficient of Variation &gt;= 50%</span>
+              </div>
+              <div class="dp-legend-item">
+                <span class="dp-legend-dot" style="background:#db2777"></span>
+                <span><strong>Lumpy Demand</strong> :- Occurrence &lt; 50% &amp; Coefficient of Variation &gt;= 50%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ MODULE: DEMAND ALERTS ══ -->
+      <div id="module-demand-alerts" class="module-section">
+        <div id="da-page-log" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Total Alerts</div><div class="kpi-value kpi-dynamic" style="color:var(--red)" id="da-total">12</div></div>
+            <div class="kpi-card"><div class="kpi-label">High Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--red)">5</div></div>
+            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--amber)">4</div></div>
+            <div class="kpi-card"><div class="kpi-label">Low Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">3</div></div>
+          </div>
+          <div class="visual-card" style="min-height:auto;">
+            <div class="visual-title">Alerts Log</div>
+            <div class="severity-filter">
+              <button class="sev-btn all active" onclick="filterAlerts('all',this)">All</button>
+              <button class="sev-btn high" onclick="filterAlerts('High',this)">High</button>
+              <button class="sev-btn medium" onclick="filterAlerts('Medium',this)">Medium</button>
+              <button class="sev-btn low" onclick="filterAlerts('Low',this)">Low</button>
+            </div>
+            <div class="table-wrap" style="max-height:380px;">
+              <table class="data-table" id="alerts-table">
+                <thead><tr>
+                  <th onclick="sortTable('alerts-table','sev')">Severity <span class="sort-icon"></span></th>
+                  <th>Alert Description</th>
+                  <th onclick="sortTable('alerts-table','date')">Trigger Date <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('alerts-table','region')">Region <span class="sort-icon"></span></th>
+                  <th>Sub-Region</th>
+                </tr></thead>
+                <tbody id="alerts-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MODULE: WHAT-IF SIMULATION ══ -->
+      <div id="module-whatif" class="module-section">
+
+        <!-- ── PAGE 1: SIMULATION CONTROLS ── -->
+        <div id="wi-page-sim" class="page-section active">
+
+          <!-- 6 KPI cards 3×2 -->
+          <div id="wi-kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
+
+          <!-- Horizontal Forecast Propagation Pipeline -->
+          <div class="visual-card" style="min-height:auto;margin-bottom:16px;">
+            <div class="visual-title">
+              <div>
+                <div>Forecast Propagation</div>
+                <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Live downstream impact across the forecasting pipeline</div>
+              </div>
+              <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;">Auto-flowing</span>
+            </div>
+            <div id="wi-pipeline" style="display:flex;align-items:stretch;overflow-x:auto;padding:2px 0;gap:0;"></div>
+          </div>
+
+          <!-- Main 2-column: left=charts, right=inputs+impact -->
+          <div style="display:grid;grid-template-columns:1fr 350px;gap:16px;align-items:start;">
+
+            <!-- LEFT: Charts + Base Table -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+
+              <!-- ASU Trend — area band fill between base and what-if -->
+              <div class="visual-card">
+                <div class="visual-title">
+                  <div>
+                    <div>ASU Trend</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs What-If projection</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
+                      <span style="display:inline-block;width:14px;height:2px;background:#9ca3af;border-radius:2px;"></span>Base
+                    </div>
+                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
+                      <span style="display:inline-block;width:14px;height:2px;background:var(--accent);border-radius:2px;"></span>What-If
+                    </div>
+                  </div>
+                </div>
+                <div style="flex:1;min-height:220px;"><canvas id="wi-chart-asu"></canvas></div>
+              </div>
+
+              <!-- SR + Dispatch side by side -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div class="visual-card">
+                  <div class="visual-title">
+                    <div>
+                      <div>Service Request Forecast</div>
+                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Monthly volume in thousands</div>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-sr"></canvas></div>
+                </div>
+                <div class="visual-card">
+                  <div class="visual-title">
+                    <div>
+                      <div>Dispatch Forecast</div>
+                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Field dispatches projected (K)</div>
+                    </div>
+                  </div>
+                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-dp"></canvas></div>
+                </div>
+              </div>
+
+              <!-- Base Input table -->
+              <div class="visual-card" style="min-height:auto;">
+                <div class="visual-title">
+                  <div>
+                    <div>Base Input</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Current period baseline measures</div>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="data-table">
+                    <thead><tr>
+                      <th>Measure</th>
+                      <th style="text-align:right;">Base Value</th>
+                    </tr></thead>
+                    <tbody>
+                      <tr><td>Renewal Opportunity Quantity</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">284,500 units</td></tr>
+                      <tr><td>Base Renewal Rate</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">85.3%</td></tr>
+                      <tr><td>Renewed Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">242,678</td></tr>
+                      <tr><td>Expired Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">41,822</td></tr>
+                      <tr><td>New Contracts Forecast</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">73,140 units</td></tr>
+                      <tr><td>Base ASU Contribution</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--accent);">$612.4M</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div><!-- /left -->
+
+            <!-- RIGHT: Inputs + Impact card -->
+            <div style="display:flex;flex-direction:column;gap:14px;">
+
+              <!-- What-If Inputs -->
+              <div class="visual-card" style="min-height:auto;">
+                <div class="visual-title">
+                  <div>
+                    <div>What-If Inputs</div>
+                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Adjust assumptions to model scenarios</div>
+                  </div>
+                  <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">Live</span>
+                </div>
+                <div id="wi-sliders-area"></div>
+              </div>
+
+              <!-- Scenario Impact — deep blue card -->
+              <div style="border-radius:12px;padding:22px;background:linear-gradient(135deg,#2d52e0 0%,#1a3ab8 100%);border:1px solid rgba(76,126,248,0.35);">
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                  <i class="ti ti-sparkles"></i> Scenario Impact
+                </div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.2;">Projected uplift<br>vs baseline</div>
+                <div id="wi-impact-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+                <button onclick="wiSaveScenario()" style="width:100%;padding:11px;border-radius:8px;background:#fff;color:#1a3ab8;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.01em;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Save Scenario</button>
+              </div>
+
+            </div><!-- /right -->
+          </div><!-- /main 2-col -->
+        </div><!-- /wi-page-sim -->
+
+        <!-- ── PAGE 2: SCENARIO PLAYGROUND ── -->
+        <div id="wi-page-scenarios" class="page-section">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="visual-card" style="min-height:auto;">
+              <div class="visual-title">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:22px;height:22px;background:var(--blue-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-brain" style="font-size:12px;color:var(--accent);"></i></div>
+                  <span>AI Forecast Insights</span>
+                </div>
+              </div>
+              <div id="wi-ai-insights" style="font-size:12px;color:var(--text-2);line-height:1.7;"></div>
+            </div>
+            <div class="visual-card" style="min-height:auto;">
+              <div class="visual-title">
+                <span>Saved Scenarios</span>
+                <button onclick="wiSaveScenario()" class="btn-sm"><i class="ti ti-plus"></i> Save Current</button>
+              </div>
+              <div id="wi-scenario-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PAGE 3: PUBLISH CENTER ── -->
+        <div id="wi-page-publish" class="page-section">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="visual-card" style="min-height:auto;">
+              <div class="visual-title">Forecast Publish Center</div>
+              <div id="wi-publish-readiness" style="margin-bottom:14px;"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button onclick="wiHandlePublish()" style="background:var(--accent);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-ui);display:flex;align-items:center;justify-content:center;gap:6px;" id="wi-pub-btn"><i class="ti ti-rocket"></i> Publish</button>
+                <button onclick="alert('Excel export queued!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-table-export"></i> Export Excel</button>
+                <button onclick="alert('PDF generation started!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-file-type-pdf"></i> Export PDF</button>
+                <button onclick="alert('Report shared!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-share"></i> Share</button>
+              </div>
+            </div>
+            <div class="visual-card" style="min-height:auto;">
+              <div class="visual-title">Audit Log</div>
+              <div id="wi-audit-log" style="max-height:340px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /module-whatif -->
+
+    </div><!-- /main-content -->
+
+    <!-- Right Panel -->
+    <div class="right-panel" id="right-panel">
+      <div class="filter-header">
+        <div>Filters</div>
+        <i class="ti ti-x" style="cursor:pointer;font-size:14px;color:var(--text-2);" onclick="toggleRightPanel()"></i>
+      </div>
+      <div class="filter-search-box">
+        <input type="text" class="filter-search-input" placeholder="Search filters…" oninput="searchFilters(this)">
+      </div>
+      <div class="filter-list" id="filter-container">
+        <div class="filter-dropdown" data-filter="fy-quarter">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Year / Quarter</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content open">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY26" checked onchange="onFilterChange()"> FY26</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY27" onchange="onFilterChange()"> FY27</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY25" onchange="onFilterChange()"> FY25</label>
+              <hr class="rule">
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q1" checked onchange="onFilterChange()"> Q1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q2" onchange="onFilterChange()"> Q2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q3" onchange="onFilterChange()"> Q3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q4" onchange="onFilterChange()"> Q4</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="month">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Month</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search month…" oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M1" onchange="onFilterChange()"> M1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M2" onchange="onFilterChange()"> M2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M3" onchange="onFilterChange()"> M3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M4" onchange="onFilterChange()"> M4</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M5" onchange="onFilterChange()"> M5</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M6" onchange="onFilterChange()"> M6</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="week">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Week</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search week (W1–W52)…" oninput="filterInner(this)">
+            <div class="check-list" id="week-check-list"></div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="region">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="AMER" onchange="onFilterChange()"> AMER</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="EMEA" onchange="onFilterChange()"> EMEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APJ" onchange="onFilterChange()"> APJ</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="subregion">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Sub-Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="North America" onchange="onFilterChange()"> North America</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="LATAM" onchange="onFilterChange()"> LATAM</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Western Europe" onchange="onFilterChange()"> Western Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Eastern Europe" onchange="onFilterChange()"> Eastern Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="SEA" onchange="onFilterChange()"> SEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="ANZ" onchange="onFilterChange()"> ANZ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Japan" onchange="onFilterChange()"> Japan</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="lob">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>LOB</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ISG" onchange="onFilterChange()"> ISG</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ESG" onchange="onFilterChange()"> ESG</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="HES" onchange="onFilterChange()"> HES</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="location">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Location Name</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search location…" oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="New York Hub" onchange="onFilterChange()"> New York Hub</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="London HQ" onchange="onFilterChange()"> London HQ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Tokyo Base" onchange="onFilterChange()"> Tokyo Base</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Austin DC" onchange="onFilterChange()"> Austin DC</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="queue">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Queue &amp; Bus Reporting</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Alpha" onchange="onFilterChange()"> Queue_Alpha</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Beta" onchange="onFilterChange()"> Queue_Beta</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Direct" onchange="onFilterChange()"> BR_Direct</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Indirect" onchange="onFilterChange()"> BR_Indirect</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-footer">
+        <button class="reset-btn" onclick="resetFilters()"><i class="ti ti-refresh"></i> Reset All Filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// DATA GENERATION
+// =========================================================
+const REGIONS = ['AMER','AMER','EMEA','APJ'];
+const SUBREGIONS = {
+  'AMER': ['North America','LATAM'],
+  'EMEA': ['Western Europe','Eastern Europe'],
+  'APJ': ['SEA','ANZ','Japan']
+};
+const PARTNERS = ['Dell','OSP'];
+const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
+const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
+const BRS = ['BR_Direct','BR_Indirect'];
+const LOBS = ['ISG','ESG','HES'];
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randFloat(min, max, dec=1) { return parseFloat((Math.random() * (max - min) + min).toFixed(dec)); }
+
+let rawData = [];
+function generateRawData() {
+  rawData = [];
+  for (let i = 0; i < 150; i++) {
+    const region = randFrom(REGIONS);
+    const subregion = randFrom(SUBREGIONS[region]);
+    const partner = randFrom(PARTNERS);
+    const location = randFrom(LOCATIONS);
+    const queue = randFrom(QUEUES);
+    const br = randFrom(BRS);
+    const r2 = Math.random();
+    const fy = r2 > 0.55 ? 'FY26' : r2 > 0.25 ? 'FY27' : 'FY25';
+    const quarter = randFrom(['Q1','Q2','Q3','Q4']);
+    const month = randFrom(['M1','M2','M3','M4','M5','M6']);
+    const weekNum = randInt(1, 52);
+    const week = `W${weekNum}`;
+    const sr = randInt(1000, 8000);
+    const fasu = randInt(2000, 12000);
+    const tasu = randInt(500, 6000);
+    const fdsr = randInt(1000, 9000);
+    const lob = randFrom(LOBS);
+    const diff = Math.abs(sr - fdsr);
+    const pct = diff / fdsr;
+    const status = pct < 0.1 ? 'Within Tolerance' : 'Out of Bounds';
+    rawData.push({ i: i+1, region, subregion, partner, location, queue, br, fy, quarter, month, week, weekNum, sr, fasu, tasu, fdsr, lob, status });
+  }
+}
+generateRawData();
+
+const ALERTS_DATA = [
+  { sev:'High', desc:'ASU variance exceeds 10% tolerance threshold', date:'2026-06-02', region:'AMER', subregion:'North America' },
+  { sev:'High', desc:'Missing data for LOB: Field Services W44', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
+  { sev:'High', desc:'Forecast demand drop >15% for Care queue — APJ', date:'2026-06-03', region:'APJ', subregion:'SEA' },
+  { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
+  { sev:'High', desc:'Partner SLA breach — OSP dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
+  { sev:'Medium', desc:'Partner Dell SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
+  { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
+  { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
+  { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APJ', subregion:'Japan' },
+  { sev:'Low', desc:'Forecast model retrain scheduled — W26', date:'2026-06-01', region:'AMER', subregion:'North America' },
+  { sev:'Low', desc:'Minor duplicate records detected — 43 rows', date:'2026-05-29', region:'EMEA', subregion:'Eastern Europe' },
+  { sev:'Low', desc:'New York Hub location data lag — 2hr delay observed', date:'2026-06-04', region:'AMER', subregion:'North America' },
+];
+
+// =========================================================
+// THEME
+// =========================================================
+let isDark = false;
+function updateChartTheme(chart) {
+  const grid  = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  const ticks = isDark ? '#6b758f' : '#5a6280';
+  if (!chart.options.scales) return;
+  Object.values(chart.options.scales).forEach(s => {
+    if (s.grid)  s.grid.color  = grid;
+    if (s.ticks) s.ticks.color = ticks;
+  });
+}
+
+// =========================================================
+// MODULE CONFIG
+// =========================================================
+const modules = {
+  'data-raw': { title: 'Data Management', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
+  'demand-profiling': { title: 'Actuals Profiling', pages: [{ id: 'dp-page-overview', label: 'Profiling Overview' }] },
+  'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
+    { id: 'fa-page-overview', label: 'Forecast Overview' },
+    { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
+    { id: 'fa-page-partner', label: 'Location & Partner View' }
+  ]},
+  'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
+  'whatif': { title: 'What-If Simulation', pages: [
+    { id: 'wi-page-sim',       label: 'Simulation Controls' },
+    { id: 'wi-page-scenarios', label: 'Scenario Playground' },
+    { id: 'wi-page-publish',   label: 'Forecast Publish' }
+  ]}
+};
+
+let activeModule = '';
+let activePageLabel = '';
+
+function openDashboard(moduleId) {
+  activeModule = moduleId;
+  document.getElementById('home-view').style.display = 'none';
+  const dv = document.getElementById('dashboard-view');
+  dv.style.display = 'flex';
+  document.getElementById('dash-title').innerText = modules[moduleId].title;
+  document.getElementById('bc-module').innerText = modules[moduleId].title;
+
+  document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+  document.getElementById('module-' + moduleId).classList.add('active');
+
+  const navContainer = document.getElementById('left-nav-links');
+  navContainer.innerHTML = '';
+  modules[moduleId].pages.forEach((page, idx) => {
+    const link = document.createElement('div');
+    link.className = 'nav-link' + (idx === 0 ? ' active' : '');
+    link.innerText = page.label;
+    link.onclick = () => switchPage(page.id, link, moduleId, page.label);
+    navContainer.appendChild(link);
+  });
+
+  if (modules[moduleId].pages.length > 0) {
+    const first = modules[moduleId].pages[0];
+    switchPage(first.id, navContainer.firstChild, moduleId, first.label);
+  }
+
+  updateFilterChips();
+  const filterBtn = document.getElementById('filter-toggle-btn');
+  if (filterBtn) filterBtn.style.display = moduleId === 'whatif' ? 'none' : '';
+  if (moduleId === 'whatif') {
+    if (!document.getElementById('right-panel').classList.contains('collapsed')) {
+      document.getElementById('right-panel').classList.add('collapsed');
+    }
+    setTimeout(wiInit, 80);
+  } else { setTimeout(initCharts, 80); }
+}
+
+function goHome() {
+  document.getElementById('dashboard-view').style.display = 'none';
+  document.getElementById('home-view').style.display = 'flex';
+}
+
+function switchPage(pageId, linkEl, moduleId, label) {
+  const moduleEl = document.getElementById('module-' + moduleId);
+  moduleEl.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('left-nav-links').querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  linkEl.classList.add('active');
+  activePageLabel = label;
+
+  const bcPage = document.getElementById('bc-page');
+  const bcSep = document.querySelector('.bc-page-sep');
+  bcPage.innerText = label;
+  bcSep.style.display = 'inline';
+
+  if (pageId === 'dr-page-raw') renderRawTable();
+  if (pageId === 'da-page-log') renderAlerts('all');
+  if (pageId === 'fa-page-actuals') generateActualsTable();
+  if (pageId === 'fa-page-partner') generatePartnerTable();
+  if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
+  if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
+  if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
+}
+
+// =========================================================
+// PANEL TOGGLES
+// =========================================================
+function toggleLeftPanel() { document.getElementById('left-panel').classList.toggle('collapsed'); }
+function toggleRightPanel() { document.getElementById('right-panel').classList.toggle('collapsed'); }
+function toggleAccordion(el) {
+  const content = el.nextElementSibling;
+  const icon = el.querySelector('i');
+  content.classList.toggle('active');
+  icon.className = content.classList.contains('active') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
+}
+function toggleDropdown(btn) {
+  btn.nextElementSibling.classList.toggle('open');
+  const icon = btn.querySelector('i');
+  icon.className = btn.nextElementSibling.classList.contains('open') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
+}
+
+// =========================================================
+// FILTER INNER SEARCH
+// =========================================================
+function filterInner(input) {
+  const q = input.value.toUpperCase();
+  const labels = input.nextElementSibling.querySelectorAll('label');
+  labels.forEach(l => l.style.display = l.textContent.toUpperCase().includes(q) ? '' : 'none');
+}
+function searchFilters(input) {
+  const q = input.value.toUpperCase();
+  document.querySelectorAll('.filter-dropdown').forEach(dd => {
+    const label = dd.querySelector('.filter-dropdown-btn span').textContent.toUpperCase();
+    dd.style.display = label.includes(q) ? '' : 'none';
+  });
+}
+
+// =========================================================
+// WEEK CHECKBOXES
+// =========================================================
+const weekList = document.getElementById('week-check-list');
+let wHtml = '<label class="filter-checkbox"><input type="checkbox" data-group="week" value="All" checked onchange="onFilterChange()"> (All)</label>';
+for (let i = 1; i <= 52; i++) {
+  wHtml += `<label class="filter-checkbox"><input type="checkbox" data-group="week" value="W${i}" onchange="onFilterChange()"> W${i}</label>`;
+}
+weekList.innerHTML = wHtml;
+
+// =========================================================
+// FILTER DEFAULTS
+// =========================================================
+const DEFAULT_FILTER_STATES = {};
+function captureDefaults() {
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
+    const key = (cb.dataset.group || '') + '::' + (cb.value || '');
+    DEFAULT_FILTER_STATES[key] = cb.checked;
+  });
+}
+setTimeout(captureDefaults, 100);
+
+function resetFilters() {
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
+    const key = (cb.dataset.group || '') + '::' + (cb.value || '');
+    if (key in DEFAULT_FILTER_STATES) cb.checked = DEFAULT_FILTER_STATES[key];
+    else cb.checked = false;
+  });
+  document.getElementById('global-context').innerText = 'FY26 · All Regions';
+  updateFilterChips();
+  triggerDataUpdate();
+}
+
+// =========================================================
+// FILTER CHIPS
+// =========================================================
+function getActiveFilters() {
+  const groupState = {};
+  document.querySelectorAll('#filter-container input[type=checkbox]').forEach(cb => {
+    const group = cb.dataset.group;
+    if (!group) return;
+    if (!groupState[group]) groupState[group] = { allChecked: false, values: [] };
+    if (cb.value === 'All') { if (cb.checked) groupState[group].allChecked = true; }
+    else if (cb.checked) groupState[group].values.push(cb.value);
+  });
+  const active = {};
+  Object.entries(groupState).forEach(([group, state]) => {
+    if (!state.allChecked) active[group] = state.values;
+  });
+  return active;
+}
+
+function updateFilterChips() {
+  const row = document.getElementById('filter-chips-row');
+  row.innerHTML = '';
+  const active = getActiveFilters();
+  Object.entries(active).forEach(([group, values]) => {
+    values.forEach(v => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<i class="ti ti-x" style="font-size:9px;"></i> ${group}: ${v}`;
+      chip.title = 'Click to remove';
+      chip.onclick = () => {
+        const cb = document.querySelector(`#filter-container input[data-group="${group}"][value="${v}"]`);
+        if (cb) { cb.checked = false; onFilterChange(); }
+      };
+      row.appendChild(chip);
+    });
+  });
+  const fyChecked = [...document.querySelectorAll('input[data-group="fy"]:checked')].map(c=>c.value);
+  const regionChecked = [...document.querySelectorAll('input[data-group="region"]:checked')].map(c=>c.value);
+  const fyText = fyChecked.length ? fyChecked.join(', ') : 'All FY';
+  const regionText = regionChecked.length ? regionChecked.join(', ') : 'All Regions';
+  document.getElementById('global-context').innerText = `${fyText} · ${regionText}`;
+}
+
+function onFilterChange() {
+  updateFilterChips();
+  triggerDataUpdate();
+}
+
+// =========================================================
+// DATA UPDATE
+// =========================================================
+const FILTER_AWARE_CHARTS = new Set([
+  'fa-chart-hbar','fa-chart-partner',
+  'dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy'
+]);
+
+function triggerDataUpdate() {
+  document.querySelectorAll('.kpi-dynamic:not(#dr-total-records):not(#da-total)').forEach(el => {
+    let t = el.innerText.trim();
+    if (t.startsWith('+') || t.startsWith('-')) return;
+    let isP = t.includes('%'), isK = t.includes('K'), isM = t.endsWith('M');
+    let n = parseFloat(t.replace(/[^0-9.]/g,''));
+    if (isNaN(n) || n === 0) return;
+    let v = n * (1 + (Math.random() * 0.1 - 0.05));
+    if (isP) {
+      v = Math.max(0, Math.min(99.9, v));
+      el.innerText = v.toFixed(1) + '%';
+    } else if (isM) {
+      el.innerText = v.toFixed(2) + 'M';
+    } else if (isK) {
+      el.innerText = v.toFixed(1) + 'K';
+    } else {
+      el.innerText = Math.round(Math.max(0, v)).toLocaleString('en-IN');
+    }
+  });
+  if (activeModule === 'data-raw') renderRawTable();
+  if (activeModule === 'demand-alerts') renderAlerts(currentAlertFilter);
+  if (activeModule === 'forecast-accuracy') { generateActualsTable(); generatePartnerTable(); }
+  Object.entries(chartInstances).forEach(([id, c]) => {
+    if (!c || FILTER_AWARE_CHARTS.has(id)) return;
+    c.data.datasets.forEach(ds => {
+      ds.data = ds.data.map(v => Math.max(10, v * (1 + (Math.random() * 0.3 - 0.15))));
+    });
+    c.update();
+  });
+  applyAllFilteredCharts();
+}
+
+// =========================================================
+// CHARTS
+// =========================================================
+Chart.defaults.color = '#5a6280';
+Chart.defaults.font.family = "'Plus Jakarta Sans', 'Segoe UI', sans-serif";
+const chartInstances = {};
+
+function gridColor() { return isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'; }
+function axisColor() { return isDark ? '#6b758f' : '#5a6280'; }
+
+function baseLineOptions(stacked = false) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: axisColor(), boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { stacked, grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } },
+      y: { stacked, grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } }
+    }
+  };
+}
+
+function switchChartType(chartId, newType, btnEl) {
+  const chart = chartInstances[chartId];
+  if (!chart) return;
+  chart.config.type = newType;
+  chart.update();
+  btnEl.closest('.chart-toggle').querySelectorAll('.chart-toggle-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+}
+
+function initCharts() {
+  Object.values(chartInstances).forEach(c => { if (c) c.destroy(); });
+  Object.keys(chartInstances).forEach(k => delete chartInstances[k]);
+
+  function mk(id, type, data, options) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    chartInstances[id] = new Chart(el.getContext('2d'), { type, data, options: options || baseLineOptions() });
+  }
+
+  mk('fa-chart-overview', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Forecast Tech ASU', data: [120,135,125,145,155,140,160,150], borderColor: '#4c7ef8', backgroundColor: 'rgba(76,126,248,0.07)', tension: 0.4, fill: true },
+      { label: 'Forecast Work Orders', data: [80,90,85,95,100,90,105,98], borderColor: '#22d472', backgroundColor: 'rgba(34,212,114,0.05)', tension: 0.4, fill: true }
+    ]
+  });
+  mk('fa-chart-hbar', 'bar', {
+    labels: ['AMER','EMEA','APJ'],
+    datasets: [
+      { label: 'Weekly Actuals', data: [450,300,250], backgroundColor: '#4c7ef8' },
+      { label: 'Forecast Demand', data: [420,310,230], backgroundColor: '#22d472' }
+    ]
+  });
+  mk('fa-chart-partner', 'bar', {
+    labels: ['Dell','OSP'],
+    datasets: [{ label: 'MDR Work Orders', data: [1200,850], backgroundColor: ['#4c7ef8','#22d472'] }]
+  }, { ...baseLineOptions(), indexAxis: 'y' });
+
+  initDemandProfilingQuadrants();
+  applyAllFilteredCharts();
+}
+
+// =========================================================
+// ACTUALS PROFILING — 4-QUADRANT DEMAND CLASSIFICATION
+// =========================================================
+function initDemandProfilingQuadrants() {
+  // Monthly labels 2016–2022 (84 points) — denser line series matching mockup
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const labels = [];
+  for (let y = 2016; y <= 2022; y++) {
+    MONTHS.forEach(m => labels.push(m + ' ' + y));
+  }
+
+  // Helper: reproducible pseudo-random sequence from a seed
+  function seeded(seed) {
+    let s = seed;
+    return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+  }
+
+  // Consistent: always present, smooth seasonal oscillation 20M–60M, low CoV (~15%)
+  const rC = seeded(42);
+  const consistent = labels.map((_, i) => {
+    const seasonal = Math.sin((i / 12) * 2 * Math.PI - 1) * 18e6;
+    const trend = i * 180000;
+    const noise = (rC() - 0.5) * 4e6;
+    return Math.max(18e6, 38e6 + seasonal + trend + noise);
+  });
+
+  // Erratic: present every month but wild CoV swings 0.3M–4.8M (CoV ~70%)
+  const rE = seeded(77);
+  const erratic = labels.map(() => (0.3 + rE() * 4.5) * 1e6);
+
+  // Intermittent: ~45% zeros, non-zero values are moderate and consistent 1.2M–3.5M (low CoV when present)
+  const rI = seeded(13);
+  const intermittent = labels.map(() => rI() < 0.45 ? 0 : (1.2 + rI() * 2.3) * 1e6);
+
+  // Lumpy: ~68% zeros, rare large irregular spikes 0.05M–0.48M (high CoV, low frequency)
+  const rL = seeded(99);
+  const lumpy = labels.map(() => rL() < 0.68 ? 0 : (0.05 + rL() * 0.43) * 1e6);
+
+  const quadOpts = (yMax, yStep) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title: ctx => ctx[0].label,
+          label: ctx => ' ' + (ctx.raw / 1e6).toFixed(2) + 'M'
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: axisColor(),
+          font: { size: 8.5 },
+          maxTicksLimit: 8,
+          // Show only Jan of each year as the tick label
+          callback: function(val, i) {
+            return labels[i] && labels[i].startsWith('Jan') ? labels[i].split(' ')[1] : '';
+          }
+        }
+      },
+      y: {
+        min: 0,
+        max: yMax,
+        grid: { color: gridColor() },
+        ticks: {
+          color: axisColor(),
+          font: { size: 8.5 },
+          stepSize: yStep,
+          callback: v => (v / 1e6).toFixed(0) + 'M'
+        }
+      }
+    },
+    elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 1.5 } }
+  });
+
+  const mkQ = (id, color, data, yMax, yStep) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+    chartInstances[id] = new Chart(el, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{ data, borderColor: color, backgroundColor: 'transparent', fill: false }]
+      },
+      options: quadOpts(yMax, yStep)
+    });
+  };
+
+  mkQ('dp-chart-consistent',   '#16a34a', consistent,   72e6, 18e6);
+  mkQ('dp-chart-erratic',      '#d97706', erratic,       5.5e6, 1e6);
+  mkQ('dp-chart-intermittent', '#2563eb', intermittent,  4e6,   1e6);
+  mkQ('dp-chart-lumpy',        '#db2777', lumpy,         0.6e6, 0.15e6);
+}
+
+function toggleCVTooltip(e) {
+  e.stopPropagation();
+  const box = document.getElementById('cv-tooltip-box');
+  if (!box) return;
+  const isVisible = box.style.display !== 'none';
+  box.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    // Close on next outside click
+    const close = ev => { if (!box.contains(ev.target)) { box.style.display='none'; document.removeEventListener('click', close); } };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+}
+
+// =========================================================
+// FILTER-AWARE CHART BASE DATA
+// =========================================================
+const FA_REGION_BASE = {
+  AMER: { actuals: 450, forecast: 420 },
+  EMEA: { actuals: 300, forecast: 310 },
+  APJ:  { actuals: 250, forecast: 230 }
+};
+const DP_OVERALL_BASE = [
+  { subregion: 'North America', region: 'AMER', fs: 300, care: 200, ms: 100 },
+  { subregion: 'LATAM',         region: 'AMER', fs: 150, care: 100, ms:  50 },
+  { subregion: 'Western Europe',region: 'EMEA', fs: 200, care: 150, ms:  80 },
+  { subregion: 'Eastern Europe',region: 'EMEA', fs: 120, care:  90, ms:  45 },
+  { subregion: 'SEA',           region: 'APJ',  fs: 120, care:  90, ms:  40 },
+  { subregion: 'ANZ',           region: 'APJ',  fs:  80, care:  60, ms:  30 },
+  { subregion: 'Japan',         region: 'APJ',  fs: 140, care: 110, ms:  55 },
+];
+const FA_PARTNER_BASE = [
+  { name: 'Dell', mdr: 1200, color: '#4c7ef8' },
+  { name: 'OSP',  mdr: 850,  color: '#22d472' }
+];
+
+// Overall tab — region-level Forecast vs Actuals
+const DP_OVERALL_REGION_BASE = {
+  AMER: { forecast: 4500, actuals: 4284 },
+  EMEA: { forecast: 3100, actuals: 2945 },
+  APJ:  { forecast: 2500, actuals: 2376 },
+};
+
+// QoQ base: ISG Forecast & Actuals (summed across regions)
+const DP_OVERALL_QOQ_BASE = {
+  forecast: [8400, 8900, 9200, 8700],
+  actuals:  [7990, 8468, 8740, 8295],
+};
+
+// MoM base
+const DP_OVERALL_MOM_BASE = {
+  forecast: [2800, 2950, 3100, 2900, 2750, 2650],
+  actuals:  [2662, 2803, 2945, 2755, 2613, 2518],
+};
+
+// ── Actuals Profiling — ASU tab base data (12-month FY Feb–Jan) ──
+const AP_ASU_TREND_BASE = {
+  actuals:  [1.28, 1.30, 1.31, 1.33, 1.35, 1.37, 1.39, 1.41, 1.43, 1.46, 1.47, 1.47],
+  forecast: [1.27, 1.29, 1.32, 1.34, 1.36, 1.38, 1.40, 1.42, 1.44, 1.45, 1.47, 1.48],
+};
+const AP_NEW_CONTRACTS_BASE = [5820, 6050, 6280, 5940, 6180, 6402, 6100, 6480, 6220, 6390, 6560, 6510];
+const AP_APOS_BASE = {
+  opportunity: [23200, 23600, 24100, 23800, 24200, 24500, 23900, 24300, 24600, 24800, 25100, 24900],
+  renewed:     [19800, 20280, 20730, 20420, 20810, 21920, 20570, 20960, 21280, 21420, 21680, 21540],
+  rate:        [85.3, 85.9, 86.0, 85.8, 86.0, 89.5, 86.1, 86.2, 86.5, 86.4, 86.4, 86.5],
+};
+const AP_DECLINE_BASE = [3420, 3320, 3370, 3380, 3390, 2580, 3330, 3340, 3320, 3380, 3420, 3360];
+
+// ── Actuals Profiling — Dispatch tab base data ──
+const AP_DSP_TREND_BASE = {
+  forecast: [21800, 22400, 23100, 22600, 23200, 23800, 22900, 23500, 24100, 24400, 24800, 24600],
+  actuals:  [21340, 21910, 22590, 22080, 22680, 23240, 22380, 22970, 23580, 23850, 24240, 24050],
+};
+
+// ── Actuals Profiling — SR tab base data ──
+const AP_SR_TREND_BASE = {
+  forecast: [41200, 42100, 43500, 42800, 43600, 43800, 42900, 43400, 44100, 44500, 45200, 44800],
+  actuals:  [39940, 40750, 42120, 41460, 42270, 42150, 41520, 42010, 42720, 43100, 43760, 43360],
+};
+
+// =========================================================
+// TIME FILTER MAPPING
+// =========================================================
+const Q_WEEKS = {
+  Q1: Array.from({length: 13}, (_, i) => i + 1),
+  Q2: Array.from({length: 13}, (_, i) => i + 14),
+  Q3: Array.from({length: 13}, (_, i) => i + 27),
+  Q4: Array.from({length: 13}, (_, i) => i + 40),
+};
+const M_WEEKS = {
+  M1: [1,2,3,4], M2: [5,6,7,8], M3: [9,10,11,12,13],
+  M4: [14,15,16,17], M5: [18,19,20,21,22], M6: [23,24,25,26],
+};
+const FY_SCALE = { FY25: 0.92, FY26: 1.0, FY27: 1.08 };
+
+function _makeTrend(base, amp, phase) {
+  return Array.from({length: 52}, (_, i) =>
+    Math.max(10, Math.round(base + amp * Math.sin(2 * Math.PI * (i + (phase || 0)) / 13)))
+  );
+}
+const TREND_DATA_52 = {
+  'fa-asu':          _makeTrend(140,  20, 0),
+  'fa-wo':           _makeTrend(90,   12, 0),
+  'dp-ov-fs':        _makeTrend(540,  60, 0),
+  'dp-ov-care':      _makeTrend(420,  45, 2),
+  'dp-ov-ms':        _makeTrend(215,  25, 4),
+  'dp-ov-forecast':  _makeTrend(1175, 130, 0),
+  'dp-ov-actuals':   _makeTrend(1115, 125, 0),
+  'dp-fld-dis':      _makeTrend(660,  70, 1),
+  'dp-fld-fct':      _makeTrend(650,  65, 1),
+  'dp-care-forecast':_makeTrend(1080, 107, 2),
+  'dp-care-actuals': _makeTrend(1025, 102, 2),
+  'care-cf-fct':     _makeTrend( 950,  95, 1),
+  'care-cf-act':     _makeTrend( 900,  90, 1),
+  'care-apos-fct':   _makeTrend( 420,  42, 3),
+  'care-apos-act':   _makeTrend( 399,  40, 3),
+  'care-sr-fct':     _makeTrend( 680,  68, 2),
+  'care-sr-act':     _makeTrend( 646,  65, 2),
+  'care-dsp-fct':    _makeTrend( 520,  52, 4),
+  'care-dsp-act':    _makeTrend( 494,  49, 4),
+  'dp-care-amer':    _makeTrend(510,  50, 0),
+  'dp-care-emea':    _makeTrend(350,  35, 3),
+  'dp-care-apj':     _makeTrend(220,  22, 6),
+};
+
+function getSelectedWeekIndices() {
+  const active = getActiveFilters();
+  let idx = Array.from({length: 52}, (_, i) => i);
+  if (active.quarter !== undefined) {
+    if (active.quarter.length === 0) return [];
+    const qNums = active.quarter.flatMap(q => Q_WEEKS[q] || []);
+    idx = idx.filter(i => qNums.includes(i + 1));
+  }
+  if (active.month !== undefined) {
+    if (active.month.length === 0) return [];
+    const mNums = active.month.flatMap(m => M_WEEKS[m] || []);
+    if (mNums.length) idx = idx.filter(i => mNums.includes(i + 1));
+  }
+  if (active.week !== undefined) {
+    if (active.week.length === 0) return [];
+    const wNums = active.week.map(w => parseInt(w.slice(1)));
+    idx = idx.filter(i => wNums.includes(i + 1));
+  }
+  return idx;
+}
+
+function getActiveFYMultiplier() {
+  const active = getActiveFilters();
+  const fys = active.fy;
+  if (fys === undefined) return (FY_SCALE.FY26 + FY_SCALE.FY27) / 2;
+  if (fys.length === 0)  return 0;
+  return fys.reduce((s, f) => s + (FY_SCALE[f] || 1.0), 0) / fys.length;
+}
+
+// Maps Quarter/Month filter selections to indices 0-11 of a 12-month (Feb–Jan) data array
+const AP_MONTHS = ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'];
+const Q_MONTH_IDX = { Q1:[0,1,2], Q2:[3,4,5], Q3:[6,7,8], Q4:[9,10,11] };
+const M_LABEL_IDX = { M1:0, M2:1, M3:2, M4:3, M5:4, M6:5 };
+
+function getSelectedFiscalMonthIndices() {
+  const active = getActiveFilters();
+  let idx = Array.from({length: 12}, (_, i) => i);
+  if (active.quarter !== undefined) {
+    if (active.quarter.length === 0) return [];
+    const qIdx = active.quarter.flatMap(q => Q_MONTH_IDX[q] || []);
+    idx = idx.filter(i => qIdx.includes(i));
+  }
+  if (active.month !== undefined) {
+    if (active.month.length === 0) return [];
+    const mIdx = active.month.map(m => M_LABEL_IDX[m]).filter(i => i !== undefined);
+    if (mIdx.length > 0) idx = idx.filter(i => mIdx.includes(i));
+  }
+  return idx;
+}
+
+// =========================================================
+// FILTER-AWARE CHART UPDATE FUNCTIONS
+// =========================================================
+
+// Returns true if ANY filter group has zero items selected (nothing to show)
+function shouldHideAll() {
+  const active = getActiveFilters();
+  if (getActiveFYMultiplier() === 0) return true;
+  if (active.quarter !== undefined && active.quarter.length === 0) return true;
+  if (active.month   !== undefined && active.month.length   === 0) return true;
+  if (active.region  !== undefined && active.region.length  === 0) return true;
+  return false;
+}
+
+// Returns which of the 4 quarters to render based on the quarter filter
+function getSelectedQuarters() {
+  const active = getActiveFilters();
+  const allQ = ['Q1','Q2','Q3','Q4'];
+  return active.quarter === undefined ? allQ : allQ.filter(q => active.quarter.includes(q));
+}
+
+function _filterByRegion(data) {
+  const r = getActiveFilters().region;
+  if (r === undefined) return data;
+  return data.filter(d => r.includes(d.region));
+}
+
+function updateFARegionChart() {
+  const chart = chartInstances['fa-chart-hbar'];
+  if (!chart) return;
+  const mult = getActiveFYMultiplier();
+  const r    = getActiveFilters().region;
+  const allR = ['AMER','EMEA','APJ'];
+  const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll();
+  chart.data.labels = hideAll ? [] : regions;
+  chart.data.datasets[0].data = hideAll ? [] : regions.map(x => Math.round(FA_REGION_BASE[x].actuals  * mult));
+  chart.data.datasets[1].data = hideAll ? [] : regions.map(x => Math.round(FA_REGION_BASE[x].forecast * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateFAPartnerChart() {
+  const chart = chartInstances['fa-chart-partner'];
+  if (!chart) return;
+  const hideAll = shouldHideAll();
+  const filtered = hideAll ? [] : FA_PARTNER_BASE;
+  chart.data.labels = filtered.map(x => x.name);
+  chart.data.datasets[0].data = filtered.map(x => x.mdr);
+  chart.data.datasets[0].backgroundColor = filtered.map(x => x.color);
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateFAOverviewChart() {
+  const chart = chartInstances['fa-chart-overview'];
+  if (!chart) return;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(TREND_DATA_52['fa-asu'][i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(TREND_DATA_52['fa-wo'][i]  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function applyAllFilteredCharts() {
+  updateFARegionChart();
+  updateFAPartnerChart();
+  updateFAOverviewChart();
+  ['dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy'].forEach(id => {
+    const c = chartInstances[id]; if (c) c.update('none');
+  });
+}
+
+// =========================================================
+// TABLES
+// =========================================================
+function generateActualsTable() {
+  const tbody = document.getElementById('actuals-table-body');
+  if (!tbody) return;
+  let html = '';
+  for (let i = 0; i < 10; i++) {
+    const row = rawData[i % rawData.length];
+    const good = row.status === 'Within Tolerance';
+    html += `<tr>
+      <td class="row-num">${i+1}</td>
+      <td>${row.region}</td><td>${row.lob}</td><td>${row.week}</td>
+      <td>${row.sr.toLocaleString()}</td><td>${row.fasu.toLocaleString()}</td>
+      <td>${row.tasu.toLocaleString()}</td><td>${row.fdsr.toLocaleString()}</td>
+      <td><span class="badge ${good?'badge-good':'badge-high'}">${row.status}</span></td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+function generatePartnerTable() {
+  const tbody = document.getElementById('partner-table-body');
+  if (!tbody) return;
+  let html = '';
+  for (let i = 0; i < 8; i++) {
+    const row = rawData[i];
+    html += `<tr>
+      <td>${row.location}</td><td>${row.partner}</td>
+      <td>${row.queue}</td><td>${row.br}</td>
+      <td>${randFloat(1,9)}%</td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+// =========================================================
+// RAW DATA TABLE
+// =========================================================
+let rawSortCol = null, rawSortDir = 1;
+let filteredRawData = [...rawData];
+
+function getFilteredRawData() {
+  const active = getActiveFilters();
+  const search = (document.getElementById('raw-search')?.value || '').toLowerCase();
+  return rawData.filter(row => {
+    if (active.region && !active.region.includes(row.region)) return false;
+    if (active.subregion && !active.subregion.includes(row.subregion)) return false;
+    if (active.lob && !active.lob.includes(row.lob)) return false;
+    if (active.location && !active.location.includes(row.location)) return false;
+    if (active.queue && !active.queue.includes(row.queue) && !active.queue.includes(row.br)) return false;
+    if (active.fy && !active.fy.includes(row.fy)) return false;
+    if (active.quarter && !active.quarter.includes(row.quarter)) return false;
+    if (active.month && !active.month.includes(row.month)) return false;
+    if (active.week && !active.week.includes(row.week)) return false;
+    if (search) {
+      const rowStr = Object.values(row).join(' ').toLowerCase();
+      if (!rowStr.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderRawTable() {
+  filteredRawData = getFilteredRawData();
+  if (rawSortCol) {
+    filteredRawData.sort((a,b) => {
+      let av = a[rawSortCol], bv = b[rawSortCol];
+      if (['weekNum','sr','fasu','tasu','fdsr'].includes(rawSortCol)) { av = Number(av); bv = Number(bv); }
+      return av < bv ? -rawSortDir : av > bv ? rawSortDir : 0;
+    });
+  }
+  const tbody = document.getElementById('raw-table-body');
+  let html = '';
+  filteredRawData.forEach((row, idx) => {
+    const good = row.status === 'Within Tolerance';
+    html += `<tr>
+      <td class="row-num sticky-col">${idx+1}</td>
+      <td>${row.region}</td><td>${row.subregion}</td><td>${row.partner}</td>
+      <td>${row.location}</td><td>${row.queue}</td><td>${row.br}</td>
+      <td>${row.fy}</td><td>${row.quarter}</td><td>${row.month}</td><td>${row.week}</td>
+      <td>${row.sr.toLocaleString()}</td><td>${row.fasu.toLocaleString()}</td>
+      <td>${row.tasu.toLocaleString()}</td><td>${row.fdsr.toLocaleString()}</td>
+      <td>${row.lob}</td>
+      <td><span class="badge ${good?'badge-good':'badge-high'}">${row.status}</span></td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+  const total = document.getElementById('raw-row-count');
+  if (total) total.innerText = `${filteredRawData.length} of ${rawData.length} rows`;
+  const drTotal = document.getElementById('dr-total-records');
+  if (drTotal) drTotal.innerText = filteredRawData.length.toLocaleString();
+}
+
+function sortRawTable(col) {
+  const colKeyMap = { region:'region', subregion:'subregion', partner:'partner', location:'location', queue:'queue', busrep:'br', fy:'fy', quarter:'quarter', month:'month', week:'weekNum', sr:'sr', fasu:'fasu', tasu:'tasu', fdsr:'fdsr', lob:'lob' };
+  const key = colKeyMap[col] || col;
+  if (rawSortCol === key) rawSortDir *= -1;
+  else { rawSortCol = key; rawSortDir = 1; }
+  renderRawTable();
+}
+
+function filterRawTable() { renderRawTable(); }
+
+// =========================================================
+// EXPORT
+// =========================================================
+function exportCSV() {
+  const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'isg_bpa_raw_data.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportExcel() {
+  const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ISG BPA Raw Data');
+  XLSX.writeFile(wb, 'isg_bpa_raw_data.xlsx');
+}
+
+// =========================================================
+// ALERTS TABLE
+// =========================================================
+let currentAlertFilter = 'all';
+function filterAlerts(sev, btn) {
+  currentAlertFilter = sev;
+  document.querySelectorAll('.sev-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAlerts(sev);
+}
+
+function renderAlerts(sev) {
+  const tbody = document.getElementById('alerts-body');
+  if (!tbody) return;
+  const active = getActiveFilters();
+  let filtered = sev === 'all' ? ALERTS_DATA : ALERTS_DATA.filter(a => a.sev === sev);
+  if (active.region !== undefined) {
+    filtered = active.region.length > 0 ? filtered.filter(a => active.region.includes(a.region)) : [];
+  }
+  if (active.subregion !== undefined) {
+    filtered = active.subregion.length > 0 ? filtered.filter(a => active.subregion.includes(a.subregion)) : [];
+  }
+  const sevClass = { High: 'badge-high', Medium: 'badge-med', Low: 'badge-good' };
+  tbody.innerHTML = filtered.length
+    ? filtered.map(a => `<tr>
+        <td><span class="badge ${sevClass[a.sev]}">${a.sev}</span></td>
+        <td>${a.desc}</td><td>${a.date}</td><td>${a.region}</td><td>${a.subregion}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-2);">No alerts match the active filters.</td></tr>';
+  const daTotal = document.getElementById('da-total');
+  if (daTotal) daTotal.innerText = filtered.length;
+}
+
+function sortTable(tableId, col) { /* placeholder */ }
+
+// =========================================================
+// REFRESH STAMP
+// =========================================================
+// =========================================================
+// WHAT-IF SIMULATION MODULE
+// =========================================================
+// Monthly axis — Feb → Jan (fiscal year)
+const WI_MONTHS = ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'];
+
+// Base data matching Lovable screenshots
+const WI_BASE = {
+  asu:              1350000,
+  sr:               587000,
+  disp:             233700,
+  renewalOppQty:    284500,
+  baseRenewalRate:  85.3,
+  renewedUnits:     242678,
+  newContracts:     73140,
+  asuContrib:       612.4e6,
+};
+
+// Monthly seasonality indices (Feb → Jan), normalised so average=1
+const WI_ASU_SHAPE  = [0.756,0.793,0.831,0.815,0.800,0.808,0.816,0.920,1.020,1.095,1.148,1.125];
+const WI_SR_SHAPE   = [0.970,1.020,0.985,0.880,0.815,0.780,0.815,0.969,1.055,1.122,1.156,1.190];
+const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.105,1.155,1.200];
+
+const WI_SLIDERS = [
+  { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
+  { key:'renewal',  label:'APOS Renewal Rate',     min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
+];
+
+const WI_SAVED_SCENARIOS_DEFAULT = [
+  { id:'conservative', label:'Conservative',     renewal:78,   growth:-5,  color:'#6b758f' },
+  { id:'expected',     label:'Expected',          renewal:89.5, growth:8,  color:'#9d78f0' },
+  { id:'aggressive',   label:'Aggressive',        renewal:94,   growth:28, color:'#22d472' },
+  { id:'executive',    label:'Executive Stretch', renewal:97,   growth:38, color:'#4c7ef8' },
+  { id:'worst',        label:'Worst Case',        renewal:72,   growth:-18,color:'#f06060' },
+];
+
+let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
+let wiSavedScenarios = WI_SAVED_SCENARIOS_DEFAULT.map(s => ({...s}));
+let wiAuditLog = [];
+let wiCharts = {};
+
+function wiN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3)+'K':Math.round(v).toString(); }
+function wiNK(v) { return (v/1e3).toFixed(1); } // for chart labels in K
+function wiD(v) { return (v>=0?'+':'')+wiN(v); }
+
+function wiCompute(st) {
+  const rRate  = st.renewal / 100;
+  const baseR  = WI_BASE.baseRenewalRate / 100;
+  const gMult  = 1 + (st.growth / 100);
+  const asuMult = 1 + (st.growth/100)*0.8 + (rRate/baseR - 1)*0.25;
+  const whatifASU  = Math.round(WI_BASE.asu  * asuMult);
+  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2));
+  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15));
+  const renewedUnits   = st.unitsOverride ? (parseInt(st.unitsOverride)||WI_BASE.renewedUnits) : Math.round(WI_BASE.renewalOppQty * rRate);
+  const newContracts   = Math.round(WI_BASE.newContracts * gMult);
+  const aposRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
+  const newContractsVal= Math.round(newContracts * 2754);    // $2754 per unit
+  return { whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, aposRenewals, newContractsVal,
+           asuDelta: whatifASU - WI_BASE.asu, srDelta: whatifSR - WI_BASE.sr, dispDelta: whatifDisp - WI_BASE.disp,
+           growthPct: (whatifASU / WI_BASE.asu - 1) * 100 };
+}
+
+function wiRenderKPIs() {
+  const fc = wiCompute(wiState);
+  const pos = v => v >= 0 ? 'var(--green)' : 'var(--red)';
+  const kpis = [
+    { label:'BASE ASU',         val:wiN(WI_BASE.asu),             sub:'+3.2% YoY',          subColor:'var(--green)', icon:'ti-chart-bar' },
+    { label:'WHAT-IF ASU',      val:wiN(fc.whatifASU),            sub:`+${fc.growthPct.toFixed(1)}% lift`, subColor:'var(--green)', icon:'ti-chart-arrows' },
+    { label:'ASU DELTA',        val:wiD(fc.asuDelta),             sub:'vs baseline',        subColor:pos(fc.asuDelta), icon:'ti-plus-minus' },
+    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),             sub:wiD(fc.srDelta),      subColor:pos(fc.srDelta),  icon:'ti-headset' },
+    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),           sub:wiD(fc.dispDelta),    subColor:pos(fc.dispDelta),icon:'ti-truck' },
+    { label:'FORECAST GROWTH',  val:fc.growthPct.toFixed(1)+'%', sub:'blended uplift',     subColor:'var(--green)', icon:'ti-trending-up' },
+  ];
+  document.getElementById('wi-kpi-row').innerHTML = kpis.map(k => `
+    <div class="kpi-card" style="--kpi-color:var(--text-1);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div class="kpi-label">${k.label}</div>
+        <i class="ti ${k.icon}" style="font-size:14px;color:var(--text-3);"></i>
+      </div>
+      <div class="kpi-value" style="font-size:22px;color:var(--text-1);">${k.val}</div>
+      <div class="kpi-sub" style="color:${k.subColor};margin-top:6px;">
+        <i class="ti ti-arrow-up-right" style="font-size:11px;"></i> ${k.sub}
+      </div>
+    </div>`).join('');
+}
+
+function wiRenderSliders() {
+  const sliderHTML = WI_SLIDERS.map(s => `
+    <div style="margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-1);">${s.label}</label>
+        <span id="wi-val-${s.key}" style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--accent);">${s.fmt(wiState[s.key])}</span>
+      </div>
+      <input type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${wiState[s.key]}"
+        style="width:100%;accent-color:var(--accent);height:4px;"
+        oninput="wiSliderMoved('${s.key}',parseFloat(this.value))">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--font-mono);">
+        <span>${s.fmt(s.min)}</span><span>${s.fmt(s.max)}</span>
+      </div>
+    </div>`).join('');
+
+  const displayVal = wiState.unitsOverride ? Number(wiState.unitsOverride).toLocaleString('en-IN') : '';
+  const textInputHTML = `
+    <div style="margin-bottom:20px;">
+      <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:8px;">Renewed Units Override</div>
+      <input type="text" id="wi-units-input" value="${displayVal}"
+        placeholder="e.g. 2,50,000"
+        inputmode="numeric"
+        style="width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-1);font-size:13px;font-family:var(--font-mono);outline:none;letter-spacing:0.02em;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+        oninput="wiUnitsInput(this)">
+      <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to use calculated value</div>
+    </div>`;
+
+  document.getElementById('wi-sliders-area').innerHTML = sliderHTML + textInputHTML;
+}
+
+function wiSliderMoved(key, val) {
+  wiState[key] = val;
+  const s = WI_SLIDERS.find(x => x.key === key);
+  document.getElementById('wi-val-' + key).textContent = s.fmt(val);
+  // Targeted updates — fast, no full re-render
+  wiRenderKPIs();
+  wiRenderImpact();
+  wiRenderPipeline();
+  wiRenderCharts(); // smart: updates existing chart data in-place
+  wiAddAudit('Slider', `${s.label} → ${s.fmt(val)}`);
+}
+
+function wiUnitsInput(el) {
+  // Strip everything except digits
+  const digits = el.value.replace(/[^0-9]/g, '');
+  if (!digits) {
+    wiState.unitsOverride = '';
+    el.value = '';
+    wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
+    return;
+  }
+  const n = parseInt(digits, 10);
+  // Format with Indian number system: 5,00,000
+  const formatted = n.toLocaleString('en-IN');
+  // Preserve cursor at end after reformat
+  el.value = formatted;
+  wiState.unitsOverride = n;
+  wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
+  wiAddAudit('Override', `Renewed Units → ${formatted}`);
+}
+
+function wiRenderImpact() {
+  const fc = wiCompute(wiState);
+  const rows = [
+    { icon:'ti-trending-up', label:'ASU increase',     val:wiD(fc.asuDelta),  pos:fc.asuDelta>=0 },
+    { icon:'ti-headset',     label:'Service Requests',  val:wiD(fc.srDelta),   pos:fc.srDelta>=0 },
+    { icon:'ti-truck',       label:'Dispatches',        val:wiD(fc.dispDelta), pos:fc.dispDelta>=0 },
+  ];
+  document.getElementById('wi-impact-rows').innerHTML = rows.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.12);border-radius:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="ti ${r.icon}" style="color:#fff;font-size:13px;"></i>
+        </div>
+        <span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:500;">${r.label}</span>
+      </div>
+      <span style="color:#fff;font-family:var(--font-mono);font-size:15px;font-weight:700;">${r.val}</span>
+    </div>`).join('');
+}
+
+function wiRenderPipeline() {
+  const fc = wiCompute(wiState);
+  const nodes = [
+    { label:'NEW CONTRACTS',    val:'$'+wiN(fc.newContractsVal), icon:'ti-file-plus',    grad:'linear-gradient(135deg,#3b6fd4,#5b8ff9)' },
+    { label:'APOS RENEWALS',    val:'$'+wiN(fc.aposRenewals),   icon:'ti-refresh',       grad:'linear-gradient(135deg,#2d52e0,#4c7ef8)' },
+    { label:'ASU FORECAST',     val:wiN(fc.whatifASU),           icon:'ti-chart-arrows',  grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
+    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),            icon:'ti-headset',       grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
+    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),          icon:'ti-truck',         grad:'linear-gradient(135deg,#1c4ed8,#3b82f6)' },
+  ];
+  const chevron = `<div style="display:flex;align-items:center;flex-shrink:0;padding:0 6px;"><i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-3);"></i></div>`;
+  document.getElementById('wi-pipeline').innerHTML = nodes.map((n, i) => `
+    ${i > 0 ? chevron : ''}
+    <div style="flex:1;min-width:140px;border-radius:12px;padding:14px 16px;background:${n.grad};position:relative;overflow:hidden;">
+      <div style="position:absolute;top:10px;right:12px;opacity:0.25;">
+        <i class="ti ${n.icon}" style="font-size:28px;color:#fff;"></i>
+      </div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:8px;text-transform:uppercase;">${n.label}</div>
+      <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#fff;">${n.val}</div>
+    </div>`).join('');
+}
+
+function _wiChartData() {
+  const fc = wiCompute(wiState);
+  const ratio   = fc.whatifASU  / WI_BASE.asu;
+  const srRatio = fc.whatifSR   / WI_BASE.sr;
+  const dpRatio = fc.whatifDisp / WI_BASE.disp;
+  return {
+    asuBase: WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12)),
+    asuAdj:  WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12 * ratio)),
+    srBase:  WI_SR_SHAPE.map(s   => Math.round(WI_BASE.sr   * s  / 12 / 1e3)),
+    srAdj:   WI_SR_SHAPE.map(s   => parseFloat((WI_BASE.sr  * s  / 12 / 1e3 * srRatio).toFixed(1))),
+    dpBase:  WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3)),
+    dpAdj:   WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3 * dpRatio)),
+  };
+}
+
+function wiRenderCharts() {
+  const d     = _wiChartData();
+  const gridC = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+  const tickC = isDark ? '#6b758f' : '#9099be';
+  const baseC = isDark ? '#4b5563' : '#9ca3af';
+
+  // ── Smart update: if charts already exist, only update the What-If dataset ──
+  if (wiCharts['wi-chart-asu'] && wiCharts['wi-chart-sr'] && wiCharts['wi-chart-dp']) {
+    wiCharts['wi-chart-asu'].data.datasets[1].data = d.asuAdj;
+    wiCharts['wi-chart-asu'].update('none');
+    wiCharts['wi-chart-sr'].data.datasets[1].data = d.srAdj;
+    wiCharts['wi-chart-sr'].update('none');
+    wiCharts['wi-chart-dp'].data.datasets[1].data = d.dpAdj;
+    wiCharts['wi-chart-dp'].update('none');
+    return;
+  }
+
+  // ── First render: create charts from scratch ──
+  function mkLine(id, baseD, adjD, adjColor) {
+    const el = document.getElementById(id); if (!el) return;
+    if (wiCharts[id]) wiCharts[id].destroy();
+    wiCharts[id] = new Chart(el.getContext('2d'), {
+      type: 'line',
+      data: { labels: WI_MONTHS, datasets: [
+        { label:'Base',    data:baseD, borderColor:baseC, backgroundColor:'transparent',
+          borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.45, fill:false },
+        { label:'What-If', data:adjD,  borderColor:adjColor, backgroundColor:adjColor+'18',
+          borderWidth:2.5, pointRadius:0, pointHoverRadius:5, tension:0.45, fill:'-1' },
+      ]},
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            backgroundColor: isDark?'#111521':'#fff',
+            borderColor:     isDark?'#1d2135':'#dde2f4',
+            borderWidth:1,
+            titleColor:      isDark?'#e9ecf7':'#0d1020',
+            bodyColor:       isDark?'#6b758f':'#5a6280',
+            callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.formattedValue}` }
+          }
+        },
+        scales:{
+          x:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10},maxRotation:0}, border:{display:false} },
+          y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}},               border:{display:false} }
+        }
+      }
+    });
+  }
+
+  mkLine('wi-chart-asu', d.asuBase, d.asuAdj, '#3b82f6');
+  mkLine('wi-chart-sr',  d.srBase,  d.srAdj,  '#06b6d4');
+
+  // Dispatch — grouped bar
+  const dpEl = document.getElementById('wi-chart-dp'); if (!dpEl) return;
+  if (wiCharts['wi-chart-dp']) wiCharts['wi-chart-dp'].destroy();
+  wiCharts['wi-chart-dp'] = new Chart(dpEl.getContext('2d'), {
+    type:'bar',
+    data:{ labels:WI_MONTHS, datasets:[
+      { label:'Base',    data:d.dpBase, backgroundColor:isDark?'rgba(107,114,128,0.5)':'rgba(156,163,175,0.55)', borderRadius:2 },
+      { label:'What-If', data:d.dpAdj,  backgroundColor:'#3b82f6cc', borderRadius:2 },
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{color:tickC,font:{size:9},maxRotation:0}, border:{display:false} },
+        y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}}, border:{display:false} }
+      }
+    }
+  });
+}
+
+function wiRenderAIInsights() {
+  const fc = wiCompute(wiState);
+  const dPct = fc.growthPct.toFixed(1);
+  const regions = ['EMEA','Americas','APJ'];
+  const topRegion = regions[Math.abs(Math.round(wiState.renewal * 7)) % 3];
+  const conf = Math.min(98, Math.round(72 + wiState.renewal/9 + wiState.growth/8));
+  document.getElementById('wi-ai-insights').innerHTML = `
+    <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--blue);">
+      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Scenario Analysis</div>
+      <div style="font-size:11px;line-height:1.7;">At <strong style="color:var(--text-1)">${wiState.renewal.toFixed(1)}%</strong> renewal rate with <strong style="color:var(--text-1)">${wiState.growth>=0?'+':''}${wiState.growth}%</strong> contracts growth, ASU shifts by <strong style="color:${dPct>=0?'var(--green)':'var(--red)'};">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
+    </div>
+    <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--purple);">
+      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Service Demand Signal</div>
+      <div style="font-size:11px;line-height:1.7;">Dispatch forecast reaches <strong style="color:var(--text-1)">${wiN(fc.whatifDisp)}</strong> units with <strong style="color:var(--text-1)">${wiN(fc.whatifSR)}</strong> service requests projected. Confidence: <strong style="color:var(--text-1)">${conf}%</strong>.</div>
+    </div>
+    <div style="padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--green);">
+      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Regional Opportunity</div>
+      <div style="font-size:11px;line-height:1.7;"><strong style="color:var(--text-1)">${topRegion}</strong> shows the highest renewal uplift leverage. Targeting that region adds the most ASU delta per percentage point.</div>
+    </div>`;
+}
+
+function wiRenderScenarios() {
+  document.getElementById('wi-scenario-list').innerHTML = wiSavedScenarios.map(s => `
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:border-color 0.15s;"
+      onmouseenter="this.style.borderColor='${s.color}'" onmouseleave="this.style.borderColor='var(--border)'"
+      onclick="wiLoadScenario('${s.id}')">
+      <div style="width:9px;height:9px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+      <span style="flex:1;font-size:12px;color:var(--text-1);font-weight:600;">${s.label}</span>
+      <span style="font-size:10px;color:var(--text-2);font-family:var(--font-mono);">R:${s.renewal}% G:${s.growth>=0?'+':''}${s.growth}%</span>
+      <button onclick="wiDeleteScenario(event,'${s.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;"><i class="ti ti-trash" style="font-size:12px;"></i></button>
+    </div>`).join('');
+}
+
+function wiLoadScenario(id) {
+  const s = wiSavedScenarios.find(x => x.id === id); if (!s) return;
+  ['renewal','growth'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
+  wiRenderSliders(); wiRenderAll();
+  wiAddAudit('Scenario', `Loaded: ${s.label}`);
+}
+
+function wiSaveScenario() {
+  const id = 'custom_' + Date.now();
+  wiSavedScenarios.push({ id, label:'Custom '+(wiSavedScenarios.length+1),
+    renewal:wiState.renewal, growth:wiState.growth, color:'#6b758f' });
+  wiRenderScenarios(); wiAddAudit('Scenario', 'Saved scenario');
+}
+
+function wiDeleteScenario(e, id) {
+  e.stopPropagation();
+  wiSavedScenarios = wiSavedScenarios.filter(s => s.id !== id);
+  wiRenderScenarios();
+}
+
+function wiRenderPublishReadiness() {
+  const conf = Math.min(99, Math.round(74 + wiState.renewal/9 + wiState.growth/12));
+  const fc = wiCompute(wiState);
+  const items = [
+    { l:'Quality Score',    v:conf+'%',             color:'var(--green)' },
+    { l:'Approval Status',  v:'Pending',             color:'var(--amber)' },
+    { l:'Final ASU',        v:wiN(fc.whatifASU),     color:'var(--blue)' },
+    { l:'Final Dispatches', v:wiN(fc.whatifDisp),    color:'var(--purple)' },
+  ];
+  document.getElementById('wi-publish-readiness').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      ${items.map(x => `
+        <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+          <div style="font-size:10px;color:var(--text-2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">${x.l}</div>
+          <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:${x.color};">${x.v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="background:var(--surface);border-radius:8px;padding:10px;border:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
+        <span style="color:var(--text-2);">Publish Readiness</span>
+        <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-1);">${conf}%</span>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;width:${conf}%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:3px;transition:width 0.4s;"></div>
+      </div>
+    </div>`;
+}
+
+function wiHandlePublish() {
+  wiAddAudit('Publish', 'Forecast published to plan system');
+  const b = document.getElementById('wi-pub-btn');
+  b.style.background = 'var(--green)'; b.style.color = '#000';
+  b.innerHTML = '<i class="ti ti-check"></i> Published!';
+  setTimeout(() => {
+    b.style.background = 'var(--accent)'; b.style.color = '#fff';
+    b.innerHTML = '<i class="ti ti-rocket"></i> Publish';
+  }, 2500);
+}
+
+function wiAddAudit(action, detail) {
+  const now = new Date();
+  wiAuditLog.unshift({ action, detail, time: now.toLocaleTimeString() });
+  if (wiAuditLog.length > 50) wiAuditLog.pop();
+  wiRenderAudit();
+}
+
+function wiRenderAudit() {
+  const el = document.getElementById('wi-audit-log'); if (!el) return;
+  el.innerHTML = wiAuditLog.slice(0,15).map(a => `
+    <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--blue-dim);border:1px solid rgba(76,126,248,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">AR</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;font-weight:600;color:var(--text-1);">${a.action}</span>
+          <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">${a.time}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.detail}</div>
+      </div>
+    </div>`).join('');
+}
+
+function wiExportCSV() {
+  alert('CSV export initiated for current scenario comparison.');
+}
+
+function wiRenderAll() {
+  wiRenderKPIs();
+  wiRenderImpact();
+  wiRenderPipeline();
+  wiRenderCharts();
+  wiRenderAIInsights();
+  wiRenderScenarios();
+  wiRenderPublishReadiness();
+  wiRenderAudit();
+}
+
+function wiInit() {
+  wiRenderSliders();
+  wiAddAudit('Session', 'What-If module loaded');
+  wiAddAudit('Filter', 'FY 2026 · Q2 · All Regions');
+  setTimeout(wiRenderAll, 80);
+}
+
+// =========================================================
+
+function setRefreshStamp() {
+  const now = new Date();
+  const s = `Refreshed ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
+  const el = document.getElementById('refresh-stamp');
+  const hel = document.getElementById('home-refresh-stamp');
+  if (el) el.innerText = s;
+  if (hel) hel.innerText = s;
+}
+setRefreshStamp();
+setInterval(setRefreshStamp, 60000);
+</script>
+</body>
+</html>
