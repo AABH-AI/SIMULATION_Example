@@ -538,7 +538,8 @@
       border:1px solid var(--border); display:flex; flex-direction:column;
     }
     .dp-quad-title { font-size:12px; font-weight:700; margin-bottom:6px; }
-    .dp-quad-canvas { flex:1; min-height:175px; position:relative; }
+    .dp-quad-canvas { flex:1; min-height:190px; position:relative; }
+    .dp-trend-canvas-wrap { position:relative; height:220px; }
 
     .dp-quad-consistent  { border-top:3px solid #16a34a; }
     .dp-quad-erratic     { border-top:3px solid #d97706; }
@@ -605,6 +606,36 @@
     .cv-tooltip-rules { padding-left:0; margin:7px 0 0; list-style:none; }
     .cv-tooltip-rules li { padding:2px 0; font-size:11.5px; }
     .cv-tooltip-rules li::before { content:'• '; color:var(--accent); font-weight:700; }
+
+    /* Demand Trends Section */
+    .dp-trends-section { margin-top:24px; }
+    .dp-trends-header { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
+    .dp-trends-title { font-size:14px; font-weight:700; color:var(--text-1); }
+    .dp-trends-sub { font-size:11.5px; color:var(--text-3); }
+    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .dp-trend-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:10px; padding:12px 14px 6px;
+    }
+    .dp-trend-card-header {
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;
+    }
+    .dp-trend-label { font-size:12px; font-weight:600; color:var(--text-1); }
+    .dp-trend-badge {
+      font-size:10px; font-weight:700; padding:2px 8px;
+      border-radius:100px; letter-spacing:0.05em;
+    }
+    .dp-trend-badge-wow { background:#eff6ff; color:#1d4ed8; }
+    .dp-trend-badge-mom { background:#f5f3ff; color:#7c3aed; }
+    .dp-trend-badge-qoq { background:#ecfeff; color:#0e7490; }
+    .dp-trend-legend {
+      display:flex; gap:12px; margin-bottom:2px;
+      font-size:10.5px; color:var(--text-3);
+    }
+    .dp-trend-legend-dot {
+      display:inline-block; width:8px; height:8px;
+      border-radius:50%; margin-right:4px; vertical-align:middle;
+    }
 
   </style>
 </head>
@@ -966,6 +997,55 @@
           </div>
 
         </div>
+
+        <!-- ══ SUB-PAGE: DEMAND TRENDS ══ -->
+        <div id="dp-page-trends" class="page-section">
+          <div class="dp-trends-section" style="margin-top:0;">
+            <div class="dp-trends-header">
+              <span class="dp-trends-title">Demand Trends</span>
+              <span class="dp-trends-sub">Period-over-period movement &mdash; bars show demand volume, dashed line shows % change</span>
+            </div>
+            <div class="dp-trends-grid">
+              <div class="dp-trend-card">
+                <div class="dp-trend-card-header">
+                  <span class="dp-trend-label">Week over Week</span>
+                  <span class="dp-trend-badge dp-trend-badge-wow">WoW</span>
+                </div>
+                <div class="dp-trend-legend">
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up week</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down week</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #3a6ef0;vertical-align:middle;margin-right:4px"></span>WoW %</span>
+                </div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-wow"></canvas></div>
+              </div>
+              <div class="dp-trend-card">
+                <div class="dp-trend-card-header">
+                  <span class="dp-trend-label">Month over Month</span>
+                  <span class="dp-trend-badge dp-trend-badge-mom">MoM</span>
+                </div>
+                <div class="dp-trend-legend">
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up month</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down month</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #7c3aed;vertical-align:middle;margin-right:4px"></span>MoM %</span>
+                </div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-mom"></canvas></div>
+              </div>
+              <div class="dp-trend-card">
+                <div class="dp-trend-card-header">
+                  <span class="dp-trend-label">Quarter over Quarter</span>
+                  <span class="dp-trend-badge dp-trend-badge-qoq">QoQ</span>
+                </div>
+                <div class="dp-trend-legend">
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up quarter</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down quarter</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #0891b2;vertical-align:middle;margin-right:4px"></span>QoQ %</span>
+                </div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-qoq"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ══ MODULE: DEMAND ALERTS ══ -->
@@ -1371,7 +1451,10 @@ function updateChartTheme(chart) {
 // =========================================================
 const modules = {
   'data-raw': { title: 'Data Management', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
-  'demand-profiling': { title: 'Actuals Profiling', pages: [{ id: 'dp-page-overview', label: 'Profiling Overview' }] },
+  'demand-profiling': { title: 'Actuals Profiling', pages: [
+    { id: 'dp-page-overview', label: 'Profiling Overview' },
+    { id: 'dp-page-trends',   label: 'Demand Trends' }
+  ]},
   'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
     { id: 'fa-page-overview', label: 'Forecast Overview' },
     { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
@@ -1666,6 +1749,7 @@ function initCharts() {
   }, { ...baseLineOptions(), indexAxis: 'y' });
 
   initDemandProfilingQuadrants();
+  initDemandTrends();
   applyAllFilteredCharts();
 }
 
@@ -1673,79 +1757,31 @@ function initCharts() {
 // ACTUALS PROFILING — 4-QUADRANT DEMAND CLASSIFICATION
 // =========================================================
 function initDemandProfilingQuadrants() {
-  // Monthly labels 2016–2022 (84 points) — denser line series matching mockup
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const labels = [];
   for (let y = 2016; y <= 2022; y++) {
     MONTHS.forEach(m => labels.push(m + ' ' + y));
   }
 
-  // Helper: reproducible pseudo-random sequence from a seed
   function seeded(seed) {
     let s = seed;
     return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
   }
 
-  // Consistent: always present, smooth seasonal oscillation 20M–60M, low CoV (~15%)
   const rC = seeded(42);
   const consistent = labels.map((_, i) => {
     const seasonal = Math.sin((i / 12) * 2 * Math.PI - 1) * 18e6;
-    const trend = i * 180000;
-    const noise = (rC() - 0.5) * 4e6;
-    return Math.max(18e6, 38e6 + seasonal + trend + noise);
+    return +(Math.max(18e6, 38e6 + seasonal + i * 180000 + (rC() - 0.5) * 4e6)).toFixed(0);
   });
 
-  // Erratic: present every month but wild CoV swings 0.3M–4.8M (CoV ~70%)
   const rE = seeded(77);
-  const erratic = labels.map(() => (0.3 + rE() * 4.5) * 1e6);
+  const erratic = labels.map(() => +((0.3 + rE() * 4.5) * 1e6).toFixed(0));
 
-  // Intermittent: ~45% zeros, non-zero values are moderate and consistent 1.2M–3.5M (low CoV when present)
   const rI = seeded(13);
-  const intermittent = labels.map(() => rI() < 0.45 ? 0 : (1.2 + rI() * 2.3) * 1e6);
+  const intermittent = labels.map(() => rI() < 0.45 ? 0 : +((1.2 + rI() * 2.3) * 1e6).toFixed(0));
 
-  // Lumpy: ~68% zeros, rare large irregular spikes 0.05M–0.48M (high CoV, low frequency)
   const rL = seeded(99);
-  const lumpy = labels.map(() => rL() < 0.68 ? 0 : (0.05 + rL() * 0.43) * 1e6);
-
-  const quadOpts = (yMax, yStep) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          title: ctx => ctx[0].label,
-          label: ctx => ' ' + (ctx.raw / 1e6).toFixed(2) + 'M'
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          color: axisColor(),
-          font: { size: 8.5 },
-          maxTicksLimit: 8,
-          // Show only Jan of each year as the tick label
-          callback: function(val, i) {
-            return labels[i] && labels[i].startsWith('Jan') ? labels[i].split(' ')[1] : '';
-          }
-        }
-      },
-      y: {
-        min: 0,
-        max: yMax,
-        grid: { color: gridColor() },
-        ticks: {
-          color: axisColor(),
-          font: { size: 8.5 },
-          stepSize: yStep,
-          callback: v => (v / 1e6).toFixed(0) + 'M'
-        }
-      }
-    },
-    elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 1.5 } }
-  });
+  const lumpy = labels.map(() => rL() < 0.68 ? 0 : +((0.05 + rL() * 0.43) * 1e6).toFixed(0));
 
   const mkQ = (id, color, data, yMax, yStep) => {
     const el = document.getElementById(id);
@@ -1753,18 +1789,137 @@ function initDemandProfilingQuadrants() {
     if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
     chartInstances[id] = new Chart(el, {
       type: 'line',
-      data: {
-        labels,
-        datasets: [{ data, borderColor: color, backgroundColor: 'transparent', fill: false }]
-      },
-      options: quadOpts(yMax, yStep)
+      data: { labels, datasets: [{ data, borderColor: color, backgroundColor: 'transparent', fill: false }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { title: ctx => ctx[0].label, label: ctx => ' ' + (ctx.raw/1e6).toFixed(2) + 'M' } }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: axisColor(), font: { size: 8.5 }, maxTicksLimit: 8,
+              callback: function(val, i) {
+                return labels[i] && labels[i].startsWith('Jan') ? labels[i].split(' ')[1] : '';
+              }
+            }
+          },
+          y: {
+            min: 0, max: yMax,
+            grid: { color: gridColor() },
+            ticks: { color: axisColor(), font: { size: 8.5 }, stepSize: yStep, callback: v => (v/1e6).toFixed(0)+'M' }
+          }
+        },
+        elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 1.5 } }
+      }
     });
   };
 
-  mkQ('dp-chart-consistent',   '#16a34a', consistent,   72e6, 18e6);
-  mkQ('dp-chart-erratic',      '#d97706', erratic,       5.5e6, 1e6);
-  mkQ('dp-chart-intermittent', '#2563eb', intermittent,  4e6,   1e6);
-  mkQ('dp-chart-lumpy',        '#db2777', lumpy,         0.6e6, 0.15e6);
+  mkQ('dp-chart-consistent',   '#16a34a', consistent,   72e6,   18e6);
+  mkQ('dp-chart-erratic',      '#d97706', erratic,       5.5e6,  1e6);
+  mkQ('dp-chart-intermittent', '#2563eb', intermittent,  4e6,    1e6);
+  mkQ('dp-chart-lumpy',        '#db2777', lumpy,         0.6e6,  0.15e6);
+}
+
+// =========================================================
+// ACTUALS PROFILING — DEMAND TRENDS (WoW / MoM / QoQ)
+// =========================================================
+function initDemandTrends() {
+  const wowLabels = ['Wk 11','Wk 12','Wk 13','Wk 14','Wk 15','Wk 16','Wk 17','Wk 18','Wk 19','Wk 20','Wk 21','Wk 22'];
+  const wowDemand = [22800,23400,22900,24200,23700,25100,24500,25800,25200,26100,25600,26800];
+  const wowPct    = [null,2.6,-2.1,5.7,-2.1,5.9,-2.4,5.3,-2.3,3.6,-1.9,4.7];
+
+  const momLabels = ['Jul 25','Aug','Sep','Oct','Nov','Dec','Jan 26','Feb','Mar','Apr','May','Jun'];
+  const momDemand = [98400,102800,99200,107600,104300,96800,101200,105600,108900,106400,111200,114800];
+  const momPct    = [null,4.5,-3.5,8.5,-3.1,-7.2,4.5,4.3,3.1,-2.3,4.5,3.2];
+
+  const qoqLabels = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
+  const qoqDemand = [284000,298000,306000,294000,315000,308000,325000,338000];
+  const qoqPct    = [null,4.9,2.7,-3.9,7.1,-2.2,5.5,4.0];
+
+  const mkTrend = (id, labels, demand, pct, lineColor) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+    chartInstances[id] = new Chart(el, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Demand',
+            data: demand,
+            backgroundColor: demand.map((_, i) =>
+              pct[i] === null ? 'rgba(144,153,190,0.45)' :
+              pct[i] >= 0    ? 'rgba(22,163,74,0.75)' :
+                               'rgba(220,38,38,0.72)'),
+            borderRadius: 4,
+            borderSkipped: false,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: '% Change',
+            data: pct,
+            borderColor: lineColor,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 3],
+            pointRadius: 3,
+            pointBackgroundColor: lineColor,
+            pointBorderWidth: 0,
+            spanGaps: false,
+            tension: 0.3,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                if (ctx.dataset.label === 'Demand') {
+                  const v = ctx.raw >= 1e6 ? (ctx.raw/1e6).toFixed(2)+'M' : (ctx.raw/1e3).toFixed(0)+'K';
+                  return ' Demand: ' + v;
+                }
+                if (ctx.raw === null || ctx.raw === undefined) return ' Change: —';
+                return ' Change: ' + (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(1) + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: axisColor(), font: { size: 8.5 } }
+          },
+          y: {
+            position: 'left', min: 0,
+            grid: { color: gridColor() },
+            ticks: {
+              color: axisColor(), font: { size: 8.5 },
+              callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v
+            }
+          },
+          y1: {
+            position: 'right',
+            grid: { display: false },
+            ticks: { color: axisColor(), font: { size: 8.5 }, callback: v => v + '%' }
+          }
+        }
+      }
+    });
+  };
+
+  mkTrend('dp-trend-wow', wowLabels, wowDemand, wowPct, '#3a6ef0');
+  mkTrend('dp-trend-mom', momLabels, momDemand, momPct, '#7c3aed');
+  mkTrend('dp-trend-qoq', qoqLabels, qoqDemand, qoqPct, '#0891b2');
 }
 
 function toggleCVTooltip(e) {
