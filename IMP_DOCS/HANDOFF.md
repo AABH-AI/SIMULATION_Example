@@ -1,6 +1,6 @@
 # HANDOFF — ISG BPA Project
 > Quick-start context for any new AI session or teammate.
-> Last updated: 2026-06-18 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
+> Last updated: 2026-06-22 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
@@ -12,14 +12,18 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 - **Repo**: https://github.com/AABH-AI/SIMULATION_Example
 - **Branch**: `master` (Pages served from master)
 
+---
+
 ## Active Files
 
 | File | Role |
 |---|---|
+| `BPA_FORCASTING_MOCK.HTML` | **Active development file** — rebuilt version of the dashboard (sessions 14+) |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
-| `IBP_Forcasting.html` | **Main dashboard** — 5 modules including What-If Simulation |
+| `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
 | `dell_workflow.html` | Dell workflow simulation (standalone) |
+| `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
 
@@ -27,74 +31,106 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_fo
 
 ---
 
-## Modules Inside IBP_Forcasting.html
+## BPA_FORCASTING_MOCK.HTML — Module Structure
 
-| moduleId | HTML div | Title | Sub-pages |
-|---|---|---|---|
-| `forecast-accuracy` | `#module-forecast-accuracy` | Forecast Accuracy | Forecast Overview, Weekly Actuals & Metrics, Location & Partner View |
-| `demand-profiling` | `#module-demand-profiling` | **Actuals Profiling** | Profiling Overview (channel tabs: Overall, ASU, Dispatch, SR) |
-| `demand-alerts` | `#module-demand-alerts` | Demand Planning Alerts | Alerts Log (module exists but tile removed from home) |
-| `data-raw` | `#module-data-raw` | **Data Management** | Full Raw View |
-| `whatif` | `#module-whatif` | What-If Simulation | Simulation Controls, Scenario Playground, Forecast Publish |
-
----
-
-## Actuals Profiling — Channel Tabs
-
-| Channel key | HTML div | Content |
+| moduleId | Title | Sub-pages |
 |---|---|---|
-| `overall` | `#dp-channel-overall` | ISG Region Wise, QoQ, MoM, WoW charts |
-| `asu` | `#dp-channel-asu` | ASU Monthly Trend (M), New Contracts Trend, APOS Renewal, Decline Analysis |
-| `dsp` | `#dp-channel-dsp` | Dispatch Monthly Trend + Region Wise |
-| `sr` | `#dp-channel-sr` | SR Monthly Trend + Region Wise |
-
-Filters reset (`resetFilters()`) on every channel tab switch.
+| `forecast-accuracy` | Forecast Accuracy | Forecast Overview · Weekly Actuals & Metrics · Location & Partner View · **Forecast Trend** |
+| `demand-profiling` | Actuals Profiling | **Profiling Overview** · **Demand Trends** |
+| `demand-alerts` | Demand Planning Alerts | Alerts Log |
+| `data-raw` | Data Management | Full Raw View |
+| `whatif` | What-If Simulation | Simulation Controls · Scenario Playground · Forecast Publish |
 
 ---
 
-## What-If Simulation — Key Config
+## Forecast Trend Sub-page (`fa-page-forecast-trend`)
 
-```js
-const WI_SLIDERS = [
-  { key:'growth',  label:'New Contracts Growth', min:-20, max:50,  step:1,   val:8    },
-  { key:'renewal', label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
-  // Forecast Modifier removed
-];
-let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
-```
+Two-column layout:
+- **Left (~65%)** — SR weekly line chart, FY26 W01–W52
+  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast
+  - Inline Chart.js plugin draws vertical "▶ Current Week" divider at W22
+  - Responds to FY + Product Group filters via `updateForecastTrendChart()`
+- **Right (~35%)** — Forecast Error bar chart + 4 stat tiles
+  - Green bars = over-forecast weeks, red = under-forecast
+  - Zero-reference line via grid color callback
+  - Tiles: MAPE, Bias (color-coded), Best Week, Worst Week (IBM Plex Mono)
 
-- Filters button hidden when What-If is active (auto-closes panel on open)
-- Default sliders produce ~7.6% ASU lift (was 8.6% when Forecast Modifier existed)
+Base data stored in `_ftBaseData` for in-place filter updates.
+
+---
+
+## Actuals Profiling (`demand-profiling`)
+
+### Profiling Overview (`dp-page-overview`)
+- 4-quadrant demand classification matrix (Consistent / Erratic / Intermittent / Lumpy)
+- 84-point monthly Chart.js line charts (2016–2022), no fill, year-only X-axis ticks
+- Responds to FY + Product Group filters via `updateDPQuadrantCharts()`
+- CV info button ("i") on X-axis label — popup explains CV formula + Low/High threshold
+- KPI chips: no "SKUs" suffix (just "Consistent", "Erratic", etc.)
+
+### Demand Trends (`dp-page-trends`)
+- Three Chart.js bar+line mixed charts: WoW (12 wks), MoM (12 months), QoQ (8 quarters)
+- Color-coded bars: green = up period, red = down, grey = first period (no prior)
+- Dashed line overlay on secondary Y-axis shows % change
+- Responds to FY + Product Group filters via `updateDemandTrends()`
+- Per-product-group demand splits stored in `DP_TREND_PG` constant
 
 ---
 
 ## Filter System
 
-### Active Filters
-All filter groups use checkbox inputs in `#filter-container` with `data-group` attributes. `getActiveFilters()` returns `undefined` for a group when "(All)" is checked, and `[]` when nothing is checked.
-
 ### Filter Groups
-| Group | Values | Notes |
-|---|---|---|
-| `fy` | FY25, FY26, FY27 | No (All) — FY26 checked by default |
-| `quarter` | Q1, Q2, Q3, Q4 | No (All) — Q1 checked by default |
-| `month` | All, M1–M6 | (All) checked by default |
-| `week` | All, W1–W52 | (All) checked by default |
-| `region` | All, AMER, EMEA, APJ | (All) checked by default |
-| `subregion` | All + 7 values | (All) checked by default |
-| `lob` | All, ISG, ESG, HES | (All) checked by default — replaces old Partner filter |
-| `location` | All + 4 values | (All) checked by default |
-| `queue` | All + 4 values | (All) checked by default |
+| Group | `data-group` | Values | Default |
+|---|---|---|---|
+| Fiscal Year | `fy` | FY25, FY26, FY27 | FY26 checked |
+| Quarter | `quarter` | Q1–Q4 | Q1 checked |
+| Month | `month` | All, M1–M6 | All |
+| Week | `week` | All, W1–W52 | All |
+| Region | `region` | All, AMER, EMEA, APJ | All |
+| Sub-Region | `subregion` | All + 7 values | All |
+| **Product Group** | `lob` | All, ISG, ESG, HES | All |
+| Location | `location` | All + 4 values | All |
+| Queue | `queue` | All + 4 values | All |
 
-### Universal Hide Rule
-`shouldHideAll()` returns `true` if **any** of FY, Quarter, Month, or Region has 0 items selected. Every chart calls this — if it returns true, chart goes blank.
+> **Note**: Filter panel label reads "Product Group" but the internal `data-group` key remains `"lob"` to avoid breaking existing filter logic.
 
 ### Key Filter Helpers
-- `getActiveFYMultiplier()` — returns 0 if no FY selected, else avg of FY_SCALE values
-- `getSelectedWeekIndices()` — returns 0-based week indices from Q/M/W filters (for WoW charts)
-- `getSelectedFiscalMonthIndices()` — returns 0-based month indices 0–11 in 12-month Feb→Jan array (for AP monthly charts)
-- `getSelectedQuarters()` — returns selected quarter labels ['Q1',...] (for QoQ charts)
-- `shouldHideAll()` — universal empty-filter guard
+```js
+getActiveFilters()         // returns { group: [values] } — group absent = All selected
+getActiveFYMultiplier()    // FY26=1.0, FY27=1.08, FY25=0.93; avg if multiple selected; 0 if none
+getDPLOBMult()             // returns 0.60/0.25/0.15 for ISG/ESG/HES; 1.0 for All
+shouldHideAll()            // true if FY, Quarter, Month, or Region has 0 selected
+resetPageFilters()         // resets FY→FY26, Quarter→Q1, LOB→All; closes open dropdowns
+```
+
+### Product Group Demand Splits
+```js
+const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };  // quadrant chart scaling
+// Exact per-group demand arrays (ISG+ESG+HES = combined total):
+const DP_TREND_PG = { ISG: { wow:[...], mom:[...], qoq:[...] }, ESG: {...}, HES: {...} };
+```
+
+### Global Filter Reset
+`resetPageFilters()` is called at the **start of every `switchPage()` call** — filters always reset to defaults when navigating between any sub-pages.
+
+---
+
+## Chart Architecture (BPA_FORCASTING_MOCK.HTML)
+
+| Store | Holds | Notes |
+|---|---|---|
+| `chartInstances` | All Chart.js instances (FA, DP quadrants, Demand Trends, FT) | Destroyed + recreated on every `openDashboard()` call |
+| `wiCharts` | What-If Simulation Chart.js instances | Managed separately via `wiInit()` |
+| `_dpBaseData` | Raw seeded quadrant chart data arrays | Set in `initDemandProfilingQuadrants()`, used by `updateDPQuadrantCharts()` |
+| `_ftBaseData` | Raw seeded SR trend + plan forecast arrays | Set in `initForecastTrendChart()`, used by `updateForecastTrendChart()` |
+
+### `applyAllFilteredCharts()` — what it updates
+1. `updateFARegionChart()` — Forecast Accuracy region bar
+2. `updateFAPartnerChart()` — Partner MDR chart
+3. `updateFAOverviewChart()` — Overview line chart
+4. `updateDPQuadrantCharts()` — scales quadrant data by LOB + FY
+5. `updateDemandTrends()` — sums DP_TREND_PG by selected product groups + FY
+6. `updateForecastTrendChart()` — scales SR trend + error chart by LOB + FY
 
 ---
 
@@ -104,23 +140,21 @@ All filter groups use checkbox inputs in `#filter-container` with `data-group` a
 $git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
 & $git add <files>
 & $git commit -m "message"
-& $git stash                        # stash any unstaged changes
-& $git pull --rebase origin master  # CRITICAL — GH Actions auto-commits manifest.json
+& $git stash
+& $git pull --rebase origin master   # CRITICAL — GH Actions auto-commits manifest.json
 & $git stash pop
 & $git push origin master
 ```
 
-**Always stash → pull --rebase → stash pop → push.** GitHub Actions auto-commits `manifest.json` after every push.
-
 ---
 
-## Current State (2026-06-18)
+## Current State (2026-06-22)
 
-- `IBP_Forcasting.html` — all changes pushed and live
-- `BPA_FORCASTING_MOCK.HTML` — has local uncommitted changes (unrelated, pre-existing)
-- `TODO` — untracked file, unknown content
-- All filter logic fully enforced across all charts
-- CLAUDE.md added to repo root
+- `BPA_FORCASTING_MOCK.HTML` — active file, all changes pushed and live
+- `IBP_Forcasting.html` — stable, session 13 was last update
+- `TODO` — tracked, contains Actuals Profiling backlog
+- All filter logic filter-aware in BPA mock (FY + Product Group drive chart scaling)
+- Global filter reset (`resetPageFilters`) fires on every page switch
 
 ---
 
@@ -129,16 +163,19 @@ $git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
 Project: ISG BPA dashboard — Aligned Automation Services
 Repo: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
 Live: https://aabh-ai.github.io/SIMULATION_Example/
-Main file: IBP_Forcasting.html
+ACTIVE file: BPA_FORCASTING_MOCK.HTML (sessions 14+)
+Legacy file: IBP_Forcasting.html (sessions 1–13, stable)
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
 
-Modules: Forecast Accuracy | Actuals Profiling (Overall/ASU/Dispatch/SR tabs) |
-         Demand Alerts (tile removed from home, module exists) |
-         Data Management | What-If Simulation
+BPA_FORCASTING_MOCK modules:
+  Forecast Accuracy (4 tabs incl. Forecast Trend) |
+  Actuals Profiling (Profiling Overview + Demand Trends) |
+  Demand Alerts | Data Management | What-If Simulation
 
-Filters: shouldHideAll() guards all charts. LOB filter = ISG/ESG/HES.
-What-If: 2 sliders only (New Contracts Growth, APOS Renewal Rate). No Forecast Modifier.
+Filters: FY + Product Group (data-group="lob") drive chart scaling.
+resetPageFilters() fires on every switchPage() call.
+Chart data: _dpBaseData (quadrant charts), _ftBaseData (forecast trend charts).
 
 Read IMP_DOCS/ for full context before making changes.
 ```
