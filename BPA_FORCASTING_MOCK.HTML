@@ -847,6 +847,60 @@
             </div>
           </div>
         </div>
+
+        <!-- ══ SUB-PAGE: FORECAST TREND ══ -->
+        <div id="fa-page-forecast-trend" class="page-section">
+
+          <!-- KPI strip -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Current Week</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--accent)">W22</div>
+              <div class="kpi-sub" style="color:var(--text-2)">FY26 · Actuals through here</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Last Actual SR</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--text-1)" id="ft-last-actual">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Weekly service requests</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Forecast vs Actual</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-fcst-delta">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)">W22 forecast accuracy</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Adj. Forecast Delta</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="ft-adj-delta">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)">vs base forecast at W52</div>
+            </div>
+          </div>
+
+          <!-- Main chart card -->
+          <div class="visual-card" style="flex-direction:column;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+              <div>
+                <div class="visual-title" style="margin-bottom:2px;">Weekly SR — FY26 Actuals &amp; Forecast</div>
+                <div style="font-size:11px; color:var(--text-3);">Service Requests per week &nbsp;·&nbsp; FY26 W01–W52</div>
+              </div>
+              <div style="display:flex; gap:16px; align-items:center; font-size:11px; color:var(--text-2);">
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
+                </span>
+                <span style="display:flex;align-items:center;gap:6px;">
+                  <svg width="28" height="10"><line x1="0" y1="5" x2="28" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adjusted Forecast
+                </span>
+              </div>
+            </div>
+            <div style="flex:1; min-height:360px; position:relative;">
+              <canvas id="fa-chart-forecast-trend"></canvas>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       <!-- ══ MODULE: DATA RAW ══ -->
@@ -1456,9 +1510,10 @@ const modules = {
     { id: 'dp-page-trends',   label: 'Demand Trends' }
   ]},
   'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
-    { id: 'fa-page-overview', label: 'Forecast Overview' },
-    { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
-    { id: 'fa-page-partner', label: 'Location & Partner View' }
+    { id: 'fa-page-overview',        label: 'Forecast Overview' },
+    { id: 'fa-page-actuals',         label: 'Weekly Actuals & Metrics' },
+    { id: 'fa-page-partner',         label: 'Location & Partner View' },
+    { id: 'fa-page-forecast-trend',  label: 'Forecast Trend' }
   ]},
   'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
   'whatif': { title: 'What-If Simulation', pages: [
@@ -1528,8 +1583,9 @@ function switchPage(pageId, linkEl, moduleId, label) {
 
   if (pageId === 'dr-page-raw') renderRawTable();
   if (pageId === 'da-page-log') renderAlerts('all');
-  if (pageId === 'fa-page-actuals') generateActualsTable();
-  if (pageId === 'fa-page-partner') generatePartnerTable();
+  if (pageId === 'fa-page-actuals')        generateActualsTable();
+  if (pageId === 'fa-page-partner')        generatePartnerTable();
+  if (pageId === 'fa-page-forecast-trend') setTimeout(initForecastTrendChart, 80);
   if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
   if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
   if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
@@ -1927,6 +1983,195 @@ function initDemandTrends() {
   mkTrend('dp-trend-wow', wowLabels, wowDemand, wowPct, '#3a6ef0');
   mkTrend('dp-trend-mom', momLabels, momDemand, momPct, '#7c3aed');
   mkTrend('dp-trend-qoq', qoqLabels, qoqDemand, qoqPct, '#0891b2');
+}
+
+// =========================================================
+// FORECAST TREND — SR ACTUALS / FORECAST / ADJUSTED FORECAST
+// =========================================================
+function initForecastTrendChart() {
+  const id = 'fa-chart-forecast-trend';
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+
+  const TODAY_IDX = 21; // W22 is index 21 (0-based) — current week divider
+  const weeks = Array.from({length: 52}, (_, i) => 'W' + String(i + 1).padStart(2, '0'));
+
+  function seeded(s) {
+    return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+  }
+  const rA = seeded(42), rF = seeded(77), rAd = seeded(13);
+
+  // Actuals W01–W22: ~612K declining to ~576K with realistic noise
+  const actuals = weeks.map((_, i) => {
+    if (i > TODAY_IDX) return null;
+    return Math.round((612000 - i * 1700) + (rA() - 0.5) * 36000);
+  });
+  const lastActual = actuals[TODAY_IDX];
+
+  // Forecast W22–W52: continues the declining trend, smoother (dashed ——)
+  const forecast = weeks.map((_, i) => {
+    if (i < TODAY_IDX) return null;
+    const d = i - TODAY_IDX;
+    return i === TODAY_IDX ? lastActual : Math.round((lastActual - d * 1100) + (rF() - 0.5) * 16000);
+  });
+
+  // Adjusted Forecast W22–W52: manually adjusted upward, less steep decline (dotted ···)
+  const adjForecast = weeks.map((_, i) => {
+    if (i < TODAY_IDX) return null;
+    const d = i - TODAY_IDX;
+    return i === TODAY_IDX ? lastActual : Math.round((lastActual - d * 580 + 9000) + (rAd() - 0.5) * 10000);
+  });
+
+  // Update KPI chips
+  const fmt = v => v != null ? v.toLocaleString('en-IN') : '—';
+  const elLA = document.getElementById('ft-last-actual');
+  const elFD = document.getElementById('ft-fcst-delta');
+  const elAD = document.getElementById('ft-adj-delta');
+  if (elLA) elLA.innerText = fmt(lastActual);
+  if (elFD && forecast[TODAY_IDX + 1] != null) {
+    const pct = ((forecast[TODAY_IDX + 1] - lastActual) / lastActual * 100).toFixed(1);
+    elFD.innerText = (pct >= 0 ? '+' : '') + pct + '%';
+    elFD.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+  }
+  if (elAD) {
+    const lastF = forecast.filter(v => v != null).at(-1);
+    const lastA = adjForecast.filter(v => v != null).at(-1);
+    if (lastF && lastA) {
+      const diff = ((lastA - lastF) / lastF * 100).toFixed(1);
+      elAD.innerText = (diff >= 0 ? '+' : '') + diff + '%';
+      elAD.style.color = diff >= 0 ? 'var(--amber)' : 'var(--red)';
+    }
+  }
+
+  // Inline plugin — draws vertical "Current Week" divider line
+  const vertDivider = {
+    id: 'ft_divider',
+    afterDraw(chart) {
+      if (chart.canvas.id !== id) return;
+      const { ctx, chartArea: { top, bottom }, scales: { x } } = chart;
+      if (!x) return;
+      const px = x.getPixelForValue(TODAY_IDX);
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = 'rgba(58,110,240,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(px, top);
+      ctx.lineTo(px, bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Label background pill
+      const label = '▶ Current Week';
+      ctx.font = '500 9px "Plus Jakarta Sans", sans-serif';
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(58,110,240,0.1)';
+      ctx.beginPath();
+      ctx.roundRect(px + 5, top + 4, tw + 10, 16, 4);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(58,110,240,0.85)';
+      ctx.fillText(label, px + 10, top + 15);
+      ctx.restore();
+    }
+  };
+
+  chartInstances[id] = new Chart(el, {
+    type: 'line',
+    plugins: [vertDivider],
+    data: {
+      labels: weeks,
+      datasets: [
+        {
+          label: 'Actuals',
+          data: actuals,
+          borderColor: '#3a6ef0',
+          backgroundColor: 'rgba(58,110,240,0.06)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#3a6ef0',
+          spanGaps: false
+        },
+        {
+          label: 'Forecast',
+          data: forecast,
+          borderColor: '#16a34a',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          borderDash: [8, 4],
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#16a34a',
+          spanGaps: false
+        },
+        {
+          label: 'Adjusted Forecast',
+          data: adjForecast,
+          borderColor: '#d97706',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          borderDash: [3, 3],
+          tension: 0.4,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#d97706',
+          spanGaps: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false }, // custom SVG legend in HTML
+        tooltip: {
+          backgroundColor: '#ffffff',
+          borderColor: '#dde2f4',
+          borderWidth: 1,
+          titleColor: '#5a6280',
+          bodyColor: '#0d1020',
+          padding: 10,
+          callbacks: {
+            title: ctx => 'FY26 · ' + ctx[0].label,
+            label: ctx => {
+              if (ctx.raw == null) return null;
+              return ' ' + ctx.dataset.label + ': ' + ctx.raw.toLocaleString('en-IN');
+            },
+            afterBody: ctx => {
+              const act = ctx.find(c => c.dataset.label === 'Actuals');
+              const fct = ctx.find(c => c.dataset.label === 'Forecast');
+              if (act && fct && act.raw != null && fct.raw != null) {
+                const diff = ((fct.raw - act.raw) / act.raw * 100).toFixed(1);
+                return [' ─────────────', ' Fcst error: ' + (diff >= 0 ? '+' : '') + diff + '%'];
+              }
+              return [];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: axisColor(), font: { size: 9 }, maxTicksLimit: 14,
+            callback(val, i) { return i % 4 === 0 ? weeks[i] : ''; }
+          }
+        },
+        y: {
+          grid: { color: gridColor() },
+          min: 0,
+          ticks: {
+            color: axisColor(), font: { size: 9 },
+            callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v
+          }
+        }
+      }
+    }
+  });
 }
 
 function toggleCVTooltip(e) {
