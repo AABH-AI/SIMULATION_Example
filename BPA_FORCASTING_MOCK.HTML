@@ -804,7 +804,7 @@
                 <thead><tr>
                   <th class="row-num">#</th>
                   <th onclick="sortTable('actuals-table','region')">Region <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','lob')">LOB <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','lob')">Product Group <span class="sort-icon"></span></th>
                   <th onclick="sortTable('actuals-table','week')">Week <span class="sort-icon"></span></th>
                   <th onclick="sortTable('actuals-table','sr')">Weekly SR Actuals <span class="sort-icon"></span></th>
                   <th onclick="sortTable('actuals-table','fasu')">Weekly Field ASU <span class="sort-icon"></span></th>
@@ -886,7 +886,7 @@
                   <th onclick="sortRawTable('fasu')" style="min-width:120px;">Weekly Field ASU <span class="sort-icon"></span></th>
                   <th onclick="sortRawTable('tasu')" style="min-width:120px;">Weekly Tech ASU <span class="sort-icon"></span></th>
                   <th onclick="sortRawTable('fdsr')" style="min-width:130px;">Forecast Demand SR <span class="sort-icon"></span></th>
-                  <th onclick="sortRawTable('lob')" style="min-width:120px;">LOB <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('lob')" style="min-width:120px;">Product Group <span class="sort-icon"></span></th>
                   <th style="min-width:110px;">Status</th>
                 </tr></thead>
                 <tbody id="raw-table-body"></tbody>
@@ -903,22 +903,22 @@
           <!-- KPI Summary Row -->
           <div class="kpi-row">
             <div class="kpi-card">
-              <div class="kpi-label">Consistent SKUs</div>
+              <div class="kpi-label">Consistent</div>
               <div class="kpi-value kpi-dynamic" style="color:#16a34a">1,842</div>
               <div class="kpi-sub" style="color:var(--text-2)">Occ &gt; 50% · CV &lt; 50%</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Erratic SKUs</div>
+              <div class="kpi-label">Erratic</div>
               <div class="kpi-value kpi-dynamic" style="color:#d97706">634</div>
               <div class="kpi-sub" style="color:var(--text-2)">Occ &ge; 50% · CV &ge; 50%</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Intermittent SKUs</div>
+              <div class="kpi-label">Intermittent</div>
               <div class="kpi-value kpi-dynamic" style="color:#2563eb">412</div>
               <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &lt; 50%</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Lumpy SKUs</div>
+              <div class="kpi-label">Lumpy</div>
               <div class="kpi-value kpi-dynamic" style="color:#db2777">218</div>
               <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &ge; 50%</div>
             </div>
@@ -1325,7 +1325,7 @@
           </div>
         </div>
         <div class="filter-dropdown" data-filter="lob">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>LOB</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Product Group</span><i class="ti ti-chevron-down"></i></div>
           <div class="filter-dropdown-content">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
@@ -1533,6 +1533,11 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
   if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
   if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
+  if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
+    resetDPFilters();
+    updateDPQuadrantCharts();
+    updateDemandTrends();
+  }
 }
 
 // =========================================================
@@ -1782,6 +1787,8 @@ function initDemandProfilingQuadrants() {
 
   const rL = seeded(99);
   const lumpy = labels.map(() => rL() < 0.68 ? 0 : +((0.05 + rL() * 0.43) * 1e6).toFixed(0));
+
+  _dpBaseData = { consistent, erratic, intermittent, lumpy };
 
   const mkQ = (id, color, data, yMax, yStep) => {
     const el = document.getElementById(id);
@@ -2163,13 +2170,91 @@ function updateFAOverviewChart() {
   chart.update();
 }
 
+// =========================================================
+// ACTUALS PROFILING — FILTER STATE & PER-PRODUCT-GROUP DATA
+// =========================================================
+let _dpBaseData = null;
+
+const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
+
+// ISG + ESG + HES sums equal the original combined totals
+const DP_TREND_PG = {
+  ISG: {
+    wow: [13680,14040,13740,14520,14220,15060,14700,15480,15120,15660,15360,16080],
+    mom: [59040,61680,59520,64560,62580,58080,60720,63360,65340,63840,66720,68880],
+    qoq: [170400,178800,183600,176400,189000,184800,195000,202800]
+  },
+  ESG: {
+    wow: [5700,5850,5725,6050,5925,6275,6125,6450,6300,6525,6400,6700],
+    mom: [24600,25700,24800,26900,26075,24200,25300,26400,27225,26600,27800,28700],
+    qoq: [71000,74500,76500,73500,78750,77000,81250,84500]
+  },
+  HES: {
+    wow: [3420,3510,3435,3630,3555,3765,3675,3870,3780,3915,3840,4020],
+    mom: [14760,15420,14880,16140,15645,14520,15180,15840,16335,15960,16680,17220],
+    qoq: [42600,44700,45900,44100,47250,46200,48750,50700]
+  }
+};
+
+function getDPLOBMult() {
+  const f = getActiveFilters();
+  if (!f.lob || f.lob.length === 0) return 1.0;
+  return f.lob.reduce((s, pg) => s + (DP_LOB_SHARE[pg] || 0), 0);
+}
+
+function updateDPQuadrantCharts() {
+  if (!_dpBaseData) return;
+  const mult = getDPLOBMult() * getActiveFYMultiplier();
+  ['consistent','erratic','intermittent','lumpy'].forEach(key => {
+    const c = chartInstances['dp-chart-' + key];
+    if (!c) return;
+    c.data.datasets[0].data = _dpBaseData[key].map(v => +(v * mult).toFixed(0));
+    c.update('none');
+  });
+}
+
+function updateDemandTrends() {
+  const f = getActiveFilters();
+  const fyMult = getActiveFYMultiplier();
+  const selPGs = (!f.lob || f.lob.length === 0) ? ['ISG','ESG','HES'] : f.lob;
+  ['wow','mom','qoq'].forEach(type => {
+    const c = chartInstances['dp-trend-' + type];
+    if (!c) return;
+    const len = DP_TREND_PG.ISG[type].length;
+    const sumD = new Array(len).fill(0);
+    selPGs.forEach(pg => {
+      if (DP_TREND_PG[pg]) DP_TREND_PG[pg][type].forEach((v, i) => { sumD[i] += v; });
+    });
+    const adj = sumD.map(v => +(v * fyMult).toFixed(0));
+    const pct = adj.map((v, i) => i === 0 ? null : +((v - adj[i-1]) / adj[i-1] * 100).toFixed(1));
+    c.data.datasets[0].data = adj;
+    c.data.datasets[0].backgroundColor = adj.map((_, i) =>
+      pct[i] === null ? 'rgba(144,153,190,0.45)' :
+      pct[i] >= 0    ? 'rgba(22,163,74,0.75)' : 'rgba(220,38,38,0.72)');
+    c.data.datasets[1].data = pct;
+    c.update('none');
+  });
+}
+
+function resetDPFilters() {
+  document.querySelectorAll('#filter-container input[data-group="fy"]').forEach(cb => {
+    cb.checked = (cb.value === 'FY26');
+  });
+  document.querySelectorAll('#filter-container input[data-group="quarter"]').forEach(cb => {
+    cb.checked = (cb.value === 'Q1');
+  });
+  document.querySelectorAll('#filter-container input[data-group="lob"]').forEach(cb => {
+    cb.checked = (cb.value === 'All');
+  });
+  updateFilterChips();
+}
+
 function applyAllFilteredCharts() {
   updateFARegionChart();
   updateFAPartnerChart();
   updateFAOverviewChart();
-  ['dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy'].forEach(id => {
-    const c = chartInstances[id]; if (c) c.update('none');
-  });
+  updateDPQuadrantCharts();
+  updateDemandTrends();
 }
 
 // =========================================================
@@ -2281,7 +2366,7 @@ function filterRawTable() { renderRawTable(); }
 // =========================================================
 function exportCSV() {
   const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
-  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','Product Group','Status'];
   const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
   const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2292,7 +2377,7 @@ function exportCSV() {
 
 function exportExcel() {
   const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
-  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','Product Group','Status'];
   const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
