@@ -1,6 +1,6 @@
 # HANDOFF — ISG BPA Project
 > Quick-start context for any new AI session or teammate.
-> Last updated: 2026-06-17 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
+> Last updated: 2026-06-18 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
@@ -17,201 +17,128 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | File | Role |
 |---|---|
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
-| `IBP_Forcasting.html` | **Main dashboard** — 4 modules + What-If Simulation |
-| `enterprise_whatif_forecasting_platform.html` | Standalone What-If Simulation |
+| `IBP_Forcasting.html` | **Main dashboard** — 5 modules including What-If Simulation |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
-| `dell_workflow.html` | Dell workflow simulation |
+| `dell_workflow.html` | Dell workflow simulation (standalone) |
+| `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
 
-Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`
+Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`
 
 ---
 
 ## Modules Inside IBP_Forcasting.html
 
-| moduleId | HTML div | Title |
-|---|---|---|
-| `forecast-accuracy` | `#module-forecast-accuracy` | Actuals Accuracy |
-| `demand-profiling` | `#module-demand-profiling` | Demand Profiling |
-| `demand-alerts` | `#module-demand-alerts` | Demand Planning Alerts |
-| `data-raw` | `#module-data-raw` | Data Raw |
-| `whatif` | `#module-whatif` | What-If Simulation |
-
----
-
-## Session Summary — 2026-06-17
-
-### Goal of the Task
-Two changes requested for `IBP_Forcasting.html`:
-
-1. **Remove dark theme — white/light theme only, permanently.** No toggle button, no dark mode.
-2. **Demand Profiling → Overall tab redesign.** Replace generic cards and charts with ISG-specific Overall metrics and four specific graph types: Region Wise, QoQ, MoM, WoW (9-week).
-
----
-
-### Files Inspected
-
-| File | Why |
-|---|---|
-| `IBP_Forcasting.html` | Full read of CSS `:root` / `[data-theme]` blocks, HTML structure for Overall tab (`#dp-channel-overall`), JS theme toggle, chart init (`initCharts`), filter-aware update functions, `TREND_DATA_52`, `FILTER_AWARE_CHARTS`, `switchChannel`, `applyAllFilteredCharts` |
-| `IMP_DOCS/HANDOFF.md` | Read before overwriting to preserve project-level context |
-
----
-
-### Files Modified
-
-#### `IBP_Forcasting.html` (sole modified file)
-
-**Change 1 — White theme permanent (CSS, ~lines 12–63)**
-- Old: `:root` held dark color tokens; `[data-theme="light"]` was a secondary override.
-- New: `:root` now holds the light theme tokens directly. The `[data-theme="light"]` block is removed entirely.
-- Light values now baked in as the single source of truth.
-
-**Change 2 — Theme toggle button removed (HTML, ~line 641)**
-- Removed `<button onclick="toggleTheme()">` from `#dashboard-view .header-right`.
-
-**Change 3 — JS `isDark` + Chart defaults (JS, ~lines 1248–1497)**
-- `let isDark = true` → `let isDark = false`
-- `Chart.defaults.color = '#6b758f'` → `'#5a6280'` (light-theme text-2)
-- `toggleTheme()` function removed entirely (no longer needed; `gridColor()` / `axisColor()` still exist and return light-mode values since `isDark = false`)
-
-**Change 4 — Overall tab KPI cards (HTML, `#dp-channel-overall`)**
-- Old: 4 generic KPIs (Total Demand, Forecast Accuracy, Total SRs, Avg Weekly Volume)
-- New: 4 ISG-specific KPIs
-
-| Label | Value | Accent |
-|---|---|---|
-| Overall Forecast ISG | 284.6K | `var(--accent)` / +5.2% vs PY |
-| Overall Actuals | 271.3K | default / +3.8% vs PY |
-| Overall Accuracy | 95.4% | `var(--green)` / Target: 92% |
-| Overall Variance | +4.8% | `var(--amber)` / Forecast vs Actuals |
-
-Element IDs: `#ov-kpi-forecast`, `#ov-kpi-actuals`, `#ov-kpi-accuracy`, `#ov-kpi-variance`
-
-**Change 5 — Overall tab charts (HTML + JS)**
-- Old: 2 charts — `dp-chart-overall-stacked` (stacked bar by sub-region) + `dp-chart-overall-trend` (8-week line, 3 channels)
-- New: 4 charts across 2 rows
-
-| Chart ID | Title | Type | Description |
+| moduleId | HTML div | Title | Sub-pages |
 |---|---|---|---|
-| `dp-chart-overall-region` | Region Wise — Forecast vs Actuals | Grouped bar | AMER / EMEA / APJ — ISG Forecast + Actuals |
-| `dp-chart-overall-qoq` | QoQ — Quarter on Quarter | Grouped bar | Q1–Q4 Forecast vs Actuals |
-| `dp-chart-overall-mom` | MoM — Month on Month | Line (filled) | M1–M6 Forecast vs Actuals |
-| `dp-chart-overall-wow` | WoW — Week on Week (9-Week Trend) | Line (filled) | W1–W9 default, filter-window aware |
+| `forecast-accuracy` | `#module-forecast-accuracy` | Forecast Accuracy | Forecast Overview, Weekly Actuals & Metrics, Location & Partner View |
+| `demand-profiling` | `#module-demand-profiling` | **Actuals Profiling** | Profiling Overview (channel tabs: Overall, ASU, Dispatch, SR) |
+| `demand-alerts` | `#module-demand-alerts` | Demand Planning Alerts | Alerts Log (module exists but tile removed from home) |
+| `data-raw` | `#module-data-raw` | **Data Management** | Full Raw View |
+| `whatif` | `#module-whatif` | What-If Simulation | Simulation Controls, Scenario Playground, Forecast Publish |
 
-**Change 6 — New JS data constants (added after `FA_PARTNER_BASE`)**
+---
+
+## Actuals Profiling — Channel Tabs
+
+| Channel key | HTML div | Content |
+|---|---|---|
+| `overall` | `#dp-channel-overall` | ISG Region Wise, QoQ, MoM, WoW charts |
+| `asu` | `#dp-channel-asu` | ASU Monthly Trend (M), New Contracts Trend, APOS Renewal, Decline Analysis |
+| `dsp` | `#dp-channel-dsp` | Dispatch Monthly Trend + Region Wise |
+| `sr` | `#dp-channel-sr` | SR Monthly Trend + Region Wise |
+
+Filters reset (`resetFilters()`) on every channel tab switch.
+
+---
+
+## What-If Simulation — Key Config
+
 ```js
-DP_OVERALL_REGION_BASE  // { AMER, EMEA, APJ } — { forecast, actuals }
-DP_OVERALL_QOQ_BASE     // { forecast: [Q1..Q4], actuals: [Q1..Q4] }
-DP_OVERALL_MOM_BASE     // { forecast: [M1..M6], actuals: [M1..M6] }
+const WI_SLIDERS = [
+  { key:'growth',  label:'New Contracts Growth', min:-20, max:50,  step:1,   val:8    },
+  { key:'renewal', label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+  // Forecast Modifier removed
+];
+let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
 ```
 
-**Change 7 — New TREND_DATA_52 keys (added to existing object)**
-```js
-'dp-ov-forecast': _makeTrend(1175, 130, 0)   // 52-week overall ISG forecast
-'dp-ov-actuals':  _makeTrend(1115, 125, 0)   // 52-week overall actuals
+- Filters button hidden when What-If is active (auto-closes panel on open)
+- Default sliders produce ~7.6% ASU lift (was 8.6% when Forecast Modifier existed)
+
+---
+
+## Filter System
+
+### Active Filters
+All filter groups use checkbox inputs in `#filter-container` with `data-group` attributes. `getActiveFilters()` returns `undefined` for a group when "(All)" is checked, and `[]` when nothing is checked.
+
+### Filter Groups
+| Group | Values | Notes |
+|---|---|---|
+| `fy` | FY25, FY26, FY27 | No (All) — FY26 checked by default |
+| `quarter` | Q1, Q2, Q3, Q4 | No (All) — Q1 checked by default |
+| `month` | All, M1–M6 | (All) checked by default |
+| `week` | All, W1–W52 | (All) checked by default |
+| `region` | All, AMER, EMEA, APJ | (All) checked by default |
+| `subregion` | All + 7 values | (All) checked by default |
+| `lob` | All, ISG, ESG, HES | (All) checked by default — replaces old Partner filter |
+| `location` | All + 4 values | (All) checked by default |
+| `queue` | All + 4 values | (All) checked by default |
+
+### Universal Hide Rule
+`shouldHideAll()` returns `true` if **any** of FY, Quarter, Month, or Region has 0 items selected. Every chart calls this — if it returns true, chart goes blank.
+
+### Key Filter Helpers
+- `getActiveFYMultiplier()` — returns 0 if no FY selected, else avg of FY_SCALE values
+- `getSelectedWeekIndices()` — returns 0-based week indices from Q/M/W filters (for WoW charts)
+- `getSelectedFiscalMonthIndices()` — returns 0-based month indices 0–11 in 12-month Feb→Jan array (for AP monthly charts)
+- `getSelectedQuarters()` — returns selected quarter labels ['Q1',...] (for QoQ charts)
+- `shouldHideAll()` — universal empty-filter guard
+
+---
+
+## Git Workflow
+
+```powershell
+$git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
+& $git add <files>
+& $git commit -m "message"
+& $git stash                        # stash any unstaged changes
+& $git pull --rebase origin master  # CRITICAL — GH Actions auto-commits manifest.json
+& $git stash pop
+& $git push origin master
 ```
 
-**Change 8 — FILTER_AWARE_CHARTS set updated**
-- Removed: `dp-chart-overall-stacked`
-- Added: `dp-chart-overall-region`, `dp-chart-overall-qoq`, `dp-chart-overall-mom`, `dp-chart-overall-wow`
-
-**Change 9 — Chart update functions replaced**
-- Removed: `updateDPOverallStackedChart()`, `updateDPOverallTrendChart()`
-- Added: `updateDPOverallRegionChart()`, `updateDPOverallQoQChart()`, `updateDPOverallMoMChart()`, `updateDPOverallWoWChart()`
-
-Each new function respects:
-- Region filter (`getActiveFilters().region`)
-- FY multiplier (`getActiveFYMultiplier()`)
-- Week-index window for WoW (`getSelectedWeekIndices().slice(0,9)`)
-
-**Change 10 — `applyAllFilteredCharts()` updated**
-- Now calls all 4 new Overall update functions instead of the 2 removed ones.
-
-**Change 11 — `switchChannel()` updated**
-- Chart refresh list now references 4 new Overall chart IDs instead of stacked/trend.
+**Always stash → pull --rebase → stash pop → push.** GitHub Actions auto-commits `manifest.json` after every push.
 
 ---
 
-### Current State
+## Current State (2026-06-18)
 
-- **Theme**: Permanently white/light. No toggle. `isDark = false` hardcoded.
-- **Demand Profiling → Overall tab**: 4 ISG KPI cards + 4 charts (Region, QoQ, MoM, WoW-9wk).
-- **Field Services tab**: Unchanged (Region bar + Dispatch Trend line).
-- **Care tab**: Unchanged (Sub-region bar + AMER/EMEA/APJ trend line).
-- **All other modules**: Unchanged (Forecast Accuracy, Alerts, Raw Data, What-If).
-- **File not committed yet** — changes are local only.
-
----
-
-### Tests Run and Results
-
-- No automated test suite exists (static HTML project).
-- Manual verification done via code inspection:
-  - All old chart IDs (`dp-chart-overall-stacked`, `dp-chart-overall-trend`) confirmed absent via grep — 0 matches.
-  - All new chart IDs confirmed present in HTML (canvas), JS init, FILTER_AWARE_CHARTS, update functions, and switchChannel.
-  - `toggleTheme` / `ti-moon` / `isDark = true` confirmed absent — 0 matches.
-  - `:root` CSS confirmed as light-theme values only.
-- **Browser test**: Not yet run (no browser launched in this session). Visual verification pending.
-
----
-
-### Known Issues / Things to Watch
-
-1. **WoW chart with week-filter active**: When the user selects a specific subset of weeks in the right panel (e.g., only W20–W30), `getSelectedWeekIndices()` returns those. `slice(0,9)` takes the first 9 of that filtered set — which is correct behaviour but may show e.g. W20–W28 instead of W1–W9. This is intentional but should be confirmed with user.
-
-2. **QoQ / MoM charts + week filter**: QoQ and MoM use static base arrays (not derived from the 52-week trend). They respond to FY multiplier only. Quarter/month/week filter panel selections do not adjust QoQ or MoM chart windows (those are by definition fixed at Q1–Q4 / M1–M6). This is correct conceptually but worth confirming.
-
-3. **KPI card values are static mock data**: `#ov-kpi-forecast`, `#ov-kpi-actuals`, etc. are hardcoded HTML values. They do not update when filters change. If dynamic KPI update is needed, a JS function tied to `applyAllFilteredCharts` will need to be added.
-
-4. **`BPA_FORCASTING_MOCK.HTML`** appears in `git status` as modified (pre-existing change from a prior session). Not touched in this session — needs a separate commit or review.
-
-5. **`TODO` file** is untracked in git. Unknown content — should be reviewed before next commit.
-
----
-
-### Next Exact Steps
-
-#### Immediate (visual QA)
-1. Open `IBP_Forcasting.html` in a browser (double-click or local server).
-2. Confirm home page renders in white/light theme with no dark background.
-3. Click **Demand Profiling** tile → confirm breadcrumb reads `Home › Demand Profiling › Profiling Overview`.
-4. On Overall tab confirm: 4 KPI cards (ISG Forecast / Actuals / Accuracy / Variance) visible.
-5. Confirm 4 charts render below in 2 rows: Region Wise, QoQ (top row) and MoM, WoW-9wk (bottom row).
-6. Switch to Field Services and Care tabs — confirm they still work normally.
-7. Open the filter panel (top-right ≡ icon) — toggle region/FY/quarter filters and confirm the 4 Overall charts update responsively.
-8. Confirm no theme toggle button appears in the header.
-
-#### If visual QA passes
-9. Commit `IBP_Forcasting.html` with a clear message.
-10. Decide what to do with `BPA_FORCASTING_MOCK.HTML` changes (commit separately or discard).
-11. Push to master: `git push origin master`.
-
-#### Pending feature requests (not yet started)
-- Field Services tab and Care tab may need similar KPI / chart upgrades to match the Overall tab's level of specificity.
-- Dynamic KPI cards in Overall tab (values that update with filters).
-- Sub-tabs or deeper drill-down inside the Overall, QoQ, MoM, WoW charts.
+- `IBP_Forcasting.html` — all changes pushed and live
+- `BPA_FORCASTING_MOCK.HTML` — has local uncommitted changes (unrelated, pre-existing)
+- `TODO` — untracked file, unknown content
+- All filter logic fully enforced across all charts
+- CLAUDE.md added to repo root
 
 ---
 
 ## New AI Session — Paste This
 ```
-Project: ISG BPA dashboard for Aligned Automation Services.
-Repo path: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
-Live site: https://aabh-ai.github.io/SIMULATION_Example/
-Main file: IBP_Forcasting.html (5 modules including What-If Simulation)
+Project: ISG BPA dashboard — Aligned Automation Services
+Repo: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
+Live: https://aabh-ai.github.io/SIMULATION_Example/
+Main file: IBP_Forcasting.html
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
-Always: git pull --rebase origin master before push (GH Actions auto-commits manifest.json)
+Git workflow: stash → pull --rebase origin master → stash pop → push
 
-Last session (2026-06-17):
-- IBP_Forcasting.html: white theme permanent, Overall tab rebuilt with 4 KPI cards
-  (Overall Forecast ISG / Actuals / Accuracy / Variance) and 4 charts
-  (Region Wise, QoQ, MoM, WoW-9wk). Changes local, not yet committed.
-- BPA_FORCASTING_MOCK.HTML has pre-existing uncommitted changes (unrelated).
+Modules: Forecast Accuracy | Actuals Profiling (Overall/ASU/Dispatch/SR tabs) |
+         Demand Alerts (tile removed from home, module exists) |
+         Data Management | What-If Simulation
 
-Read IMP_DOCS/ for full context:
-- HANDOFF.md      → this file (project overview + last session detail)
-- DESIGN_SYSTEM.md → CSS tokens, fonts, Chart.js
-- TECHNICAL.md    → architecture, What-If spec, Git workflow
-- PROMPT_TRAIL.md → full history of what was built and why
+Filters: shouldHideAll() guards all charts. LOB filter = ISG/ESG/HES.
+What-If: 2 sliders only (New Contracts Growth, APOS Renewal Rate). No Forecast Modifier.
+
+Read IMP_DOCS/ for full context before making changes.
 ```
