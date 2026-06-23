@@ -214,5 +214,23 @@ chart.update('none');  // 'none' = instant, no animation
 | Actuals | Blue (accent) | `#3a6ef0` | Solid line + fill |
 | Forecast | Green | `#16a34a` | Dashed `[8,4]` |
 | Adjusted Forecast | Amber | `#d97706` | Dotted `[3,3]` |
+| AOP Target | Indigo | `#6366f1` | Dash-dot `[10,3,3,3]` |
 | Over-forecast bar | Green | `rgba(22,163,74,0.75)` | Column fill |
 | Under-forecast bar | Red | `rgba(220,38,38,0.72)` | Column fill |
+
+## Product Group Colors (data.html LOB column)
+| Group | Hex |
+|---|---|
+| ISG | `#3a6ef0` |
+| ESG | `#16a34a` |
+| HES | `#7c3aed` |
+
+## Animated Counter Pattern
+For hero scores where a single number is the key insight (e.g. data health %). Count up from 0 using `requestAnimationFrame` with quadratic ease-in-out. One moment per page — nothing else animates.
+```js
+const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t;
+// Always respect prefers-reduced-motion: skip animation if media query matches
+```
+
+## Completeness Bar Pattern
+Render at `width:0%` first, then flip to target in a `requestAnimationFrame` callback. CSS `transition: width 0.7s cubic-bezier(.4,0,.2,1)` handles the visual. Colour threshold: ≥99% green, ≥95% amber, else red.

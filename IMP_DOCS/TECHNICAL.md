@@ -262,8 +262,80 @@ let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
 // Default produces ~7.6% ASU lift
 ```
 
+## data.html — Standalone Architecture
+
+### Tab Switching (lightweight, no router)
+```js
+const tabInited = {};
+function switchTab(tab, btn) {
+  document.querySelectorAll('.dm-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.dm-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (!tabInited[tab]) { tabInited[tab] = true; setTimeout(() => initTab(tab), 80); }
+}
+// setTimeout(80) matches BPA pattern — ensures DOM is visible before Chart.js measures container
+```
+
+### Seeded Data Generation
+```js
+const rng = seeded(1618);  // named rng to avoid collision with inner .map(d => ...) vars
+const rawData = Array.from({length:150}, (_, i) => {
+  const region  = REGIONS[Math.floor(rng() * 3)];
+  // ... all fields generated deterministically from the same seed chain
+  const status  = rng() < 0.073 ? 'Needs Review' : 'Within Tolerance'; // ~7.3% anomaly
+  return { idx:i+1, region, subregion, partner, lob, fy:'FY26', quarter, week, sr, fasu, tasu, fdsr, status };
+});
+```
+
+### Animated Counter Pattern (Data Quality hero)
+```js
+function animateCounter(target) {
+  const el = document.getElementById('dq-num');
+  const dur = 1100, t0 = performance.now();
+  const ease = t => t < .5 ? 2*t*t : -1+(4-2*t)*t;  // quadratic ease-in-out
+  const tick = now => {
+    const p = Math.min((now - t0) / dur, 1);
+    el.textContent = ((target) * ease(p)).toFixed(1);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+// Respects prefers-reduced-motion via CSS: .comp-fill { transition: none; }
+// Only called once per tab visit (guarded by tabInited)
+```
+
+### CSS Progress Bars (animated via requestAnimationFrame)
+```js
+// Render bars at width:0% first, then flip to target after paint:
+grid.innerHTML = fields.map(f => `
+  <div class="comp-fill" style="width:0%;background:${col}" data-target="${p}"></div>
+`).join('');
+requestAnimationFrame(() => {
+  document.querySelectorAll('.comp-fill[data-target]').forEach(el => {
+    el.style.width = el.dataset.target + '%';
+  });
+});
+// CSS transition: width 0.7s cubic-bezier(.4,0,.2,1) — browser handles the animation
+```
+
+### Export Pattern (no server needed)
+```js
+function exportCSV() {
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'isg-bpa-data.csv'; a.click();
+}
+// Same pattern for JSON: JSON.stringify(rawFiltered, null, 2)
+```
+
+---
+
 ## Future Work (BPA_FORCASTING_MOCK.HTML)
 See `TODO` file for full backlog. Key items:
+- Merge Week.html SR/ASU/Dispatch switcher behaviour into BPA after review
+- Merge data.html Data Management tabs into BPA after review
 - Quarter filter: actual data slicing for QoQ chart
 - Per-quarter drill-down from QoQ → weekly breakdown
 - Demand Trends: FY YoY comparison overlay

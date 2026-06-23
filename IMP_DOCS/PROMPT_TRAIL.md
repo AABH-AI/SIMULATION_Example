@@ -1,6 +1,6 @@
 # Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-06-23
+> Last updated: 2026-06-23 (Session 22)
 
 ---
 
@@ -264,3 +264,48 @@
 - **`initForecastTrendChart()`**: generates ASU data (base ~295K/week, growth) and Dispatch data (base ~6200/week, decline) alongside SR using seeded PRNG; populates `_ftMetricData`
 - **`updateForecastTrendChart()`**: reads `_ftMetricData[_ftMetric]` for actuals/forecast/adj; updates y-axis format callback on each call
 - **`switchChartMetric(metric, btnEl)`**: new function — sets `_ftMetric`, updates button states, updates title/sub elements, calls `updateForecastTrendChart()`
+
+---
+
+## Session 22 — data.html: standalone Data Management dashboard (3 tabs)
+**Date**: 2026-06-23 | **Commit**: `(current)`
+**Files**: `data.html`, `IMP_DOCS/`
+**Prompts**:
+- Build a standalone `data.html` from scratch (not a BPA copy) after reading all IMP_DOCS
+- Best shot — purpose-built for Data Management with Data Overview, Data Quality, Full Raw View
+- Follow design system exactly; no pie charts; one aesthetic risk
+
+**Design decisions**:
+- Design system applied exactly: `--bg #f0f3fc`, `--accent #3a6ef0`, Plus Jakarta Sans + IBM Plex Mono, no pie/donut, Indian number format
+- **Aesthetic risk**: Data Quality tab opens with an animated counter (0.0 → real score in 1.1s, ease-in-out) for the overall data health %. One orchestrated moment, nothing else moves. Respects `prefers-reduced-motion`. Justified: data health is a single pass/fail number — the reveal mirrors how analysts wait for a result.
+- Completeness bars also animate via CSS transition (respects `prefers-reduced-motion`)
+- Copy written from the analyst's POV — verdict text changes based on score: ≥98% = "ready for forecasting", ≥95% = "minor issues", else = "clean before forecasting"
+- LOB values in raw table colour-coded by group colour (ISG=blue, ESG=green, HES=purple)
+- JSON export alongside CSV
+
+**Architecture** (`data.html`, 995 lines — standalone, no BPA dependencies):
+- Own CSS with exact BPA tokens; no external stylesheets beyond fonts/icons/Chart.js
+- `seeded(s)` PRNG → `rng` → 150 deterministic records (same pattern as BPA)
+- `rawData` array: region/subregion/partner/location/queue/lob/fy/quarter/month/week/sr/fasu/tasu/fdsr/status
+- ~7.3% anomaly rate (seeded): 11 records flagged "Needs Review"
+- `tabInited{}` map — tabs init lazily via `setTimeout(80)` on first visit (Chart.js pattern from TECHNICAL.md)
+- `chartInstances{}` store — destroy+recreate on tab re-visit (not used here since each tab inits once)
+- `mkChart(id, type, data, opts)` factory — null-safe, destroys existing before creating
+
+**Tab: Data Overview**:
+- Live-computed KPIs from `rawData` (anomaly count, avg completeness)
+- 3×1 row: Records by Region · Product Group Mix · Partner Coverage (horizontal bars)
+- 2-col row: Status by Region (stacked horiz bar) + Weekly SR by Region (3-line, seeded seasonal)
+
+**Tab: Data Quality**:
+- Animated health score hero (72px IBM Plex Mono, accent colour)
+- Dynamic verdict + description + summary pills (all computed from rawData)
+- Field completeness grid (10 fields, CSS progress bars, colour-coded)
+- Anomaly Rate by Quarter bar (green/amber/red by severity threshold)
+- SR range table: Min/Max/Avg/Std Dev per region (IBM Plex Mono)
+- Anomaly log: filtered table of flagged rows
+
+**Tab: Full Raw View**:
+- Sticky-header sortable table, 13 columns, search across all values
+- CSV + JSON export (filtered rows only)
+- LOB column colour-coded (ISG blue, ESG green, HES purple)
