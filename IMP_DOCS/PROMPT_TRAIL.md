@@ -1,6 +1,6 @@
 # Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-06-18
+> Last updated: 2026-06-22
 
 ---
 
@@ -38,64 +38,8 @@
 
 ---
 
-## Session 5 — What-If Simulation Rebuild
-**What was rebuilt**:
-- Monthly axis Feb→Jan, band-fill area charts
-- 3 sliders: APOS Renewal Rate / New Contracts Growth / Forecast Modifier
-- Renewed Units Override with en-IN comma formatting
-- `wiCompute()` calibrated to +8.6% ASU lift at defaults
-
----
-
-## Session 6 — Slider → Chart Fix
-**Root cause**: Chart.js destroy+recreate on every `oninput` corrupted canvas context.
-**Fix**: Smart in-place update — if instances exist, update `.data.datasets[1].data` + `.update('none')`.
-
----
-
-## Session 7 — Push prompt.md Only
-Committed and pushed only `prompt.md` from lovable AI format folder; PNG screenshots excluded.
-
----
-
-## Session 8 — IMP_DOCS Created
-**Files**: `IMP_DOCS/HANDOFF.md`, `DESIGN_SYSTEM.md`, `TECHNICAL.md`, `PROMPT_TRAIL.md`
-Replaced stale root-level handoff files with 4 focused docs in `IMP_DOCS/`.
-
----
-
-## Session 9 — IBP Restructure: Actuals Profiling + CLAUDE.md
-**Files**: `IBP_Forcasting.html`, `CLAUDE.md`
-**Prompts**:
-- Remove Demand Planning Alerts tile from landing page
-- Rename Demand Profiling → Actuals Profiling
-- Remove Field Services, Care, Contracts Forecast, APOS, SR, Dispatch channel tabs
-
-**What was done**:
-- Demand Planning Alerts tile removed from home (module HTML/JS kept but inaccessible)
-- Module renamed to "Actuals Profiling" in tile, nav, JS modules config
-- All 6 non-Overall channel tabs removed: HTML divs, chart inits, update functions, data constants all pruned
-- `FILTER_AWARE_CHARTS`, `switchChannel`, `applyAllFilteredCharts` cleaned up
-- `CLAUDE.md` added to repo root as Claude Code guidance file
-
----
-
-## Session 10 — LOB Filter + ASU/Dispatch/SR Tabs
-**Files**: `IBP_Forcasting.html`
-**Prompts**:
-- Remove Partner Name filter (Dell/OSP), add LOB filter with ISG/ESG/HES
-- Add channel tabs: ASU, Dispatch, SR to Actuals Profiling
-
-**What was done**:
-- Partner Name filter dropdown removed; LOB dropdown (ISG/ESG/HES) added in its place
-- `LOBS` constant updated from `['Field Services','Remote Support','Managed Services','Care']` to `['ISG','ESG','HES']`
-- `getFilteredRawData()` updated to filter by `active.lob` instead of `active.partner`
-- Channel tab bar restored with 4 tabs: Overall, ASU, Dispatch, SR
-- **ASU tab**: 4 KPIs + 4 charts (Overall ASU Monthly Trend in millions, New Contracts Trend, APOS Renewal bar+rate line, Decline Analysis)
-- **Dispatch tab**: 4 KPIs + Monthly Trend + Region Wise charts
-- **SR tab**: 4 KPIs + Monthly Trend + Region Wise charts
-- All new charts filter-aware; base data constants added (`AP_ASU_TREND_BASE`, `AP_NEW_CONTRACTS_BASE`, `AP_APOS_BASE`, `AP_DECLINE_BASE`, `AP_DSP_TREND_BASE`, `AP_SR_TREND_BASE`)
-- APOS Renewal chart uses mixed bar+line with dual Y-axes (units left, rate% right)
+## Sessions 5–10 — What-If Simulation Buildout
+(Various slider, chart, scenario, and publish page iterations in `IBP_Forcasting.html`)
 
 ---
 
@@ -104,51 +48,116 @@ Replaced stale root-level handoff files with 4 focused docs in `IMP_DOCS/`.
 **Prompts**:
 - Reorder What-If sliders: New Contract Growth first, APOS Renewal second
 - Rename Data Raw → Data Management
-- Update What-If tile stat to show lever names instead of "6 levers · 5 scenarios"
+- Update What-If tile stat to show lever names
 
 **What was done**:
 - `WI_SLIDERS` array reordered: growth (index 0), renewal (index 1)
-- Tile stat updated to: `New Contract Growth · APOS Renewal`
-- `modules['data-raw'].title` → `'Data Management'`; home tile title updated to match
+- `modules['data-raw'].title` → `'Data Management'`; home tile updated
 
 ---
 
 ## Session 12 — Remove Forecast Modifier + Hide Filters in What-If
 **Files**: `IBP_Forcasting.html`
-**Prompts**:
-- Remove Forecast Modifier slider from What-If
-- Hide Filters button when in What-If Simulation
-- Rename Data Raw → Data Management (confirmed from Session 11)
-
 **What was done**:
-- `WI_SLIDERS`: removed `{ key:'modifier', ... }` entry
-- `wiState`: removed `modifier: 2`
-- `wiCompute()`: removed all `st.modifier` terms from asuMult, whatifSR, whatifDisp formulas
-- Saved scenarios: `modifier` property removed from all 5 defaults + save/load code
-- Filter toggle button given `id="filter-toggle-btn"` for targeting
-- `openDashboard()`: hides filter button + auto-collapses right panel when `moduleId === 'whatif'`; restores button for all other modules
+- `WI_SLIDERS`: removed `{ key:'modifier', ... }` entry; `wiState.modifier` removed
+- `wiCompute()`: removed all `st.modifier` terms from all formulas
+- `openDashboard()`: hides filter button + auto-collapses right panel for What-If
 
 ---
 
 ## Session 13 — Universal Filter Enforcement + KPI Sanity
 **Files**: `IBP_Forcasting.html`
-**Prompts**:
-- Filters not working for ASU/Dispatch/SR (Month filter not updating charts)
-- Filter should reset when switching channel tabs
-- KPI cards showing invalid values like "110% accuracy"
-
 **Root causes**:
-1. All chart update functions only checked `mult === 0` (FY empty) — Quarter, Month, Region empty states were silently ignored
+1. Chart update functions only checked `mult === 0` — Quarter/Month/Region empty states silently ignored
 2. `switchChannel()` had no filter reset
-3. `triggerDataUpdate()` fluctuated % values by ±10% with no cap, and didn't handle `M` suffix values
+3. `triggerDataUpdate()` fluctuated % values with no cap
 
 **What was fixed**:
-- Added `shouldHideAll()` — returns `true` if any of FY/Quarter/Month/Region has 0 items selected
-- Added `getSelectedQuarters()` — returns selected quarter labels for QoQ chart rendering
-- Added `getSelectedFiscalMonthIndices()` + `AP_MONTHS`/`Q_MONTH_IDX`/`M_LABEL_IDX` constants — maps Q/M filter to 0–11 month indices in 12-month Feb→Jan data arrays
-- **Every chart update function** now calls `shouldHideAll()` — sets empty labels+data arrays when true
-- `updateDPOverallQoQChart()`: now renders only selected quarters as bars
-- `updateDPOverallMoMChart()`: now uses `getSelectedFiscalMonthIndices().filter(i < 6)` to slice M1–M6 data
-- All 6 AP update functions use `getSelectedFiscalMonthIndices()` + `shouldHideAll()`
-- `switchChannel()`: calls `resetFilters()` before showing new channel — fresh filter state on every tab switch
-- `triggerDataUpdate()`: % values capped 0–99.9%, `M` suffix handled (was collapsing `1.47M` → `1`), signed values (`+4.8%`) skipped, variance reduced from ±10% to ±5%
+- Added `shouldHideAll()` — returns `true` if any of FY/Quarter/Month/Region has 0 selected
+- Added `getSelectedQuarters()`, `getSelectedFiscalMonthIndices()`, `AP_MONTHS`/`Q_MONTH_IDX`
+- Every chart update function calls `shouldHideAll()` guard
+- `switchChannel()`: calls `resetFilters()` on every tab switch
+- `triggerDataUpdate()`: % capped 0–99.9%, M suffix handled, signed values skipped
+
+---
+
+## Session 14 — BPA_FORCASTING_MOCK.HTML: Actuals Profiling Rebuild
+**Files**: `BPA_FORCASTING_MOCK.HTML`
+**Prompts**:
+- Rebuild Actuals Profiling quadrant charts with monthly data and no fill
+- Add CV info "i" button on X-axis label
+- Add "Demand Trends" as a second sub-page (WoW / MoM / QoQ)
+
+**What was built**:
+- Replaced 28-pt quarterly Chart.js charts with 84-pt monthly series (2016–2022)
+- Removed fill; X-axis shows year labels only via tick callback
+- Seeded PRNG (`seeded(n)`) for reproducible mock data per demand category
+- CV tooltip popup with formula (CV = Std Dev ÷ Mean), Low/High interpretation
+- `toggleCVTooltip()` with outside-click dismissal
+- New modules config entry: `demand-profiling` now has 2 pages: Profiling Overview + Demand Trends
+- `dp-page-trends` HTML section with WoW/MoM/QoQ cards, each with `<canvas>` in a `.dp-trend-canvas-wrap`
+- `initDemandTrends()`: Chart.js bar+line mixed charts, green/red color-coded columns, dashed % change overlay
+
+---
+
+## Session 15 — Filter-Aware Actuals Profiling + Product Group Rename
+**Files**: `BPA_FORCASTING_MOCK.HTML`, `TODO`
+**Prompts**:
+- Make quadrant + trend charts respond to FY and LOB filters
+- Rename LOB → Product Group (ESG / HES / ISG)
+- Remove "SKUs" suffix from KPI card labels
+- Reset filters when switching between sub-pages
+- Create TODO backlog file
+
+**What was done**:
+- KPI labels: "Consistent SKUs" → "Consistent" (all 4 cards)
+- Filter panel label: "LOB" → "Product Group" (internal `data-group="lob"` kept for compatibility)
+- Table column headers + CSV/Excel export headers: "LOB" → "Product Group"
+- `DP_LOB_SHARE = { ISG:0.60, ESG:0.25, HES:0.15 }` — demand shares for quadrant scaling
+- `DP_TREND_PG` — exact per-product-group demand arrays (ISG+ESG+HES = combined totals)
+- `getDPLOBMult()` — returns sum of selected group shares (1.0 for All)
+- `updateDPQuadrantCharts()` — scales `_dpBaseData` arrays by LOB × FY multiplier
+- `updateDemandTrends()` — sums `DP_TREND_PG` for selected groups, scales by FY, recalculates % change
+- `_dpBaseData` global — stores raw seeded data set by `initDemandProfilingQuadrants()`
+- `resetDPFilters()` renamed to `resetPageFilters()`; called in `switchPage()` for DP pages
+- `applyAllFilteredCharts()` now calls `updateDPQuadrantCharts()` + `updateDemandTrends()`
+- `TODO` file created with 7 backlog items
+
+---
+
+## Session 16 — Forecast Trend Sub-page + Two-Column Layout + Global Filter Reset
+**Files**: `BPA_FORCASTING_MOCK.HTML`
+**Prompts**:
+- Add new sub-page under Forecast Accuracy for SR Actuals / Forecast / Adjusted Forecast chart
+- Reference: MDR chart (Image #1) + whiteboard sketch (Image #2)
+- Add a second column to make it more professional
+- Global filter reset on every page switch
+
+**What was built**:
+
+### Forecast Trend page (`fa-page-forecast-trend`)
+- Added as 4th tab under Forecast Accuracy in `modules` config
+- Two-column `visual-row` layout:
+  - **Left** (flex 1.8): SR weekly Chart.js line chart, FY26 W01–W52
+    - Actuals: solid blue line with subtle fill under (W01–W22)
+    - Forecast: long-dashed green `[8,4]` (W22–W52)
+    - Adjusted Forecast: short-dotted amber `[3,3]` (W22–W52)
+    - Vertical divider at W22: Chart.js inline plugin (`vertDivider`) with pill label
+    - SVG inline legend in card header (exact dash patterns shown)
+  - **Right** (flex 1): Forecast Error bars + stat tiles
+    - Bar chart: `(planForecast - actuals) / actuals × 100` per week (W01–W22)
+    - Green = over-forecast, red = under-forecast
+    - Zero reference line via `grid.color` callback
+    - 4 `.ft-stat-tile` tiles: **MAPE**, **Bias** (color-coded), **Best Week**, **Worst Week**
+- KPI strip: Current Week, Last Actual SR, YTD Forecast Error (MAPE), Forecast Bias
+- `_ftBaseData` stores: actuals, forecast, adjForecast, planForecast, weeks, TODAY_IDX
+- `_ftUpdateKPIs()` helper updates all KPI chips + stat tiles
+- `updateForecastTrendChart()` — in-place filter update (LOB + FY scaling)
+- `initForecastTrendChart()` initializes both charts and calls `_ftUpdateKPIs()`
+
+### Global filter reset
+- `resetPageFilters()` replaces `resetDPFilters()` (alias kept for compatibility)
+  - Resets: FY → FY26 only, Quarter → Q1, LOB → All
+  - Also closes any open filter dropdowns via `classList.remove('open')`
+- **Called at the start of every `switchPage()` call** — all page switches reset filters
+- `applyAllFilteredCharts()` now also calls `updateForecastTrendChart()`

@@ -1,120 +1,208 @@
 # Technical Reference — ISG BPA
-> Architecture, What-If Simulation spec, Git workflow. Last updated: 2026-06-16
+> Architecture, filter system, chart patterns, Git workflow. Last updated: 2026-06-22
 
 ---
 
-## IBP_Forcasting.html — Module Architecture
+## Two Active Files
+
+| File | Status | Sessions |
+|---|---|---|
+| `BPA_FORCASTING_MOCK.HTML` | **Active development** | 14–current |
+| `IBP_Forcasting.html` | Stable, not under active development | 1–13 |
+
+---
+
+## BPA_FORCASTING_MOCK.HTML — Architecture
 
 ### Router Functions
 ```js
-openDashboard(moduleId)  // activates module, updates breadcrumb + nav highlight
-switchPage(pageId)        // shows/hides sub-pages within active module
+openDashboard(moduleId)   // activates module, builds left nav, calls setTimeout(initCharts, 80)
+switchPage(pageId, ...)   // shows/hides sub-pages; calls resetPageFilters() first on every call
 ```
 
 ### Chart Stores
-- `chartInstances` — holds Chart.js instances for the 4 original modules
-- `wiCharts` — holds Chart.js instances for What-If Simulation
-- Both must be updated on theme toggle (common bug: only iterating one)
-
-### Module Init
 ```js
-// In openDashboard():
-if (moduleId === 'whatif') { setTimeout(wiInit, 80); }
-else { setTimeout(initCharts, 80); }
+const chartInstances = {};  // all Chart.js instances (FA, DP quadrants, Demand Trends, FT)
+const wiCharts = {};        // What-If Simulation charts (managed separately)
+let _dpBaseData = null;     // raw seeded data for quadrant charts (set in initDemandProfilingQuadrants)
+let _ftBaseData  = null;    // raw seeded data for SR trend charts (set in initForecastTrendChart)
 ```
 
-### Theme Toggle (correct pattern)
+`initCharts()` destroys all `chartInstances` and reinitialises on every `openDashboard()`.
+
+### Module Init Pattern
 ```js
-function toggleTheme() {
-  isDark = !isDark;
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
-  Object.values(chartInstances).forEach(c => { if(c) { updateChartTheme(c); c.update(); }});
-  Object.values(wiCharts).forEach(c => { if(c) { updateChartTheme(c); c.update(); }});
+// openDashboard():
+if (moduleId === 'whatif') { setTimeout(wiInit, 80); }
+else { setTimeout(initCharts, 80); }
+// initCharts() calls: mk() × 3 (FA charts), initDemandProfilingQuadrants(),
+//                    initDemandTrends(), applyAllFilteredCharts()
+// Forecast Trend is lazy: switchPage → setTimeout(initForecastTrendChart, 80)
+```
+
+### switchPage() — full dispatch table
+```js
+function switchPage(pageId, linkEl, moduleId, label) {
+  // ... show/hide pages, update nav + breadcrumb ...
+  resetPageFilters();  // fires on EVERY page switch
+  if (pageId === 'dr-page-raw')           renderRawTable();
+  if (pageId === 'da-page-log')           renderAlerts('all');
+  if (pageId === 'fa-page-actuals')       generateActualsTable();
+  if (pageId === 'fa-page-partner')       generatePartnerTable();
+  if (pageId === 'fa-page-forecast-trend') setTimeout(initForecastTrendChart, 80);
+  if (pageId === 'wi-page-sim')           setTimeout(wiRenderAll, 60);
+  if (pageId === 'wi-page-scenarios')     wiRenderAIInsights(); wiRenderScenarios();
+  if (pageId === 'wi-page-publish')       wiRenderPublishReadiness(); wiRenderAudit();
+  if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
+    updateDPQuadrantCharts(); updateDemandTrends();
+  }
 }
 ```
 
 ---
 
-## What-If Simulation — Full Spec
+## Filter System
 
-### Base Constants
+### getActiveFilters()
 ```js
-const WI_MONTHS = ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'];
-const WI_BASE = {
-  asu: 1350000, sr: 587000, disp: 233700,
-  renewalOppQty: 284500, baseRenewalRate: 85.3,
-  renewedUnits: 242678, newContracts: 73140, asuContrib: 612.4e6,
+// Returns { group: [values] } for groups with specific selections.
+// If "(All)" is checked, the group key is ABSENT from the returned object (= all values).
+// If nothing is checked, group key is present with empty array [] (= show nothing).
+getActiveFilters()   // → e.g. { fy: ['FY26'], lob: ['ISG','ESG'] }
+```
+
+### resetPageFilters()
+```js
+function resetPageFilters() {
+  // FY → FY26 only, Quarter → Q1, LOB → All (the "(All)" checkbox)
+  // Closes open filter dropdowns
+  updateFilterChips();
+}
+const resetDPFilters = resetPageFilters; // backward-compat alias
+```
+
+### Product Group (LOB) Filter
+Display label: "Product Group". Internal `data-group`: `"lob"`. Values: All / ISG / ESG / HES.
+```js
+const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
+
+function getDPLOBMult() {
+  const f = getActiveFilters();
+  if (!f.lob || f.lob.length === 0) return 1.0;
+  return f.lob.reduce((s, pg) => s + (DP_LOB_SHARE[pg] || 0), 0);
+}
+// ISG only: 0.60, ESG only: 0.25, ISG+ESG: 0.85, all three: 1.0
+```
+
+### applyAllFilteredCharts()
+```js
+function applyAllFilteredCharts() {
+  updateFARegionChart();        // FA region bar
+  updateFAPartnerChart();       // Partner MDR
+  updateFAOverviewChart();      // FA overview line
+  updateDPQuadrantCharts();     // scale quadrant data by LOB × FY
+  updateDemandTrends();         // sum DP_TREND_PG by product groups × FY
+  updateForecastTrendChart();   // scale SR trend + error chart by LOB × FY
+}
+```
+
+---
+
+## Actuals Profiling Charts
+
+### Quadrant Data Pattern
+```js
+// initDemandProfilingQuadrants() stores base data then scales via filter
+_dpBaseData = { consistent, erratic, intermittent, lumpy };
+
+function updateDPQuadrantCharts() {
+  if (!_dpBaseData) return;
+  const mult = getDPLOBMult() * getActiveFYMultiplier();
+  ['consistent','erratic','intermittent','lumpy'].forEach(key => {
+    const c = chartInstances['dp-chart-' + key];
+    if (!c) return;
+    c.data.datasets[0].data = _dpBaseData[key].map(v => Math.round(v * mult));
+    c.update('none');
+  });
+}
+```
+
+### Demand Trends Pattern
+```js
+// Per-product-group demand arrays — ISG+ESG+HES = combined totals
+const DP_TREND_PG = {
+  ISG: { wow: [...], mom: [...], qoq: [...] },  // 60% of total
+  ESG: { wow: [...], mom: [...], qoq: [...] },  // 25%
+  HES: { wow: [...], mom: [...], qoq: [...] },  // 15%
 };
-const WI_ASU_SHAPE  = [0.756,0.793,0.831,0.815,0.800,0.808,0.816,0.920,1.020,1.095,1.148,1.125];
-const WI_SR_SHAPE   = [0.970,1.020,0.985,0.880,0.815,0.780,0.815,0.969,1.055,1.122,1.156,1.190];
-const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.105,1.155,1.200];
-```
 
-### Sliders
-```js
-const WI_SLIDERS = [
-  { key:'renewal',  label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
-  { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
-  { key:'modifier', label:'Forecast Modifier',     min:-15, max:25,  step:1,   val:2,    fmt: v => (v>=0?'+':'')+v+'%' },
-];
-let wiState = { renewal:89.5, growth:8, modifier:2, unitsOverride:'' };
-```
-
-### Compute Formula
-Calibrated so defaults produce: +8.6% ASU lift → 1,466,100 ASU | 629K SR | 247K dispatches.
-```js
-function wiCompute(st) {
-  const rRate = st.renewal / 100, baseR = WI_BASE.baseRenewalRate / 100;
-  const asuMult = 1 + (st.growth/100)*0.8 + (st.modifier/100)*0.5 + (rRate/baseR - 1)*0.25;
-  const whatifASU  = Math.round(WI_BASE.asu  * asuMult);
-  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2  + (st.modifier/100)*0.3));
-  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15 + (st.modifier/100)*0.2));
-  const renewedUnits    = st.unitsOverride
-    ? (parseInt(st.unitsOverride) || WI_BASE.renewedUnits)
-    : Math.round(WI_BASE.renewalOppQty * rRate);
-  const newContracts    = Math.round(WI_BASE.newContracts * (1 + st.growth/100));
-  const aposRenewals    = Math.round(renewedUnits * 2840);
-  const newContractsVal = Math.round(newContracts * 2754);
-  return {
-    whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, aposRenewals, newContractsVal,
-    asuDelta: whatifASU - WI_BASE.asu,
-    srDelta: whatifSR - WI_BASE.sr,
-    dispDelta: whatifDisp - WI_BASE.disp,
-    growthPct: (whatifASU / WI_BASE.asu - 1) * 100,
-  };
+function updateDemandTrends() {
+  const selPGs = (!f.lob || f.lob.length===0) ? ['ISG','ESG','HES'] : f.lob;
+  // sum demand arrays for selected groups, scale by FY mult, recalculate % change
+  // update bar colors (green/red) + line data in-place, call c.update('none')
 }
 ```
 
-### Smart Chart Update Pattern
-Avoids destroy/recreate on every slider `oninput` (would corrupt canvas at 60fps).
+---
+
+## Forecast Trend Charts
+
+### Data Stores
 ```js
-function wiRenderCharts() {
-  const d = _wiChartData();
-  if (wiCharts['wi-chart-asu'] && wiCharts['wi-chart-sr'] && wiCharts['wi-chart-dp']) {
-    // In-place update — no flicker, no canvas corruption
-    wiCharts['wi-chart-asu'].data.datasets[1].data = d.asuAdj;
-    wiCharts['wi-chart-asu'].update('none');
-    wiCharts['wi-chart-sr'].data.datasets[1].data = d.srAdj;
-    wiCharts['wi-chart-sr'].update('none');
-    wiCharts['wi-chart-dp'].data.datasets[1].data = d.dpAdj;
-    wiCharts['wi-chart-dp'].update('none');
-    return;
+_ftBaseData = { actuals, forecast, adjForecast, planForecast, weeks, TODAY_IDX }
+// actuals:      W01–W22, declining ~612K → ~576K with noise (seeded 42)
+// forecast:     W22–W52, smooth decline from lastActual (seeded 77)
+// adjForecast:  W22–W52, less steep, manually lifted (seeded 13)
+// planForecast: W01–W22, flat ~607K historical plan (seeded 88) — used for error bars
+```
+
+### Chart.js Inline Plugin Pattern (vertical divider)
+```js
+const vertDivider = {
+  id: 'ft_divider',
+  afterDraw(chart) {
+    const px = chart.scales.x.getPixelForValue(TODAY_IDX);
+    // draw dashed vertical line + pill label using canvas ctx
   }
-  // First render: create charts from scratch (fill:'-1' for band between base and adjusted)
+};
+chartInstances[mainId] = new Chart(mainEl, { type:'line', plugins:[vertDivider], ... });
+```
+
+### Error Chart — Zero Reference Line
+```js
+// Dark gridline at y=0 to act as reference without needing an annotation plugin:
+y: { grid: { color: ctx => ctx.tick.value === 0 ? 'rgba(0,0,0,0.2)' : gridColor() } }
+```
+
+### KPI + Stat Tiles Update Helper
+```js
+function _ftUpdateKPIs(sA, sF, sAd, errors, errWeeks, TODAY_IDX) {
+  // Updates: ft-last-actual, ft-mape-kpi, ft-bias-kpi (KPI strip)
+  //          ft-mape, ft-bias, ft-best-week, ft-worst-week (stat tiles in right panel)
+  // Bias color: |bias|<2% → green, >0 → amber, <0 → red
+  // MAPE color: <4% → green, 4–8% → amber, >8% → red
 }
 ```
 
-### Renewed Units Override Input
+---
+
+## CV Info Tooltip Pattern
+```html
+<!-- X-axis label with inline info button -->
+<div class="cv-tooltip-wrap">
+  <span class="dp-x-text">Coefficient of Variation (Demand)</span>
+  <button class="cv-info-btn" onclick="toggleCVTooltip(event)">i</button>
+  <div id="cv-tooltip-box" class="cv-tooltip-box" style="display:none;">
+    <!-- CV formula + Low/High interpretation -->
+  </div>
+</div>
+```
 ```js
-// HTML: <input type="text" inputmode="numeric" oninput="wiUnitsInput(this)">
-function wiUnitsInput(el) {
-  const digits = el.value.replace(/[^0-9]/g, '');
-  if (!digits) { wiState.unitsOverride = ''; el.value = ''; return; }
-  const n = parseInt(digits, 10);
-  el.value = n.toLocaleString('en-IN');  // 5,00,000 format
-  wiState.unitsOverride = n;
-  wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
+function toggleCVTooltip(e) {
+  e.stopPropagation();
+  const box = document.getElementById('cv-tooltip-box');
+  box.style.display = box.style.display !== 'none' ? 'none' : 'block';
+  // registers one-shot outside-click listener to close
 }
 ```
 
@@ -129,11 +217,11 @@ $git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
 
 ### Standard Push Sequence
 ```powershell
-$git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
-cd "D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations"
 & $git add <files>
 & $git commit -m "message"
+& $git stash
 & $git pull --rebase origin master   # always — GH Actions pushes manifest.json after each push
+& $git stash pop
 & $git push origin master
 ```
 
@@ -148,22 +236,35 @@ icacls .git\objects /grant "${env:USERNAME}:(OI)(CI)F" /T
 
 | Issue | Root Cause | Fix Applied |
 |---|---|---|
-| Light theme nav stayed dark | `--nav-bg/#nav-hover` in `[data-theme="light"]` were still dark navy hex values | Changed to `#ffffff` / `#eef1fc` |
-| WI charts not updating on theme toggle | `toggleTheme()` only iterated `chartInstances`, not `wiCharts` | Added `Object.values(wiCharts).forEach(...)` |
-| Sliders not affecting charts | `wiRenderCharts()` destroyed/recreated chart instances on every `oninput` | Smart in-place update pattern (see above) |
-| `wiRenderCompTable` crash | Function referenced `wi-comp-table` element that was removed during restructure | Removed call from `wiRenderAll()` |
-| Old slider keys in code | After WI_SLIDERS rebuild, `wiState.srint / .disp / .units` were still referenced in insights/save/publish | Updated all references to `renewal`, `growth`, `modifier` |
-| Push rejected (remote ahead) | GH Actions auto-commits manifest.json after every push | Always `git pull --rebase origin master` before push |
+| Highcharts charts not rendering | Containers measured 0-width when module hidden at init time | Reverted to Chart.js; Highcharts removed |
+| Quadrant charts blank on load | Chart.js initialised before module becomes visible | `initCharts` called via `setTimeout(80)` after module is shown |
+| Filter reset only for DP pages | `resetDPFilters` only called for demand-profiling sub-pages | Renamed to `resetPageFilters`, called at top of every `switchPage` |
+| LOB label vs internal key | Display rename to "Product Group" but `data-group="lob"` kept | Intentional: avoids breaking `getActiveFilters()` and all filter logic |
+| Push rejected (remote ahead) | GH Actions auto-commits manifest.json after every push | Always `git stash → pull --rebase → stash pop → push` |
 | Git permission denied on objects | NTFS ACL issue on `.git/objects` | `icacls .git\objects /grant ...` |
 
 ---
 
-## Future Work (not committed)
+## IBP_Forcasting.html — Architecture (legacy reference)
 
-- [ ] Connect `wiCompute()` to real backend data
-- [ ] Scenario Save/Load to localStorage in What-If module
-- [ ] Fill `wi-page-publish` (Forecast Publish sub-page — currently scaffolded, empty)
-- [ ] 4th Primary Tool on landing page (e.g., Executive Summary)
-- [ ] Mobile-responsive breakpoints for IBP dashboard
-- [ ] User authentication layer
-- [ ] Export to PDF from What-If results
+### Chart Stores
+- `chartInstances` — FA, Demand Profiling, Alerts, Raw Data charts
+- `wiCharts` — What-If Simulation charts only
+- Both must be updated on theme toggle
+
+### What-If Compute (current — no Forecast Modifier)
+```js
+const WI_SLIDERS = [
+  { key:'growth',  label:'New Contracts Growth', min:-20, max:50,  step:1,   val:8    },
+  { key:'renewal', label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+];
+let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
+// Default produces ~7.6% ASU lift
+```
+
+## Future Work (BPA_FORCASTING_MOCK.HTML)
+See `TODO` file for full backlog. Key items:
+- Quarter filter: actual data slicing for QoQ chart
+- Per-quarter drill-down from QoQ → weekly breakdown
+- Demand Trends: FY YoY comparison overlay
+- Profiling Overview: scatter-plot (Occurrence % vs CV %) for individual SKU placement
