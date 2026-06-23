@@ -229,3 +229,18 @@
   - Dispatch accuracy = `97.1% + (fyMult - 1.0) × 1.2` (calibrated mock base, FY-scaled)
   - Color coding: ≥95% → green, ≥90% → amber, <90% → red
   - Period sub-label shows "Overall · W01–W22" (current week from weeks array)
+
+---
+
+## Session 20 — Rename "Demand by LOB" + IMP_DOCS sync
+**Date**: 2026-06-23 | **Commit**: `(current)`
+**Files**: `Week.html`, `IMP_DOCS/HANDOFF.md`, `IMP_DOCS/PROMPT_TRAIL.md`
+**Prompts**:
+- Rename "Demand by LOB — Fiscal Week" chart — doesn't fit Forecast Accuracy context
+- Chosen name: **"Weekly LOB Breakdown"**
+- Update all IMP_DOCS to reflect current state
+
+**What was changed**:
+- `Week.html`: chart title + HTML comment renamed to "Weekly LOB Breakdown"
+- `HANDOFF.md`: Forecast Trend right-panel description updated to current state (Weekly LOB Breakdown, AOP line details, `updateLOBWeeklyChart` behaviour)
+- `PROMPT_TRAIL.md`: this entry added

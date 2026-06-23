@@ -55,17 +55,21 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_fo
 
 Color coded: ≥95% green · ≥90% amber · <90% red.
 
-**Two-column layout:**
+**Two-column layout (BPA_FORCASTING_MOCK.HTML):**
 - **Left (~65%)** — SR weekly line chart, FY26 W01–W52
-  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast
+  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast, indigo dash-dot = AOP target
+  - AOP line: per-FY flat target (`AOP_FY_TARGETS`), always visible regardless of filter state
   - Inline Chart.js plugin draws vertical "▶ Current Week" divider at W22
   - Responds to FY + Product Group filters via `updateForecastTrendChart()`
-- **Right (~35%)** — Forecast Error bar chart + 4 stat tiles
-  - Green bars = over-forecast weeks, red = under-forecast
-  - Zero-reference line via grid color callback
-  - Tiles: MAPE, Bias (color-coded), Best Week, Worst Week (IBM Plex Mono, IDs: `ft-mape`, `ft-bias`, `ft-best-week`, `ft-worst-week`)
+- **Right (~35%)** — **Weekly LOB Breakdown** (`fa-chart-lob-weekly`)
+  - 5 static multi-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
+  - X-axis: W01–W52, always all 52 weeks — no filter affects it except Week filter (all-unchecked → blank)
+  - SR / ASU / Dispatch toggle buttons switch the Y-axis metric via `switchLOBMetric()`
+  - Completely static: `updateLOBWeeklyChart()` only blanks when Week filter has zero items
 
-Base data stored in `_ftBaseData` for in-place filter updates.
+**Week.html prototype** adds SR / ASU / Dispatch metric switcher to the left chart too.
+
+Base data: `_ftBaseData` (SR trend), `LOB_WEEKLY_DATA` (LOB lines, generated once via seeded PRNG).
 
 ---
 
