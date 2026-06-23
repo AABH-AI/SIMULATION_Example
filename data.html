@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>Data Management — ISG BPA</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -611,6 +611,39 @@
     .lob-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; font-size:10.5px; color:var(--text-2); align-items:center; }
     .lob-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; vertical-align:middle; }
 
+    /* ── Data Management: Overview & Quality ───────────────── */
+    .dr-completeness-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:12px 28px; padding:4px 0;
+    }
+    .dr-comp-item { display:flex; flex-direction:column; gap:5px; }
+    .dr-comp-header { display:flex; justify-content:space-between; align-items:center; }
+    .dr-comp-label { font-size:12px; font-weight:600; color:var(--text-1); }
+    .dr-comp-pct { font-size:13px; font-weight:700; font-family:'IBM Plex Mono',monospace; }
+    .dr-comp-bar-wrap {
+      height:7px; background:var(--card-hi); border-radius:4px; overflow:hidden;
+    }
+    .dr-comp-bar { height:100%; border-radius:4px; transition:width 0.6s ease; }
+
+    .dr-stat-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:4px;
+    }
+    .dr-stat-card {
+      background:var(--card-hi); border:1px solid var(--border); border-radius:8px;
+      padding:10px 14px; display:flex; flex-direction:column; gap:2px;
+    }
+    .dr-stat-label { font-size:10px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.07em; }
+    .dr-stat-value { font-size:22px; font-weight:700; font-family:'IBM Plex Mono',monospace; color:var(--text-1); }
+    .dr-stat-sub { font-size:10px; color:var(--text-3); }
+
+    .dr-range-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .dr-range-table th { text-align:left; padding:6px 10px; font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); }
+    .dr-range-table td { padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text-1); }
+    .dr-range-table tr:last-child td { border-bottom:none; }
+    .dr-range-table td:not(:first-child) { font-family:'IBM Plex Mono',monospace; }
+
+    .dr-quality-legend { display:flex; gap:14px; font-size:10.5px; color:var(--text-3); margin-bottom:6px; align-items:center; }
+    .dr-quality-legend-dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:3px; }
+
     .cv-info-btn {
       display:inline-flex; align-items:center; justify-content:center;
       width:16px; height:16px; border-radius:50%;
@@ -899,7 +932,142 @@
 
       <!-- ══ MODULE: DATA RAW ══ -->
       <div id="module-data-raw" class="module-section">
-        <div id="dr-page-raw" class="page-section active">
+
+        <!-- ── Data Overview ── -->
+        <div id="dr-page-overview" class="page-section active">
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Records</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dro-total">150</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Across all regions &amp; FYs</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Data Completeness</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="dro-completeness">98.2%</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Avg across all fields</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Anomalies Detected</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--red)" id="dro-anomalies">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Status ≠ Within Tolerance</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Duplicate Records</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--amber)">43</div>
+              <div class="kpi-sub" style="color:var(--text-2)">Pending deduplication</div>
+            </div>
+          </div>
+
+          <div class="visual-row">
+            <div class="visual-card" style="flex-direction:column;">
+              <div class="visual-title">Records by Region</div>
+              <div style="flex:1;min-height:180px;position:relative;">
+                <canvas id="dro-chart-region"></canvas>
+              </div>
+            </div>
+            <div class="visual-card" style="flex-direction:column;">
+              <div class="visual-title">Product Group Distribution</div>
+              <div style="flex:1;min-height:180px;position:relative;">
+                <canvas id="dro-chart-lob"></canvas>
+              </div>
+            </div>
+            <div class="visual-card" style="flex-direction:column;">
+              <div class="visual-title">Partner Coverage</div>
+              <div style="flex:1;min-height:180px;position:relative;">
+                <canvas id="dro-chart-partner"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="visual-row">
+            <div class="visual-card" style="flex:1.2; flex-direction:column;">
+              <div class="visual-title">Status by Region</div>
+              <div style="flex:1;min-height:200px;position:relative;">
+                <canvas id="dro-chart-status"></canvas>
+              </div>
+            </div>
+            <div class="visual-card" style="flex:2; flex-direction:column;">
+              <div class="visual-title">Weekly SR Trend by Region</div>
+              <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">FY26 W01–W52 · seeded mock actuals · three regions</div>
+              <div style="flex:1;min-height:200px;position:relative;">
+                <canvas id="dro-chart-sr-trend"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Data Quality ── -->
+        <div id="dr-page-quality" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-label">Avg Field Completeness</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="drq-avg-completeness">—</div>
+              <div class="kpi-sub">Across all 10 tracked fields</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Anomaly Rate</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="drq-anomaly-rate">—</div>
+              <div class="kpi-sub">% of rows flagged</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Highest Anomaly Quarter</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--red)" id="drq-worst-qtr">—</div>
+              <div class="kpi-sub">Needs attention</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Fields Below 95%</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="drq-low-fields">—</div>
+              <div class="kpi-sub">Completeness warning</div>
+            </div>
+          </div>
+
+          <div class="visual-row">
+            <div class="visual-card" style="flex:1.5; flex-direction:column; min-height:auto;">
+              <div class="visual-title" style="margin-bottom:10px;">Field Completeness</div>
+              <div class="dr-quality-legend">
+                <span><span class="dr-quality-legend-dot" style="background:var(--green)"></span>≥99% — Excellent</span>
+                <span><span class="dr-quality-legend-dot" style="background:var(--amber)"></span>95–98% — Acceptable</span>
+                <span><span class="dr-quality-legend-dot" style="background:var(--red)"></span>&lt;95% — Needs attention</span>
+              </div>
+              <div class="dr-completeness-grid" id="drq-completeness-grid"></div>
+            </div>
+            <div class="visual-card" style="flex:1; flex-direction:column;">
+              <div class="visual-title">Anomaly Rate by Quarter</div>
+              <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">% of records with status ≠ Within Tolerance</div>
+              <div style="flex:1;min-height:200px;position:relative;">
+                <canvas id="drq-chart-anomaly"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="visual-row">
+            <div class="visual-card" style="flex:1; flex-direction:column; min-height:auto;">
+              <div class="visual-title" style="margin-bottom:10px;">SR Actuals — Range by Region</div>
+              <table class="dr-range-table">
+                <thead><tr>
+                  <th>Region</th><th>Min</th><th>Max</th><th>Avg</th><th>Std Dev</th>
+                </tr></thead>
+                <tbody id="drq-sr-range-body"></tbody>
+              </table>
+            </div>
+            <div class="visual-card" style="flex:2; flex-direction:column; min-height:auto;">
+              <div class="visual-title">Anomaly Log</div>
+              <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;" id="drq-anomaly-count-sub">Records where status ≠ Within Tolerance</div>
+              <div class="table-wrap" style="max-height:260px;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th class="row-num">#</th>
+                    <th>Region</th><th>Partner</th><th>Week</th>
+                    <th>SR Actuals</th><th>FASU</th><th>Status</th>
+                  </tr></thead>
+                  <tbody id="drq-anomaly-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="dr-page-raw" class="page-section">
           <div class="kpi-row">
             <div class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dr-total-records">1,204</div></div>
             <div class="kpi-card"><div class="kpi-label">Data Completeness</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">98.2%</div></div>
@@ -1486,7 +1654,11 @@ function updateChartTheme(chart) {
 // MODULE CONFIG
 // =========================================================
 const modules = {
-  'data-raw': { title: 'Data Management', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
+  'data-raw': { title: 'Data Management', pages: [
+    { id: 'dr-page-overview', label: 'Data Overview' },
+    { id: 'dr-page-quality',  label: 'Data Quality'  },
+    { id: 'dr-page-raw',      label: 'Full Raw View' }
+  ]},
   'demand-profiling': { title: 'Actuals Profiling', pages: [
     { id: 'dp-page-overview', label: 'Profiling Overview' },
     { id: 'dp-page-trends',   label: 'Demand Trends' }
@@ -1563,6 +1735,8 @@ function switchPage(pageId, linkEl, moduleId, label) {
   // Always reset filters on any page switch
   resetPageFilters();
 
+  if (pageId === 'dr-page-overview') setTimeout(initDataOverviewCharts, 80);
+  if (pageId === 'dr-page-quality')  setTimeout(initDataQualityCharts, 80);
   if (pageId === 'dr-page-raw') renderRawTable();
   if (pageId === 'da-page-log') renderAlerts('all');
   if (pageId === 'fa-page-actuals')        generateActualsTable();
@@ -3288,6 +3462,227 @@ function setRefreshStamp() {
 }
 setRefreshStamp();
 setInterval(setRefreshStamp, 60000);
+
+// =========================================================
+// DATA MANAGEMENT — DATA OVERVIEW
+// =========================================================
+function initDataOverviewCharts() {
+  // Aggregate rawData
+  const regionMap = {}, lobMap = {}, partnerMap = {}, statusByRegion = {};
+  rawData.forEach(r => {
+    regionMap[r.region]   = (regionMap[r.region]  ||0)+1;
+    lobMap[r.lob]         = (lobMap[r.lob]         ||0)+1;
+    partnerMap[r.partner] = (partnerMap[r.partner] ||0)+1;
+    if (!statusByRegion[r.region]) statusByRegion[r.region] = {ok:0,bad:0};
+    r.status === 'Within Tolerance' ? statusByRegion[r.region].ok++ : statusByRegion[r.region].bad++;
+  });
+
+  const totalAnom = rawData.filter(r => r.status !== 'Within Tolerance').length;
+  const el = id => document.getElementById(id);
+  if (el('dro-total'))    el('dro-total').innerText    = rawData.length.toLocaleString('en-IN');
+  if (el('dro-anomalies')) el('dro-anomalies').innerText = totalAnom;
+
+  const baseOpts = (indexAxis='y') => ({
+    responsive:true, maintainAspectRatio:false, indexAxis,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ grid:{ color:gridColor() }, ticks:{ color:axisColor(), font:{size:9} } },
+      y:{ grid:{ display:false }, ticks:{ color:axisColor(), font:{size:10} } }
+    }
+  });
+
+  const mkDR = (id, type, data, opts) => {
+    const canvas = document.getElementById(id); if (!canvas) return;
+    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+    chartInstances[id] = new Chart(canvas, { type, data, options: opts || baseOpts() });
+  };
+
+  // Region bar
+  const regions = ['AMER','EMEA','APJ'];
+  mkDR('dro-chart-region', 'bar', {
+    labels: regions,
+    datasets:[{ data: regions.map(r=>regionMap[r]||0),
+      backgroundColor:['rgba(58,110,240,0.75)','rgba(22,163,74,0.75)','rgba(217,119,6,0.75)'],
+      borderRadius:4, borderSkipped:false }]
+  }, { ...baseOpts(), plugins:{ legend:{display:false},
+    tooltip:{ callbacks:{ label: ctx => ' Records: '+ctx.raw } } } });
+
+  // LOB bar
+  const lobs = ['ISG','ESG','HES'];
+  mkDR('dro-chart-lob', 'bar', {
+    labels: lobs,
+    datasets:[{ data: lobs.map(l=>lobMap[l]||0),
+      backgroundColor:['rgba(58,110,240,0.75)','rgba(22,163,74,0.75)','rgba(124,58,237,0.75)'],
+      borderRadius:4, borderSkipped:false }]
+  }, baseOpts());
+
+  // Partner bar
+  const partners = Object.keys(partnerMap).sort();
+  mkDR('dro-chart-partner', 'bar', {
+    labels: partners,
+    datasets:[{ data: partners.map(p=>partnerMap[p]),
+      backgroundColor:'rgba(8,145,178,0.75)',
+      borderRadius:4, borderSkipped:false }]
+  }, baseOpts());
+
+  // Status by region (stacked horizontal bar)
+  mkDR('dro-chart-status', 'bar', {
+    labels: regions,
+    datasets:[
+      { label:'Within Tolerance', data: regions.map(r=>(statusByRegion[r]||{ok:0}).ok),
+        backgroundColor:'rgba(22,163,74,0.75)', borderRadius:4, borderSkipped:false },
+      { label:'Needs Review',     data: regions.map(r=>(statusByRegion[r]||{bad:0}).bad),
+        backgroundColor:'rgba(220,38,38,0.72)', borderRadius:4, borderSkipped:false }
+    ]
+  }, { ...baseOpts(),
+    plugins:{ legend:{ display:true, position:'bottom',
+      labels:{ color:axisColor(), boxWidth:10, font:{size:10} } } },
+    scales:{ x:{ stacked:true, grid:{color:gridColor()}, ticks:{color:axisColor(),font:{size:9}} },
+             y:{ stacked:true, grid:{display:false},     ticks:{color:axisColor(),font:{size:10}} } }
+  });
+
+  // Weekly SR by region — seeded trend lines
+  const wks52 = Array.from({length:52},(_,i)=>'W'+String(i+1).padStart(2,'0'));
+  function sd(s){return()=>{s=(s*16807)%2147483647;return(s-1)/2147483646;};}
+  const rA=sd(91),rE=sd(92),rJ=sd(93);
+  const amerSR=wks52.map((_,i)=>Math.round(240000+15000*Math.sin(i/26*Math.PI)+(rA()-.5)*22000));
+  const emeaSR=wks52.map((_,i)=>Math.round(165000+10000*Math.sin(i/26*Math.PI)+(rE()-.5)*15000));
+  const apjSR =wks52.map((_,i)=>Math.round(120000+ 8000*Math.sin(i/26*Math.PI)+(rJ()-.5)*11000));
+
+  mkDR('dro-chart-sr-trend','line',{
+    labels:wks52,
+    datasets:[
+      {label:'AMER',data:amerSR,borderColor:'#3a6ef0',backgroundColor:'rgba(58,110,240,0.06)',fill:true,tension:0.35,pointRadius:0,pointHoverRadius:4,borderWidth:1.8},
+      {label:'EMEA',data:emeaSR,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.06)', fill:true,tension:0.35,pointRadius:0,pointHoverRadius:4,borderWidth:1.8},
+      {label:'APJ', data:apjSR, borderColor:'#d97706',backgroundColor:'rgba(217,119,6,0.06)', fill:true,tension:0.35,pointRadius:0,pointHoverRadius:4,borderWidth:1.8}
+    ]
+  },{
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:true,position:'bottom',labels:{color:axisColor(),boxWidth:10,font:{size:10}}}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:axisColor(),font:{size:8.5},maxTicksLimit:13,callback:(v,i)=>i%4===0?wks52[i]:''}},
+      y:{grid:{color:gridColor()},min:0,ticks:{color:axisColor(),font:{size:8.5},callback:v=>v>=1e3?(v/1e3).toFixed(0)+'K':v}}
+    }
+  });
+}
+
+// =========================================================
+// DATA MANAGEMENT — DATA QUALITY
+// =========================================================
+function initDataQualityCharts() {
+  const fields = [
+    {name:'Region',     key:'region'},   {name:'Sub-Region',  key:'subregion'},
+    {name:'Partner',    key:'partner'},  {name:'Location',    key:'location'},
+    {name:'Queue',      key:'queue'},    {name:'SR Actuals',  key:'sr'},
+    {name:'Field ASU',  key:'fasu'},     {name:'Tech ASU',    key:'tasu'},
+    {name:'Forecast SR',key:'fdsr'},     {name:'Product Group',key:'lob'}
+  ];
+  const n = rawData.length;
+
+  // Completeness
+  const pcts = fields.map(f => {
+    const valid = rawData.filter(r => r[f.key]!==null && r[f.key]!==undefined && r[f.key]!=='').length;
+    return +(valid/n*100).toFixed(1);
+  });
+  const avgComp = (pcts.reduce((a,b)=>a+b,0)/pcts.length).toFixed(1)+'%';
+  const lowFields = pcts.filter(p=>p<95).length;
+
+  const el = id => document.getElementById(id);
+  if(el('drq-avg-completeness')) el('drq-avg-completeness').innerText = avgComp;
+  if(el('drq-low-fields'))       el('drq-low-fields').innerText       = lowFields || '0';
+
+  const grid = el('drq-completeness-grid');
+  if (grid) grid.innerHTML = fields.map((f,i)=>{
+    const p = pcts[i];
+    const col = p>=99?'var(--green)':p>=95?'var(--amber)':'var(--red)';
+    return `<div class="dr-comp-item">
+      <div class="dr-comp-header">
+        <span class="dr-comp-label">${f.name}</span>
+        <span class="dr-comp-pct" style="color:${col}">${p}%</span>
+      </div>
+      <div class="dr-comp-bar-wrap">
+        <div class="dr-comp-bar" style="width:${p}%;background:${col}"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Anomaly KPIs
+  const anomRows = rawData.filter(r=>r.status!=='Within Tolerance');
+  const anomRate = (anomRows.length/n*100).toFixed(1)+'%';
+  if(el('drq-anomaly-rate')) el('drq-anomaly-rate').innerText = anomRate;
+
+  // Anomaly by quarter
+  const quarters = ['Q1','Q2','Q3','Q4'];
+  const anomByQ = quarters.map(q=>{
+    const qR = rawData.filter(r=>r.quarter===q);
+    if(!qR.length) return 0;
+    return +(qR.filter(r=>r.status!=='Within Tolerance').length/qR.length*100).toFixed(1);
+  });
+  const worstIdx = anomByQ.indexOf(Math.max(...anomByQ));
+  if(el('drq-worst-qtr')) el('drq-worst-qtr').innerText = quarters[worstIdx] || '—';
+  if(el('drq-anomaly-count-sub')) el('drq-anomaly-count-sub').innerText =
+    `${anomRows.length} records flagged (status ≠ Within Tolerance)`;
+
+  const anomCanvas = el('drq-chart-anomaly');
+  if (anomCanvas) {
+    if(chartInstances['drq-chart-anomaly']){chartInstances['drq-chart-anomaly'].destroy();}
+    chartInstances['drq-chart-anomaly'] = new Chart(anomCanvas, {
+      type:'bar',
+      data:{ labels:quarters, datasets:[{
+        data:anomByQ,
+        backgroundColor:anomByQ.map(v=>v>5?'rgba(220,38,38,0.72)':v>3?'rgba(180,83,9,0.72)':'rgba(22,163,74,0.75)'),
+        borderRadius:4, borderSkipped:false
+      }]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' Anomaly Rate: '+ctx.raw+'%'}}},
+        scales:{
+          x:{grid:{display:false},ticks:{color:axisColor(),font:{size:10}}},
+          y:{grid:{color:gridColor()},suggestedMax:10,ticks:{color:axisColor(),font:{size:9},callback:v=>v+'%'}}
+        }
+      }
+    });
+  }
+
+  // SR range by region
+  const regions=['AMER','EMEA','APJ'];
+  const srRangeBody = el('drq-sr-range-body');
+  if (srRangeBody) {
+    srRangeBody.innerHTML = regions.map(reg=>{
+      const vals = rawData.filter(r=>r.region===reg).map(r=>r.sr);
+      if(!vals.length) return '';
+      const mn=Math.min(...vals), mx=Math.max(...vals);
+      const avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+      const std=Math.round(Math.sqrt(vals.map(v=>(v-avg)**2).reduce((a,b)=>a+b,0)/vals.length));
+      return `<tr>
+        <td><strong>${reg}</strong></td>
+        <td>${mn.toLocaleString('en-IN')}</td>
+        <td>${mx.toLocaleString('en-IN')}</td>
+        <td>${avg.toLocaleString('en-IN')}</td>
+        <td>${std.toLocaleString('en-IN')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Anomaly log table
+  const anomBody = el('drq-anomaly-body');
+  if (anomBody) {
+    if (!anomRows.length) {
+      anomBody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-3);padding:20px;">No anomalies detected</td></tr>';
+    } else {
+      anomBody.innerHTML = anomRows.slice(0,50).map((r,i)=>`<tr>
+        <td class="row-num">${i+1}</td>
+        <td>${r.region}</td><td>${r.partner}</td><td>${r.week}</td>
+        <td>${r.sr.toLocaleString('en-IN')}</td><td>${r.fasu.toLocaleString('en-IN')}</td>
+        <td><span class="badge badge-high">${r.status}</span></td>
+      </tr>`).join('');
+    }
+  }
+}
+
+// Auto-open Data Management on load
+window.addEventListener('load', () => { openDashboard('data-raw'); });
 </script>
 </body>
 </html>
