@@ -2064,7 +2064,7 @@ function initForecastTrendChart() {
     }
   };
 
-  const aopVal = getAOPTargetValue() * getDPLOBMult();
+  const aopVal = getAOPTargetValue(); // always the raw FY target, no LOB scaling
   const sAOP   = weeks.map(() => aopVal);
 
   if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
@@ -2111,17 +2111,19 @@ function initForecastTrendChart() {
 function updateForecastTrendChart() {
   if (!_ftBaseData) return;
   const {actuals,forecast,adjForecast,planForecast,weeks,TODAY_IDX}=_ftBaseData;
-  const mult=getDPLOBMult()*getActiveFYMultiplier();
-  const sA =actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF =forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd=adjForecast.map(v=>v!=null?Math.round(v*mult):null);
+  const hideAll = shouldHideAll();
+  const mult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
+  const sA =hideAll ? weeks.map(()=>null) : actuals.map(v=>v!=null?Math.round(v*mult):null);
+  const sF =hideAll ? weeks.map(()=>null) : forecast.map(v=>v!=null?Math.round(v*mult):null);
+  const sAd=hideAll ? weeks.map(()=>null) : adjForecast.map(v=>v!=null?Math.round(v*mult):null);
   const errWeeks=weeks.slice(0,TODAY_IDX+1);
-  const errors=errWeeks.map((_,i)=>{
+  const errors=hideAll ? [] : errWeeks.map((_,i)=>{
     const v=actuals[i],p=planForecast[i];
     return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
   }).filter(v=>v!=null);
 
-  const aopVal = getAOPTargetValue() * getDPLOBMult();
+  // AOP always visible — no shouldHideAll gate, no LOB scaling
+  const aopVal = getAOPTargetValue();
   const mc=chartInstances['fa-chart-forecast-trend'];
   if(mc){
     mc.data.datasets[0].data=sA;
