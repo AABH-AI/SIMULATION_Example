@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>Weekly Forecast View — ISG BPA</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -600,6 +600,14 @@
     }
     .lob-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
     .lob-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+    .ft-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
+    .ft-metric-btn {
+      padding:3px 12px; font-size:11px; font-weight:600;
+      border:1.5px solid var(--border); border-radius:6px;
+      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
+    }
+    .ft-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .ft-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
     .lob-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; font-size:10.5px; color:var(--text-2); align-items:center; }
     .lob-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; vertical-align:middle; }
 
@@ -824,26 +832,33 @@
           <!-- Two-column chart area -->
           <div class="visual-row" style="align-items:stretch;">
 
-            <!-- LEFT — SR trend chart -->
+            <!-- LEFT — SR / ASU / Dispatch trend chart -->
             <div class="visual-card" style="flex:1.8; flex-direction:column; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px;">
-                <div>
-                  <div class="visual-title" style="margin-bottom:2px;">Weekly SR — FY26 Actuals &amp; Forecast</div>
-                  <div style="font-size:11px; color:var(--text-3);">Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters</div>
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; gap:12px;">
+                <div style="flex:1; min-width:0;">
+                  <div class="visual-title" style="margin-bottom:2px;" id="ft-chart-left-title">Weekly SR — FY26 Actuals &amp; Forecast</div>
+                  <div style="font-size:11px; color:var(--text-3);" id="ft-chart-left-sub">Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters</div>
                 </div>
-                <div style="display:flex; gap:14px; align-items:center; font-size:11px; color:var(--text-2); flex-shrink:0; margin-left:12px;">
-                  <span style="display:flex;align-items:center;gap:5px;">
-                    <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
-                  </span>
-                  <span style="display:flex;align-items:center;gap:5px;">
-                    <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
-                  </span>
-                  <span style="display:flex;align-items:center;gap:5px;">
-                    <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj. Forecast
-                  </span>
-                  <span style="display:flex;align-items:center;gap:5px;">
-                    <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#6366f1" stroke-width="2" stroke-dasharray="10 4"/></svg>AOP
-                  </span>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
+                  <div class="ft-metric-toggle">
+                    <button class="ft-metric-btn active" onclick="switchChartMetric('sr',this)">SR</button>
+                    <button class="ft-metric-btn" onclick="switchChartMetric('asu',this)">ASU</button>
+                    <button class="ft-metric-btn" onclick="switchChartMetric('dispatch',this)">Dispatch</button>
+                  </div>
+                  <div style="display:flex; gap:12px; align-items:center; font-size:11px; color:var(--text-2);">
+                    <span style="display:flex;align-items:center;gap:5px;">
+                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
+                    </span>
+                    <span style="display:flex;align-items:center;gap:5px;">
+                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
+                    </span>
+                    <span style="display:flex;align-items:center;gap:5px;">
+                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj.
+                    </span>
+                    <span style="display:flex;align-items:center;gap:5px;">
+                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#6366f1" stroke-width="2" stroke-dasharray="10 4"/></svg>AOP
+                    </span>
+                  </div>
                 </div>
               </div>
               <div style="flex:1; min-height:320px; position:relative;">
@@ -851,11 +866,11 @@
               </div>
             </div>
 
-            <!-- RIGHT — Demand by LOB, Fiscal Week -->
+            <!-- RIGHT — Weekly LOB Breakdown -->
             <div class="visual-card" style="flex:1; flex-direction:column; min-width:0;">
               <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px;">
                 <div>
-                  <div class="visual-title" style="margin-bottom:2px;">Demand by LOB — Fiscal Week</div>
+                  <div class="visual-title" style="margin-bottom:2px;">Weekly LOB Breakdown</div>
                   <div style="font-size:11px; color:var(--text-3);">W01–W52 &nbsp;·&nbsp; Static — unaffected by filters</div>
                 </div>
                 <div class="lob-metric-toggle">
@@ -2027,6 +2042,42 @@ function initForecastTrendChart() {
     return i===TODAY_IDX ? lastActual : Math.round((lastActual-d*580+9000)+(rAd()-0.5)*10000);
   });
   const planForecast = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round(607000+(rP()-0.5)*22000));
+
+  // ── ASU data ── (weekly ~295K, gentle growth)
+  const rAsu1=seeded(101), rAsu2=seeded(102), rAsu3=seeded(103);
+  const asuActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((295000+i*220)+(rAsu1()-0.5)*17000));
+  const asuLast = asuActuals[TODAY_IDX];
+  const asuForecast = weeks.map((_,i) => {
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
+    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*160)+(rAsu2()-0.5)*7500);
+  });
+  const asuAdjForecast = weeks.map((_,i) => {
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
+    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*90+3800)+(rAsu3()-0.5)*4800);
+  });
+
+  // ── Dispatch data ── (weekly ~6200, slight decline)
+  const rDsp1=seeded(201), rDsp2=seeded(202), rDsp3=seeded(203);
+  const dspActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((6200-i*14)+(rDsp1()-0.5)*580));
+  const dspLast = dspActuals[TODAY_IDX];
+  const dspForecast = weeks.map((_,i) => {
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
+    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*11)+(rDsp2()-0.5)*380);
+  });
+  const dspAdjForecast = weeks.map((_,i) => {
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
+    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*7+90)+(rDsp3()-0.5)*260);
+  });
+
+  _ftMetricData = {
+    sr:       { actuals, forecast, adjForecast },
+    asu:      { actuals: asuActuals, forecast: asuForecast, adjForecast: asuAdjForecast },
+    dispatch: { actuals: dspActuals, forecast: dspForecast, adjForecast: dspAdjForecast }
+  };
   _ftBaseData = { actuals, forecast, adjForecast, planForecast, weeks, TODAY_IDX };
 
   const mult = getDPLOBMult() * getActiveFYMultiplier();
@@ -2064,7 +2115,7 @@ function initForecastTrendChart() {
     }
   };
 
-  const aopVal = getAOPTargetValue(); // always the raw FY target, no LOB scaling
+  const aopVal = getAOPTargetValue() * getDPLOBMult();
   const sAOP   = weeks.map(() => aopVal);
 
   if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
@@ -2113,26 +2164,52 @@ function updateForecastTrendChart() {
   const {actuals,forecast,adjForecast,planForecast,weeks,TODAY_IDX}=_ftBaseData;
   const hideAll = shouldHideAll();
   const mult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
-  const sA =hideAll ? weeks.map(()=>null) : actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF =hideAll ? weeks.map(()=>null) : forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd=hideAll ? weeks.map(()=>null) : adjForecast.map(v=>v!=null?Math.round(v*mult):null);
+
+  // Use current metric's data
+  const md = _ftMetricData[_ftMetric] || { actuals, forecast, adjForecast };
+  const sA  = hideAll ? weeks.map(()=>null) : md.actuals.map(v=>v!=null?Math.round(v*mult):null);
+  const sF  = hideAll ? weeks.map(()=>null) : md.forecast.map(v=>v!=null?Math.round(v*mult):null);
+  const sAd = hideAll ? weeks.map(()=>null) : md.adjForecast.map(v=>v!=null?Math.round(v*mult):null);
+
+  // Errors always computed from SR for stat tiles
+  const srMult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
   const errWeeks=weeks.slice(0,TODAY_IDX+1);
-  const errors=hideAll ? [] : errWeeks.map((_,i)=>{
+  const errors=errWeeks.map((_,i)=>{
     const v=actuals[i],p=planForecast[i];
-    return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
+    return (v==null||p==null||srMult===0)?null:+((p*srMult-v*srMult)/(v*srMult)*100).toFixed(1);
   }).filter(v=>v!=null);
 
-  // AOP always visible — no shouldHideAll gate, no LOB scaling
+  // AOP — always visible, uses current metric's target, no filter gating
   const aopVal = getAOPTargetValue();
+
   const mc=chartInstances['fa-chart-forecast-trend'];
   if(mc){
     mc.data.datasets[0].data=sA;
     mc.data.datasets[1].data=sF;
     mc.data.datasets[2].data=sAd;
     mc.data.datasets[3].data=weeks.map(()=>aopVal);
+    mc.options.scales.y.ticks.callback = (FT_METRIC_CONF[_ftMetric]||FT_METRIC_CONF.sr).yFmt;
     mc.update('none');
   }
   _ftUpdateKPIs(sA,sF,sAd,errors,errWeeks,TODAY_IDX);
+}
+
+// =========================================================
+// SR / ASU / DISPATCH METRIC SWITCHER
+// =========================================================
+function switchChartMetric(metric, btnEl) {
+  _ftMetric = metric;
+  document.querySelectorAll('.ft-metric-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  const conf = FT_METRIC_CONF[metric] || FT_METRIC_CONF.sr;
+  const titleEl = document.getElementById('ft-chart-left-title');
+  const subEl   = document.getElementById('ft-chart-left-sub');
+  if (titleEl) titleEl.innerHTML = conf.title;
+  if (subEl)   subEl.innerHTML   = conf.sub;
+
+  // Full update through the standard path so filters stay respected
+  updateForecastTrendChart();
 }
 
 // =========================================================
@@ -2484,15 +2561,42 @@ function updateFAOverviewChart() {
 // =========================================================
 let _dpBaseData = null;
 let _ftBaseData  = null;
+let _ftMetricData = {};
+let _ftMetric    = 'sr';
 
-// AOP weekly SR targets per fiscal year (used for the flat AOP line in the Forecast Trend chart)
-const AOP_FY_TARGETS = { FY25: 540000, FY26: 590000, FY27: 638000 };
+// Per-metric AOP weekly targets per FY
+const AOP_METRIC_TARGETS = {
+  sr:       { FY25: 540000, FY26: 590000, FY27: 638000 },
+  asu:      { FY25: 268000, FY26: 298000, FY27: 325000 },
+  dispatch: { FY25: 5600,   FY26: 6100,   FY27: 6650   }
+};
 
+// Per-metric display config
+const FT_METRIC_CONF = {
+  sr: {
+    title: 'Weekly SR — FY26 Actuals &amp; Forecast',
+    sub:   'Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
+    yFmt:  v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
+  },
+  asu: {
+    title: 'Weekly ASU — FY26 Actuals &amp; Forecast',
+    sub:   'Attached Service Units per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
+    yFmt:  v => v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
+  },
+  dispatch: {
+    title: 'Weekly Dispatch — FY26 Actuals &amp; Forecast',
+    sub:   'Dispatch volumes per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
+    yFmt:  v => v>=1e3?(v/1e3).toFixed(1)+'K':v
+  }
+};
+
+// AOP — always uses current metric's target for active FY (no LOB scaling)
 function getAOPTargetValue() {
+  const targets = AOP_METRIC_TARGETS[_ftMetric] || AOP_METRIC_TARGETS.sr;
   const f   = getActiveFilters();
   const fys = f.fy;
-  if (!fys || fys.length === 0) return AOP_FY_TARGETS.FY26;
-  const avg = fys.reduce((s, fy) => s + (AOP_FY_TARGETS[fy] || AOP_FY_TARGETS.FY26), 0) / fys.length;
+  if (!fys || fys.length === 0) return targets.FY26;
+  const avg = fys.reduce((s, fy) => s + (targets[fy] || targets.FY26), 0) / fys.length;
   return Math.round(avg);
 }
 
@@ -3217,6 +3321,9 @@ function setRefreshStamp() {
 }
 setRefreshStamp();
 setInterval(setRefreshStamp, 60000);
+
+// Auto-open Forecast Accuracy → Forecast Trend on load
+window.addEventListener('load', () => { openDashboard('forecast-accuracy'); });
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # HANDOFF — ISG BPA Project
 > Quick-start context for any new AI session or teammate.
-> Last updated: 2026-06-22 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
+> Last updated: 2026-06-23 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
@@ -45,17 +45,31 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_fo
 
 ## Forecast Trend Sub-page (`fa-page-forecast-trend`)
 
-Two-column layout:
+**KPI strip** (4 cards):
+| Card | ID | Value |
+|---|---|---|
+| Current Week | `ft-current-week` | W22 (from `weeks[TODAY_IDX]`) |
+| ASU Forecast Accuracy | `ft-asu-acc` | `95.4% + (fyMult-1)×1.8` |
+| SR Forecast Accuracy | `ft-sr-acc` | `100 - MAPE` (from SR error data) |
+| Dispatch Forecast Accuracy | `ft-dsp-acc` | `97.1% + (fyMult-1)×1.2` |
+
+Color coded: ≥95% green · ≥90% amber · <90% red.
+
+**Two-column layout (BPA_FORCASTING_MOCK.HTML):**
 - **Left (~65%)** — SR weekly line chart, FY26 W01–W52
-  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast
+  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast, indigo dash-dot = AOP target
+  - AOP line: per-FY flat target (`AOP_FY_TARGETS`), always visible regardless of filter state
   - Inline Chart.js plugin draws vertical "▶ Current Week" divider at W22
   - Responds to FY + Product Group filters via `updateForecastTrendChart()`
-- **Right (~35%)** — Forecast Error bar chart + 4 stat tiles
-  - Green bars = over-forecast weeks, red = under-forecast
-  - Zero-reference line via grid color callback
-  - Tiles: MAPE, Bias (color-coded), Best Week, Worst Week (IBM Plex Mono)
+- **Right (~35%)** — **Weekly LOB Breakdown** (`fa-chart-lob-weekly`)
+  - 5 static multi-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
+  - X-axis: W01–W52, always all 52 weeks — no filter affects it except Week filter (all-unchecked → blank)
+  - SR / ASU / Dispatch toggle buttons switch the Y-axis metric via `switchLOBMetric()`
+  - Completely static: `updateLOBWeeklyChart()` only blanks when Week filter has zero items
 
-Base data stored in `_ftBaseData` for in-place filter updates.
+**Week.html prototype** adds SR / ASU / Dispatch metric switcher to the left chart too.
+
+Base data: `_ftBaseData` (SR trend), `LOB_WEEKLY_DATA` (LOB lines, generated once via seeded PRNG).
 
 ---
 
@@ -69,11 +83,15 @@ Base data stored in `_ftBaseData` for in-place filter updates.
 - KPI chips: no "SKUs" suffix (just "Consistent", "Erratic", etc.)
 
 ### Demand Trends (`dp-page-trends`)
-- Three Chart.js bar+line mixed charts: WoW (12 wks), MoM (12 months), QoQ (8 quarters)
+- Two Chart.js bar+line mixed charts: **YoY** (annual) and **QoQ** (quarterly)
 - Color-coded bars: green = up period, red = down, grey = first period (no prior)
 - Dashed line overlay on secondary Y-axis shows % change
-- Responds to FY + Product Group filters via `updateDemandTrends()`
-- Per-product-group demand splits stored in `DP_TREND_PG` constant
+- Responds to FY + Quarter + Product Group filters via `updateDemandTrends()` — **clips visible data** to selected FY/Quarter, does not just scale
+- Per-product-group demand splits stored in `DP_TREND_PG` (keys: `yoy`, `qoq`)
+- Filter metadata:
+  - `YOY_FY_TAG` — maps each YoY bar index to its FY value (`null` = historical FY22–24)
+  - `QOQ_FY_TAG` / `QOQ_Q_TAG` — maps each QoQ bar to its FY + Quarter
+- FY24 historical bars only appear when all 3 FYs are selected
 
 ---
 
@@ -107,7 +125,7 @@ resetPageFilters()         // resets FY→FY26, Quarter→Q1, LOB→All; closes 
 ```js
 const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };  // quadrant chart scaling
 // Exact per-group demand arrays (ISG+ESG+HES = combined total):
-const DP_TREND_PG = { ISG: { wow:[...], mom:[...], qoq:[...] }, ESG: {...}, HES: {...} };
+const DP_TREND_PG = { ISG: { yoy:[...], qoq:[...] }, ESG: {...}, HES: {...} };
 ```
 
 ### Global Filter Reset
