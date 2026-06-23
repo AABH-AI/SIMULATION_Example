@@ -19,6 +19,8 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | File | Role |
 |---|---|
 | `BPA_FORCASTING_MOCK.HTML` | **Active development file** — rebuilt version of the dashboard (sessions 14+) |
+| `data.html` | **Standalone Data Management dashboard** — 3 tabs: Data Overview · Data Quality · Full Raw View (session 22) |
+| `Week.html` | Prototype: Forecast Trend with SR/ASU/Dispatch switcher on main chart — review before merging to BPA |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
 | `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
@@ -167,13 +169,52 @@ $git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
 
 ---
 
-## Current State (2026-06-22)
+## data.html — Standalone Data Management Dashboard (Session 22)
 
-- `BPA_FORCASTING_MOCK.HTML` — active file, all changes pushed and live
+Purpose-built standalone page (995 lines, no BPA dependencies). Auto-opens to Data Overview on load.
+
+### Tab 1: Data Overview
+- KPIs computed live from `rawData`: Total Records · Completeness · Anomalies · Duplicates
+- Horizontal bars: Records by Region · Product Group Mix · Partner Coverage
+- Status by Region (stacked horizontal bar: Within Tolerance / Needs Review)
+- Weekly SR Trend by Region (3-line seeded seasonal chart, W01–W52)
+
+### Tab 2: Data Quality
+- **Hero**: animated counter counts from 0.0 to real health score in 1.1s — one orchestrated moment, nothing else moves. Respects `prefers-reduced-motion`.
+- Verdict text + description + pills: all computed from `rawData`, verdict changes based on score
+- Field Completeness grid: 10 fields, CSS progress bars (animate on first load), green/amber/red
+- Anomaly Rate by Quarter: bar chart, colour-coded by severity (>6% red, >3% amber, else green)
+- SR Range by Region: Min/Max/Avg/Std Dev in IBM Plex Mono
+- Anomaly Log: table filtered to rows where `status !== 'Within Tolerance'`
+
+### Tab 3: Full Raw View
+- Sticky-header sortable table, 13 columns, search across all values
+- CSV + JSON export (filtered rows only)
+- LOB column colour-coded: ISG=#3a6ef0 · ESG=#16a34a · HES=#7c3aed
+
+### data.html Architecture
+```js
+function seeded(s) { return () => { s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+const rng = seeded(1618);
+const rawData = Array.from({length:150}, ...) // deterministic 150-record dataset
+
+const tabInited = {};
+function switchTab(tab, btn) { /* lazy init via setTimeout(80) on first visit */ }
+function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing */ }
+```
+- ~7.3% anomaly rate (seeded) → ~11 records "Needs Review"
+- `chartInstances{}` store (same pattern as BPA)
+
+---
+
+## Current State (2026-06-23)
+
+- `BPA_FORCASTING_MOCK.HTML` — active, live on GitHub Pages
+  - Forecast Trend: SR/ASU/Dispatch switcher on main chart, per-FY AOP line, Weekly LOB Breakdown right panel
+  - Actuals Profiling: 4-quadrant overview + Demand Trends (WoW/MoM/QoQ)
+- `data.html` — new standalone Data Management file (3 tabs), local only pending review
+- `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
 - `IBP_Forcasting.html` — stable, session 13 was last update
-- `TODO` — tracked, contains Actuals Profiling backlog
-- All filter logic filter-aware in BPA mock (FY + Product Group drive chart scaling)
-- Global filter reset (`resetPageFilters`) fires on every page switch
 
 ---
 
@@ -183,18 +224,19 @@ Project: ISG BPA dashboard — Aligned Automation Services
 Repo: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
 Live: https://aabh-ai.github.io/SIMULATION_Example/
 ACTIVE file: BPA_FORCASTING_MOCK.HTML (sessions 14+)
-Legacy file: IBP_Forcasting.html (sessions 1–13, stable)
+NEW standalone: data.html (Data Management, 3 tabs), Week.html (Forecast Trend prototype)
+Legacy: IBP_Forcasting.html (sessions 1–13, stable)
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
 
 BPA_FORCASTING_MOCK modules:
-  Forecast Accuracy (4 tabs incl. Forecast Trend) |
-  Actuals Profiling (Profiling Overview + Demand Trends) |
+  Forecast Accuracy (Forecast Trend with SR/ASU/Dispatch switcher + AOP line + Weekly LOB Breakdown) |
+  Actuals Profiling (4-quadrant + Demand Trends WoW/MoM/QoQ) |
   Demand Alerts | Data Management | What-If Simulation
 
 Filters: FY + Product Group (data-group="lob") drive chart scaling.
 resetPageFilters() fires on every switchPage() call.
-Chart data: _dpBaseData (quadrant charts), _ftBaseData (forecast trend charts).
+Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend SR/ASU/Dispatch).
 
 Read IMP_DOCS/ for full context before making changes.
 ```
