@@ -841,6 +841,9 @@
                   <span style="display:flex;align-items:center;gap:5px;">
                     <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj. Forecast
                   </span>
+                  <span style="display:flex;align-items:center;gap:5px;">
+                    <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#6366f1" stroke-width="2" stroke-dasharray="10 4"/></svg>AOP
+                  </span>
                 </div>
               </div>
               <div style="flex:1; min-height:320px; position:relative;">
@@ -2061,12 +2064,16 @@ function initForecastTrendChart() {
     }
   };
 
+  const aopVal = getAOPTargetValue() * getDPLOBMult();
+  const sAOP   = weeks.map(() => aopVal);
+
   if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
     type:'line', plugins:[vertDivider],
     data:{ labels:weeks, datasets:[
-      { label:'Actuals',           data:sA,  borderColor:'#3a6ef0', backgroundColor:'rgba(58,110,240,0.07)', borderWidth:2,   fill:true, tension:0.35, pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Forecast',          data:sF,  borderColor:'#16a34a', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[8,4], tension:0.4, pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Adjusted Forecast', data:sAd, borderColor:'#d97706', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[3,3], tension:0.4, pointRadius:0, pointHoverRadius:5, spanGaps:false }
+      { label:'Actuals',           data:sA,   borderColor:'#3a6ef0', backgroundColor:'rgba(58,110,240,0.07)', borderWidth:2,   fill:true,  tension:0.35, pointRadius:0, pointHoverRadius:5, spanGaps:false },
+      { label:'Forecast',          data:sF,   borderColor:'#16a34a', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[8,4],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
+      { label:'Adjusted Forecast', data:sAd,  borderColor:'#d97706', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[3,3],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
+      { label:'AOP Target',        data:sAOP, borderColor:'#6366f1', backgroundColor:'transparent',           borderWidth:2,   borderDash:[10,4], tension:0,    pointRadius:0, pointHoverRadius:3, spanGaps:true  }
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -2114,8 +2121,15 @@ function updateForecastTrendChart() {
     return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
   }).filter(v=>v!=null);
 
+  const aopVal = getAOPTargetValue() * getDPLOBMult();
   const mc=chartInstances['fa-chart-forecast-trend'];
-  if(mc){ mc.data.datasets[0].data=sA; mc.data.datasets[1].data=sF; mc.data.datasets[2].data=sAd; mc.update('none'); }
+  if(mc){
+    mc.data.datasets[0].data=sA;
+    mc.data.datasets[1].data=sF;
+    mc.data.datasets[2].data=sAd;
+    mc.data.datasets[3].data=weeks.map(()=>aopVal);
+    mc.update('none');
+  }
   _ftUpdateKPIs(sA,sF,sAd,errors,errWeeks,TODAY_IDX);
 }
 
@@ -2204,6 +2218,21 @@ function switchLOBMetric(metric, btnEl) {
   const c = chartInstances['fa-chart-lob-weekly'];
   if (!c) return;
   LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[metric][lob]; });
+  c.update('none');
+}
+
+function updateLOBWeeklyChart() {
+  const c = chartInstances['fa-chart-lob-weekly'];
+  if (!c) return;
+  const f = getActiveFilters();
+  const weekEmpty = f.week !== undefined && f.week.length === 0;
+  if (weekEmpty) {
+    c.data.labels = [];
+    c.data.datasets.forEach(ds => { ds.data = []; });
+  } else {
+    c.data.labels = FW_LABELS;
+    LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[_lobMetric][lob]; });
+  }
   c.update('none');
 }
 
@@ -2454,6 +2483,17 @@ function updateFAOverviewChart() {
 let _dpBaseData = null;
 let _ftBaseData  = null;
 
+// AOP weekly SR targets per fiscal year (used for the flat AOP line in the Forecast Trend chart)
+const AOP_FY_TARGETS = { FY25: 540000, FY26: 590000, FY27: 638000 };
+
+function getAOPTargetValue() {
+  const f   = getActiveFilters();
+  const fys = f.fy;
+  if (!fys || fys.length === 0) return AOP_FY_TARGETS.FY26;
+  const avg = fys.reduce((s, fy) => s + (AOP_FY_TARGETS[fy] || AOP_FY_TARGETS.FY26), 0) / fys.length;
+  return Math.round(avg);
+}
+
 const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
 
 // ISG + ESG + HES annual totals and quarterly sums per product group
@@ -2580,6 +2620,7 @@ function applyAllFilteredCharts() {
   updateDPQuadrantCharts();
   updateDemandTrends();
   updateForecastTrendChart();
+  updateLOBWeeklyChart();
 }
 
 // =========================================================
