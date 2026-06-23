@@ -539,7 +539,7 @@
     }
     .dp-quad-title { font-size:12px; font-weight:700; margin-bottom:6px; }
     .dp-quad-canvas { flex:1; min-height:190px; position:relative; }
-    .dp-trend-canvas-wrap { position:relative; height:220px; }
+    .dp-trend-canvas-wrap { position:relative; height:260px; }
 
     .dp-quad-consistent  { border-top:3px solid #16a34a; }
     .dp-quad-erratic     { border-top:3px solid #d97706; }
@@ -636,7 +636,7 @@
     .dp-trends-header { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
     .dp-trends-title { font-size:14px; font-weight:700; color:var(--text-1); }
     .dp-trends-sub { font-size:11.5px; color:var(--text-3); }
-    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .dp-trend-card {
       background:var(--surface); border:1px solid var(--border);
       border-radius:10px; padding:12px 14px 6px;
@@ -649,8 +649,7 @@
       font-size:10px; font-weight:700; padding:2px 8px;
       border-radius:100px; letter-spacing:0.05em;
     }
-    .dp-trend-badge-wow { background:#eff6ff; color:#1d4ed8; }
-    .dp-trend-badge-mom { background:#f5f3ff; color:#7c3aed; }
+    .dp-trend-badge-yoy { background:#fef3c7; color:#b45309; }
     .dp-trend-badge-qoq { background:#ecfeff; color:#0e7490; }
     .dp-trend-legend {
       display:flex; gap:12px; margin-bottom:2px;
@@ -1040,27 +1039,15 @@
             <div class="dp-trends-grid">
               <div class="dp-trend-card">
                 <div class="dp-trend-card-header">
-                  <span class="dp-trend-label">Week over Week</span>
-                  <span class="dp-trend-badge dp-trend-badge-wow">WoW</span>
+                  <span class="dp-trend-label">Year over Year</span>
+                  <span class="dp-trend-badge dp-trend-badge-yoy">YoY</span>
                 </div>
                 <div class="dp-trend-legend">
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up week</span>
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down week</span>
-                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #3a6ef0;vertical-align:middle;margin-right:4px"></span>WoW %</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Growth year</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Decline year</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #b45309;vertical-align:middle;margin-right:4px"></span>YoY %</span>
                 </div>
-                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-wow"></canvas></div>
-              </div>
-              <div class="dp-trend-card">
-                <div class="dp-trend-card-header">
-                  <span class="dp-trend-label">Month over Month</span>
-                  <span class="dp-trend-badge dp-trend-badge-mom">MoM</span>
-                </div>
-                <div class="dp-trend-legend">
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up month</span>
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down month</span>
-                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #7c3aed;vertical-align:middle;margin-right:4px"></span>MoM %</span>
-                </div>
-                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-mom"></canvas></div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-yoy"></canvas></div>
               </div>
               <div class="dp-trend-card">
                 <div class="dp-trend-card-header">
@@ -1845,16 +1832,12 @@ function initDemandProfilingQuadrants() {
 }
 
 // =========================================================
-// ACTUALS PROFILING — DEMAND TRENDS (WoW / MoM / QoQ)
+// ACTUALS PROFILING — DEMAND TRENDS (YoY / QoQ)
 // =========================================================
 function initDemandTrends() {
-  const wowLabels = ['Wk 11','Wk 12','Wk 13','Wk 14','Wk 15','Wk 16','Wk 17','Wk 18','Wk 19','Wk 20','Wk 21','Wk 22'];
-  const wowDemand = [22800,23400,22900,24200,23700,25100,24500,25800,25200,26100,25600,26800];
-  const wowPct    = [null,2.6,-2.1,5.7,-2.1,5.9,-2.4,5.3,-2.3,3.6,-1.9,4.7];
-
-  const momLabels = ['Jul 25','Aug','Sep','Oct','Nov','Dec','Jan 26','Feb','Mar','Apr','May','Jun'];
-  const momDemand = [98400,102800,99200,107600,104300,96800,101200,105600,108900,106400,111200,114800];
-  const momPct    = [null,4.5,-3.5,8.5,-3.1,-7.2,4.5,4.3,3.1,-2.3,4.5,3.2];
+  const yoyLabels = ['FY22','FY23','FY24','FY25','FY26 YTD'];
+  const yoyDemand = [985000,1048000,1108000,1179000,1257000];
+  const yoyPct    = [null,6.4,5.7,6.4,6.6];
 
   const qoqLabels = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
   const qoqDemand = [284000,298000,306000,294000,315000,308000,325000,338000];
@@ -1938,8 +1921,7 @@ function initDemandTrends() {
     });
   };
 
-  mkTrend('dp-trend-wow', wowLabels, wowDemand, wowPct, '#3a6ef0');
-  mkTrend('dp-trend-mom', momLabels, momDemand, momPct, '#7c3aed');
+  mkTrend('dp-trend-yoy', yoyLabels, yoyDemand, yoyPct, '#b45309');
   mkTrend('dp-trend-qoq', qoqLabels, qoqDemand, qoqPct, '#0891b2');
 }
 
@@ -2377,21 +2359,18 @@ let _ftBaseData  = null;
 
 const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
 
-// ISG + ESG + HES sums equal the original combined totals
+// ISG + ESG + HES annual totals and quarterly sums per product group
 const DP_TREND_PG = {
   ISG: {
-    wow: [13680,14040,13740,14520,14220,15060,14700,15480,15120,15660,15360,16080],
-    mom: [59040,61680,59520,64560,62580,58080,60720,63360,65340,63840,66720,68880],
+    yoy: [591000,629000,665000,707000,754000],
     qoq: [170400,178800,183600,176400,189000,184800,195000,202800]
   },
   ESG: {
-    wow: [5700,5850,5725,6050,5925,6275,6125,6450,6300,6525,6400,6700],
-    mom: [24600,25700,24800,26900,26075,24200,25300,26400,27225,26600,27800,28700],
+    yoy: [246000,262000,277000,295000,314000],
     qoq: [71000,74500,76500,73500,78750,77000,81250,84500]
   },
   HES: {
-    wow: [3420,3510,3435,3630,3555,3765,3675,3870,3780,3915,3840,4020],
-    mom: [14760,15420,14880,16140,15645,14520,15180,15840,16335,15960,16680,17220],
+    yoy: [148000,157000,166000,177000,189000],
     qoq: [42600,44700,45900,44100,47250,46200,48750,50700]
   }
 };
@@ -2417,7 +2396,7 @@ function updateDemandTrends() {
   const f = getActiveFilters();
   const fyMult = getActiveFYMultiplier();
   const selPGs = (!f.lob || f.lob.length === 0) ? ['ISG','ESG','HES'] : f.lob;
-  ['wow','mom','qoq'].forEach(type => {
+  ['yoy','qoq'].forEach(type => {
     const c = chartInstances['dp-trend-' + type];
     if (!c) return;
     const len = DP_TREND_PG.ISG[type].length;
