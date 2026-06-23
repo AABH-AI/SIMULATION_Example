@@ -1,6 +1,6 @@
 # Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-06-22
+> Last updated: 2026-06-23
 
 ---
 
@@ -161,3 +161,71 @@
   - Also closes any open filter dropdowns via `classList.remove('open')`
 - **Called at the start of every `switchPage()` call** — all page switches reset filters
 - `applyAllFilteredCharts()` now also calls `updateForecastTrendChart()`
+
+---
+
+## Session 17 — Actuals Profiling: 4-Quadrant Demand Classification Rebuild
+**Date**: 2026-06-23 | **Commit**: `4d771dc`
+**Files**: `BPA_FORCASTING_MOCK.HTML`
+**Prompts**:
+- Replace all existing Actuals Profiling charts with 4-quadrant demand classification layout matching reference image
+- Image reference: `New Mockup Designs/visuals/ACTUAL_PROFILING.png`
+
+**What was built**:
+- Replaced the old 4-tab channel system (Overall/ASU/Dispatch/SR with 12+ charts) entirely
+- New 2×2 quadrant matrix with axis labels:
+  - Y-axis: "Frequency % (Occurrence variation)" with 50% threshold marker
+  - X-axis: "Coefficient of Variation (Demand)" with 50% threshold marker
+- 4 Chart.js line charts, each with deterministic mock data matching the demand pattern:
+  - **Consistent** (green `#16a34a`): smooth seasonal curve 38M–64M
+  - **Erratic** (amber `#d97706`): chaotic high-variance 0.6M–4.8M
+  - **Intermittent** (blue `#2563eb`): ~40% zero periods, moderate spikes
+  - **Lumpy** (pink `#db2777`): ~65% zeros, large irregular spikes
+- 4 KPI cards: Consistent / Erratic / Intermittent / Lumpy SKU counts
+- Legend table at bottom matching the reference image (Occurrence × CoV classification rules)
+- Removed: all old `switchChannel()`, `dp-channel-*` divs, `AP_*_TREND_BASE` constants, `updateDP*` and `updateAP*` functions
+- CSS: new `.dp-matrix-wrap`, `.dp-quadrant-grid`, `.dp-quad-*`, `.dp-legend-*` classes
+- JS: `initDemandProfilingQuadrants()` replaces the old multi-tab init
+
+---
+
+## Session 18 — Demand Trends: WoW/MoM → YoY+QoQ + Filter-Aware Clipping
+**Date**: 2026-06-23 | **Commits**: `4d771dc`, `7242c5e`
+**Files**: `BPA_FORCASTING_MOCK.HTML`
+**Prompts**:
+- Remove WoW and MoM charts from Demand Trends; keep only QoQ and add YoY
+- Demand Trends charts must clip to selected FY and Quarter filters (not just scale)
+
+**What was changed**:
+- **HTML**: 3-column `.dp-trends-grid` → 2-column; removed WoW+MoM cards; added YoY card
+- **CSS**: Grid `1fr 1fr 1fr` → `1fr 1fr`; canvas height 220px → 260px; new `.dp-trend-badge-yoy` (amber)
+- **Data**: `DP_TREND_PG` keys stripped of `wow`/`mom`; `yoy` arrays added (FY22–FY26 annual totals per PG)
+- **Metadata constants** added alongside `DP_TREND_PG`:
+  - `YOY_FULL_LABELS` / `YOY_FY_TAG` — maps each YoY bar to its FY filter value (null = historical)
+  - `QOQ_FULL_LABELS` / `QOQ_FY_TAG` / `QOQ_Q_TAG` — maps each QoQ bar to FY and Quarter
+
+**Filter logic** (`updateDemandTrends()` rewrite):
+- **YoY**: clips to `selFYs` — historical bars (FY22/23/24) visible only when all 3 FYs selected; Quarter filter ignored
+- **QoQ**: clips to `selFYs × selQs` — FY24 historical shown only when all FYs selected; each bar must match both FY and Quarter selection
+- Empty selection → chart cleared (empty labels/data)
+- % change recalculated within the visible slice (not against hidden data)
+
+---
+
+## Session 19 — Forecast Trend KPI Cards: Accuracy % for ASU / SR / Dispatch
+**Date**: 2026-06-23 | **Commit**: `(current)`
+**Files**: `BPA_FORCASTING_MOCK.HTML`, `IMP_DOCS/`
+**Prompts**:
+- Change the 4 KPI cards in Forecast Trend to: Current Week, ASU Forecast Accuracy%, SR Forecast Accuracy%, Dispatch Forecast Accuracy%
+- Update IMP_DOCS and create prompt trail with git commit history
+
+**What was changed**:
+- **HTML KPI strip** (`fa-page-forecast-trend`): replaced Last Actual SR / YTD Forecast Error / Forecast Bias with ASU%, SR%, Dispatch% accuracy cards
+  - IDs: `ft-current-week`, `ft-asu-acc`, `ft-sr-acc`, `ft-dsp-acc` (+ matching `-sub` IDs)
+- **`_ftUpdateKPIs()`** rewritten:
+  - Right-panel stat tiles (ft-mape, ft-bias, ft-best-week, ft-worst-week) still updated
+  - SR accuracy = `100 - MAPE` (derived from the weekly SR error data already computed)
+  - ASU accuracy = `95.4% + (fyMult - 1.0) × 1.8` (calibrated mock base, FY-scaled)
+  - Dispatch accuracy = `97.1% + (fyMult - 1.0) × 1.2` (calibrated mock base, FY-scaled)
+  - Color coding: ≥95% → green, ≥90% → amber, <90% → red
+  - Period sub-label shows "Overall · W01–W22" (current week from weeks array)

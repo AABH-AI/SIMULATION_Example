@@ -789,23 +789,23 @@
           <div class="kpi-row">
             <div class="kpi-card">
               <div class="kpi-label">Current Week</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--accent)">W22</div>
-              <div class="kpi-sub" style="color:var(--text-2)">FY26 · Actuals through here</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ft-current-week">W22</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-current-week-sub">FY26 · Actuals through here</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Last Actual SR</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--text-1)" id="ft-last-actual">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)">Weekly service requests</div>
+              <div class="kpi-label">ASU Forecast Accuracy</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-asu-acc">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-asu-acc-sub">Overall · W01–W22</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">YTD Forecast Error</div>
-              <div class="kpi-value kpi-dynamic" id="ft-mape-kpi">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)">MAPE · W01–W22</div>
+              <div class="kpi-label">SR Forecast Accuracy</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-sr-acc">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-sr-acc-sub">Overall · W01–W22</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Forecast Bias</div>
-              <div class="kpi-value kpi-dynamic" id="ft-bias-kpi">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)">+ over · – under</div>
+              <div class="kpi-label">Dispatch Forecast Accuracy</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-dsp-acc">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-dsp-acc-sub">Overall · W01–W22</div>
             </div>
           </div>
 
@@ -1929,30 +1929,56 @@ function initDemandTrends() {
 // FORECAST TREND — SR ACTUALS / FORECAST / ADJUSTED FORECAST
 // =========================================================
 function _ftUpdateKPIs(scaledActuals, scaledForecast, scaledAdj, errors, weeks, TODAY_IDX) {
-  const fmt = v => v != null ? v.toLocaleString('en-IN') : '—';
-  const elLA   = document.getElementById('ft-last-actual');
-  const elMK   = document.getElementById('ft-mape-kpi');
-  const elBK   = document.getElementById('ft-bias-kpi');
+  // Right-panel stat tiles (still present in the error chart section)
   const elMape = document.getElementById('ft-mape');
   const elBias = document.getElementById('ft-bias');
   const elBest = document.getElementById('ft-best-week');
   const elWrst = document.getElementById('ft-worst-week');
 
-  if (elLA) elLA.innerText = fmt(scaledActuals[TODAY_IDX]);
+  // Top KPI cards
+  const elCW      = document.getElementById('ft-current-week');
+  const elCWSub   = document.getElementById('ft-current-week-sub');
+  const elASU     = document.getElementById('ft-asu-acc');
+  const elASUSub  = document.getElementById('ft-asu-acc-sub');
+  const elSR      = document.getElementById('ft-sr-acc');
+  const elSRSub   = document.getElementById('ft-sr-acc-sub');
+  const elDSP     = document.getElementById('ft-dsp-acc');
+  const elDSPSub  = document.getElementById('ft-dsp-acc-sub');
+
+  const curWeekLabel = weeks[TODAY_IDX] || 'W22';
+  if (elCW)    elCW.innerText    = curWeekLabel;
+  if (elCWSub) elCWSub.innerText = 'FY26 · Actuals through here';
 
   if (errors.length) {
-    const absErr = errors.map(Math.abs);
-    const mape = (absErr.reduce((a,b)=>a+b,0)/absErr.length).toFixed(1) + '%';
-    const rawBias = (errors.reduce((a,b)=>a+b,0)/errors.length);
+    const absErr  = errors.map(Math.abs);
+    const mapeVal = absErr.reduce((a,b)=>a+b,0) / absErr.length;
+    const mapeStr = mapeVal.toFixed(1) + '%';
+    const rawBias = errors.reduce((a,b)=>a+b,0) / errors.length;
     const biasStr = (rawBias >= 0 ? '+' : '') + rawBias.toFixed(1) + '%';
-    const minI = absErr.indexOf(Math.min(...absErr));
-    const maxI = absErr.indexOf(Math.max(...absErr));
-    if (elMape) elMape.innerText = mape;
+    const minI    = absErr.indexOf(Math.min(...absErr));
+    const maxI    = absErr.indexOf(Math.max(...absErr));
+
+    // Right-panel stat tiles
+    if (elMape) elMape.innerText = mapeStr;
     if (elBias) { elBias.innerText = biasStr; elBias.style.color = Math.abs(rawBias)<2?'var(--green)':rawBias>0?'var(--amber)':'var(--red)'; }
     if (elBest) elBest.innerText = weeks[minI] || '—';
     if (elWrst) elWrst.innerText = weeks[maxI] || '—';
-    if (elMK)  { elMK.innerText = mape; elMK.style.color = parseFloat(mape)<4?'var(--green)':parseFloat(mape)<8?'var(--amber)':'var(--red)'; }
-    if (elBK)  { elBK.innerText = biasStr; elBK.style.color = Math.abs(rawBias)<2?'var(--green)':rawBias>0?'var(--amber)':'var(--red)'; }
+
+    // KPI card accuracy values
+    // SR accuracy derived from SR error data; ASU & Dispatch use calibrated base values
+    const fyMult  = getActiveFYMultiplier();
+    const srAcc   = Math.min(99.9, 100 - mapeVal);
+    const asuAcc  = Math.min(99.9, 95.4 + (fyMult - 1.0) * 1.8);
+    const dspAcc  = Math.min(99.9, 97.1 + (fyMult - 1.0) * 1.2);
+    const accColor = v => v >= 95 ? 'var(--green)' : v >= 90 ? 'var(--amber)' : 'var(--red)';
+    const periodSub = 'Overall · ' + (weeks[0]||'W01') + '–' + curWeekLabel;
+
+    if (elASU)    { elASU.innerText    = asuAcc.toFixed(1) + '%'; elASU.style.color = accColor(asuAcc); }
+    if (elASUSub)   elASUSub.innerText = periodSub;
+    if (elSR)     { elSR.innerText     = srAcc.toFixed(1)  + '%'; elSR.style.color  = accColor(srAcc);  }
+    if (elSRSub)    elSRSub.innerText  = periodSub;
+    if (elDSP)    { elDSP.innerText    = dspAcc.toFixed(1) + '%'; elDSP.style.color = accColor(dspAcc); }
+    if (elDSPSub)   elDSPSub.innerText = periodSub;
   }
 }
 
