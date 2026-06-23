@@ -591,6 +591,18 @@
       border-radius:2px; vertical-align:middle; margin-right:3px;
     }
 
+    /* LOB Weekly chart */
+    .lob-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
+    .lob-metric-btn {
+      padding:3px 10px; font-size:11px; font-weight:600;
+      border:1.5px solid var(--border); border-radius:6px;
+      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
+    }
+    .lob-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .lob-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
+    .lob-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; font-size:10.5px; color:var(--text-2); align-items:center; }
+    .lob-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; vertical-align:middle; }
+
     .cv-info-btn {
       display:inline-flex; align-items:center; justify-content:center;
       width:16px; height:16px; border-radius:50%;
@@ -836,18 +848,28 @@
               </div>
             </div>
 
-            <!-- RIGHT — Forecast Error bars + stats -->
+            <!-- RIGHT — Demand by LOB, Fiscal Week -->
             <div class="visual-card" style="flex:1; flex-direction:column; min-width:0;">
-              <div class="visual-title" style="margin-bottom:2px;">Weekly Forecast Error</div>
-              <div style="font-size:11px; color:var(--text-3); margin-bottom:8px;">
-                (Plan &minus; Actual) &divide; Actual &nbsp;·&nbsp; W01–W22
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px;">
+                <div>
+                  <div class="visual-title" style="margin-bottom:2px;">Demand by LOB — Fiscal Week</div>
+                  <div style="font-size:11px; color:var(--text-3);">W01–W52 &nbsp;·&nbsp; Static — unaffected by filters</div>
+                </div>
+                <div class="lob-metric-toggle">
+                  <button class="lob-metric-btn active" onclick="switchLOBMetric('sr',this)">SR</button>
+                  <button class="lob-metric-btn" onclick="switchLOBMetric('asu',this)">ASU</button>
+                  <button class="lob-metric-btn" onclick="switchLOBMetric('dispatch',this)">Dispatch</button>
+                </div>
               </div>
-              <div class="ft-error-legend">
-                <span><span class="ft-error-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Over-forecast</span>
-                <span><span class="ft-error-legend-dot" style="background:rgba(220,38,38,0.72)"></span>Under-forecast</span>
+              <div class="lob-legend">
+                <span><span class="lob-dot" style="background:#3a6ef0"></span>PowerEdge</span>
+                <span><span class="lob-dot" style="background:#16a34a"></span>APEX</span>
+                <span><span class="lob-dot" style="background:#d97706"></span>VXRAIL</span>
+                <span><span class="lob-dot" style="background:#7c3aed"></span>POWERFLEX</span>
+                <span><span class="lob-dot" style="background:#0891b2"></span>AVAMAR</span>
               </div>
               <div style="flex:1; min-height:180px; position:relative;">
-                <canvas id="fa-chart-fcst-error"></canvas>
+                <canvas id="fa-chart-lob-weekly"></canvas>
               </div>
               <!-- Accuracy stats -->
               <div class="ft-stats-grid">
@@ -1921,8 +1943,9 @@ function initDemandTrends() {
     });
   };
 
-  mkTrend('dp-trend-yoy', yoyLabels, yoyDemand, yoyPct, '#b45309');
-  mkTrend('dp-trend-qoq', qoqLabels, qoqDemand, qoqPct, '#0891b2');
+  // Initialize with empty data — updateDemandTrends() applies the correct filtered state immediately after
+  mkTrend('dp-trend-yoy', [], [], [], '#b45309');
+  mkTrend('dp-trend-qoq', [], [], [], '#0891b2');
 }
 
 // =========================================================
@@ -2074,41 +2097,7 @@ function initForecastTrendChart() {
     }
   });
 
-  // ── Forecast Error bars ──────────────────────────────────
-  const errId='fa-chart-fcst-error';
-  const errEl=document.getElementById(errId);
-  if (chartInstances[errId]) { chartInstances[errId].destroy(); delete chartInstances[errId]; }
-
-  if (errEl) chartInstances[errId] = new Chart(errEl, {
-    type:'bar',
-    data:{ labels:errWeeks, datasets:[{
-      label:'Forecast Error %', data:errors,
-      backgroundColor:errors.map(v=>v>=0?'rgba(22,163,74,0.75)':'rgba(220,38,38,0.72)'),
-      borderRadius:3, borderSkipped:false
-    }]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#fff',borderColor:'#dde2f4',borderWidth:1,
-          titleColor:'#5a6280',bodyColor:'#0d1020',padding:8,
-          callbacks:{
-            title:ctx=>'FY26 · '+ctx[0].label,
-            label:ctx=>{const v=ctx.raw; return ' Error: '+(v>=0?'+':'')+v.toFixed(1)+'%';}
-          }
-        }
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{color:axisColor(),font:{size:8.5},maxTicksLimit:11,callback(v,i){return i%2===0&&errWeeks[i]?errWeeks[i]:''}}},
-        y:{
-          grid:{color:ctx=>ctx.tick.value===0?'rgba(0,0,0,0.2)':gridColor()},
-          ticks:{color:axisColor(),font:{size:8.5},callback:v=>v.toFixed(0)+'%'}
-        }
-      }
-    }
-  });
-
+  initLOBWeeklyChart();
   _ftUpdateKPIs(sA, sF, sAd, errors, errWeeks, TODAY_IDX);
 }
 
@@ -2127,13 +2116,95 @@ function updateForecastTrendChart() {
 
   const mc=chartInstances['fa-chart-forecast-trend'];
   if(mc){ mc.data.datasets[0].data=sA; mc.data.datasets[1].data=sF; mc.data.datasets[2].data=sAd; mc.update('none'); }
-  const ec=chartInstances['fa-chart-fcst-error'];
-  if(ec){
-    ec.data.datasets[0].data=errors;
-    ec.data.datasets[0].backgroundColor=errors.map(v=>v>=0?'rgba(22,163,74,0.75)':'rgba(220,38,38,0.72)');
-    ec.update('none');
-  }
   _ftUpdateKPIs(sA,sF,sAd,errors,errWeeks,TODAY_IDX);
+}
+
+// =========================================================
+// FISCAL WEEK × LOB CHART — STATIC (no filter dependency)
+// =========================================================
+const LOB_NAMES   = ['PowerEdge','APEX','VXRAIL','POWERFLEX','AVAMAR'];
+const LOB_COLORS  = { PowerEdge:'#3a6ef0', APEX:'#16a34a', VXRAIL:'#d97706', POWERFLEX:'#7c3aed', AVAMAR:'#0891b2' };
+const FW_LABELS   = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
+
+const LOB_WEEKLY_DATA = (() => {
+  function seeded(s) { return () => { s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+  const N = 52;
+  const bases = { PowerEdge:{sr:2700,asuX:14,dspX:0.44}, APEX:{sr:1100,asuX:18,dspX:0.38},
+                  VXRAIL:{sr:780,asuX:12,dspX:0.50}, POWERFLEX:{sr:440,asuX:10,dspX:0.34}, AVAMAR:{sr:290,asuX:8,dspX:0.42} };
+  const seeds = { PowerEdge:11, APEX:22, VXRAIL:33, POWERFLEX:44, AVAMAR:55 };
+  const result = { sr:{}, asu:{}, dispatch:{} };
+
+  LOB_NAMES.forEach(lob => {
+    const r = seeded(seeds[lob]);
+    const b = bases[lob];
+    const sr = Array.from({length:N}, (_, i) => {
+      const seasonal = 1 + 0.22 * Math.sin((i - 8) / N * 2 * Math.PI);
+      return Math.max(50, Math.round(b.sr * seasonal + (r() - 0.5) * b.sr * 0.28));
+    });
+    result.sr[lob]       = sr;
+    result.asu[lob]      = sr.map(v => Math.round(v * b.asuX * (0.88 + r() * 0.24)));
+    result.dispatch[lob] = sr.map(v => Math.round(v * b.dspX * (0.88 + r() * 0.24)));
+  });
+  return result;
+})();
+
+let _lobMetric = 'sr';
+
+function initLOBWeeklyChart() {
+  const el = document.getElementById('fa-chart-lob-weekly');
+  if (!el) return;
+  if (chartInstances['fa-chart-lob-weekly']) {
+    chartInstances['fa-chart-lob-weekly'].destroy();
+    delete chartInstances['fa-chart-lob-weekly'];
+  }
+  chartInstances['fa-chart-lob-weekly'] = new Chart(el, {
+    type: 'line',
+    data: {
+      labels: FW_LABELS,
+      datasets: LOB_NAMES.map(lob => ({
+        label: lob,
+        data: LOB_WEEKLY_DATA[_lobMetric][lob],
+        borderColor: LOB_COLORS[lob],
+        backgroundColor: 'transparent',
+        borderWidth: 1.6,
+        tension: 0.3,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        spanGaps: true
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff', borderColor: '#dde2f4', borderWidth: 1,
+          titleColor: '#5a6280', bodyColor: '#0d1020', padding: 8,
+          callbacks: {
+            title: ctx => 'FW · ' + ctx[0].label,
+            label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw.toLocaleString('en-IN')
+          }
+        }
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{color:axisColor(), font:{size:8.5}, maxTicksLimit:13,
+               callback(v,i){ return i%4===0 ? FW_LABELS[i] : ''; }} },
+        y: { grid:{color:gridColor()}, min:0, ticks:{color:axisColor(), font:{size:8.5},
+               callback: v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v} }
+      }
+    }
+  });
+}
+
+function switchLOBMetric(metric, btnEl) {
+  _lobMetric = metric;
+  document.querySelectorAll('.lob-metric-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  const c = chartInstances['fa-chart-lob-weekly'];
+  if (!c) return;
+  LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[metric][lob]; });
+  c.update('none');
 }
 
 function toggleCVTooltip(e) {
