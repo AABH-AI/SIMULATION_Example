@@ -1563,7 +1563,6 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'da-page-log') renderAlerts('all');
   if (pageId === 'fa-page-actuals')        generateActualsTable();
   if (pageId === 'fa-page-partner')        generatePartnerTable();
-  if (pageId === 'fa-page-forecast-trend') setTimeout(initForecastTrendChart, 80);
   if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
   if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
   if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
@@ -1767,6 +1766,7 @@ function initCharts() {
     chartInstances[id] = new Chart(el.getContext('2d'), { type, data, options: options || baseLineOptions() });
   }
 
+  initForecastTrendChart();
   initDemandProfilingQuadrants();
   initDemandTrends();
   applyAllFilteredCharts();
