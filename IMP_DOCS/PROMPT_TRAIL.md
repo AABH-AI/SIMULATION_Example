@@ -244,3 +244,23 @@
 - `Week.html`: chart title + HTML comment renamed to "Weekly LOB Breakdown"
 - `HANDOFF.md`: Forecast Trend right-panel description updated to current state (Weekly LOB Breakdown, AOP line details, `updateLOBWeeklyChart` behaviour)
 - `PROMPT_TRAIL.md`: this entry added
+
+---
+
+## Session 21 — SR/ASU/Dispatch switcher on main trend chart; remove MAPE/Bias tiles
+**Date**: 2026-06-23 | **Commit**: `0c64a28`
+**Files**: `BPA_FORCASTING_MOCK.HTML`
+**Prompts**:
+- Add the SR/ASU/Dispatch graph switcher (from Week.html) to BPA's main Forecast Trend chart
+- Remove MAPE, Bias, Best Week, Worst Week stat tiles from Weekly LOB Breakdown right panel
+- LOB chart filter: Week filter (blank when all unchecked) already implemented — no change
+
+**What was changed**:
+- **CSS**: added `.ft-metric-toggle` / `.ft-metric-btn` styles
+- **HTML left chart header**: added `[SR] [ASU] [Dispatch]` toggle buttons; added `id="ft-chart-left-title"` and `id="ft-chart-left-sub"` to title/subtitle elements
+- **HTML right panel**: removed entire `ft-stats-grid` (MAPE, Bias, Best Week, Worst Week tiles)
+- **JS globals**: added `_ftMetricData = {}`, `_ftMetric = 'sr'`
+- **JS constants**: replaced `AOP_FY_TARGETS` with `AOP_METRIC_TARGETS` (SR/ASU/Dispatch × FY25/26/27); added `FT_METRIC_CONF` (title, sub, yFmt per metric); updated `getAOPTargetValue()` to use current `_ftMetric`
+- **`initForecastTrendChart()`**: generates ASU data (base ~295K/week, growth) and Dispatch data (base ~6200/week, decline) alongside SR using seeded PRNG; populates `_ftMetricData`
+- **`updateForecastTrendChart()`**: reads `_ftMetricData[_ftMetric]` for actuals/forecast/adj; updates y-axis format callback on each call
+- **`switchChartMetric(metric, btnEl)`**: new function — sets `_ftMetric`, updates button states, updates title/sub elements, calls `updateForecastTrendChart()`

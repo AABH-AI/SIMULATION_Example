@@ -55,21 +55,22 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_fo
 
 Color coded: ≥95% green · ≥90% amber · <90% red.
 
-**Two-column layout (BPA_FORCASTING_MOCK.HTML):**
-- **Left (~65%)** — SR weekly line chart, FY26 W01–W52
-  - Solid blue = Actuals (W01–W22), dashed green = Forecast (W22–W52), dotted amber = Adjusted Forecast, indigo dash-dot = AOP target
-  - AOP line: per-FY flat target (`AOP_FY_TARGETS`), always visible regardless of filter state
-  - Inline Chart.js plugin draws vertical "▶ Current Week" divider at W22
+**Two-column layout:**
+- **Left (~65%)** — **SR / ASU / Dispatch metric switcher** + weekly trend chart
+  - `[SR] [ASU] [Dispatch]` toggle buttons (`ft-metric-btn`) call `switchChartMetric(metric, btn)`
+  - Switching updates: chart title · subtitle · Actuals/Forecast/Adj/AOP datasets · y-axis format callback
+  - Solid blue = Actuals, dashed green = Forecast, dotted amber = Adj. Forecast, indigo dash-dot = AOP
+  - AOP: per-metric per-FY flat target from `AOP_METRIC_TARGETS`, always visible regardless of filters
+  - Vertical "▶ Current Week" divider drawn at `TODAY_IDX` via inline Chart.js plugin
   - Responds to FY + Product Group filters via `updateForecastTrendChart()`
+  - Key constants: `FT_METRIC_CONF` (title/sub/yFmt per metric), `AOP_METRIC_TARGETS` (SR/ASU/Dispatch × FY25/FY26/FY27)
+  - Key globals: `_ftMetric` (current metric), `_ftMetricData` (actuals/forecast/adj per metric, seeded PRNG)
 - **Right (~35%)** — **Weekly LOB Breakdown** (`fa-chart-lob-weekly`)
-  - 5 static multi-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
-  - X-axis: W01–W52, always all 52 weeks — no filter affects it except Week filter (all-unchecked → blank)
-  - SR / ASU / Dispatch toggle buttons switch the Y-axis metric via `switchLOBMetric()`
-  - Completely static: `updateLOBWeeklyChart()` only blanks when Week filter has zero items
+  - 5-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
+  - X-axis: W01–W52, always static — only the Week filter (all-unchecked) blanks it
+  - SR / ASU / Dispatch toggle via `switchLOBMetric()` · stat tiles (MAPE/Bias) **removed**
 
-**Week.html prototype** adds SR / ASU / Dispatch metric switcher to the left chart too.
-
-Base data: `_ftBaseData` (SR trend), `LOB_WEEKLY_DATA` (LOB lines, generated once via seeded PRNG).
+Base data: `_ftBaseData` (SR base), `_ftMetricData` (ASU + Dispatch generated in `initForecastTrendChart()`), `LOB_WEEKLY_DATA` (seeded PRNG, generated once).
 
 ---
 
