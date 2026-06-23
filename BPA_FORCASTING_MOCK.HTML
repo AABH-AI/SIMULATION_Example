@@ -783,97 +783,8 @@
 
       <!-- ══ MODULE: FORECAST ACCURACY ══ -->
       <div id="module-forecast-accuracy" class="module-section">
-        <div id="fa-page-overview" class="page-section active">
-          <div class="kpi-row">
-            <div class="kpi-card"><div class="kpi-label">Forecast Tech ASU</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4% vs PY</div></div>
-            <div class="kpi-card"><div class="kpi-label">Forecast Work Orders</div><div class="kpi-value kpi-dynamic">86.2K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div></div>
-            <div class="kpi-card"><div class="kpi-label">Forecast Service Request</div><div class="kpi-value kpi-dynamic">32.1K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div></div>
-            <div class="kpi-card"><div class="kpi-label">Weekly Forecast Demand SR</div><div class="kpi-value kpi-dynamic">8.4K</div></div>
-          </div>
-          <div class="visual-row">
-            <div class="visual-card">
-              <div class="visual-title">
-                <span>Tech ASU vs Work Orders Trend</span>
-                <div class="chart-toggle">
-                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-overview','line',this)">Line</button>
-                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-overview','bar',this)">Bar</button>
-                </div>
-              </div>
-              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-overview"></canvas></div>
-            </div>
-            <div class="visual-card">
-              <div class="visual-title">
-                <span>Weekly Actuals vs Forecast by Region</span>
-                <div class="chart-toggle">
-                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-hbar','bar',this)">Bar</button>
-                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-hbar','line',this)">Line</button>
-                </div>
-              </div>
-              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-hbar"></canvas></div>
-            </div>
-          </div>
-        </div>
-
-        <div id="fa-page-actuals" class="page-section">
-          <div class="kpi-row">
-            <div class="kpi-card"><div class="kpi-label">Weekly SR Actuals</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">8.2K</div></div>
-            <div class="kpi-card"><div class="kpi-label">Weekly Field ASU Actuals</div><div class="kpi-value kpi-dynamic">12.1K</div></div>
-            <div class="kpi-card"><div class="kpi-label">Weekly Tech ASU</div><div class="kpi-value kpi-dynamic">14.5K</div></div>
-            <div class="kpi-card"><div class="kpi-label">Forecast Demand SR Actuals</div><div class="kpi-value kpi-dynamic">8.1K</div></div>
-          </div>
-          <div class="visual-card">
-            <div class="visual-title">Raw Data Matrix: Actuals vs Forecast</div>
-            <div class="table-wrap" style="max-height:340px;">
-              <table class="data-table">
-                <thead><tr>
-                  <th class="row-num">#</th>
-                  <th onclick="sortTable('actuals-table','region')">Region <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','lob')">Product Group <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','week')">Week <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','sr')">Weekly SR Actuals <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','fasu')">Weekly Field ASU <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','tasu')">Weekly Tech ASU <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('actuals-table','fdsr')">Forecast Demand SR <span class="sort-icon"></span></th>
-                  <th>Status</th>
-                </tr></thead>
-                <tbody id="actuals-table-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div id="fa-page-partner" class="page-section">
-          <div class="kpi-row">
-            <div class="kpi-card"><div class="kpi-label">Active Partners</div><div class="kpi-value kpi-dynamic">24</div></div>
-            <div class="kpi-card"><div class="kpi-label">Global Locations</div><div class="kpi-value kpi-dynamic">115</div></div>
-            <div class="kpi-card"><div class="kpi-label">Avg MDR Work Orders</div><div class="kpi-value kpi-dynamic">3.8K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Needs Attention</div></div>
-            <div class="kpi-card"><div class="kpi-label">Weekly AVG MDR</div><div class="kpi-value kpi-dynamic">4.5%</div></div>
-          </div>
-          <div class="visual-row">
-            <div class="visual-card">
-              <div class="visual-title"><span>MDR Work Orders by Partner</span></div>
-              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-partner"></canvas></div>
-            </div>
-            <div class="visual-card">
-              <div class="visual-title">Top Locations &amp; Queue Names</div>
-              <div class="table-wrap" style="max-height:260px;">
-                <table class="data-table">
-                  <thead><tr>
-                    <th onclick="sortTable('partner-table','loc')">Location <span class="sort-icon"></span></th>
-                    <th onclick="sortTable('partner-table','partner')">Partner <span class="sort-icon"></span></th>
-                    <th>Queue</th>
-                    <th>Bus Reporting</th>
-                    <th onclick="sortTable('partner-table','mdr')">Weekly AVG MDR <span class="sort-icon"></span></th>
-                  </tr></thead>
-                  <tbody id="partner-table-body"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- ══ SUB-PAGE: FORECAST TREND ══ -->
-        <div id="fa-page-forecast-trend" class="page-section">
+        <div id="fa-page-forecast-trend" class="page-section active">
 
           <!-- KPI strip -->
           <div class="kpi-row">
@@ -1577,10 +1488,7 @@ const modules = {
     { id: 'dp-page-trends',   label: 'Demand Trends' }
   ]},
   'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
-    { id: 'fa-page-overview',        label: 'Forecast Overview' },
-    { id: 'fa-page-actuals',         label: 'Weekly Actuals & Metrics' },
-    { id: 'fa-page-partner',         label: 'Location & Partner View' },
-    { id: 'fa-page-forecast-trend',  label: 'Forecast Trend' }
+    { id: 'fa-page-forecast-trend', label: 'Forecast Trend' }
   ]},
   'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
   'whatif': { title: 'What-If Simulation', pages: [
@@ -1858,25 +1766,6 @@ function initCharts() {
     if (!el) return;
     chartInstances[id] = new Chart(el.getContext('2d'), { type, data, options: options || baseLineOptions() });
   }
-
-  mk('fa-chart-overview', 'line', {
-    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
-    datasets: [
-      { label: 'Forecast Tech ASU', data: [120,135,125,145,155,140,160,150], borderColor: '#4c7ef8', backgroundColor: 'rgba(76,126,248,0.07)', tension: 0.4, fill: true },
-      { label: 'Forecast Work Orders', data: [80,90,85,95,100,90,105,98], borderColor: '#22d472', backgroundColor: 'rgba(34,212,114,0.05)', tension: 0.4, fill: true }
-    ]
-  });
-  mk('fa-chart-hbar', 'bar', {
-    labels: ['AMER','EMEA','APJ'],
-    datasets: [
-      { label: 'Weekly Actuals', data: [450,300,250], backgroundColor: '#4c7ef8' },
-      { label: 'Forecast Demand', data: [420,310,230], backgroundColor: '#22d472' }
-    ]
-  });
-  mk('fa-chart-partner', 'bar', {
-    labels: ['Dell','OSP'],
-    datasets: [{ label: 'MDR Work Orders', data: [1200,850], backgroundColor: ['#4c7ef8','#22d472'] }]
-  }, { ...baseLineOptions(), indexAxis: 'y' });
 
   initDemandProfilingQuadrants();
   initDemandTrends();
@@ -2564,9 +2453,6 @@ function resetPageFilters() {
 const resetDPFilters = resetPageFilters; // backward-compat alias
 
 function applyAllFilteredCharts() {
-  updateFARegionChart();
-  updateFAPartnerChart();
-  updateFAOverviewChart();
   updateDPQuadrantCharts();
   updateDemandTrends();
   updateForecastTrendChart();
