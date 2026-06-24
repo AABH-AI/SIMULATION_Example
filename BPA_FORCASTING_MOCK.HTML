@@ -136,17 +136,43 @@
     }
     .home-logo { position: absolute; top: 28px; right: 36px; z-index: 1; }
 
+    /* ── HOME: STATS STRIP ─────────────────────────────────── */
+    .home-stats-strip {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      padding: 0 36px 36px; flex-shrink: 0;
+    }
+    .home-stat-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; font-size: 12px; color: var(--text-2);
+      transition: border-color 0.15s;
+    }
+    .home-stat-pill:hover { border-color: var(--border-hi); }
+    .home-stat-pill i { font-size: 13px; color: var(--accent); }
+    .home-stat-pill strong { color: var(--text-1); font-weight: 700; font-family: var(--font-mono); }
+
     /* ── HOME: MODULE TILES ────────────────────────────────── */
     .tiles-section { padding: 0 36px 48px; }
+    .tiles-section-hd {
+      display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+    }
     .tiles-label {
       font-size: 10px; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-3); margin-bottom: 14px; padding-top: 4px;
+      color: var(--text-3); padding-top: 4px;
     }
+    .tiles-sublabel { font-size: 12px; color: var(--text-3); }
     .tiles-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
+    }
+    @media (max-width: 1000px) {
+      .tiles-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .tiles-grid { grid-template-columns: 1fr; }
     }
     .tile {
       background: var(--card); border: 1px solid var(--border);
@@ -706,8 +732,18 @@
     </div>
   </div>
 
+  <div class="home-stats-strip">
+    <div class="home-stat-pill"><i class="ti ti-calendar-event"></i> <strong>FY26</strong> &nbsp;·&nbsp; Week 22</div>
+    <div class="home-stat-pill"><i class="ti ti-world"></i> <strong>3</strong> &nbsp;Regions &nbsp;·&nbsp; AMER · EMEA · APJ</div>
+    <div class="home-stat-pill"><i class="ti ti-database"></i> <strong>1,204</strong> &nbsp;Records</div>
+    <div class="home-stat-pill"><i class="ti ti-chart-bar"></i> <strong>W01–W22</strong> &nbsp;Actuals confirmed</div>
+  </div>
+
   <div class="tiles-section">
-    <p class="tiles-label">Modules</p>
+    <div class="tiles-section-hd">
+      <p class="tiles-label">Modules</p>
+      <p class="tiles-sublabel">Select a module to begin</p>
+    </div>
     <div class="tiles-grid">
       <div class="tile" onclick="openDashboard('forecast-accuracy')">
         <div class="tile-head">
@@ -758,6 +794,19 @@
         <div class="tile-title" style="color:var(--text-1);">Bend the Curve</div>
         <div class="tile-desc">Goal-first strategic planner — set an ASU or revenue target and activate initiatives to bend the forecast curve toward it, with lag and confidence modelling.</div>
         <div class="tile-stat">8 levers &nbsp;·&nbsp; <span style="color:var(--green);">Gap-to-target</span></div>
+      </a>
+
+      <a href="animated_UI.html" class="tile" style="text-decoration:none;">
+        <div class="tile-head">
+          <div class="tile-icon" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.22);color:#0891b2;"><i class="ti ti-sparkles"></i></div>
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="background:rgba(6,182,212,0.12);color:#0891b2;border:1px solid rgba(6,182,212,0.3);padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;">New</span>
+            <i class="ti ti-arrow-up-right tile-arrow"></i>
+          </div>
+        </div>
+        <div class="tile-title" style="color:var(--text-1);">Animated UI</div>
+        <div class="tile-desc">Motion-led data experience — animated reveals, cinematic transitions, and visual storytelling across the ISG BPA platform.</div>
+        <div class="tile-stat">Motion design &nbsp;·&nbsp; <span style="color:#0891b2;">Interactive</span></div>
       </a>
     </div>
   </div>
