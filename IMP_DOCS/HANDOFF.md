@@ -29,6 +29,7 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
+| `.claude/BTC_Lovable/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
 Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`
 
@@ -208,6 +209,39 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 
 ---
 
+## Forecast Copilot — `.claude/BTC_Lovable/` (rebuilt + light theme + pushed 2026-06-25)
+
+A **separate, standalone product** from the ISG BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the ISG BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the ISG BPA suite. **Now pushed and live** at `.claude/BTC_Lovable/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
+
+### Files (nav order)
+| File | Purpose |
+|---|---|
+| `Dashboard` | 9 KPI cards, Forecast vs Target table, 5 trend charts |
+| `ASU Simulation` | Manual Simulation (NC/APOS override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
+| `Historical Performance` | 12-quarter BTC/accuracy/AOP/Modernization trends, Forecast vs Actual |
+| `AI BTC Advisor` | Real 3-strategy BTC Recommendation Engine (Historical Best Fit / Balanced / Closest to AOP) + Manual override |
+| `BTC Distribution` | Automatic Weekly Distribution (Equal/Historical/AI Recommended modes), Weekly Forecast Table, region/LOB/business/service breakdowns |
+| `Final Forecast` | Original/Scenario/BTC/Final forecast chart, Submission Summary, status checks, Approve/Submit buttons |
+
+### What changed in this rebuild
+The previous version (built by an earlier session, never merged to master) had a **fully cosmetic filter and interaction layer** across all 6 pages — every dropdown only changed a button's label text, 3-way toggles only swapped an `.active` CSS class, and almost every number on every page was a static value baked into the HTML at authoring time. Confirmed via full audit before starting: zero `localStorage`/`sessionStorage` usage anywhere, no filter click handler touched any chart/KPI/table, and the one working slider pair (ASU Simulation) applied a single crude multiplier uniformly across ASU/SR/Dispatch rather than the distinct formula the page's own subtitle described.
+
+Rebuilt as a real, wired application:
+- **Cross-page shared state** (`fc_state_v1` in `localStorage`) — filters, NC/APOS overrides, selected BTC strategy, distribution mode, and approvals all persist and carry forward when navigating between pages (confirmed via a full simulated navigation test: change a filter on Dashboard → it's already selected when ASU Simulation loads → an override set there is visible on AI BTC Advisor → a BTC strategy picked there flows through to BTC Distribution and Final Forecast)
+- **Seeded dummy-data engine** (`fcGenerateWeeklySeries` / `fcGenerateHistory`) — same seeded-PRNG pattern as `data.html` (`seeded(s)`), keyed by the active Region/LOB/Business/Service/Quarter combo so the same filter selection always produces the same numbers (deterministic) while different combos produce genuinely different, realistically-scaled ones
+- **Real business-logic pipeline**: New Contracts + APOS → ASU (`ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations and Renewals modeled as distinct variables, not folded into one factor) → SR → Dispatch, matching the spec's funnel exactly
+- **BTC Recommendation Engine** computes 3 genuinely distinct values every time (e.g. Historical Best Fit 5.87% / Balanced 5.04% / Closest to AOP 4.2% for the default filter combo) — Historical Best Fit is a recency-weighted average of 12 historical quarters, Closest to AOP is derived from the accuracy-shortfall-driven target gap, Balanced is their midpoint
+- **Automatic Weekly Distribution**: Equal/Historical/AI Recommended modes produce genuinely different per-week shapes while always summing to the identical total uplift (verified: same total, different weekly split)
+- **BTC scale confirmed with user before implementing**: BTC is a small bend/uplift percentage (single digits to ~15-20%), matching what the pre-existing Historical BTC Trend chart and AI BTC Advisor already displayed — not a large 90%+ achievement metric (the spec's own example numbers used that larger scale, but implementing it would have contradicted the rest of the already-built app)
+- Every JS file was extracted and executed under Node's `vm` module during development to smoke-test the math before considering a page done — caught and fixed one real bug (Target was defined as a fraction of the current forecast, so it was always below baseline and "Closest to AOP" always clamped to 0%)
+
+### Known state
+- Pushed to git — `.claude/BTC_Lovable/*.html` is now tracked (added as an explicit exception; `.claude/worktrees/` and `.claude/settings.local.json` are ignored via `.gitignore` so a future broad `git add .claude/` stays safe)
+- Live on GitHub Pages via a repo-root `.nojekyll` file
+- Drill-down is implemented as making the existing filter panel fully functional (spec's own workflow describes selecting Quarter → Region → LOB → Business → Service as the drill-down path) rather than a separate UI
+
+---
+
 ## Current State (2026-06-25)
 
 - `BPA_FORCASTING_MOCK.HTML` — active, live on GitHub Pages
@@ -217,6 +251,7 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 - `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
 - `IBP_Forcasting.html` — stable, session 13 was last update
 - `ISG BPA — Business Planning and Analytics.html` — redesign of `IBP_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
+- `.claude/BTC_Lovable/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
 
 ---
 
@@ -231,6 +266,7 @@ Legacy: IBP_Forcasting.html (sessions 1–13, stable)
 Redesign: "ISG BPA — Business Planning and Analytics.html" (renamed from IBP_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
+SEPARATE PRODUCT: .claude/BTC_Lovable/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
 
 BPA_FORCASTING_MOCK modules:
   Forecast Accuracy (Forecast Trend with SR/ASU/Dispatch switcher + AOP line + Weekly LOB Breakdown) |
@@ -241,9 +277,8 @@ Filters: FY + Product Group (data-group="lob") drive chart scaling.
 resetPageFilters() fires on every switchPage() call.
 Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend SR/ASU/Dispatch).
 
+Forecast Copilot (BTC_Lovable) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
+Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->APOS->ASU->SR->Dispatch->BTC pipeline.
+
 Read IMP_DOCS/ for full context before making changes.
 ```
-
-
-
-

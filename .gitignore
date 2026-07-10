@@ -1,2 +1,8 @@
 lovable ai format/
 /Media.jpg
+New Mockup Designs/Visuals/
+
+# Local Claude Code tooling state — never publish worktrees or local settings.
+# .claude/BTC_Lovable/ is intentionally NOT ignored — it is a real, deployed product.
+.claude/worktrees/
+.claude/settings.local.json
