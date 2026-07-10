@@ -1,6 +1,6 @@
 ﻿# Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-06-25 (Session 23)
+> Last updated: 2026-06-25 (Session 24)
 
 ---
 
@@ -349,3 +349,64 @@
 
 **Git note**: pushes for this session went through the main checkout path directly (`D:\...\simulations`) rather than the worktree, because a prior push had cached the wrong GitHub account (`Arnav1771` instead of `AABH-AI`) in Windows Credential Manager — cleared via `cmdkey /delete`, re-authenticated as `AABH-AI`.
 
+
+
+---
+
+## Session 24 — Forecast Copilot: cross-page shared state + real business logic (all 6 pages rebuilt)
+**Date**: 2026-06-25
+**Files**: all 6 `.claude/BTC_Lovable/*.html` pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast), `IMP_DOCS/`
+
+**Prompts**:
+- "now if i change filter in one workspace it should be reflected in all workspaces" — plus a full pasted product spec ("AI-Powered Forecast Planning & Bend the Curve (BTC)") to check sliders and functionality against, and "keep the IMP_DOCS in check"
+
+**Audit before any changes** (3 parallel agents): confirmed `.claude/BTC_Lovable/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/APOS overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
+
+**Clarifying question asked before implementing**: whether "BTC%" should be a small bend/uplift percentage (matching the already-built Historical BTC Trend chart's 3-8% scale) or a large 90%+ achievement percentage (matching the spec's own example numbers, which used values like "97%"). User confirmed: small bend/uplift %. Implementing the spec's literal example would have contradicted 4 already-built pages that consistently used the smaller scale.
+
+**What was built**:
+- A single shared JS engine block, embedded identically (copy-pasted, unchanged) into all 6 files per the repo's existing "fully self-contained, no shared CSS/JS" convention for this product:
+  - `fcState` — persisted to `localStorage` under `fc_state_v1`: filters (quarter/week/region/lob/business/service), `ncOverride`/`aposOverride`, `simMode`, `btcStrategy`/`manualBTC`, `distMode`, `approvals`. Loaded on every page load (`fcLoadState()`), saved on every change (`fcSaveState()`) — this is what makes a filter or selection made on one page appear already-selected when any other page loads next.
+  - `fcGenerateWeeklySeries()` / `fcGenerateHistory()` — seeded dummy-data generator (same `seeded(s)` PRNG pattern as `data.html`), keyed by a hash of the active filter combo so the same combo always produces the same numbers and different combos produce different, realistically-scaled ones. Generates 13 fiscal weeks of New Contracts/APOS/ASU/SR/Dispatch per the selected quarter, and 12 historical quarters of BTC/Forecast Accuracy/AOP/Modernization achievement.
+  - Real ASU Conversion formula: `ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations (weekly churn) and Renewals modeled as distinct variables — the original page's subtitle stated this formula but the actual code just multiplied everything by one shared scalar.
+  - `fcRecommendBTC()` — real 3-strategy BTC Recommendation Engine: Historical Best Fit (recency-weighted average of 12 historical quarters), Closest to AOP (derived from the accuracy-shortfall-driven target gap), Balanced (their midpoint) — 3 genuinely distinct numbers every time, not the previous single weighted-sum formula duplicated into 3 static table rows.
+  - `fcDistributeWeekly()` — Automatic Weekly Distribution across the 13 selected fiscal weeks, with Equal/Historical/AI Recommended modes producing genuinely different per-week shapes while always summing to the same total uplift.
+  - `fcRecommendOverrides()` — Recommendation Mode for ASU Simulation: analyzes 12-quarter average Forecast Accuracy and suggests NC/APOS overrides, with Accept/Modify/Reject actions.
+- **Dashboard**: added the filters panel (previously had none at all — no JS, no filters, 100% static) plus the spec's 9 KPI cards, Forecast vs Target table, and 5 trend charts.
+- **ASU Simulation**: kept the 2 sliders, wired them to the real formula; added Original/Adjusted/Variance display and a full Recommendation Mode panel (previously the "AI Auto Simulation" toggle button did nothing beyond swapping its own CSS class).
+- **Historical Performance**: wired all 4 charts + the "Best Historical BTC Range" / "Most Successful Planning Periods" KPIs to the real 12-quarter history instead of one-time static render from hardcoded arrays.
+- **AI BTC Advisor**: replaced the fake 3-row comparison table (3 static rows, only one cell of one row actually moved when sliders changed) with the real `fcRecommendBTC()` output — clicking a strategy or a table row sets `fcState.btcStrategy` and persists it; added a working Manual BTC Override path that doesn't get silently overwritten by slider movement (a real bug in the original — moving any slider clobbered the manual override field).
+- **BTC Distribution**: added the missing Weekly Forecast Table (Fiscal Week / DS Forecast / BTC Forecast / Variance / WoW Change — spec-required, previously absent entirely); wired the Equal/Historical/AI Recommended toggle to real distinct distribution math; wired the region/business donuts and LOB/service-type bars to computed shares instead of hardcoded numbers.
+- **Final Forecast**: wired the Original/Scenario/BTC/Final/Target chart and Submission Summary table to real computed values flowing from the other 5 pages' state; the 4 status cards (Meets AOP/Modernization/Triad/Ready) now genuinely vary based on the selected BTC strategy instead of always showing "Achieved"; Approve/Submit button state now persists to `fcState.approvals` so it survives navigation and reload (previously reset on every page load).
+
+**Verification approach**: every file's `<script>` block was extracted with a small Node script and executed under Node's `vm` module (stubbing `document`/`localStorage`) to smoke-test the actual math before considering a page done — this is real code execution, not just visual inspection. Caught and fixed one genuine bug this way: `Target` in the BTC engine was originally defined as a fraction of the current forecast (`scenarioTotals.srTotal * aopTargetPct/100 * 1.02`), which meant Target was mathematically always below the current baseline forecast, so "Closest to AOP" always computed a negative gap and clamped to 0%. Fixed by anchoring Target to the accuracy shortfall instead (`scenarioTotals.srTotal * (1 + accuracyShortfall * 0.6)`), which produces a genuine, usually-positive gap to close.
+
+A final full cross-page navigation was simulated end to end: loaded Dashboard fresh → changed Region to EMEA → loaded ASU Simulation fresh (confirmed EMEA already selected) → set NC override to 40% → loaded AI BTC Advisor fresh (confirmed EMEA + NC=40% both present) → selected the "Balanced" BTC strategy → loaded BTC Distribution fresh (confirmed EMEA + Balanced both present) → loaded Final Forecast fresh (confirmed all three, plus a correctly-recomputed `selectedBTCPct`). This directly verifies the original ask — a filter or decision made in one workspace is reflected in every other workspace.
+
+**Docs sync**: added a dedicated "Forecast Copilot" section to `IMP_DOCS/HANDOFF.md` (this product had never been documented in the canonical, git-tracked HANDOFF.md before — an earlier session's write-up of it only ever existed in a stale worktree copy that was never merged to master) — describes the 6 files, the shared-engine architecture, what changed in this rebuild, and known state (still local-only, not pushed).
+
+**Not done without asking**: did not `git add`/commit/push the `.claude/BTC_Lovable/` changes — that folder is untracked and has never been pushed for this product; pushing it would be a new decision (making local-only work visible/shared) rather than a continuation of an established pattern, so it's left for an explicit follow-up ask.
+
+
+---
+
+## Session 25 — Forecast Copilot: full light theme, pushed to git, added to UI Selection library
+**Date**: 2026-06-25
+**Files**: all 6 `.claude/BTC_Lovable/*.html` pages, `.gitignore`, `.nojekyll` (new), `index.html`, `landing_v2.html`, `IMP_DOCS/`
+
+**Prompts**:
+- "add a full on light theme - and push it to the repo and put it in the UI Selection library which is hosted on gh pages"
+- "build this in light theme and push it to the UI selction page and put it on TOP"
+
+**Light theme conversion**: enumerated every distinct hex/rgba color used across all 6 files (28 unique values) before touching anything, then applied a single dark→light mapping via a Node script across all 6 files at once (167 total replacements) — background/sidebar/card tokens (`#0b0f1a`→`#f4f7fb`, `#0d1220`/`#111827`→`#ffffff`, etc.), text tokens inverted (light-on-dark → dark-on-light), and all 5 chart/semantic accent colors darkened for AA contrast against white (`#2dd4bf`→`#0d9488` teal, `#60a5fa`→`#0284c7` sky, `#a78bfa`→`#7c3aed` violet, `#f472b6`→`#db2777` pink, `#22c55e`→`#16a34a` green, `#ef4444`→`#dc2626` red) — plus softened box-shadows (`rgba(0,0,0,.4/.25)` → `rgba(15,23,42,0.16/0.10)`, appropriate for a light background instead of the harsh dark-theme shadow values). Re-ran the same Node `vm`-based smoke test from Session 24 on all 6 files afterward to confirm the bulk find/replace didn't break any embedded JS (all passed, all still produce identical, cross-page-consistent numbers).
+
+**Pushing this to git required real care**, since `.claude/` is untracked as a whole in the main checkout and contains things that must never be published:
+- Checked GitHub Pages' Jekyll behavior first — Jekyll excludes dotfiles/dotfolders by default, so `.claude/BTC_Lovable/` would 404 on GitHub Pages even if pushed. Added an empty `.nojekyll` file at the repo root (standard fix for pure-static-HTML Pages sites) so the dotfolder is served as-is.
+- `.claude/` also contains `settings.local.json` and `worktrees/` (a full nested git worktree) — neither should ever be committed. Added both as explicit `.gitignore` entries (`.claude/worktrees/`, `.claude/settings.local.json`) with a comment noting `.claude/BTC_Lovable/` is the intentional exception, then verified with `git check-ignore` that the ignore rules and the intended-tracked folder behave exactly as expected before staging anything.
+- Copied the 6 light-themed files from the worktree into the main checkout's `.claude/BTC_Lovable/` (didn't exist there before this session).
+
+**UI Selection library** (`index.html` + `landing_v2.html`): added a new Primary Tool card for Forecast Copilot, placed **first** in both the visual grid and the sort-priority logic (both files' `PRIMARY` set / `LABELS` map / sort comparator, and `landing_v2.html`'s `ORDER` array) — per the explicit "put it on TOP" instruction. Card links to `.claude/BTC_Lovable/Dashboard — Forecast Copilot.html` as the natural entry point into the 6-page workflow. Both files use CRLF line endings, which silently broke the first pass of Node-based string replacement (`\n`-based search strings didn't match `\r\n` content) — fixed by switching to line-ending-agnostic regexes (`\r?\n`).
+
+**A note on tool reliability**: mid-task, `node -e "..."` calls containing backtick-wrapped Markdown code spans (e.g. `` `.claude/BTC_Lovable/*.html` ``) inside the double-quoted shell argument got partially corrupted — Bash treats backticks as command substitution even inside double quotes, so those spans were executed as (nonexistent) shell commands and their empty output silently replaced the intended text. Caught by re-reading the file after each patch rather than trusting the "success" log line, and fixed by writing patch content to standalone files first and having Node read them (avoiding shell string interpolation entirely) for any replacement text containing backticks.
+
+**Docs sync**: updated the Forecast Copilot section, Active Files table row, and Current State bullet in `IMP_DOCS/HANDOFF.md` to reflect: light theme, pushed, live on GitHub Pages, linked in both UI Selection library files.
