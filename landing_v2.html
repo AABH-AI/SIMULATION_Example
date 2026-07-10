@@ -1,4 +1,4 @@
-<title>ISG BPA — Platform</title>
+﻿<title>ISG BPA — Platform</title>
 <style>
   :root {
     --bg:      #f2f4fb;
@@ -485,12 +485,12 @@
       </div>
     </a>
 
-    <a href="IBP_Forcasting_v2.html" class="mod" style="--c:#0891b2;">
+    <a href="ISG BPA — Business Planning and Analytics.html" class="mod" style="--c:#0891b2;">
       <div class="mod-tag">Core Platform — Redesign</div>
       <div class="mod-title">ISG BPA v2 <span class="chip-new">New</span></div>
       <div class="mod-desc">Redesigned demand intelligence platform with 6 Actuals Profiling channels including Field Services and Care, realistic FY26 data, teal design system, and fully wired filter logic.</div>
       <div class="mod-foot">
-        <span class="mod-file">IBP_Forcasting_v2.html</span>
+        <span class="mod-file">ISG BPA — Business Planning and Analytics.html</span>
         <span class="mod-arrow">↗</span>
       </div>
     </a>
@@ -557,7 +557,7 @@
 <script>
   const PRIMARY = new Set([
     'BPA_FORCASTING_MOCK.HTML',
-    'IBP_Forcasting_v2.html',
+    'ISG BPA — Business Planning and Analytics.html',
     'IBP_Forcasting.html',
     'enterprise_whatif_forecasting_platform.html',
     'bend_the_curve.html',
@@ -566,7 +566,7 @@
 
   const LABELS = {
     'BPA_FORCASTING_MOCK.HTML':                     'ISG BPA — Forecasting Suite (Active)',
-    'IBP_Forcasting_v2.html':                       'ISG BPA v2 — Redesign',
+    'ISG BPA — Business Planning and Analytics.html':                       'ISG BPA v2 — Redesign',
     'IBP_Forcasting.html':                          'ISG BPA: Business Planning and Analytics',
     'enterprise_whatif_forecasting_platform.html':  'What-If Simulation',
     'bend_the_curve.html':                          'Bend the Curve',
@@ -608,7 +608,7 @@
   function renderRows(pages, q) {
     const list = document.getElementById('pageList');
     const lq = (q||'').toLowerCase().trim();
-    const ORDER = ['BPA_FORCASTING_MOCK.HTML','IBP_Forcasting_v2.html','IBP_Forcasting.html',
+    const ORDER = ['BPA_FORCASTING_MOCK.HTML','ISG BPA — Business Planning and Analytics.html','IBP_Forcasting.html',
                    'enterprise_whatif_forecasting_platform.html','bend_the_curve.html','animated_UI.html'];
     const entries = Array.from(pages.entries())
       .filter(([,label]) => !lq || label.toLowerCase().includes(lq) || _[0]?.toLowerCase().includes(lq))
@@ -671,3 +671,4 @@
 
   loadManifest();
 </script>
+
