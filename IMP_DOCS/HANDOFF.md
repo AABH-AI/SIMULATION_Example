@@ -1,6 +1,6 @@
-# HANDOFF — ISG BPA Project
+﻿# HANDOFF — ISG BPA Project
 > Quick-start context for any new AI session or teammate.
-> Last updated: 2026-06-23 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
+> Last updated: 2026-06-25 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
@@ -23,6 +23,7 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | `Week.html` | Prototype: Forecast Trend with SR/ASU/Dispatch switcher on main chart — review before merging to BPA |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
 | `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
+| `ISG BPA — Business Planning and Analytics.html` | **Redesign of `IBP_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `IBP_Forcasting_v2.html` on 2026-06-25 |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
 | `dell_workflow.html` | Dell workflow simulation (standalone) |
 | `TODO` | Backlog for Actuals Profiling future work |
@@ -207,7 +208,7 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 
 ---
 
-## Current State (2026-06-23)
+## Current State (2026-06-25)
 
 - `BPA_FORCASTING_MOCK.HTML` — active, live on GitHub Pages
   - Forecast Trend: SR/ASU/Dispatch switcher on main chart, per-FY AOP line, Weekly LOB Breakdown right panel
@@ -215,6 +216,7 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 - `data.html` — new standalone Data Management file (3 tabs), local only pending review
 - `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
 - `IBP_Forcasting.html` — stable, session 13 was last update
+- `ISG BPA — Business Planning and Analytics.html` — redesign of `IBP_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
 
 ---
 
@@ -226,6 +228,7 @@ Live: https://aabh-ai.github.io/SIMULATION_Example/
 ACTIVE file: BPA_FORCASTING_MOCK.HTML (sessions 14+)
 NEW standalone: data.html (Data Management, 3 tabs), Week.html (Forecast Trend prototype)
 Legacy: IBP_Forcasting.html (sessions 1–13, stable)
+Redesign: "ISG BPA — Business Planning and Analytics.html" (renamed from IBP_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
 
@@ -240,3 +243,7 @@ Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend 
 
 Read IMP_DOCS/ for full context before making changes.
 ```
+
+
+
+
