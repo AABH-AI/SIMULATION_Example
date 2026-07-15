@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>Weekly Forecast View — ISG BPA</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -136,33 +136,13 @@
     }
     .home-logo { position: absolute; top: 28px; right: 36px; z-index: 1; }
 
-    /* ── HOME: STATS STRIP ─────────────────────────────────── */
-    .home-stats-strip {
-      display: flex; gap: 10px; flex-wrap: wrap;
-      padding: 0 36px 36px; flex-shrink: 0;
-    }
-    .home-stat-pill {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 14px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; font-size: 12px; color: var(--text-2);
-      transition: border-color 0.15s;
-    }
-    .home-stat-pill:hover { border-color: var(--border-hi); }
-    .home-stat-pill i { font-size: 13px; color: var(--accent); }
-    .home-stat-pill strong { color: var(--text-1); font-weight: 700; font-family: var(--font-mono); }
-
     /* ── HOME: MODULE TILES ────────────────────────────────── */
     .tiles-section { padding: 0 36px 48px; }
-    .tiles-section-hd {
-      display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
-    }
     .tiles-label {
       font-size: 10px; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-3); padding-top: 4px;
+      color: var(--text-3); margin-bottom: 14px; padding-top: 4px;
     }
-    .tiles-sublabel { font-size: 12px; color: var(--text-3); }
     .tiles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
@@ -726,18 +706,8 @@
     </div>
   </div>
 
-  <div class="home-stats-strip">
-    <div class="home-stat-pill"><i class="ti ti-calendar-event"></i> <strong>FY26</strong> &nbsp;·&nbsp; Week 22</div>
-    <div class="home-stat-pill"><i class="ti ti-world"></i> <strong>3</strong> &nbsp;Regions &nbsp;·&nbsp; AMER · EMEA · APJ</div>
-    <div class="home-stat-pill"><i class="ti ti-database"></i> <strong>1,204</strong> &nbsp;Records</div>
-    <div class="home-stat-pill"><i class="ti ti-chart-bar"></i> <strong>W01–W22</strong> &nbsp;Actuals confirmed</div>
-  </div>
-
   <div class="tiles-section">
-    <div class="tiles-section-hd">
-      <p class="tiles-label">Modules</p>
-      <p class="tiles-sublabel">Select a module to begin</p>
-    </div>
+    <p class="tiles-label">Modules</p>
     <div class="tiles-grid">
       <div class="tile" onclick="openDashboard('forecast-accuracy')">
         <div class="tile-head">
@@ -789,8 +759,6 @@
         <div class="tile-desc">Goal-first strategic planner — set an ASU or revenue target and activate initiatives to bend the forecast curve toward it, with lag and confidence modelling.</div>
         <div class="tile-stat">8 levers &nbsp;·&nbsp; <span style="color:var(--green);">Gap-to-target</span></div>
       </a>
-
-
     </div>
   </div>
 </div>
@@ -920,6 +888,29 @@
               </div>
               <div style="flex:1; min-height:180px; position:relative;">
                 <canvas id="fa-chart-lob-weekly"></canvas>
+              </div>
+              <!-- Accuracy stats -->
+              <div class="ft-stats-grid">
+                <div class="ft-stat-tile">
+                  <div class="ft-stat-tile-label">MAPE</div>
+                  <div class="ft-stat-tile-value" id="ft-mape">—</div>
+                  <div class="ft-stat-tile-sub">Mean abs % error</div>
+                </div>
+                <div class="ft-stat-tile">
+                  <div class="ft-stat-tile-label">Bias</div>
+                  <div class="ft-stat-tile-value" id="ft-bias">—</div>
+                  <div class="ft-stat-tile-sub">Systematic over/under</div>
+                </div>
+                <div class="ft-stat-tile">
+                  <div class="ft-stat-tile-label">Best Week</div>
+                  <div class="ft-stat-tile-value" style="font-size:15px" id="ft-best-week">—</div>
+                  <div class="ft-stat-tile-sub">Lowest error</div>
+                </div>
+                <div class="ft-stat-tile">
+                  <div class="ft-stat-tile-label">Worst Week</div>
+                  <div class="ft-stat-tile-value" style="font-size:15px" id="ft-worst-week">—</div>
+                  <div class="ft-stat-tile-sub">Highest error</div>
+                </div>
               </div>
             </div>
 
@@ -2051,16 +2042,19 @@ function initForecastTrendChart() {
     return i===TODAY_IDX ? lastActual : Math.round((lastActual-d*580+9000)+(rAd()-0.5)*10000);
   });
   const planForecast = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round(607000+(rP()-0.5)*22000));
+
   // ── ASU data ── (weekly ~295K, gentle growth)
   const rAsu1=seeded(101), rAsu2=seeded(102), rAsu3=seeded(103);
   const asuActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((295000+i*220)+(rAsu1()-0.5)*17000));
   const asuLast = asuActuals[TODAY_IDX];
   const asuForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
     return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*160)+(rAsu2()-0.5)*7500);
   });
   const asuAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
     return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*90+3800)+(rAsu3()-0.5)*4800);
   });
 
@@ -2069,11 +2063,13 @@ function initForecastTrendChart() {
   const dspActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((6200-i*14)+(rDsp1()-0.5)*580));
   const dspLast = dspActuals[TODAY_IDX];
   const dspForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
     return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*11)+(rDsp2()-0.5)*380);
   });
   const dspAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
+    if(i<TODAY_IDX) return null;
+    const d=i-TODAY_IDX;
     return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*7+90)+(rDsp3()-0.5)*260);
   });
 
@@ -2119,7 +2115,7 @@ function initForecastTrendChart() {
     }
   };
 
-  const aopVal = getAOPTargetValue(); // always the raw FY target, no LOB scaling
+  const aopVal = getAOPTargetValue() * getDPLOBMult();
   const sAOP   = weeks.map(() => aopVal);
 
   if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
@@ -2169,21 +2165,23 @@ function updateForecastTrendChart() {
   const hideAll = shouldHideAll();
   const mult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
 
-  // Use current metric data
+  // Use current metric's data
   const md = _ftMetricData[_ftMetric] || { actuals, forecast, adjForecast };
-  const sA =hideAll ? weeks.map(()=>null) : md.actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF =hideAll ? weeks.map(()=>null) : md.forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd=hideAll ? weeks.map(()=>null) : md.adjForecast.map(v=>v!=null?Math.round(v*mult):null);
+  const sA  = hideAll ? weeks.map(()=>null) : md.actuals.map(v=>v!=null?Math.round(v*mult):null);
+  const sF  = hideAll ? weeks.map(()=>null) : md.forecast.map(v=>v!=null?Math.round(v*mult):null);
+  const sAd = hideAll ? weeks.map(()=>null) : md.adjForecast.map(v=>v!=null?Math.round(v*mult):null);
 
-  // Errors always from SR data for stat tiles (unchanged)
+  // Errors always computed from SR for stat tiles
+  const srMult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
   const errWeeks=weeks.slice(0,TODAY_IDX+1);
-  const errors=hideAll ? [] : errWeeks.map((_,i)=>{
+  const errors=errWeeks.map((_,i)=>{
     const v=actuals[i],p=planForecast[i];
-    return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
+    return (v==null||p==null||srMult===0)?null:+((p*srMult-v*srMult)/(v*srMult)*100).toFixed(1);
   }).filter(v=>v!=null);
 
-  // AOP always visible — metric-aware target, no filter gating
+  // AOP — always visible, uses current metric's target, no filter gating
   const aopVal = getAOPTargetValue();
+
   const mc=chartInstances['fa-chart-forecast-trend'];
   if(mc){
     mc.data.datasets[0].data=sA;
@@ -2203,11 +2201,14 @@ function switchChartMetric(metric, btnEl) {
   _ftMetric = metric;
   document.querySelectorAll('.ft-metric-btn').forEach(b => b.classList.remove('active'));
   if (btnEl) btnEl.classList.add('active');
+
   const conf = FT_METRIC_CONF[metric] || FT_METRIC_CONF.sr;
   const titleEl = document.getElementById('ft-chart-left-title');
   const subEl   = document.getElementById('ft-chart-left-sub');
   if (titleEl) titleEl.innerHTML = conf.title;
   if (subEl)   subEl.innerHTML   = conf.sub;
+
+  // Full update through the standard path so filters stay respected
   updateForecastTrendChart();
 }
 
@@ -2558,10 +2559,10 @@ function updateFAOverviewChart() {
 // =========================================================
 // ACTUALS PROFILING — FILTER STATE & PER-PRODUCT-GROUP DATA
 // =========================================================
-let _dpBaseData   = null;
-let _ftBaseData   = null;
+let _dpBaseData = null;
+let _ftBaseData  = null;
 let _ftMetricData = {};
-let _ftMetric     = 'sr';
+let _ftMetric    = 'sr';
 
 // Per-metric AOP weekly targets per FY
 const AOP_METRIC_TARGETS = {
@@ -2570,7 +2571,7 @@ const AOP_METRIC_TARGETS = {
   dispatch: { FY25: 5600,   FY26: 6100,   FY27: 6650   }
 };
 
-// Per-metric chart display config (title, subtitle, y-axis format)
+// Per-metric display config
 const FT_METRIC_CONF = {
   sr: {
     title: 'Weekly SR — FY26 Actuals &amp; Forecast',
@@ -2589,7 +2590,7 @@ const FT_METRIC_CONF = {
   }
 };
 
-// AOP — per current metric, per active FY, always visible
+// AOP — always uses current metric's target for active FY (no LOB scaling)
 function getAOPTargetValue() {
   const targets = AOP_METRIC_TARGETS[_ftMetric] || AOP_METRIC_TARGETS.sr;
   const f   = getActiveFilters();
@@ -3308,6 +3309,8 @@ function wiInit() {
   setTimeout(wiRenderAll, 80);
 }
 
+// =========================================================
+
 function setRefreshStamp() {
   const now = new Date();
   const s = `Refreshed ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
@@ -3318,6 +3321,9 @@ function setRefreshStamp() {
 }
 setRefreshStamp();
 setInterval(setRefreshStamp, 60000);
+
+// Auto-open Forecast Accuracy → Forecast Trend on load
+window.addEventListener('load', () => { openDashboard('forecast-accuracy'); });
 </script>
 </body>
 </html>

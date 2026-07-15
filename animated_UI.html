@@ -136,33 +136,13 @@
     }
     .home-logo { position: absolute; top: 28px; right: 36px; z-index: 1; }
 
-    /* ── HOME: STATS STRIP ─────────────────────────────────── */
-    .home-stats-strip {
-      display: flex; gap: 10px; flex-wrap: wrap;
-      padding: 0 36px 36px; flex-shrink: 0;
-    }
-    .home-stat-pill {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 14px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; font-size: 12px; color: var(--text-2);
-      transition: border-color 0.15s;
-    }
-    .home-stat-pill:hover { border-color: var(--border-hi); }
-    .home-stat-pill i { font-size: 13px; color: var(--accent); }
-    .home-stat-pill strong { color: var(--text-1); font-weight: 700; font-family: var(--font-mono); }
-
     /* ── HOME: MODULE TILES ────────────────────────────────── */
     .tiles-section { padding: 0 36px 48px; }
-    .tiles-section-hd {
-      display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
-    }
     .tiles-label {
       font-size: 10px; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-3); padding-top: 4px;
+      color: var(--text-3); margin-bottom: 14px; padding-top: 4px;
     }
-    .tiles-sublabel { font-size: 12px; color: var(--text-3); }
     .tiles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
@@ -700,6 +680,30 @@
       border-radius:50%; margin-right:4px; vertical-align:middle;
     }
 
+    /* ════════════════════════════════════════════════════════
+       ANIMATION LAYER — sleek/corporate entrance + micro-interactions
+       ════════════════════════════════════════════════════════ */
+    .page-section.active { animation: none; }
+    .kpi-card {
+      transition: border-color 0.22s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.28s cubic-bezier(0.22,1,0.36,1);
+    }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(13,16,32,0.08); }
+    .kpi-card::after { transition: opacity 0.25s ease; }
+    .kpi-card:hover::after { opacity: 0.5; }
+    .visual-card {
+      transition: border-color 0.22s ease, transform 0.28s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.28s cubic-bezier(0.22,1,0.36,1);
+    }
+    .visual-card:hover { border-color: var(--border-hi); box-shadow: 0 10px 30px rgba(13,16,32,0.06); }
+    .nav-link { transition: background 0.18s ease, color 0.18s ease, transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s ease; }
+    .nav-link:hover { transform: translateX(3px); }
+    .nav-link.active { box-shadow: inset 2px 0 0 var(--accent); }
+    .tile { transition: border-color 0.2s, transform 0.3s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s cubic-bezier(0.22,1,0.36,1); }
+    .btn-icon:active, .btn-sm:active, .export-btn:active, .chart-toggle-btn:active { transform: scale(0.94); }
+    @media (prefers-reduced-motion: reduce) {
+      .kpi-card:hover, .visual-card:hover, .nav-link:hover, .tile:hover { transform: none; }
+    }
   </style>
 </head>
 <body>
@@ -721,23 +725,12 @@
       <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
     </div>
     <div class="home-logo">
-      <img src="D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations\Aligned logo.png" alt="Aligned Automation" style="height:34px;"
-        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>Aligned Automation</span>'">
+      <img src="Aligned logo.png" alt="Aligned Automation" style="height:34px;" onerror="this.outerHTML='<span style=&quot;color:var(--text-2);font-size:12px;font-weight:600;letter-spacing:0.02em;&quot;>Aligned Automation</span>'">Aligned Automation</span>'">
     </div>
-  </div>
-
-  <div class="home-stats-strip">
-    <div class="home-stat-pill"><i class="ti ti-calendar-event"></i> <strong>FY26</strong> &nbsp;·&nbsp; Week 22</div>
-    <div class="home-stat-pill"><i class="ti ti-world"></i> <strong>3</strong> &nbsp;Regions &nbsp;·&nbsp; AMER · EMEA · APJ</div>
-    <div class="home-stat-pill"><i class="ti ti-database"></i> <strong>1,204</strong> &nbsp;Records</div>
-    <div class="home-stat-pill"><i class="ti ti-chart-bar"></i> <strong>W01–W22</strong> &nbsp;Actuals confirmed</div>
   </div>
 
   <div class="tiles-section">
-    <div class="tiles-section-hd">
-      <p class="tiles-label">Modules</p>
-      <p class="tiles-sublabel">Select a module to begin</p>
-    </div>
+    <p class="tiles-label">Modules</p>
     <div class="tiles-grid">
       <div class="tile" onclick="openDashboard('forecast-accuracy')">
         <div class="tile-head">
@@ -789,8 +782,6 @@
         <div class="tile-desc">Goal-first strategic planner — set an ASU or revenue target and activate initiatives to bend the forecast curve toward it, with lag and confidence modelling.</div>
         <div class="tile-stat">8 levers &nbsp;·&nbsp; <span style="color:var(--green);">Gap-to-target</span></div>
       </a>
-
-
     </div>
   </div>
 </div>
@@ -3318,6 +3309,148 @@ function setRefreshStamp() {
 }
 setRefreshStamp();
 setInterval(setRefreshStamp, 60000);
+</script>
+<!-- ════════════════════════════════════════════════════════
+     ANIMATION ORCHESTRATOR — entrance + transition choreography
+     Layered on top; does not modify existing app logic.
+     ════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+  const qs  = (s, r) => (r || document).querySelector(s);
+  const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+  // ── Sleeker Chart.js motion defaults (applies to all charts built later) ──
+  if (window.Chart) {
+    Chart.defaults.animation = Chart.defaults.animation || {};
+    Chart.defaults.animation.duration = 950;
+    Chart.defaults.animation.easing = 'easeOutQuart';
+    Chart.defaults.animations = Object.assign({}, Chart.defaults.animations, {
+      y: { from: (ctx) => (ctx.type === 'data' && ctx.mode === 'default') ? ctx.chart.scales.y.getPixelForValue(0) : undefined }
+    });
+  }
+
+  // ── Core reveal helper (Web Animations API; clean, no residual transforms) ──
+  function reveal(el, opt) {
+    if (!el || RM) return;
+    opt = opt || {};
+    const y = opt.y != null ? opt.y : 14, x = opt.x || 0, sc = opt.scale != null ? opt.scale : 1;
+    const dur = opt.dur || 620, delay = opt.delay || 0;
+    el.animate(
+      [{ opacity: 0, transform: 'translate(' + x + 'px,' + y + 'px) scale(' + sc + ')' },
+       { opacity: 1, transform: 'translate(0,0) scale(1)' }],
+      { duration: dur, delay: delay, easing: EASE, fill: 'backwards' }
+    );
+  }
+  function stagger(els, opt) {
+    opt = opt || {};
+    const base = opt.base || 0, step = opt.step || 70, cap = opt.cap != null ? opt.cap : 7;
+    els.forEach((el, i) => {
+      const k = Math.min(i, cap);
+      reveal(el, Object.assign({}, opt, { delay: base + k * step }));
+    });
+    return base + Math.min(els.length - 1, cap) * step;
+  }
+
+  // ── Count-up for numeric KPI values (preserves prefix/suffix + formatting) ──
+  function countUp(el, dur, delay) {
+    if (!el || RM) return;
+    const txt = el.textContent.trim();
+    const m = txt.match(/^([^0-9-]*)(-?[\d,]*\.?\d+)(.*)$/);
+    if (!m) return;
+    const prefix = m[1], suffix = m[3];
+    if (/[A-Za-z]/.test(prefix)) return;            // skip labels like "W22"
+    const numStr = m[2];
+    const hadComma = numStr.indexOf(',') !== -1;
+    const decimals = (numStr.split('.')[1] || '').length;
+    const target = parseFloat(numStr.replace(/,/g, ''));
+    if (!isFinite(target)) return;
+    const fmt = (v) => {
+      let s = v.toFixed(decimals);
+      if (hadComma) s = Number(s).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      return prefix + s + suffix;
+    };
+    const t0 = performance.now() + (delay || 0);
+    const D = dur || 900;
+    el.textContent = fmt(0);
+    function frame(now) {
+      let t = (now - t0) / D;
+      if (t < 0) { requestAnimationFrame(frame); return; }
+      if (t > 1) t = 1;
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = fmt(target * e);
+      if (t < 1) requestAnimationFrame(frame);
+      else el.textContent = txt;                    // restore exact original
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // ── HOME entrance ──
+  function animateHome() {
+    reveal(qs('.home-status-bar'), { y: -10, dur: 500 });
+    reveal(qs('.home-logo'), { y: 0, scale: 0.92, dur: 600, delay: 140 });
+    const hero = [qs('.home-eyebrow'), qs('.home-title'), qs('.home-title-sub'), qs('.home-desc')].filter(Boolean);
+    stagger(hero, { y: 22, base: 90, step: 95, dur: 720 });
+    reveal(qs('.tiles-label'), { y: 14, delay: 420, dur: 600 });
+    stagger(qsa('.tile'), { y: 26, scale: 0.985, base: 500, step: 80, dur: 700 });
+  }
+
+  // ── DASHBOARD chrome entrance (header + side panels) ──
+  function animateChrome() {
+    reveal(qs('.dash-header'), { y: -18, x: 0, dur: 540 });
+    reveal(qs('#left-panel'),  { x: -26, y: 0, dur: 640, delay: 70 });
+    reveal(qs('#right-panel'), { x: 26,  y: 0, dur: 640, delay: 70 });
+  }
+
+  // ── PAGE content reveal (KPI cards stagger + count-up, then chart cards) ──
+  function animatePage(pageEl) {
+    if (!pageEl || RM) return;
+    const kpis = qsa('.kpi-card', pageEl);
+    const kEnd = stagger(kpis, { y: 18, scale: 0.985, base: 70, step: 72, dur: 580 });
+    kpis.forEach((c, i) => {
+      const v = qs('.kpi-value', c);
+      countUp(v, 900, 70 + Math.min(i, 7) * 72 + 140);
+    });
+    const cards = qsa('.visual-card', pageEl);
+    stagger(cards, { y: 26, base: (kpis.length ? kEnd + 130 : 80), step: 90, dur: 660 });
+  }
+
+  // ── Observe view + page transitions (decoupled from app logic) ──
+  function setup() {
+    const home = qs('#home-view');
+    const dash = qs('#dashboard-view');
+
+    let dashShown = false;
+    new MutationObserver(() => {
+      const vis = dash && getComputedStyle(dash).display !== 'none';
+      if (vis && !dashShown) { dashShown = true; animateChrome(); }
+      else if (!vis) { dashShown = false; }
+      if (home && getComputedStyle(home).display !== 'none' && home.dataset.seen === '1') {
+        animateHome();   // returning home via goHome()
+      }
+    }).observe(dash, { attributes: true, attributeFilter: ['style'] });
+
+    // Watch every page-section: animate the one that becomes .active
+    qsa('.page-section').forEach((sec) => {
+      new MutationObserver((muts) => {
+        for (const mu of muts) {
+          if (sec.classList.contains('active') && sec.dataset.anim !== 'busy') {
+            sec.dataset.anim = 'busy';
+            animatePage(sec);
+            setTimeout(() => { sec.dataset.anim = ''; }, 50);
+          }
+        }
+      }).observe(sec, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    // Initial home entrance
+    if (home) { home.dataset.seen = '1'; animateHome(); }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -11,8 +11,8 @@
       margin: 0;
       font-family: 'Plus Jakarta Sans', Inter, Arial, sans-serif;
       min-height: 100vh;
-      background: #07090f;
-      color: #e2e8f0;
+      background: #f1f4fa;
+      color: #0c1526;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -24,26 +24,22 @@
     /* ── Header ── */
     header {
       padding: 40px 40px 32px;
-      background: linear-gradient(135deg, #0c1830 0%, #0d1018 100%);
-      border: 1px solid #1d2135;
+      background: #ffffff;
+      border: 1px solid #e4e8f4;
       border-radius: 20px;
       margin-bottom: 28px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 1px 3px rgba(12,21,38,0.06), 0 4px 16px rgba(12,21,38,0.04);
     }
+    /* Teal accent bar at top */
     header::before {
       content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse 55% 70% at 100% 0%, rgba(76,126,248,0.1) 0%, transparent 60%);
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #0d9488, rgba(13,148,136,0.3), transparent);
       pointer-events: none;
     }
-    header::after {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: radial-gradient(circle, rgba(76,126,248,0.06) 1px, transparent 1px);
-      background-size: 28px 28px;
-      pointer-events: none;
-    }
+    header::after { display: none; }
     .header-inner { position: relative; z-index: 1; }
     .header-eyebrow {
       font-size: 0.72rem; font-weight: 700;
@@ -59,21 +55,21 @@
     h1 {
       margin: 0 0 6px;
       font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-      color: #eceef8; font-weight: 800;
+      color: #0c1526; font-weight: 800;
       line-height: 1.1; letter-spacing: -0.03em;
     }
-    h1 span { color: #818ab0; font-weight: 300; }
+    h1 span { color: #8090b0; font-weight: 300; }
     .header-sub {
       margin: 0;
-      color: #6b758f; font-size: 0.95rem; line-height: 1.7; max-width: 600px;
+      color: #4a5578; font-size: 0.95rem; line-height: 1.7; max-width: 600px;
     }
-    .header-meta { margin-top: 20px; color: #3a4060; font-size: 0.82rem; font-family: monospace; }
+    .header-meta { margin-top: 20px; color: #92a0bf; font-size: 0.82rem; font-family: monospace; }
 
     /* ── Primary Tools Section ── */
     .section-label {
       font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: #3a4060; margin: 0 0 14px;
+      color: #92a0bf; margin: 0 0 14px;
     }
     .primary-grid {
       display: grid;
@@ -82,8 +78,8 @@
       margin-bottom: 32px;
     }
     .primary-card {
-      background: #111521;
-      border: 1px solid #1d2135;
+      background: #ffffff;
+      border: 1px solid #e4e8f4;
       border-radius: 16px;
       padding: 24px;
       text-decoration: none;
@@ -94,6 +90,7 @@
       position: relative;
       overflow: hidden;
       transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+      box-shadow: 0 1px 3px rgba(12,21,38,0.05), 0 4px 12px rgba(12,21,38,0.03);
     }
     .primary-card::before {
       content: '';
@@ -104,7 +101,7 @@
     .primary-card:hover {
       border-color: var(--card-accent, #4c7ef8);
       transform: translateY(-3px);
-      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(12,21,38,0.08), 0 16px 40px rgba(12,21,38,0.07);
     }
     .primary-card:hover::before { opacity: 1; }
     .card-tag {
@@ -121,15 +118,16 @@
     }
     .card-title {
       font-size: 1.05rem; font-weight: 700;
-      color: #eceef8; margin-bottom: 8px; line-height: 1.3;
+      color: #0c1526; margin-bottom: 8px; line-height: 1.3;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     }
-    .card-desc { font-size: 0.85rem; color: #6b758f; line-height: 1.65; flex: 1; }
+    .card-desc { font-size: 0.85rem; color: #4a5578; line-height: 1.65; flex: 1; }
     .card-footer {
       margin-top: 20px; padding-top: 16px;
-      border-top: 1px solid #1d2135;
+      border-top: 1px solid #e4e8f4;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .card-file { font-size: 0.75rem; color: #3a4060; font-family: monospace; }
+    .card-file { font-size: 0.75rem; color: #92a0bf; font-family: monospace; }
     .card-cta {
       font-size: 0.78rem; font-weight: 700;
       color: var(--card-accent, #4c7ef8);
@@ -140,10 +138,11 @@
 
     /* ── All Modules Card ── */
     .modules-card {
-      background: #111521;
-      border: 1px solid #1d2135;
+      background: #ffffff;
+      border: 1px solid #e4e8f4;
       border-radius: 18px;
       padding: 24px;
+      box-shadow: 0 1px 3px rgba(12,21,38,0.05), 0 4px 12px rgba(12,21,38,0.03);
     }
 
     /* ── Search ── */
@@ -151,50 +150,60 @@
     .search-input {
       width: 100%;
       padding: 11px 16px 11px 42px;
-      background: #0d1018;
-      border: 1px solid #1d2135;
+      background: #f7f9fd;
+      border: 1px solid #e4e8f4;
       border-radius: 10px;
-      color: #e2e8f0;
+      color: #0c1526;
       font-size: 0.9rem;
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%233a4060' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%233a4060' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%2392a0bf' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%2392a0bf' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: 14px center;
     }
-    .search-input::placeholder { color: #3a4060; }
-    .search-input:focus { border-color: #4c7ef8; }
+    .search-input::placeholder { color: #92a0bf; }
+    .search-input:focus { border-color: #4c7ef8; background: #ffffff; }
 
     /* ── Page list ── */
     .page-grid { display: grid; gap: 8px; }
     .page-row {
       display: flex; align-items: center; gap: 14px;
-      background: #0d1018; border: 1px solid #1d2135;
+      background: #f7f9fd; border: 1px solid #e4e8f4;
       border-radius: 12px; padding: 13px 16px;
-      text-decoration: none; color: #e2e8f0;
+      text-decoration: none; color: #0c1526;
       transition: border-color 0.15s, background 0.15s, transform 0.12s;
     }
-    .page-row:hover { border-color: #2c3460; background: #111521; transform: translateX(3px); }
+    .page-row:hover { border-color: #ccd3e8; background: #ffffff; transform: translateX(3px); }
     .page-icon {
       width: 34px; height: 34px; border-radius: 9px;
-      background: #1d2135; display: flex;
+      background: #eef2ff; display: flex;
       align-items: center; justify-content: center;
       flex-shrink: 0; font-size: 0.95rem;
     }
-    .page-row-label { font-weight: 600; font-size: 0.9rem; color: #d1d5e8; }
-    .page-row-file { font-size: 0.72rem; color: #3a4060; margin-top: 2px; font-family: monospace; }
-    .page-arrow { margin-left: auto; color: #2c3460; font-size: 0.9rem; flex-shrink: 0; transition: color 0.15s; }
+    .page-row-label { font-weight: 600; font-size: 0.9rem; color: #0c1526; }
+    .page-row-file { font-size: 0.72rem; color: #92a0bf; margin-top: 2px; font-family: monospace; }
+    .page-arrow { margin-left: auto; color: #ccd3e8; font-size: 0.9rem; flex-shrink: 0; transition: color 0.15s; }
     .page-row:hover .page-arrow { color: #4c7ef8; }
-    .empty-state { color: #3a4060; font-size: 0.9rem; padding: 20px 0; text-align: center; }
+    .empty-state { color: #92a0bf; font-size: 0.9rem; padding: 20px 0; text-align: center; }
 
     /* Primary tool badge in list */
     .primary-badge {
       font-size: 0.65rem; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase;
       padding: 2px 7px; border-radius: 4px;
-      background: rgba(76,126,248,0.1);
+      background: rgba(76,126,248,0.08);
       color: #4c7ef8; white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* New version badge */
+    .new-badge {
+      font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 20px;
+      background: rgba(13,148,136,0.10);
+      border: 1px solid rgba(13,148,136,0.22);
+      color: #0d9488; white-space: nowrap;
     }
   </style>
 </head>
@@ -212,6 +221,36 @@
     <!-- Primary Tools -->
     <p class="section-label">Primary Tools</p>
     <div class="primary-grid">
+
+      <a href=".claude/BTC_Lovable/Dashboard — Forecast Copilot.html" class="primary-card" style="--card-accent:#0d9488;">
+        <div class="card-tag">AI Planning Suite ✦</div>
+        <div class="card-title">Forecast Copilot <span class="new-badge">New</span></div>
+        <div class="card-desc">Full Bend-The-Curve planning workflow — New Contracts &amp; APOS Simulation, a real 3-strategy BTC Recommendation Engine, Automatic Weekly Distribution, and Final Forecast submission. Cross-page filters and selections persist across all 6 pages.</div>
+        <div class="card-footer">
+          <span class="card-file">.claude/BTC_Lovable/Dashboard — Forecast Copilot.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
+
+      <a href="BPA_FORCASTING_MOCK.HTML" class="primary-card" style="--card-accent:#3a6ef0;">
+        <div class="card-tag">Active Development ✦</div>
+        <div class="card-title">ISG BPA — Forecasting Suite <span class="new-badge">Updated</span></div>
+        <div class="card-desc">Full forecasting dashboard with Forecast Accuracy (incl. Forecast Trend), Actuals Profiling with demand classification &amp; WoW/MoM/QoQ trends, What-If Simulation, and Data Management. Filter-aware charts respond to FY &amp; Product Group.</div>
+        <div class="card-footer">
+          <span class="card-file">BPA_FORCASTING_MOCK.HTML</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
+
+      <a href="ISG BPA — Business Planning and Analytics.html" class="primary-card" style="--card-accent:#0d9488;">
+        <div class="card-tag">Core Platform — Redesign</div>
+        <div class="card-title">ISG BPA v2 <span class="new-badge">New</span></div>
+        <div class="card-desc">Redesigned demand intelligence platform with 6 Actuals Profiling channels (incl. Field Services &amp; Care), realistic FY26 data, teal design system, and fully wired filter logic.</div>
+        <div class="card-footer">
+          <span class="card-file">ISG BPA — Business Planning and Analytics.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
 
       <a href="IBP_Forcasting.html" class="primary-card" style="--card-accent:#4c7ef8;">
         <div class="card-tag">Core Platform</div>
@@ -243,6 +282,16 @@
         </div>
       </a>
 
+      <a href="animated_UI.html" class="primary-card" style="--card-accent:#0891b2;">
+        <div class="card-tag">Motion Design ✦</div>
+        <div class="card-title">Animated UI <span class="new-badge">New</span></div>
+        <div class="card-desc">Immersive animated experience — cinematic transitions, motion-led data reveals, and visual storytelling across the ISG BPA platform.</div>
+        <div class="card-footer">
+          <span class="card-file">animated_UI.html</span>
+          <span class="card-cta">Open &#8594;</span>
+        </div>
+      </a>
+
     </div>
 
     <!-- All Modules -->
@@ -257,15 +306,23 @@
 
   <script>
     const PRIMARY = new Set([
+      '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html',
+      'BPA_FORCASTING_MOCK.HTML',
+      'ISG BPA — Business Planning and Analytics.html',
       'IBP_Forcasting.html',
       'enterprise_whatif_forecasting_platform.html',
       'bend_the_curve.html',
+      'animated_UI.html',
     ]);
 
     const LABELS = {
+      '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
+      'BPA_FORCASTING_MOCK.HTML':                     'ISG BPA — Forecasting Suite (Active)',
+      'ISG BPA — Business Planning and Analytics.html':                       'ISG BPA v2 — Redesign',
       'IBP_Forcasting.html':                          'ISG BPA: Business Planning and Analytics',
       'enterprise_whatif_forecasting_platform.html':  'What-If Simulation',
       'bend_the_curve.html':                          'Bend the Curve',
+      'animated_UI.html':                             'Animated UI',
       'dell_workflow.html':                           'Dell Workflow',
       'simulation-overview-platform.html':            'Simulation Overview Platform',
       'executive_forecast_operational_dashboard.html':'Executive Forecast & Operational Dashboard',
@@ -308,6 +365,12 @@
         .sort((a, b) => {
           const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
           if (aP !== bP) return aP ? -1 : 1;
+          if (a[0] === '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html') return -1;
+          if (b[0] === '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html') return 1;
+          if (a[0] === 'BPA_FORCASTING_MOCK.HTML')   return -1;
+          if (b[0] === 'BPA_FORCASTING_MOCK.HTML')   return 1;
+          if (a[0] === 'ISG BPA — Business Planning and Analytics.html') return -1;
+          if (b[0] === 'ISG BPA — Business Planning and Analytics.html') return 1;
           if (a[0] === 'IBP_Forcasting.html') return -1;
           if (b[0] === 'IBP_Forcasting.html') return 1;
           return a[1].localeCompare(b[1]);
@@ -374,3 +437,4 @@
   </script>
 </body>
 </html>
+
