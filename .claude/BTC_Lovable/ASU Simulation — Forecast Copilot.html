@@ -205,9 +205,9 @@ const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
   region: ['AMERICAS','EMEA','APJ'],
-  lob: ['PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
-  business: ['ESG','ISG','HES'],
-  service: ['Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
+  lob: ['PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia','All'],
+  business: ['ESG','ISG','HES','ALL'],
+  service: ['Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG','ALL','None of the above']
 };
 
 const FC_STATE_KEY = 'fc_state_v1';
@@ -236,15 +236,17 @@ function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h 
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
 const FC_REGION_FACTOR   = { AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
-const FC_BUSINESS_FACTOR  = { ESG: 1.00, ISG: 1.30, HES: 0.60 };
+const FC_LOB_FACTOR       = { PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40, All: 0.78 };
+const FC_BUSINESS_FACTOR  = { ESG: 1.00, ISG: 1.30, HES: 0.60, ALL: 0.97 };
 const FC_SERVICE_FACTOR   = {
   'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
   'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
   'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
   'Parts + Labour ISG': { volume: 0.95, dispatchRatio: 0.58 },
   'Labour Only ESG':    { volume: 0.55, dispatchRatio: 0.68 },
-  'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 }
+  'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 },
+  'ALL':                { volume: 0.84, dispatchRatio: 0.53 },
+  'None of the above':  { volume: 0.50, dispatchRatio: 0.50 }
 };
 const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_APOS_WEEKLY = 21500;
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;

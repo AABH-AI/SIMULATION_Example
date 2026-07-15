@@ -136,33 +136,13 @@
     }
     .home-logo { position: absolute; top: 28px; right: 36px; z-index: 1; }
 
-    /* ── HOME: STATS STRIP ─────────────────────────────────── */
-    .home-stats-strip {
-      display: flex; gap: 10px; flex-wrap: wrap;
-      padding: 0 36px 36px; flex-shrink: 0;
-    }
-    .home-stat-pill {
-      display: flex; align-items: center; gap: 8px;
-      padding: 7px 14px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; font-size: 12px; color: var(--text-2);
-      transition: border-color 0.15s;
-    }
-    .home-stat-pill:hover { border-color: var(--border-hi); }
-    .home-stat-pill i { font-size: 13px; color: var(--accent); }
-    .home-stat-pill strong { color: var(--text-1); font-weight: 700; font-family: var(--font-mono); }
-
     /* ── HOME: MODULE TILES ────────────────────────────────── */
     .tiles-section { padding: 0 36px 48px; }
-    .tiles-section-hd {
-      display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
-    }
     .tiles-label {
       font-size: 10px; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-3); padding-top: 4px;
+      color: var(--text-3); margin-bottom: 14px; padding-top: 4px;
     }
-    .tiles-sublabel { font-size: 12px; color: var(--text-3); }
     .tiles-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
@@ -559,7 +539,7 @@
     }
     .dp-quad-title { font-size:12px; font-weight:700; margin-bottom:6px; }
     .dp-quad-canvas { flex:1; min-height:190px; position:relative; }
-    .dp-trend-canvas-wrap { position:relative; height:260px; }
+    .dp-trend-canvas-wrap { position:relative; height:220px; }
 
     .dp-quad-consistent  { border-top:3px solid #16a34a; }
     .dp-quad-erratic     { border-top:3px solid #d97706; }
@@ -611,26 +591,6 @@
       border-radius:2px; vertical-align:middle; margin-right:3px;
     }
 
-    /* LOB Weekly chart */
-    .lob-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
-    .lob-metric-btn {
-      padding:3px 10px; font-size:11px; font-weight:600;
-      border:1.5px solid var(--border); border-radius:6px;
-      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
-    }
-    .lob-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .lob-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
-    .ft-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
-    .ft-metric-btn {
-      padding:3px 12px; font-size:11px; font-weight:600;
-      border:1.5px solid var(--border); border-radius:6px;
-      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
-    }
-    .ft-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .ft-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
-    .lob-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; font-size:10.5px; color:var(--text-2); align-items:center; }
-    .lob-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; vertical-align:middle; }
-
     .cv-info-btn {
       display:inline-flex; align-items:center; justify-content:center;
       width:16px; height:16px; border-radius:50%;
@@ -676,7 +636,7 @@
     .dp-trends-header { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
     .dp-trends-title { font-size:14px; font-weight:700; color:var(--text-1); }
     .dp-trends-sub { font-size:11.5px; color:var(--text-3); }
-    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
     .dp-trend-card {
       background:var(--surface); border:1px solid var(--border);
       border-radius:10px; padding:12px 14px 6px;
@@ -689,7 +649,8 @@
       font-size:10px; font-weight:700; padding:2px 8px;
       border-radius:100px; letter-spacing:0.05em;
     }
-    .dp-trend-badge-yoy { background:#fef3c7; color:#b45309; }
+    .dp-trend-badge-wow { background:#eff6ff; color:#1d4ed8; }
+    .dp-trend-badge-mom { background:#f5f3ff; color:#7c3aed; }
     .dp-trend-badge-qoq { background:#ecfeff; color:#0e7490; }
     .dp-trend-legend {
       display:flex; gap:12px; margin-bottom:2px;
@@ -726,18 +687,8 @@
     </div>
   </div>
 
-  <div class="home-stats-strip">
-    <div class="home-stat-pill"><i class="ti ti-calendar-event"></i> <strong>FY26</strong> &nbsp;·&nbsp; Week 22</div>
-    <div class="home-stat-pill"><i class="ti ti-world"></i> <strong>3</strong> &nbsp;Regions &nbsp;·&nbsp; AMER · EMEA · APJ</div>
-    <div class="home-stat-pill"><i class="ti ti-database"></i> <strong>1,204</strong> &nbsp;Records</div>
-    <div class="home-stat-pill"><i class="ti ti-chart-bar"></i> <strong>W01–W22</strong> &nbsp;Actuals confirmed</div>
-  </div>
-
   <div class="tiles-section">
-    <div class="tiles-section-hd">
-      <p class="tiles-label">Modules</p>
-      <p class="tiles-sublabel">Select a module to begin</p>
-    </div>
+    <p class="tiles-label">Modules</p>
     <div class="tiles-grid">
       <div class="tile" onclick="openDashboard('forecast-accuracy')">
         <div class="tile-head">
@@ -789,8 +740,6 @@
         <div class="tile-desc">Goal-first strategic planner — set an ASU or revenue target and activate initiatives to bend the forecast curve toward it, with lag and confidence modelling.</div>
         <div class="tile-stat">8 levers &nbsp;·&nbsp; <span style="color:var(--green);">Gap-to-target</span></div>
       </a>
-
-
     </div>
   </div>
 </div>
@@ -840,89 +789,52 @@
           <!-- KPI strip -->
           <div class="kpi-row">
             <div class="kpi-card">
-              <div class="kpi-label">Current Week</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ft-current-week">W22</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-current-week-sub">FY26 · Actuals through here</div>
+              <div class="kpi-label">Active Period</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ft-period-label">FY26 · W01–W52</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-period-sub">Actuals through W22</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">ASU Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-asu-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-asu-acc-sub">Overall · W01–W22</div>
+              <div class="kpi-label">Last Actual SR</div>
+              <div class="kpi-value kpi-dynamic" style="color:var(--text-1)" id="ft-last-actual">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-last-actual-sub">Weekly service requests</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">SR Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-sr-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-sr-acc-sub">Overall · W01–W22</div>
+              <div class="kpi-label">Period MAPE</div>
+              <div class="kpi-value kpi-dynamic" id="ft-mape-kpi">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-mape-sub">Mean abs % error</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-label">Dispatch Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-dsp-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-dsp-acc-sub">Overall · W01–W22</div>
+              <div class="kpi-label">AOP vs Actuals</div>
+              <div class="kpi-value kpi-dynamic" id="ft-aop-kpi">—</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-aop-sub">Annual Operating Plan gap</div>
             </div>
           </div>
 
-          <!-- Two-column chart area -->
-          <div class="visual-row" style="align-items:stretch;">
-
-            <!-- LEFT — SR / ASU / Dispatch trend chart -->
-            <div class="visual-card" style="flex:1.8; flex-direction:column; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; gap:12px;">
-                <div style="flex:1; min-width:0;">
-                  <div class="visual-title" style="margin-bottom:2px;" id="ft-chart-left-title">Weekly SR — FY26 Actuals &amp; Forecast</div>
-                  <div style="font-size:11px; color:var(--text-3);" id="ft-chart-left-sub">Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters</div>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
-                  <div class="ft-metric-toggle">
-                    <button class="ft-metric-btn active" onclick="switchChartMetric('sr',this)">SR</button>
-                    <button class="ft-metric-btn" onclick="switchChartMetric('asu',this)">ASU</button>
-                    <button class="ft-metric-btn" onclick="switchChartMetric('dispatch',this)">Dispatch</button>
-                  </div>
-                  <div style="display:flex; gap:12px; align-items:center; font-size:11px; color:var(--text-2);">
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj.
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#6366f1" stroke-width="2" stroke-dasharray="10 4"/></svg>AOP
-                    </span>
-                  </div>
-                </div>
+          <!-- Full-width chart -->
+          <div class="visual-card" style="flex-direction:column;">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px;">
+              <div>
+                <div class="visual-title" style="margin-bottom:2px;" id="ft-chart-title">Weekly SR — FY26 Actuals &amp; Forecast</div>
+                <div style="font-size:11px; color:var(--text-3);" id="ft-chart-sub">Service Requests per week &nbsp;·&nbsp; responds to FY, Quarter &amp; Product Group filters</div>
               </div>
-              <div style="flex:1; min-height:320px; position:relative;">
-                <canvas id="fa-chart-forecast-trend"></canvas>
+              <div style="display:flex; gap:14px; align-items:center; font-size:11px; color:var(--text-2); flex-shrink:0; margin-left:12px;">
+                <span style="display:flex;align-items:center;gap:5px;">
+                  <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;">
+                  <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;">
+                  <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj. Forecast
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;">
+                  <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#7c3aed" stroke-width="2" stroke-dasharray="10 3 3 3"/></svg>AOP
+                </span>
               </div>
             </div>
-
-            <!-- RIGHT — Weekly LOB Breakdown -->
-            <div class="visual-card" style="flex:1; flex-direction:column; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px;">
-                <div>
-                  <div class="visual-title" style="margin-bottom:2px;">Weekly LOB Breakdown</div>
-                  <div style="font-size:11px; color:var(--text-3);">W01–W52 &nbsp;·&nbsp; Static — unaffected by filters</div>
-                </div>
-                <div class="lob-metric-toggle">
-                  <button class="lob-metric-btn active" onclick="switchLOBMetric('sr',this)">SR</button>
-                  <button class="lob-metric-btn" onclick="switchLOBMetric('asu',this)">ASU</button>
-                  <button class="lob-metric-btn" onclick="switchLOBMetric('dispatch',this)">Dispatch</button>
-                </div>
-              </div>
-              <div class="lob-legend">
-                <span><span class="lob-dot" style="background:#3a6ef0"></span>PowerEdge</span>
-                <span><span class="lob-dot" style="background:#16a34a"></span>APEX</span>
-                <span><span class="lob-dot" style="background:#d97706"></span>VXRAIL</span>
-                <span><span class="lob-dot" style="background:#7c3aed"></span>POWERFLEX</span>
-                <span><span class="lob-dot" style="background:#0891b2"></span>AVAMAR</span>
-              </div>
-              <div style="flex:1; min-height:180px; position:relative;">
-                <canvas id="fa-chart-lob-weekly"></canvas>
-              </div>
+            <div style="flex:1; min-height:360px; position:relative;">
+              <canvas id="fa-chart-forecast-trend"></canvas>
             </div>
-
           </div>
 
         </div>
@@ -1088,15 +1000,27 @@
             <div class="dp-trends-grid">
               <div class="dp-trend-card">
                 <div class="dp-trend-card-header">
-                  <span class="dp-trend-label">Year over Year</span>
-                  <span class="dp-trend-badge dp-trend-badge-yoy">YoY</span>
+                  <span class="dp-trend-label">Week over Week</span>
+                  <span class="dp-trend-badge dp-trend-badge-wow">WoW</span>
                 </div>
                 <div class="dp-trend-legend">
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Growth year</span>
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Decline year</span>
-                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #b45309;vertical-align:middle;margin-right:4px"></span>YoY %</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up week</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down week</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #3a6ef0;vertical-align:middle;margin-right:4px"></span>WoW %</span>
                 </div>
-                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-yoy"></canvas></div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-wow"></canvas></div>
+              </div>
+              <div class="dp-trend-card">
+                <div class="dp-trend-card-header">
+                  <span class="dp-trend-label">Month over Month</span>
+                  <span class="dp-trend-badge dp-trend-badge-mom">MoM</span>
+                </div>
+                <div class="dp-trend-legend">
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up month</span>
+                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down month</span>
+                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #7c3aed;vertical-align:middle;margin-right:4px"></span>MoM %</span>
+                </div>
+                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-mom"></canvas></div>
               </div>
               <div class="dp-trend-card">
                 <div class="dp-trend-card-header">
@@ -1727,7 +1651,8 @@ function onFilterChange() {
 // =========================================================
 const FILTER_AWARE_CHARTS = new Set([
   'fa-chart-hbar','fa-chart-partner',
-  'dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy'
+  'dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy',
+  'fa-chart-forecast-trend'
 ]);
 
 function triggerDataUpdate() {
@@ -1881,12 +1806,16 @@ function initDemandProfilingQuadrants() {
 }
 
 // =========================================================
-// ACTUALS PROFILING — DEMAND TRENDS (YoY / QoQ)
+// ACTUALS PROFILING — DEMAND TRENDS (WoW / MoM / QoQ)
 // =========================================================
 function initDemandTrends() {
-  const yoyLabels = ['FY22','FY23','FY24','FY25','FY26 YTD'];
-  const yoyDemand = [985000,1048000,1108000,1179000,1257000];
-  const yoyPct    = [null,6.4,5.7,6.4,6.6];
+  const wowLabels = ['Wk 11','Wk 12','Wk 13','Wk 14','Wk 15','Wk 16','Wk 17','Wk 18','Wk 19','Wk 20','Wk 21','Wk 22'];
+  const wowDemand = [22800,23400,22900,24200,23700,25100,24500,25800,25200,26100,25600,26800];
+  const wowPct    = [null,2.6,-2.1,5.7,-2.1,5.9,-2.4,5.3,-2.3,3.6,-1.9,4.7];
+
+  const momLabels = ['Jul 25','Aug','Sep','Oct','Nov','Dec','Jan 26','Feb','Mar','Apr','May','Jun'];
+  const momDemand = [98400,102800,99200,107600,104300,96800,101200,105600,108900,106400,111200,114800];
+  const momPct    = [null,4.5,-3.5,8.5,-3.1,-7.2,4.5,4.3,3.1,-2.3,4.5,3.2];
 
   const qoqLabels = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
   const qoqDemand = [284000,298000,306000,294000,315000,308000,325000,338000];
@@ -1970,65 +1899,83 @@ function initDemandTrends() {
     });
   };
 
-  // Initialize with empty data — updateDemandTrends() applies the correct filtered state immediately after
-  mkTrend('dp-trend-yoy', [], [], [], '#b45309');
-  mkTrend('dp-trend-qoq', [], [], [], '#0891b2');
+  mkTrend('dp-trend-wow', wowLabels, wowDemand, wowPct, '#3a6ef0');
+  mkTrend('dp-trend-mom', momLabels, momDemand, momPct, '#7c3aed');
+  mkTrend('dp-trend-qoq', qoqLabels, qoqDemand, qoqPct, '#0891b2');
 }
 
 // =========================================================
-// FORECAST TREND — SR ACTUALS / FORECAST / ADJUSTED FORECAST
+// FORECAST TREND — SR ACTUALS / FORECAST / ADJUSTED FORECAST / AOP
 // =========================================================
-function _ftUpdateKPIs(scaledActuals, scaledForecast, scaledAdj, errors, weeks, TODAY_IDX) {
-  // Right-panel stat tiles (still present in the error chart section)
-  const elMape = document.getElementById('ft-mape');
-  const elBias = document.getElementById('ft-bias');
-  const elBest = document.getElementById('ft-best-week');
-  const elWrst = document.getElementById('ft-worst-week');
 
-  // Top KPI cards
-  const elCW      = document.getElementById('ft-current-week');
-  const elCWSub   = document.getElementById('ft-current-week-sub');
-  const elASU     = document.getElementById('ft-asu-acc');
-  const elASUSub  = document.getElementById('ft-asu-acc-sub');
-  const elSR      = document.getElementById('ft-sr-acc');
-  const elSRSub   = document.getElementById('ft-sr-acc-sub');
-  const elDSP     = document.getElementById('ft-dsp-acc');
-  const elDSPSub  = document.getElementById('ft-dsp-acc-sub');
+// Per-FY Annual Operating Plan weekly SR targets
+const AOP_FY = { FY25: 560000, FY26: 590000, FY27: 625000 };
 
-  const curWeekLabel = weeks[TODAY_IDX] || 'W22';
-  if (elCW)    elCW.innerText    = curWeekLabel;
-  if (elCWSub) elCWSub.innerText = 'FY26 · Actuals through here';
+function _getAOPValue() {
+  const f = getActiveFilters();
+  const fys = f.fy;
+  if (!fys || fys.length === 0) return AOP_FY.FY26;
+  const avg = fys.reduce((s, fy) => s + (AOP_FY[fy] || AOP_FY.FY26), 0) / fys.length;
+  return Math.round(avg);
+}
 
-  if (errors.length) {
-    const absErr  = errors.map(Math.abs);
-    const mapeVal = absErr.reduce((a,b)=>a+b,0) / absErr.length;
-    const mapeStr = mapeVal.toFixed(1) + '%';
-    const rawBias = errors.reduce((a,b)=>a+b,0) / errors.length;
-    const biasStr = (rawBias >= 0 ? '+' : '') + rawBias.toFixed(1) + '%';
-    const minI    = absErr.indexOf(Math.min(...absErr));
-    const maxI    = absErr.indexOf(Math.max(...absErr));
+function _ftGetActiveFYLabel() {
+  const f = getActiveFilters();
+  const fys = f.fy;
+  if (!fys || fys.length === 0) return 'FY26';
+  return fys.join('+');
+}
 
-    // Right-panel stat tiles
-    if (elMape) elMape.innerText = mapeStr;
-    if (elBias) { elBias.innerText = biasStr; elBias.style.color = Math.abs(rawBias)<2?'var(--green)':rawBias>0?'var(--amber)':'var(--red)'; }
-    if (elBest) elBest.innerText = weeks[minI] || '—';
-    if (elWrst) elWrst.innerText = weeks[maxI] || '—';
+function _ftGetWeekSlice() {
+  if (shouldHideAll()) return [];
+  const idx = getSelectedWeekIndices();
+  if (idx.length === 0) return [];
+  return idx.length < 52 ? idx : null; // null = show full 52-week range
+}
 
-    // KPI card accuracy values
-    // SR accuracy derived from SR error data; ASU & Dispatch use calibrated base values
-    const fyMult  = getActiveFYMultiplier();
-    const srAcc   = Math.min(99.9, 100 - mapeVal);
-    const asuAcc  = Math.min(99.9, 95.4 + (fyMult - 1.0) * 1.8);
-    const dspAcc  = Math.min(99.9, 97.1 + (fyMult - 1.0) * 1.2);
-    const accColor = v => v >= 95 ? 'var(--green)' : v >= 90 ? 'var(--amber)' : 'var(--red)';
-    const periodSub = 'Overall · ' + (weeks[0]||'W01') + '–' + curWeekLabel;
+function _ftUpdateKPIs(scaledActuals, slicedLabels, todaySliceIdx, aopVal) {
+  const fmt = v => v != null ? v.toLocaleString('en-IN') : '—';
+  const fyLabel = _ftGetActiveFYLabel();
 
-    if (elASU)    { elASU.innerText    = asuAcc.toFixed(1) + '%'; elASU.style.color = accColor(asuAcc); }
-    if (elASUSub)   elASUSub.innerText = periodSub;
-    if (elSR)     { elSR.innerText     = srAcc.toFixed(1)  + '%'; elSR.style.color  = accColor(srAcc);  }
-    if (elSRSub)    elSRSub.innerText  = periodSub;
-    if (elDSP)    { elDSP.innerText    = dspAcc.toFixed(1) + '%'; elDSP.style.color = accColor(dspAcc); }
-    if (elDSPSub)   elDSPSub.innerText = periodSub;
+  const elPeriod    = document.getElementById('ft-period-label');
+  const elPeriodSub = document.getElementById('ft-period-sub');
+  const elLA        = document.getElementById('ft-last-actual');
+  const elLASub     = document.getElementById('ft-last-actual-sub');
+  const elMK        = document.getElementById('ft-mape-kpi');
+  const elMSub      = document.getElementById('ft-mape-sub');
+  const elAOP       = document.getElementById('ft-aop-kpi');
+  const elAOPSub    = document.getElementById('ft-aop-sub');
+  const elTitle     = document.getElementById('ft-chart-title');
+
+  // Period label
+  const firstW = slicedLabels[0] || 'W01';
+  const lastW  = slicedLabels[slicedLabels.length - 1] || 'W52';
+  if (elPeriod) elPeriod.innerText = fyLabel + ' · ' + firstW + '–' + lastW;
+  if (elPeriodSub) {
+    const curW = todaySliceIdx >= 0 ? slicedLabels[todaySliceIdx] : null;
+    elPeriodSub.innerText = curW ? 'Actuals through ' + curW : 'Forecast period';
+  }
+  if (elTitle) elTitle.innerHTML = 'Weekly SR — ' + fyLabel + ' Actuals &amp; Forecast';
+
+  // Last actual in period
+  const actualVals = scaledActuals.filter(v => v != null);
+  const lastNonNull = actualVals[actualVals.length - 1];
+  if (elLA) elLA.innerText = fmt(lastNonNull);
+  if (elLASub && todaySliceIdx >= 0) elLASub.innerText = 'Weekly SR at ' + (slicedLabels[todaySliceIdx] || '—');
+
+  // MAPE — AOP vs Actuals for the actual period
+  if (actualVals.length && aopVal) {
+    const errors = actualVals.map(a => Math.abs((aopVal - a) / a * 100));
+    const mape = (errors.reduce((a,b) => a+b, 0) / errors.length).toFixed(1) + '%';
+    if (elMK) { elMK.innerText = mape; elMK.style.color = parseFloat(mape)<5?'var(--green)':parseFloat(mape)<10?'var(--amber)':'var(--red)'; }
+    if (elMSub) elMSub.innerText = 'AOP vs Actuals · ' + fyLabel;
+
+    // AOP gap — (AOP − avgActual) / AOP
+    const avgActual = Math.round(actualVals.reduce((a,b) => a+b, 0) / actualVals.length);
+    const aopGap = (aopVal - avgActual) / aopVal * 100;
+    const gapStr = (aopGap >= 0 ? '+' : '') + aopGap.toFixed(1) + '%';
+    if (elAOP) { elAOP.innerText = gapStr; elAOP.style.color = Math.abs(aopGap)<3?'var(--green)':aopGap>0?'var(--amber)':'var(--red)'; }
+    if (elAOPSub) elAOPSub.innerText = 'AOP ' + fmt(aopVal) + ' · Avg ' + fmt(avgActual);
   }
 }
 
@@ -2036,7 +1983,7 @@ function initForecastTrendChart() {
   const TODAY_IDX = 21;
   const weeks = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
   function seeded(s) { return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
-  const rA=seeded(42), rF=seeded(77), rAd=seeded(13), rP=seeded(88);
+  const rA=seeded(42), rF=seeded(77), rAd=seeded(13);
 
   const actuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((612000-i*1700)+(rA()-0.5)*36000));
   const lastActual = actuals[TODAY_IDX];
@@ -2050,61 +1997,32 @@ function initForecastTrendChart() {
     const d=i-TODAY_IDX;
     return i===TODAY_IDX ? lastActual : Math.round((lastActual-d*580+9000)+(rAd()-0.5)*10000);
   });
-  const planForecast = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round(607000+(rP()-0.5)*22000));
-  // ── ASU data ── (weekly ~295K, gentle growth)
-  const rAsu1=seeded(101), rAsu2=seeded(102), rAsu3=seeded(103);
-  const asuActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((295000+i*220)+(rAsu1()-0.5)*17000));
-  const asuLast = asuActuals[TODAY_IDX];
-  const asuForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*160)+(rAsu2()-0.5)*7500);
-  });
-  const asuAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*90+3800)+(rAsu3()-0.5)*4800);
-  });
+  _ftBaseData = { actuals, forecast, adjForecast, weeks, TODAY_IDX };
 
-  // ── Dispatch data ── (weekly ~6200, slight decline)
-  const rDsp1=seeded(201), rDsp2=seeded(202), rDsp3=seeded(203);
-  const dspActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((6200-i*14)+(rDsp1()-0.5)*580));
-  const dspLast = dspActuals[TODAY_IDX];
-  const dspForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*11)+(rDsp2()-0.5)*380);
-  });
-  const dspAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*7+90)+(rDsp3()-0.5)*260);
-  });
-
-  _ftMetricData = {
-    sr:       { actuals, forecast, adjForecast },
-    asu:      { actuals: asuActuals, forecast: asuForecast, adjForecast: asuAdjForecast },
-    dispatch: { actuals: dspActuals, forecast: dspForecast, adjForecast: dspAdjForecast }
-  };
-  _ftBaseData = { actuals, forecast, adjForecast, planForecast, weeks, TODAY_IDX };
+  const mainId = 'fa-chart-forecast-trend';
+  const mainEl = document.getElementById(mainId);
+  if (chartInstances[mainId]) { chartInstances[mainId].destroy(); delete chartInstances[mainId]; }
 
   const mult = getDPLOBMult() * getActiveFYMultiplier();
-  const sA  = actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF  = forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd = adjForecast.map(v=>v!=null?Math.round(v*mult):null);
-  const errWeeks = weeks.slice(0,TODAY_IDX+1);
-  const errors = errWeeks.map((_,i) => {
-    const v=actuals[i], p=planForecast[i];
-    return (v==null||p==null) ? null : +((p*mult-v*mult)/(v*mult)*100).toFixed(1);
-  }).filter(v=>v!=null);
+  const slice = _ftGetWeekSlice();
+  const visIdx = slice || weeks.map((_,i) => i);
+  const labels = visIdx.map(i => weeks[i]);
+  const todaySliceIdx = visIdx.indexOf(TODAY_IDX);
+  const aopVal = Math.round(_getAOPValue() * getDPLOBMult());
 
-  // ── Main SR trend chart ──────────────────────────────────
-  const mainId='fa-chart-forecast-trend';
-  const mainEl=document.getElementById(mainId);
-  if (chartInstances[mainId]) { chartInstances[mainId].destroy(); delete chartInstances[mainId]; }
+  const sA   = visIdx.map(i => actuals[i]     != null ? Math.round(actuals[i]*mult)     : null);
+  const sF   = visIdx.map(i => forecast[i]    != null ? Math.round(forecast[i]*mult)    : null);
+  const sAd  = visIdx.map(i => adjForecast[i] != null ? Math.round(adjForecast[i]*mult) : null);
+  const sAOP = visIdx.map(() => aopVal);
 
   const vertDivider = {
     id:'ft_divider',
     afterDraw(chart) {
-      if (chart.canvas.id!==mainId) return;
-      const {ctx,chartArea:{top,bottom},scales:{x}}=chart; if(!x) return;
-      const px=x.getPixelForValue(TODAY_IDX);
+      if (chart.canvas.id !== mainId) return;
+      const tIdx = chart.__ftTodayIdx;
+      if (tIdx == null || tIdx < 0) return;
+      const {ctx,chartArea:{top,bottom},scales:{x}} = chart; if (!x) return;
+      const px = x.getPixelForValue(tIdx);
       ctx.save();
       ctx.beginPath(); ctx.setLineDash([5,4]);
       ctx.strokeStyle='rgba(58,110,240,0.4)'; ctx.lineWidth=1.5;
@@ -2119,199 +2037,86 @@ function initForecastTrendChart() {
     }
   };
 
-  const aopVal = getAOPTargetValue(); // always the raw FY target, no LOB scaling
-  const sAOP   = weeks.map(() => aopVal);
-
-  if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
-    type:'line', plugins:[vertDivider],
-    data:{ labels:weeks, datasets:[
-      { label:'Actuals',           data:sA,   borderColor:'#3a6ef0', backgroundColor:'rgba(58,110,240,0.07)', borderWidth:2,   fill:true,  tension:0.35, pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Forecast',          data:sF,   borderColor:'#16a34a', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[8,4],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Adjusted Forecast', data:sAd,  borderColor:'#d97706', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[3,3],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'AOP Target',        data:sAOP, borderColor:'#6366f1', backgroundColor:'transparent',           borderWidth:2,   borderDash:[10,4], tension:0,    pointRadius:0, pointHoverRadius:3, spanGaps:true  }
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#fff',borderColor:'#dde2f4',borderWidth:1,
-          titleColor:'#5a6280',bodyColor:'#0d1020',padding:10,
-          callbacks:{
-            title:ctx=>'FY26 · '+ctx[0].label,
-            label:ctx=>ctx.raw==null?null:' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('en-IN'),
-            afterBody:ctx=>{
-              const a=ctx.find(c=>c.dataset.label==='Actuals'), f=ctx.find(c=>c.dataset.label==='Forecast');
-              if(a&&f&&a.raw!=null&&f.raw!=null){
-                const d=((f.raw-a.raw)/a.raw*100).toFixed(1);
-                return[' ─────────────',' Fcst vs Actual: '+(d>=0?'+':'')+d+'%'];
+  const fyLbl = _ftGetActiveFYLabel();
+  if (mainEl) {
+    chartInstances[mainId] = new Chart(mainEl, {
+      type:'line', plugins:[vertDivider],
+      data:{ labels, datasets:[
+        { label:'Actuals',           data:sA,   borderColor:'#3a6ef0', backgroundColor:'rgba(58,110,240,0.07)', borderWidth:2,   fill:true,  tension:0.35, pointRadius:0, pointHoverRadius:5, spanGaps:false },
+        { label:'Forecast',          data:sF,   borderColor:'#16a34a', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[8,4], tension:0.4, pointRadius:0, pointHoverRadius:5, spanGaps:false },
+        { label:'Adjusted Forecast', data:sAd,  borderColor:'#d97706', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[3,3], tension:0.4, pointRadius:0, pointHoverRadius:5, spanGaps:false },
+        { label:'AOP',               data:sAOP, borderColor:'#7c3aed', backgroundColor:'transparent',           borderWidth:2,   borderDash:[10,3,3,3], tension:0, pointRadius:0, pointHoverRadius:4, spanGaps:true }
+      ]},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:'#fff',borderColor:'#dde2f4',borderWidth:1,
+            titleColor:'#5a6280',bodyColor:'#0d1020',padding:10,
+            callbacks:{
+              title:ctx=>fyLbl+' · '+ctx[0].label,
+              label:ctx=>ctx.raw==null?null:' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('en-IN'),
+              afterBody:ctx=>{
+                const a=ctx.find(c=>c.dataset.label==='Actuals'), f=ctx.find(c=>c.dataset.label==='Forecast');
+                if(a&&f&&a.raw!=null&&f.raw!=null){
+                  const d=((f.raw-a.raw)/a.raw*100).toFixed(1);
+                  return[' ─────────────',' Fcst vs Actual: '+(d>=0?'+':'')+d+'%'];
+                }
+                return[];
               }
-              return[];
             }
           }
+        },
+        scales:{
+          x:{grid:{display:false},ticks:{color:axisColor(),font:{size:9},maxTicksLimit:14,callback(v,i){return labels[i]||''}}},
+          y:{grid:{color:gridColor()},min:0,ticks:{color:axisColor(),font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v}}
         }
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{color:axisColor(),font:{size:9},maxTicksLimit:14,callback(v,i){return i%4===0?weeks[i]?weeks[i]:''?'':''?'':weeks[i]:''}}},
-        y:{grid:{color:gridColor()},min:0,ticks:{color:axisColor(),font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v}}
       }
-    }
-  });
+    });
+    chartInstances[mainId].__ftTodayIdx = todaySliceIdx;
+  }
 
-  initLOBWeeklyChart();
-  _ftUpdateKPIs(sA, sF, sAd, errors, errWeeks, TODAY_IDX);
+  _ftUpdateKPIs(sA, labels, todaySliceIdx, aopVal);
 }
 
 function updateForecastTrendChart() {
   if (!_ftBaseData) return;
-  const {actuals,forecast,adjForecast,planForecast,weeks,TODAY_IDX}=_ftBaseData;
-  const hideAll = shouldHideAll();
-  const mult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
+  const {actuals,forecast,adjForecast,weeks,TODAY_IDX} = _ftBaseData;
+  const mult = getDPLOBMult() * getActiveFYMultiplier();
+  const slice = _ftGetWeekSlice();
 
-  // Use current metric data
-  const md = _ftMetricData[_ftMetric] || { actuals, forecast, adjForecast };
-  const sA =hideAll ? weeks.map(()=>null) : md.actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF =hideAll ? weeks.map(()=>null) : md.forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd=hideAll ? weeks.map(()=>null) : md.adjForecast.map(v=>v!=null?Math.round(v*mult):null);
+  // Empty slice → clear chart (all-unchecked filter state)
+  if (Array.isArray(slice) && slice.length === 0) {
+    const mc = chartInstances['fa-chart-forecast-trend'];
+    if (mc) { mc.data.labels = []; mc.data.datasets.forEach(ds => { ds.data = []; }); mc.update('none'); }
+    return;
+  }
 
-  // Errors always from SR data for stat tiles (unchanged)
-  const errWeeks=weeks.slice(0,TODAY_IDX+1);
-  const errors=hideAll ? [] : errWeeks.map((_,i)=>{
-    const v=actuals[i],p=planForecast[i];
-    return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
-  }).filter(v=>v!=null);
+  const visIdx = slice || weeks.map((_,i) => i);
+  const labels = visIdx.map(i => weeks[i]);
+  const todaySliceIdx = visIdx.indexOf(TODAY_IDX);
+  const aopVal = Math.round(_getAOPValue() * getDPLOBMult());
 
-  // AOP always visible — metric-aware target, no filter gating
-  const aopVal = getAOPTargetValue();
-  const mc=chartInstances['fa-chart-forecast-trend'];
-  if(mc){
-    mc.data.datasets[0].data=sA;
-    mc.data.datasets[1].data=sF;
-    mc.data.datasets[2].data=sAd;
-    mc.data.datasets[3].data=weeks.map(()=>aopVal);
-    mc.options.scales.y.ticks.callback = (FT_METRIC_CONF[_ftMetric]||FT_METRIC_CONF.sr).yFmt;
+  const sA   = visIdx.map(i => actuals[i]     != null ? Math.round(actuals[i]*mult)     : null);
+  const sF   = visIdx.map(i => forecast[i]    != null ? Math.round(forecast[i]*mult)    : null);
+  const sAd  = visIdx.map(i => adjForecast[i] != null ? Math.round(adjForecast[i]*mult) : null);
+  const sAOP = visIdx.map(() => aopVal);
+
+  const mc = chartInstances['fa-chart-forecast-trend'];
+  if (mc) {
+    mc.data.labels = labels;
+    mc.data.datasets[0].data = sA;
+    mc.data.datasets[1].data = sF;
+    mc.data.datasets[2].data = sAd;
+    mc.data.datasets[3].data = sAOP;
+    mc.__ftTodayIdx = todaySliceIdx;
+    const fyLbl = _ftGetActiveFYLabel();
+    mc.options.plugins.tooltip.callbacks.title = ctx => fyLbl + ' · ' + ctx[0].label;
     mc.update('none');
   }
-  _ftUpdateKPIs(sA,sF,sAd,errors,errWeeks,TODAY_IDX);
-}
-
-// =========================================================
-// SR / ASU / DISPATCH METRIC SWITCHER
-// =========================================================
-function switchChartMetric(metric, btnEl) {
-  _ftMetric = metric;
-  document.querySelectorAll('.ft-metric-btn').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  const conf = FT_METRIC_CONF[metric] || FT_METRIC_CONF.sr;
-  const titleEl = document.getElementById('ft-chart-left-title');
-  const subEl   = document.getElementById('ft-chart-left-sub');
-  if (titleEl) titleEl.innerHTML = conf.title;
-  if (subEl)   subEl.innerHTML   = conf.sub;
-  updateForecastTrendChart();
-}
-
-// =========================================================
-// FISCAL WEEK × LOB CHART — STATIC (no filter dependency)
-// =========================================================
-const LOB_NAMES   = ['PowerEdge','APEX','VXRAIL','POWERFLEX','AVAMAR'];
-const LOB_COLORS  = { PowerEdge:'#3a6ef0', APEX:'#16a34a', VXRAIL:'#d97706', POWERFLEX:'#7c3aed', AVAMAR:'#0891b2' };
-const FW_LABELS   = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
-
-const LOB_WEEKLY_DATA = (() => {
-  function seeded(s) { return () => { s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
-  const N = 52;
-  const bases = { PowerEdge:{sr:2700,asuX:14,dspX:0.44}, APEX:{sr:1100,asuX:18,dspX:0.38},
-                  VXRAIL:{sr:780,asuX:12,dspX:0.50}, POWERFLEX:{sr:440,asuX:10,dspX:0.34}, AVAMAR:{sr:290,asuX:8,dspX:0.42} };
-  const seeds = { PowerEdge:11, APEX:22, VXRAIL:33, POWERFLEX:44, AVAMAR:55 };
-  const result = { sr:{}, asu:{}, dispatch:{} };
-
-  LOB_NAMES.forEach(lob => {
-    const r = seeded(seeds[lob]);
-    const b = bases[lob];
-    const sr = Array.from({length:N}, (_, i) => {
-      const seasonal = 1 + 0.22 * Math.sin((i - 8) / N * 2 * Math.PI);
-      return Math.max(50, Math.round(b.sr * seasonal + (r() - 0.5) * b.sr * 0.28));
-    });
-    result.sr[lob]       = sr;
-    result.asu[lob]      = sr.map(v => Math.round(v * b.asuX * (0.88 + r() * 0.24)));
-    result.dispatch[lob] = sr.map(v => Math.round(v * b.dspX * (0.88 + r() * 0.24)));
-  });
-  return result;
-})();
-
-let _lobMetric = 'sr';
-
-function initLOBWeeklyChart() {
-  const el = document.getElementById('fa-chart-lob-weekly');
-  if (!el) return;
-  if (chartInstances['fa-chart-lob-weekly']) {
-    chartInstances['fa-chart-lob-weekly'].destroy();
-    delete chartInstances['fa-chart-lob-weekly'];
-  }
-  chartInstances['fa-chart-lob-weekly'] = new Chart(el, {
-    type: 'line',
-    data: {
-      labels: FW_LABELS,
-      datasets: LOB_NAMES.map(lob => ({
-        label: lob,
-        data: LOB_WEEKLY_DATA[_lobMetric][lob],
-        borderColor: LOB_COLORS[lob],
-        backgroundColor: 'transparent',
-        borderWidth: 1.6,
-        tension: 0.3,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        spanGaps: true
-      }))
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#fff', borderColor: '#dde2f4', borderWidth: 1,
-          titleColor: '#5a6280', bodyColor: '#0d1020', padding: 8,
-          callbacks: {
-            title: ctx => 'FW · ' + ctx[0].label,
-            label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw.toLocaleString('en-IN')
-          }
-        }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{color:axisColor(), font:{size:8.5}, maxTicksLimit:13,
-               callback(v,i){ return i%4===0 ? FW_LABELS[i] : ''; }} },
-        y: { grid:{color:gridColor()}, min:0, ticks:{color:axisColor(), font:{size:8.5},
-               callback: v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v} }
-      }
-    }
-  });
-}
-
-function switchLOBMetric(metric, btnEl) {
-  _lobMetric = metric;
-  document.querySelectorAll('.lob-metric-btn').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  const c = chartInstances['fa-chart-lob-weekly'];
-  if (!c) return;
-  LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[metric][lob]; });
-  c.update('none');
-}
-
-function updateLOBWeeklyChart() {
-  const c = chartInstances['fa-chart-lob-weekly'];
-  if (!c) return;
-  const f = getActiveFilters();
-  const weekEmpty = f.week !== undefined && f.week.length === 0;
-  if (weekEmpty) {
-    c.data.labels = [];
-    c.data.datasets.forEach(ds => { ds.data = []; });
-  } else {
-    c.data.labels = FW_LABELS;
-    LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[_lobMetric][lob]; });
-  }
-  c.update('none');
+  _ftUpdateKPIs(sA, labels, todaySliceIdx, aopVal);
 }
 
 function toggleCVTooltip(e) {
@@ -2558,72 +2363,29 @@ function updateFAOverviewChart() {
 // =========================================================
 // ACTUALS PROFILING — FILTER STATE & PER-PRODUCT-GROUP DATA
 // =========================================================
-let _dpBaseData   = null;
-let _ftBaseData   = null;
-let _ftMetricData = {};
-let _ftMetric     = 'sr';
-
-// Per-metric AOP weekly targets per FY
-const AOP_METRIC_TARGETS = {
-  sr:       { FY25: 540000, FY26: 590000, FY27: 638000 },
-  asu:      { FY25: 268000, FY26: 298000, FY27: 325000 },
-  dispatch: { FY25: 5600,   FY26: 6100,   FY27: 6650   }
-};
-
-// Per-metric chart display config (title, subtitle, y-axis format)
-const FT_METRIC_CONF = {
-  sr: {
-    title: 'Weekly SR — FY26 Actuals &amp; Forecast',
-    sub:   'Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
-  },
-  asu: {
-    title: 'Weekly ASU — FY26 Actuals &amp; Forecast',
-    sub:   'Attached Service Units per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
-  },
-  dispatch: {
-    title: 'Weekly Dispatch — FY26 Actuals &amp; Forecast',
-    sub:   'Dispatch volumes per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e3?(v/1e3).toFixed(1)+'K':v
-  }
-};
-
-// AOP — per current metric, per active FY, always visible
-function getAOPTargetValue() {
-  const targets = AOP_METRIC_TARGETS[_ftMetric] || AOP_METRIC_TARGETS.sr;
-  const f   = getActiveFilters();
-  const fys = f.fy;
-  if (!fys || fys.length === 0) return targets.FY26;
-  const avg = fys.reduce((s, fy) => s + (targets[fy] || targets.FY26), 0) / fys.length;
-  return Math.round(avg);
-}
+let _dpBaseData = null;
+let _ftBaseData  = null;
 
 const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
 
-// ISG + ESG + HES annual totals and quarterly sums per product group
+// ISG + ESG + HES sums equal the original combined totals
 const DP_TREND_PG = {
   ISG: {
-    yoy: [591000,629000,665000,707000,754000],
+    wow: [13680,14040,13740,14520,14220,15060,14700,15480,15120,15660,15360,16080],
+    mom: [59040,61680,59520,64560,62580,58080,60720,63360,65340,63840,66720,68880],
     qoq: [170400,178800,183600,176400,189000,184800,195000,202800]
   },
   ESG: {
-    yoy: [246000,262000,277000,295000,314000],
+    wow: [5700,5850,5725,6050,5925,6275,6125,6450,6300,6525,6400,6700],
+    mom: [24600,25700,24800,26900,26075,24200,25300,26400,27225,26600,27800,28700],
     qoq: [71000,74500,76500,73500,78750,77000,81250,84500]
   },
   HES: {
-    yoy: [148000,157000,166000,177000,189000],
+    wow: [3420,3510,3435,3630,3555,3765,3675,3870,3780,3915,3840,4020],
+    mom: [14760,15420,14880,16140,15645,14520,15180,15840,16335,15960,16680,17220],
     qoq: [42600,44700,45900,44100,47250,46200,48750,50700]
   }
 };
-
-// Metadata for filter-aware clipping
-const YOY_FULL_LABELS = ['FY22','FY23','FY24','FY25','FY26 YTD'];
-const YOY_FY_TAG      = [null,   null,   null,  'FY25','FY26'];  // null = historical baseline
-
-const QOQ_FULL_LABELS = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
-const QOQ_FY_TAG      = ['FY24','FY24','FY25','FY25','FY25','FY25','FY26','FY26'];
-const QOQ_Q_TAG       = ['Q3',  'Q4',  'Q1',  'Q2',  'Q3',  'Q4',  'Q1',  'Q2'];
 
 function getDPLOBMult() {
   const f = getActiveFilters();
@@ -2643,66 +2405,26 @@ function updateDPQuadrantCharts() {
 }
 
 function updateDemandTrends() {
-  const f       = getActiveFilters();
-  const fyMult  = getActiveFYMultiplier();
-  const selPGs  = (!f.lob     || f.lob.length     === 0) ? ['ISG','ESG','HES'] : f.lob;
-  const selFYs  = f.fy;      // undefined = no checkbox group; [] = all unchecked; ['FY26'] = specific
-  const selQs   = f.quarter; // undefined = no checkbox group; [] = all unchecked; ['Q1'] = specific
-
-  // Helper — apply a clipped slice to a chart
-  const applySlice = (chartKey, fullLabels, visIdx, fullSumD) => {
-    const c = chartInstances['dp-trend-' + chartKey];
+  const f = getActiveFilters();
+  const fyMult = getActiveFYMultiplier();
+  const selPGs = (!f.lob || f.lob.length === 0) ? ['ISG','ESG','HES'] : f.lob;
+  ['wow','mom','qoq'].forEach(type => {
+    const c = chartInstances['dp-trend-' + type];
     if (!c) return;
-    if (visIdx.length === 0) {
-      c.data.labels = []; c.data.datasets[0].data = []; c.data.datasets[1].data = [];
-      c.update('none'); return;
-    }
-    const visLabels = visIdx.map(i => fullLabels[i]);
-    const visData   = visIdx.map(i => +(fullSumD[i] * fyMult).toFixed(0));
-    const visPct    = visData.map((v, j) =>
-      j === 0 ? null : +((v - visData[j-1]) / visData[j-1] * 100).toFixed(1));
-    c.data.labels = visLabels;
-    c.data.datasets[0].data = visData;
-    c.data.datasets[0].backgroundColor = visData.map((_, j) =>
-      visPct[j] === null ? 'rgba(144,153,190,0.45)' :
-      visPct[j] >= 0     ? 'rgba(22,163,74,0.75)' : 'rgba(220,38,38,0.72)');
-    c.data.datasets[1].data = visPct;
+    const len = DP_TREND_PG.ISG[type].length;
+    const sumD = new Array(len).fill(0);
+    selPGs.forEach(pg => {
+      if (DP_TREND_PG[pg]) DP_TREND_PG[pg][type].forEach((v, i) => { sumD[i] += v; });
+    });
+    const adj = sumD.map(v => +(v * fyMult).toFixed(0));
+    const pct = adj.map((v, i) => i === 0 ? null : +((v - adj[i-1]) / adj[i-1] * 100).toFixed(1));
+    c.data.datasets[0].data = adj;
+    c.data.datasets[0].backgroundColor = adj.map((_, i) =>
+      pct[i] === null ? 'rgba(144,153,190,0.45)' :
+      pct[i] >= 0    ? 'rgba(22,163,74,0.75)' : 'rgba(220,38,38,0.72)');
+    c.data.datasets[1].data = pct;
     c.update('none');
-  };
-
-  // Pre-compute full PG sums (unscaled — fyMult applied inside applySlice)
-  const yoySumD = new Array(YOY_FULL_LABELS.length).fill(0);
-  const qoqSumD = new Array(QOQ_FULL_LABELS.length).fill(0);
-  selPGs.forEach(pg => {
-    if (!DP_TREND_PG[pg]) return;
-    DP_TREND_PG[pg].yoy.forEach((v, i) => { yoySumD[i] += v; });
-    DP_TREND_PG[pg].qoq.forEach((v, i) => { qoqSumD[i] += v; });
   });
-
-  const noFYFilter = !selFYs || selFYs.length === 0;
-  const allFYs     = !selFYs || selFYs.length === 3; // all 3 options ticked = show historical context too
-
-  // ── YoY: filter by FY; quarter doesn't apply to annual data ──────────────
-  const yoyIdx = noFYFilter
-    ? [] // no FY selected → nothing
-    : YOY_FY_TAG.map((tag, i) => {
-        if (tag === null) return allFYs ? i : -1;  // historical (FY22-24) only when all FYs on
-        return selFYs.includes(tag) ? i : -1;
-      }).filter(i => i >= 0);
-  applySlice('yoy', YOY_FULL_LABELS, yoyIdx, yoySumD);
-
-  // ── QoQ: filter by FY AND Quarter ────────────────────────────────────────
-  const noQFilter = !selQs || selQs.length === 0;
-  const qoqIdx = (noFYFilter || noQFilter)
-    ? []
-    : QOQ_FY_TAG.map((fy, i) => {
-        const fyOk = fy === 'FY24'
-          ? allFYs                       // FY24 historical only when all FYs selected
-          : selFYs.includes(fy);
-        const qOk  = selQs.includes(QOQ_Q_TAG[i]);
-        return (fyOk && qOk) ? i : -1;
-      }).filter(i => i >= 0);
-  applySlice('qoq', QOQ_FULL_LABELS, qoqIdx, qoqSumD);
 }
 
 function resetPageFilters() {
@@ -2725,7 +2447,6 @@ function applyAllFilteredCharts() {
   updateDPQuadrantCharts();
   updateDemandTrends();
   updateForecastTrendChart();
-  updateLOBWeeklyChart();
 }
 
 // =========================================================
@@ -3307,6 +3028,8 @@ function wiInit() {
   wiAddAudit('Filter', 'FY 2026 · Q2 · All Regions');
   setTimeout(wiRenderAll, 80);
 }
+
+// =========================================================
 
 function setRefreshStamp() {
   const now = new Date();
