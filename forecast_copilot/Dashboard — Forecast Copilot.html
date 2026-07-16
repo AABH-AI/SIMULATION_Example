@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Historical Performance — Forecast Copilot</title>
+<title>Dashboard — Forecast Copilot</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
     --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
     --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
-    --chart1:#0d9488; --chart2:#d97706; --chart3:#0284c7; --chart4:#7c3aed; --chart5:#db2777;
+    --chart1:#0d9488; --chart2:#0284c7;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -31,11 +31,12 @@
   .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
 
   .main{flex:1;height:100vh;overflow-y:auto;}
-  .main-pad{padding:32px 40px 40px;max-width:1320px;}
+  .main-pad{padding:32px 40px 40px;max-width:1280px;}
   .page-head{margin-bottom:20px;}
   .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
   .page-sub{font-size:13.5px;color:var(--text-2);}
 
+  /* Sticky filter bar — freezes at top of the scroll area, like Excel freeze panes */
   .filters-panel{
     position:sticky; top:0; z-index:60;
     background:var(--card); border:1px solid var(--border); border-radius:12px;
@@ -63,50 +64,85 @@
   .filter-option:hover{background:var(--card);color:var(--text-1);}
   .filter-option.selected{color:var(--teal);font-weight:700;}
 
-  .kpi-row{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:16px;}
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
   .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
   .kpi-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
-  .kpi-value{font-size:22px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;}
-
-  .quarter-list{display:flex;gap:12px;}
-  .quarter-item{flex:1;background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:10px 14px;position:relative;}
-  .quarter-item.top{border-color:var(--teal);}
-  .quarter-item .star{position:absolute;top:8px;right:10px;color:var(--teal);font-size:12px;}
-  .quarter-name{font-size:12.5px;font-weight:700;color:var(--text-1);}
-  .quarter-aop{font-size:11.5px;color:var(--text-2);margin-top:2px;}
+  .kpi-value{font-size:24px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;margin-bottom:5px;}
+  .kpi-sub{font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:4px;}
+  .up{color:var(--green);} .down{color:var(--red);}
 
   .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
   .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
   .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
   .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:8px;}
   .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
-  .axis-labels{display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;color:var(--text-3);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  .gap-pos{color:var(--red);font-weight:700;}
+  .gap-neg{color:var(--green);font-weight:700;}
+
+  .list-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .list-row:last-child{border-bottom:none;}
+  .list-name{color:var(--text-1);font-weight:600;}
+  .list-meta{color:var(--text-3);font-size:11.5px;}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:100px;}
+  .badge-ok{background:rgba(22,163,74,0.12);color:var(--green);}
+  .badge-warn{background:rgba(217,119,6,0.12);color:var(--amber);}
 </style>
 </head>
 <body>
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
-      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">AI Planning Suite</span></div>
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Forecast Copilot</span>
+        <span class="brand-sub">AI Planning Suite</span>
+      </div>
     </div>
+
     <div class="nav-label">Workspace</div>
     <nav class="nav-list">
-      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
-      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>ASU Simulation</a>
-      <a class="nav-item active" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
-      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
-      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>BTC Distribution</a>
-      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+      <a class="nav-item active" href="Dashboard — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>
+        ASU Simulation
+      </a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        Historical
+      </a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        AI BTC Advisor
+      </a>
+      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>
+        BTC Distribution
+      </a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>
+        Final Forecast
+      </a>
     </nav>
   </aside>
 
   <main class="main">
    <div class="main-pad">
     <div class="page-head">
-      <div class="page-title">Historical Performance</div>
-      <div class="page-sub">12 quarters of forecast accuracy, AOP achievement and BTC patterns for the selected slice.</div>
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Overview of BTC forecast performance for the selected planning slice</div>
     </div>
 
     <div class="filters-panel">
@@ -119,13 +155,41 @@
     </div>
 
     <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-label">Best Historical BTC Range</div>
-        <div class="kpi-value" id="kpi-btc-range">—</div>
+      <div class="kpi-card"><div class="kpi-label">New Contracts Forecast</div><div class="kpi-value" id="kpi-nc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">APOS Forecast</div><div class="kpi-value" id="kpi-apos">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">ASU Forecast</div><div class="kpi-value" id="kpi-asu">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">SR Forecast</div><div class="kpi-value" id="kpi-sr">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Dispatch Forecast</div><div class="kpi-value" id="kpi-dsp">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Historical BTC</div><div class="kpi-value" id="kpi-btc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value" id="kpi-acc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">AOP Achievement %</div><div class="kpi-value" id="kpi-aop">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Modernization Achievement %</div><div class="kpi-value" id="kpi-mod">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Forecast vs Target</div>
+      <div class="panel-sub">Current-quarter forecast against the AOP-derived target for the selected slice</div>
+      <table class="data-tbl">
+        <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th></tr></thead>
+        <tbody id="fvt-body"></tbody>
+      </table>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-title">ASU Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-asu-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Most Successful Planning Periods</div>
-        <div class="quarter-list" id="quarter-list"></div>
+      <div class="panel">
+        <div class="panel-title">SR Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-sr-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Dispatch Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-dsp-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
       </div>
     </div>
 
@@ -133,31 +197,35 @@
       <div class="panel">
         <div class="panel-title">Historical BTC Trend</div>
         <div class="panel-sub">Last 12 fiscal quarters</div>
-        <svg id="chart-hist-btc" viewBox="0 0 700 150" width="100%" height="150"></svg>
-        <div class="axis-labels" id="axis-btc"></div>
+        <svg id="chart-hist-btc" viewBox="0 0 640 170" width="100%" height="170"></svg>
       </div>
       <div class="panel">
-        <div class="panel-title">Forecast Accuracy Trend</div>
-        <div class="panel-sub">Last 12 fiscal quarters</div>
-        <svg id="chart-accuracy" viewBox="0 0 700 150" width="100%" height="150"></svg>
-        <div class="axis-labels" id="axis-acc"></div>
+        <div class="panel-title">Forecast vs Target</div>
+        <div class="panel-sub">SR &amp; Dispatch, current quarter</div>
+        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Target</span></div>
+        <svg id="chart-fvt" viewBox="0 0 640 170" width="100%" height="170"></svg>
       </div>
     </div>
 
     <div class="panel">
-      <div class="panel-title">Forecast vs Actual</div>
-      <div class="panel-sub">Quarterly SR-equivalent forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
-      <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span></div>
-      <svg id="fva" viewBox="0 0 900 210" width="100%" height="210"></svg>
-      <div class="axis-labels" id="axis-fva"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">AOP &amp; Modernization Achievement</div>
-      <div class="panel-sub">Last 12 fiscal quarters, against their respective targets</div>
-      <div class="chart-legend"><span><span class="dot" style="background:var(--chart4)"></span>AOP %</span><span><span class="dot" style="background:var(--chart5)"></span>Modernization %</span></div>
-      <svg id="chart-aop-modern" viewBox="0 0 700 150" width="100%" height="150"></svg>
-      <div class="axis-labels" id="axis-aop"></div>
+      <div class="panel-title">Recent Workspace Activity</div>
+      <div class="panel-sub">Latest updates across your forecast workflow</div>
+      <div class="list-row">
+        <div><div class="list-name">ASU Simulation recalculated</div><div class="list-meta" id="act-1">—</div></div>
+        <span class="badge badge-ok">Completed</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">Historical variance check</div><div class="list-meta" id="act-2">—</div></div>
+        <span class="badge badge-ok">Completed</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">BTC Distribution review</div><div class="list-meta" id="act-3">—</div></div>
+        <span class="badge badge-warn" id="act-3-badge">Needs Review</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">Final Forecast draft</div><div class="list-meta" id="act-4">—</div></div>
+        <span class="badge badge-warn" id="act-4-badge">In Progress</span>
+      </div>
     </div>
    </div>
   </main>
@@ -167,10 +235,10 @@
 const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
-  region: ['AMERICAS','EMEA','APJ'],
-  lob: ['PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
-  business: ['ESG','ISG','HES'],
-  service: ['Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
+  region: ['ALL','AMERICAS','EMEA','APJ'],
+  lob: ['ALL','PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
+  business: ['ALL','ESG','ISG','HES'],
+  service: ['ALL','Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
 };
 
 const FC_STATE_KEY = 'fc_state_v1';
@@ -198,10 +266,11 @@ function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1)
 function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) % 2147483647; } return h || 1; }
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
-const FC_REGION_FACTOR   = { AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
-const FC_BUSINESS_FACTOR  = { ESG: 1.00, ISG: 1.30, HES: 0.60 };
+const FC_REGION_FACTOR   = { ALL: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
+const FC_LOB_FACTOR       = { ALL: 6.25, PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
+const FC_BUSINESS_FACTOR  = { ALL: 2.90, ESG: 1.00, ISG: 1.30, HES: 0.60 };
 const FC_SERVICE_FACTOR   = {
+  'ALL':                { volume: 5.05, dispatchRatio: 0.50 },
   'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
   'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
   'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
@@ -414,13 +483,24 @@ function fcDrawLineSeries(svgId, series, opts) {
   const svg = document.getElementById(svgId); if (!svg) return;
   opts = opts || {};
   const W = opts.w || 640, H = opts.h || 170, pad = 8;
+  const padL = opts.yTicks ? 40 : pad;
   const allVals = series.flatMap(s => s.data);
   const max = opts.max != null ? opts.max : Math.max(...allVals) * 1.08;
   const min = opts.min != null ? opts.min : Math.min(0, Math.min(...allVals));
   const n = series[0].data.length;
-  const x = i => pad + i * (W - pad*2) / (n - 1);
+  const x = i => padL + i * (W - padL - pad) / (n - 1);
   const y = v => H - pad - ((v - min) / (max - min || 1)) * (H - pad*2);
-  let html = `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#dde5f2" stroke-width="1"/>`;
+  let html = '';
+  if (opts.yTicks) {
+    const fmt = opts.yFmt || (v => v);
+    opts.yTicks.forEach(t => {
+      if (t < min || t > max) return;
+      const ty = y(t);
+      html += `<line x1="${padL}" y1="${ty.toFixed(1)}" x2="${W-pad}" y2="${ty.toFixed(1)}" stroke="#e8edf7" stroke-width="1"/>`;
+      html += `<text x="${padL-6}" y="${(ty+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8a94ad">${fmt(t)}</text>`;
+    });
+  }
+  html += `<line x1="${padL}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#dde5f2" stroke-width="1"/>`;
   series.forEach(s => {
     const d = s.data.map((v,i) => (i===0?'M':'L') + x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
     html += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"${s.dashed?' stroke-dasharray="5,4"':''}/>`;
@@ -450,38 +530,48 @@ function fcDrawGroupedBars(svgId, categories, seriesArr, opts) {
 }
 /* ==== END SHARED ENGINE ==== */
 
-/* ---- Historical Performance page-specific rendering ---- */
-function fcRenderHistorical() {
-  const filters = fcState.filters;
-  const hist = fcGenerateHistory(filters);
+/* ---- Dashboard-specific rendering ---- */
+function fcRenderDashboard() {
+  const r = fcCompute();
 
-  const btcMin = Math.min(...hist.btc), btcMax = Math.max(...hist.btc);
-  document.getElementById('kpi-btc-range').textContent = `${btcMin.toFixed(1)}% — ${btcMax.toFixed(1)}%`;
+  document.getElementById('kpi-nc').textContent = fcN(r.originalTotals.nc);
+  document.getElementById('kpi-apos').textContent = fcN(r.originalTotals.apos);
+  document.getElementById('kpi-asu').textContent = fcN(r.originalTotals.asu);
+  document.getElementById('kpi-sr').textContent = fcN(r.originalTotals.sr);
+  document.getElementById('kpi-dsp').textContent = fcN(r.originalTotals.dsp);
+  document.getElementById('kpi-btc').textContent = fcPct(r.hist.btc[r.hist.btc.length-1]);
+  document.getElementById('kpi-acc').textContent = r.hist.accuracy[r.hist.accuracy.length-1] + '%';
+  document.getElementById('kpi-aop').textContent = r.hist.aop[r.hist.aop.length-1] + '%';
+  document.getElementById('kpi-mod').textContent = r.hist.modern[r.hist.modern.length-1] + '%';
 
-  const ranked = hist.quarters.map((q,i) => ({ q, aop: hist.aop[i] })).sort((a,b) => b.aop - a.aop).slice(0,3);
-  document.getElementById('quarter-list').innerHTML = ranked.map((item,i) => `
-    <div class="quarter-item${i===0?' top':''}">${i===0?'<span class="star">★ Top</span>':''}<div class="quarter-name">${item.q}</div><div class="quarter-aop">${item.aop}% AOP</div></div>
-  `).join('');
+  const srTarget = Math.round(r.originalTotals.sr * (r.hist.aopTargetPct/100) * 1.02);
+  const dspTarget = Math.round(r.originalTotals.dsp * (r.hist.aopTargetPct/100) * 1.02);
+  const srGap = srTarget - r.originalTotals.sr, dspGap = dspTarget - r.originalTotals.dsp;
+  document.getElementById('fvt-body').innerHTML = `
+    <tr><td>SR</td><td>${fcN(r.originalTotals.sr)}</td><td>${fcN(srTarget)}</td><td class="${srGap>=0?'gap-pos':'gap-neg'}">${srGap>=0?'+':''}${fcN(srGap)}</td></tr>
+    <tr><td>Dispatch</td><td>${fcN(r.originalTotals.dsp)}</td><td>${fcN(dspTarget)}</td><td class="${dspGap>=0?'gap-pos':'gap-neg'}">${dspGap>=0?'+':''}${fcN(dspGap)}</td></tr>`;
 
-  fcDrawLineSeries('chart-hist-btc', [{data:hist.btc, color:'#0d9488'}], {w:700,h:150,min:0});
-  fcDrawLineSeries('chart-accuracy', [{data:hist.accuracy, color:'#0d9488'}], {w:700,h:150,min:80,max:100});
-  fcDrawLineSeries('chart-aop-modern', [{data:hist.aop,color:'#7c3aed'},{data:hist.modern,color:'#db2777'}], {w:700,h:150,min:0,max:100});
+  fcDrawLineSeries('chart-asu-trend', [{data:r.series.asuBase, color:'#0d9488'}], {w:360,h:150});
+  fcDrawLineSeries('chart-sr-trend', [{data:r.series.srBase, color:'#0d9488'}], {w:360,h:150});
+  fcDrawLineSeries('chart-dsp-trend', [{data:r.series.dspBase, color:'#0d9488'}], {w:360,h:150});
+  fcDrawLineSeries('chart-hist-btc', [{data:r.hist.btc, color:'#0d9488'}]);
+  fcDrawGroupedBars('chart-fvt', ['SR','Dispatch'],
+    [{label:'Forecast',color:'#0d9488',values:[r.originalTotals.sr, r.originalTotals.dsp]},
+     {label:'Target',color:'#0284c7',values:[srTarget, dspTarget]}]);
 
-  // Forecast vs Actual — quarterly SR-equivalent forecast; Actual = Forecast x Forecast Accuracy
-  const baseQ = 550000 * hist.factor;
-  const forecast = hist.quarters.map((_,i) => Math.round(baseQ * (1 + i*0.018) * (0.97 + (i%3)*0.02)));
-  const actual = forecast.map((v,i) => Math.round(v * (hist.accuracy[i]/100)));
-  fcDrawGroupedBars('fva', hist.quarters, [{label:'Forecast',color:'#0d9488',values:forecast},{label:'Actual',color:'#0284c7',values:actual}], {w:900,h:210});
-
-  const sparse = [0,3,7,11].map(i => hist.quarters[i]);
-  document.getElementById('axis-btc').innerHTML = sparse.map(q=>`<span>${q}</span>`).join('');
-  document.getElementById('axis-acc').innerHTML = sparse.map(q=>`<span>${q}</span>`).join('');
-  document.getElementById('axis-aop').innerHTML = sparse.map(q=>`<span>${q}</span>`).join('');
-  document.getElementById('axis-fva').innerHTML = hist.quarters.map(q=>`<span>${q}</span>`).join('');
+  document.getElementById('act-1').textContent = `NC Override ${fcState.ncOverride}% · APOS Override ${fcState.aposOverride}%`;
+  document.getElementById('act-2').textContent = `${r.filters.quarter} · Accuracy ${r.hist.accuracy[r.hist.accuracy.length-1]}%`;
+  const btcChosen = !!fcState.btcStrategy;
+  document.getElementById('act-3').textContent = btcChosen ? `BTC selected: ${fcPct(r.selectedBTCPct,2)} (${fcState.btcStrategy})` : `${r.filters.region} — no BTC selected yet`;
+  document.getElementById('act-3-badge').textContent = btcChosen ? 'Completed' : 'Needs Review';
+  document.getElementById('act-3-badge').className = 'badge ' + (btcChosen ? 'badge-ok' : 'badge-warn');
+  document.getElementById('act-4').textContent = fcState.approvals.submitted ? 'Submitted for approval' : 'Awaiting advisor sign-off';
+  document.getElementById('act-4-badge').textContent = fcState.approvals.submitted ? 'Completed' : 'In Progress';
+  document.getElementById('act-4-badge').className = 'badge ' + (fcState.approvals.submitted ? 'badge-ok' : 'badge-warn');
 }
 
-fcWireFilters(fcRenderHistorical);
-fcRenderHistorical();
+fcWireFilters(fcRenderDashboard);
+fcRenderDashboard();
   </script>
 </body>
 </html>

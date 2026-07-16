@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Final Forecast — Forecast Copilot</title>
+<title>AI BTC Advisor — Forecast Copilot</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
     --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
     --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
-    --chart1:#0d9488; --chart2:#d97706; --chart4:#7c3aed; --chart5:#db2777; --chart3:#0284c7;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -31,17 +30,10 @@
   .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
 
   .main{flex:1;height:100vh;overflow-y:auto;}
-  .main-pad{padding:32px 40px 40px;max-width:1320px;}
-  .page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .main-pad{padding:32px 40px 40px;max-width:1280px;}
+  .page-head{margin-bottom:20px;}
   .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
   .page-sub{font-size:13.5px;color:var(--text-2);}
-  .head-actions{display:flex;gap:8px;flex-shrink:0;}
-  .btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-1);transition:all .12s;}
-  .btn:hover{border-color:var(--teal);}
-  .btn.primary{background:linear-gradient(135deg,#0d9488,#0891b2);border-color:transparent;color:#04211d;}
-  .btn.done{background:rgba(22,163,74,0.12);border-color:var(--green);color:var(--green);cursor:default;}
-  .btn.done:hover{border-color:var(--green);}
-  .btn:disabled{opacity:0.7;cursor:not-allowed;}
 
   .filters-panel{
     position:sticky; top:0; z-index:60;
@@ -70,25 +62,37 @@
   .filter-option:hover{background:var(--card);color:var(--text-1);}
   .filter-option.selected{color:var(--teal);font-weight:700;}
 
-  .status-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
-  .status-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;}
-  .status-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;}
-  .status-dot.off{background:var(--red);}
-  .status-name{font-size:12px;font-weight:600;color:var(--text-2);}
-  .status-val{font-size:13px;font-weight:700;color:var(--green);}
-  .status-val.off{color:var(--red);}
+  .toggle-group{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .toggle-btn{padding:8px 15px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .toggle-btn.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .toggle-btn:hover:not(.active){border-color:var(--text-3);color:var(--text-1);}
 
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
   .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
   .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
-  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:10px;}
-  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:10px;flex-wrap:wrap;}
-  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+
+  .slider-row{margin-bottom:14px;}
+  .slider-head{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-bottom:7px;}
+  .slider-head .val{color:var(--teal);font-weight:700;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--card-hi);accent-color:#0d9488;cursor:pointer;}
+
+  .calc-box{background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+  .calc-label{font-size:12.5px;color:var(--text-2);font-weight:600;}
+  .calc-value{font-size:22px;font-weight:800;color:var(--teal);transition:color .2s;}
+  .override-row{display:flex;align-items:center;gap:10px;}
+  .override-row input[type=text]{width:90px;background:var(--card-hi);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text-1);font-size:13px;text-align:right;}
+  .override-row button{padding:7px 14px;border-radius:7px;border:1px solid var(--teal);background:transparent;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;}
+  .override-row button:hover{background:var(--teal-dim);}
 
   table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.data-tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
   table.data-tbl td{padding:10px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
   table.data-tbl tr:last-child td{border-bottom:none;}
-  .risk-low{color:var(--green);font-weight:700;} .risk-medium{color:var(--amber);font-weight:700;} .risk-high{color:var(--red);font-weight:700;}
+  table.data-tbl tr.best td{background:rgba(13,148,136,0.05);}
+  .risk-low{color:var(--green);font-weight:700;}
+  .risk-medium{color:var(--amber);font-weight:700;}
+  .risk-high{color:var(--red);font-weight:700;}
 </style>
 </head>
 <body>
@@ -103,24 +107,17 @@
       <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
       <a class="nav-item" href="ASU Simulation — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>ASU Simulation</a>
       <a class="nav-item" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
-      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
+      <a class="nav-item active" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
       <a class="nav-item" href="BTC Distribution — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>BTC Distribution</a>
-      <a class="nav-item active" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
     </nav>
   </aside>
 
   <main class="main">
    <div class="main-pad">
     <div class="page-head">
-      <div>
-        <div class="page-title">Final Forecast</div>
-        <div class="page-sub">Review, approve and submit the consolidated forecast.</div>
-      </div>
-      <div class="head-actions">
-        <button class="btn" id="btn-approve-scenario">Approve Scenario</button>
-        <button class="btn" id="btn-approve-btc">Approve BTC</button>
-        <button class="btn primary" id="btn-submit">Submit Forecast</button>
-      </div>
+      <div class="page-title">AI BTC Advisor</div>
+      <div class="page-sub">Recommend, compare and select the BTC value to bend the curve toward your AOP target.</div>
     </div>
 
     <div class="filters-panel">
@@ -132,28 +129,42 @@
       <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
     </div>
 
-    <div class="status-row" id="status-row"></div>
+    <div class="toggle-group" id="strategy-toggle">
+      <button class="toggle-btn" data-strategy="historicalBestFit">Historical Best Fit</button>
+      <button class="toggle-btn" data-strategy="balanced">Balanced</button>
+      <button class="toggle-btn" data-strategy="closestToAOP">Closest to AOP</button>
+    </div>
 
-    <div class="panel">
-      <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
-      <div class="panel-sub">Weekly SR-equivalent series across the selected quarter</div>
-      <div class="chart-legend">
-        <span><span class="dot" style="background:var(--chart1)"></span>Original</span>
-        <span><span class="dot" style="background:var(--chart2)"></span>Scenario</span>
-        <span><span class="dot" style="background:var(--chart4)"></span>BTC</span>
-        <span><span class="dot" style="background:var(--chart5)"></span>Final</span>
-        <span><span class="dot" style="background:var(--chart3)"></span>Target</span>
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">AI Confidence Signals</div>
+        <div class="panel-sub">These levers feed the recommendation engine's confidence in the selected strategy.</div>
+        <div class="slider-row"><div class="slider-head"><span>Modernization %</span><span class="val" id="v-mod">65%</span></div><input type="range" class="btc-slider" id="s-mod" min="0" max="100" value="65"></div>
+        <div class="slider-row"><div class="slider-head"><span>Triad Commitment %</span><span class="val" id="v-triad">70%</span></div><input type="range" class="btc-slider" id="s-triad" min="0" max="100" value="70"></div>
+        <div class="slider-row"><div class="slider-head"><span>AI Chatbot %</span><span class="val" id="v-chat">40%</span></div><input type="range" class="btc-slider" id="s-chat" min="0" max="100" value="40"></div>
+        <div class="slider-row"><div class="slider-head"><span>Remote Resolution %</span><span class="val" id="v-remote">55%</span></div><input type="range" class="btc-slider" id="s-remote" min="0" max="100" value="55"></div>
+        <div class="slider-row"><div class="slider-head"><span>Self Heal %</span><span class="val" id="v-heal">30%</span></div><input type="range" class="btc-slider" id="s-heal" min="0" max="100" value="30"></div>
+        <div class="slider-row"><div class="slider-head"><span>Quality Improvement %</span><span class="val" id="v-qual">50%</span></div><input type="range" class="btc-slider" id="s-qual" min="0" max="100" value="50"></div>
       </div>
-      <svg id="ff-chart" viewBox="0 0 900 190" width="100%" height="190"></svg>
-      <div id="ff-axis" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;"></div>
+      <div class="panel">
+        <div class="panel-title">Selected BTC</div>
+        <div class="panel-sub" id="selected-sub">Choose a recommendation above, or enter a manual override.</div>
+        <div class="calc-box"><span class="calc-label">Selected BTC</span><span class="calc-value" id="calc-btc">—</span></div>
+        <div class="panel-title" style="font-size:12.5px;margin-bottom:8px;">Manual BTC Override</div>
+        <div class="override-row">
+          <input type="text" id="manual-override" placeholder="e.g. 6.50" inputmode="decimal">
+          <span style="color:var(--text-2)">%</span>
+          <button id="btn-use-manual">Use Manual</button>
+        </div>
+      </div>
     </div>
 
     <div class="panel">
-      <div class="panel-title">Submission Summary</div>
-      <div class="panel-sub">ASU is shown at end-of-quarter level; SR and Dispatch are quarter totals</div>
+      <div class="panel-title">BTC Comparison</div>
+      <div class="panel-sub">Historical Best Fit and Closest-to-AOP are the two boundary strategies; Balanced sits between them. Click a row to select it.</div>
       <table class="data-tbl">
-        <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th><th>BTC %</th><th>Confidence</th><th>Risk</th></tr></thead>
-        <tbody id="summary-body"></tbody>
+        <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted SR</th><th>Adjusted Dispatch</th><th>Gap To Target</th><th>Confidence</th><th>Risk</th></tr></thead>
+        <tbody id="cmp-body"></tbody>
       </table>
     </div>
    </div>
@@ -164,10 +175,10 @@
 const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
-  region: ['AMERICAS','EMEA','APJ'],
-  lob: ['PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
-  business: ['ESG','ISG','HES'],
-  service: ['Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
+  region: ['ALL','AMERICAS','EMEA','APJ'],
+  lob: ['ALL','PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
+  business: ['ALL','ESG','ISG','HES'],
+  service: ['ALL','Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
 };
 
 const FC_STATE_KEY = 'fc_state_v1';
@@ -195,10 +206,11 @@ function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1)
 function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) % 2147483647; } return h || 1; }
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
-const FC_REGION_FACTOR   = { AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
-const FC_BUSINESS_FACTOR  = { ESG: 1.00, ISG: 1.30, HES: 0.60 };
+const FC_REGION_FACTOR   = { ALL: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
+const FC_LOB_FACTOR       = { ALL: 6.25, PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
+const FC_BUSINESS_FACTOR  = { ALL: 2.90, ESG: 1.00, ISG: 1.30, HES: 0.60 };
 const FC_SERVICE_FACTOR   = {
+  'ALL':                { volume: 5.05, dispatchRatio: 0.50 },
   'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
   'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
   'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
@@ -411,13 +423,24 @@ function fcDrawLineSeries(svgId, series, opts) {
   const svg = document.getElementById(svgId); if (!svg) return;
   opts = opts || {};
   const W = opts.w || 640, H = opts.h || 170, pad = 8;
+  const padL = opts.yTicks ? 40 : pad;
   const allVals = series.flatMap(s => s.data);
   const max = opts.max != null ? opts.max : Math.max(...allVals) * 1.08;
   const min = opts.min != null ? opts.min : Math.min(0, Math.min(...allVals));
   const n = series[0].data.length;
-  const x = i => pad + i * (W - pad*2) / (n - 1);
+  const x = i => padL + i * (W - padL - pad) / (n - 1);
   const y = v => H - pad - ((v - min) / (max - min || 1)) * (H - pad*2);
-  let html = `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#dde5f2" stroke-width="1"/>`;
+  let html = '';
+  if (opts.yTicks) {
+    const fmt = opts.yFmt || (v => v);
+    opts.yTicks.forEach(t => {
+      if (t < min || t > max) return;
+      const ty = y(t);
+      html += `<line x1="${padL}" y1="${ty.toFixed(1)}" x2="${W-pad}" y2="${ty.toFixed(1)}" stroke="#e8edf7" stroke-width="1"/>`;
+      html += `<text x="${padL-6}" y="${(ty+3.5).toFixed(1)}" text-anchor="end" font-size="10" fill="#8a94ad">${fmt(t)}</text>`;
+    });
+  }
+  html += `<line x1="${padL}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#dde5f2" stroke-width="1"/>`;
   series.forEach(s => {
     const d = s.data.map((v,i) => (i===0?'M':'L') + x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
     html += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"${s.dashed?' stroke-dasharray="5,4"':''}/>`;
@@ -447,75 +470,99 @@ function fcDrawGroupedBars(svgId, categories, seriesArr, opts) {
 }
 /* ==== END SHARED ENGINE ==== */
 
-/* ---- Final Forecast page-specific rendering ---- */
-function fcRenderFinal() {
+/* ---- AI BTC Advisor page-specific rendering ---- */
+const STRATEGY_LABELS = { historicalBestFit: 'Historical Best Fit', balanced: 'Balanced', closestToAOP: 'Closest to AOP', manual: 'Manual BTC' };
+
+function fcConfidenceScore() {
+  const ids = ['s-mod','s-triad','s-chat','s-remote','s-heal','s-qual'];
+  const weights = [0.028,0.022,0.018,0.020,0.024,0.016]; // sums to ~1.28 at max sliders -> scaled below
+  let sum = 0;
+  ids.forEach((id,i) => { sum += (+document.getElementById(id).value) * weights[i]; });
+  return Math.max(0, Math.min(100, Math.round(sum * 7.8))); // scaled to a 0-100 confidence band
+}
+
+function fcRenderAdvisor() {
   const r = fcCompute();
+  const rows = ['historicalBestFit','balanced','closestToAOP'];
+  const confBoost = fcConfidenceScore();
 
-  const statuses = [
-    { name: 'Meets AOP Target', ok: r.status.meetsAOP },
-    { name: 'Meets Modernization Target', ok: r.status.meetsModernization },
-    { name: 'Meets Triad Commitment', ok: r.status.meetsTriad },
-    { name: 'Ready For Submission', ok: r.status.readyForSubmission }
-  ];
-  document.getElementById('status-row').innerHTML = statuses.map(s => `
-    <div class="status-card"><span class="status-dot${s.ok?'':' off'}"></span><div><div class="status-name">${s.name}</div><div class="status-val${s.ok?'':' off'}">${s.ok?'Achieved':'Not Met'}</div></div></div>
-  `).join('');
+  document.getElementById('cmp-body').innerHTML = rows.map(key => {
+    const d = r.btcRec[key];
+    const isSelected = fcState.btcStrategy === key;
+    const riskClass = d.risk === 'Low' ? 'risk-low' : d.risk === 'Medium' ? 'risk-medium' : 'risk-high';
+    return `<tr class="${isSelected?'best':''}" data-strategy="${key}" style="cursor:pointer;">
+      <td>${isSelected?'<strong>':''}${STRATEGY_LABELS[key]}${isSelected?'</strong>':''}</td>
+      <td>${fcPct(d.btcPct,2)}</td>
+      <td>${fcN(d.srAdj)}</td>
+      <td>${fcN(d.dspAdj)}</td>
+      <td>${d.gapToTarget>0?fcN(d.gapToTarget):'0'}</td>
+      <td>${d.confidence}%</td>
+      <td class="${riskClass}">${d.risk}</td>
+    </tr>`;
+  }).join('') + (fcState.btcStrategy === 'manual' && fcState.manualBTC != null ? (() => {
+    const d = r.selectedDetail;
+    return `<tr class="best"><td><strong>Manual BTC</strong></td><td>${fcPct(d.btcPct,2)}</td><td>${fcN(d.srAdj)}</td><td>${fcN(d.dspAdj)}</td><td>${d.gapToTarget>0?fcN(d.gapToTarget):'0'}</td><td>${d.confidence}%</td><td class="risk-medium">${d.risk}</td></tr>`;
+  })() : '');
 
-  const targetPerWeek = r.btcRec.target / 13;
-  fcDrawLineSeries('ff-chart', [
-    { data: r.weekly.dsForecast, color: '#0d9488' },                                  // Original (base DS)
-    { data: r.adj.srAdj, color: '#d97706' },                                          // Scenario (ASU-sim adjusted)
-    { data: r.weekly.btcForecast, color: '#7c3aed' },                                 // BTC (weekly-distributed)
-    { data: r.weekly.btcForecast, color: '#db2777', dashed: false },                  // Final (== BTC forecast at submission time)
-    { data: new Array(13).fill(targetPerWeek), color: '#0284c7', dashed: true }        // Target (flat line)
-  ], { w: 900, h: 190 });
-  document.getElementById('ff-axis').innerHTML = r.weekly.weeks.map(w => `<span>W${w.split('-W')[1]}</span>`).join('');
+  document.querySelectorAll('#cmp-body tr[data-strategy]').forEach(tr => {
+    tr.onclick = () => {
+      fcState.btcStrategy = tr.dataset.strategy;
+      fcState.manualBTC = null;
+      fcSaveState(fcState);
+      document.getElementById('manual-override').value = '';
+      updateStrategyToggle();
+      fcRenderAdvisor();
+    };
+  });
 
-  function riskClass(risk) { return risk === 'Low' ? 'risk-low' : risk === 'Medium' ? 'risk-medium' : 'risk-high'; }
-  const btcPct = r.selectedBTCPct;
-  const conf = r.selectedDetail ? r.selectedDetail.confidence : 60;
-  const risk = r.selectedDetail ? r.selectedDetail.risk : 'High';
-  const asuTarget = Math.round(r.btcRec.target / FC_SR_RATIO);
-  const dspTarget = Math.round(r.btcRec.target * r.series.dispatchRatio);
-  const rows = [
-    { metric: 'ASU', forecast: r.final.sr / FC_SR_RATIO, target: asuTarget },
-    { metric: 'SR', forecast: r.final.sr, target: r.btcRec.target },
-    { metric: 'Dispatch', forecast: r.final.dsp, target: dspTarget }
-  ];
-  document.getElementById('summary-body').innerHTML = rows.map(row => {
-    const gap = row.target - row.forecast;
-    return `<tr><td><strong>${row.metric}</strong></td><td>${fcN(row.forecast)}</td><td>${fcN(row.target)}</td><td>${gap>=0?'+':''}${fcN(gap)}</td><td>${fcPct(btcPct,2)}</td><td>${conf}%</td><td class="${riskClass(risk)}">${risk}</td></tr>`;
-  }).join('');
-}
-
-function fcApplyApprovalUI() {
-  function setBtn(id, key, label) {
-    const btn = document.getElementById(id);
-    if (fcState.approvals[key]) {
-      btn.classList.remove('primary'); btn.classList.add('done');
-      btn.textContent = label + ' ✓'; btn.disabled = true;
-    }
+  if (fcState.btcStrategy && r.selectedDetail) {
+    document.getElementById('calc-btc').textContent = fcPct(r.selectedDetail.btcPct, 2);
+    document.getElementById('selected-sub').textContent = `${STRATEGY_LABELS[fcState.btcStrategy]} selected — confidence signals add +${confBoost > 50 ? Math.round((confBoost-50)/5) : 0} pts.`;
+  } else {
+    document.getElementById('calc-btc').textContent = '—';
+    document.getElementById('selected-sub').textContent = 'Choose a recommendation above, or enter a manual override.';
   }
-  setBtn('btn-approve-scenario', 'scenario', 'Scenario Approved');
-  setBtn('btn-approve-btc', 'btc', 'BTC Approved');
-  setBtn('btn-submit', 'submitted', 'Forecast Submitted');
 }
 
-function markDone(btn, key, label) {
-  btn.classList.remove('primary');
-  btn.classList.add('done');
-  btn.textContent = label + ' ✓';
-  btn.disabled = true;
-  fcState.approvals[key] = true;
+function updateStrategyToggle() {
+  document.querySelectorAll('#strategy-toggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.strategy === fcState.btcStrategy);
+  });
+}
+
+fcWireFilters(fcRenderAdvisor);
+
+document.querySelectorAll('#strategy-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    fcState.btcStrategy = b.dataset.strategy;
+    fcState.manualBTC = null;
+    fcSaveState(fcState);
+    document.getElementById('manual-override').value = '';
+    updateStrategyToggle();
+    fcRenderAdvisor();
+  };
+});
+updateStrategyToggle();
+
+document.getElementById('btn-use-manual').onclick = () => {
+  const v = parseFloat(document.getElementById('manual-override').value);
+  if (isNaN(v) || v < 0) return;
+  fcState.btcStrategy = 'manual';
+  fcState.manualBTC = +v.toFixed(2);
   fcSaveState(fcState);
-}
-document.getElementById('btn-approve-scenario').onclick = e => markDone(e.target, 'scenario', 'Scenario Approved');
-document.getElementById('btn-approve-btc').onclick = e => markDone(e.target, 'btc', 'BTC Approved');
-document.getElementById('btn-submit').onclick = e => markDone(e.target, 'submitted', 'Forecast Submitted');
+  updateStrategyToggle();
+  fcRenderAdvisor();
+};
 
-fcWireFilters(fcRenderFinal);
-fcApplyApprovalUI();
-fcRenderFinal();
+['s-mod','s-triad','s-chat','s-remote','s-heal','s-qual'].forEach(id => {
+  const labelId = 'v-' + id.slice(2);
+  document.getElementById(id).oninput = e => {
+    document.getElementById(labelId).textContent = e.target.value + '%';
+    fcRenderAdvisor();
+  };
+});
+
+fcRenderAdvisor();
   </script>
 </body>
 </html>

@@ -29,7 +29,7 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
-| `.claude/BTC_Lovable/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
+| `forecast_copilot/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
 Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`
 
@@ -209,9 +209,9 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 
 ---
 
-## Forecast Copilot — `.claude/BTC_Lovable/` (rebuilt + light theme + pushed 2026-06-25)
+## Forecast Copilot — `forecast_copilot/` (rebuilt + light theme + pushed 2026-06-25)
 
-A **separate, standalone product** from the ISG BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the ISG BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the ISG BPA suite. **Now pushed and live** at `.claude/BTC_Lovable/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
+A **separate, standalone product** from the ISG BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the ISG BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the ISG BPA suite. **Now pushed and live** at `forecast_copilot/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
 
 ### Files (nav order)
 | File | Purpose |
@@ -236,7 +236,7 @@ Rebuilt as a real, wired application:
 - Every JS file was extracted and executed under Node's `vm` module during development to smoke-test the math before considering a page done — caught and fixed one real bug (Target was defined as a fraction of the current forecast, so it was always below baseline and "Closest to AOP" always clamped to 0%)
 
 ### Known state
-- Pushed to git — `.claude/BTC_Lovable/*.html` is now tracked (added as an explicit exception; `.claude/worktrees/` and `.claude/settings.local.json` are ignored via `.gitignore` so a future broad `git add .claude/` stays safe)
+- Pushed to git — `forecast_copilot/*.html` is now tracked (added as an explicit exception; `.claude/worktrees/` and `.claude/settings.local.json` are ignored via `.gitignore` so a future broad `git add .claude/` stays safe)
 - Live on GitHub Pages via a repo-root `.nojekyll` file
 - Drill-down is implemented as making the existing filter panel fully functional (spec's own workflow describes selecting Quarter → Region → LOB → Business → Service as the drill-down path) rather than a separate UI
 
@@ -251,7 +251,7 @@ Rebuilt as a real, wired application:
 - `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
 - `IBP_Forcasting.html` — stable, session 13 was last update
 - `ISG BPA — Business Planning and Analytics.html` — redesign of `IBP_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
-- `.claude/BTC_Lovable/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
+- `forecast_copilot/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
 
 ---
 
@@ -266,7 +266,7 @@ Legacy: IBP_Forcasting.html (sessions 1–13, stable)
 Redesign: "ISG BPA — Business Planning and Analytics.html" (renamed from IBP_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
-SEPARATE PRODUCT: .claude/BTC_Lovable/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
+SEPARATE PRODUCT: forecast_copilot/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
 
 BPA_FORCASTING_MOCK modules:
   Forecast Accuracy (Forecast Trend with SR/ASU/Dispatch switcher + AOP line + Weekly LOB Breakdown) |
@@ -277,7 +277,7 @@ Filters: FY + Product Group (data-group="lob") drive chart scaling.
 resetPageFilters() fires on every switchPage() call.
 Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend SR/ASU/Dispatch).
 
-Forecast Copilot (BTC_Lovable) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
+Forecast Copilot (forecast_copilot/) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
 Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->APOS->ASU->SR->Dispatch->BTC pipeline.
 
 Read IMP_DOCS/ for full context before making changes.

@@ -321,7 +321,7 @@
 - Fix filter logic to match `IBP_Forcasting.html` exactly; focus further passes on UI polish only
 - Keep KPI data realistic — "not too much not too low... explain it as a future product"
 - Update `index.html` to light theme and link the new file
-- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `.claude/BTC_Lovable/` (clarified via AskUserQuestion: adopt the naming *style* only, keep ISG BPA content — do not merge with the separate Forecast Copilot product)
+- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `forecast_copilot/` (clarified via AskUserQuestion: adopt the naming *style* only, keep ISG BPA content — do not merge with the separate Forecast Copilot product)
 
 **What was built** (`IBP_Forcasting.html` redesign, 3 iterations):
 - Home page: dark near-black hero (`#0c1526` nav), 5 module tiles matching `IBP_Forcasting.html`'s exact copy and tile count (first draft wrongly added a 6th tile and generic gradient hero — corrected)
@@ -355,12 +355,12 @@
 
 ## Session 24 — Forecast Copilot: cross-page shared state + real business logic (all 6 pages rebuilt)
 **Date**: 2026-06-25
-**Files**: all 6 `.claude/BTC_Lovable/*.html` pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast), `IMP_DOCS/`
+**Files**: all 6 `forecast_copilot/*.html` pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast), `IMP_DOCS/`
 
 **Prompts**:
 - "now if i change filter in one workspace it should be reflected in all workspaces" — plus a full pasted product spec ("AI-Powered Forecast Planning & Bend the Curve (BTC)") to check sliders and functionality against, and "keep the IMP_DOCS in check"
 
-**Audit before any changes** (3 parallel agents): confirmed `.claude/BTC_Lovable/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/APOS overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
+**Audit before any changes** (3 parallel agents): confirmed `forecast_copilot/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/APOS overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
 
 **Clarifying question asked before implementing**: whether "BTC%" should be a small bend/uplift percentage (matching the already-built Historical BTC Trend chart's 3-8% scale) or a large 90%+ achievement percentage (matching the spec's own example numbers, which used values like "97%"). User confirmed: small bend/uplift %. Implementing the spec's literal example would have contradicted 4 already-built pages that consistently used the smaller scale.
 
@@ -385,14 +385,14 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 
 **Docs sync**: added a dedicated "Forecast Copilot" section to `IMP_DOCS/HANDOFF.md` (this product had never been documented in the canonical, git-tracked HANDOFF.md before — an earlier session's write-up of it only ever existed in a stale worktree copy that was never merged to master) — describes the 6 files, the shared-engine architecture, what changed in this rebuild, and known state (still local-only, not pushed).
 
-**Not done without asking**: did not `git add`/commit/push the `.claude/BTC_Lovable/` changes — that folder is untracked and has never been pushed for this product; pushing it would be a new decision (making local-only work visible/shared) rather than a continuation of an established pattern, so it's left for an explicit follow-up ask.
+**Not done without asking**: did not `git add`/commit/push the `forecast_copilot/` changes — that folder is untracked and has never been pushed for this product; pushing it would be a new decision (making local-only work visible/shared) rather than a continuation of an established pattern, so it's left for an explicit follow-up ask.
 
 
 ---
 
 ## Session 25 — Forecast Copilot: full light theme, pushed to git, added to UI Selection library
 **Date**: 2026-06-25
-**Files**: all 6 `.claude/BTC_Lovable/*.html` pages, `.gitignore`, `.nojekyll` (new), `index.html`, `landing_v2.html`, `IMP_DOCS/`
+**Files**: all 6 `forecast_copilot/*.html` pages, `.gitignore`, `.nojekyll` (new), `index.html`, `landing_v2.html`, `IMP_DOCS/`
 
 **Prompts**:
 - "add a full on light theme - and push it to the repo and put it in the UI Selection library which is hosted on gh pages"
@@ -401,12 +401,26 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 **Light theme conversion**: enumerated every distinct hex/rgba color used across all 6 files (28 unique values) before touching anything, then applied a single dark→light mapping via a Node script across all 6 files at once (167 total replacements) — background/sidebar/card tokens (`#0b0f1a`→`#f4f7fb`, `#0d1220`/`#111827`→`#ffffff`, etc.), text tokens inverted (light-on-dark → dark-on-light), and all 5 chart/semantic accent colors darkened for AA contrast against white (`#2dd4bf`→`#0d9488` teal, `#60a5fa`→`#0284c7` sky, `#a78bfa`→`#7c3aed` violet, `#f472b6`→`#db2777` pink, `#22c55e`→`#16a34a` green, `#ef4444`→`#dc2626` red) — plus softened box-shadows (`rgba(0,0,0,.4/.25)` → `rgba(15,23,42,0.16/0.10)`, appropriate for a light background instead of the harsh dark-theme shadow values). Re-ran the same Node `vm`-based smoke test from Session 24 on all 6 files afterward to confirm the bulk find/replace didn't break any embedded JS (all passed, all still produce identical, cross-page-consistent numbers).
 
 **Pushing this to git required real care**, since `.claude/` is untracked as a whole in the main checkout and contains things that must never be published:
-- Checked GitHub Pages' Jekyll behavior first — Jekyll excludes dotfiles/dotfolders by default, so `.claude/BTC_Lovable/` would 404 on GitHub Pages even if pushed. Added an empty `.nojekyll` file at the repo root (standard fix for pure-static-HTML Pages sites) so the dotfolder is served as-is.
-- `.claude/` also contains `settings.local.json` and `worktrees/` (a full nested git worktree) — neither should ever be committed. Added both as explicit `.gitignore` entries (`.claude/worktrees/`, `.claude/settings.local.json`) with a comment noting `.claude/BTC_Lovable/` is the intentional exception, then verified with `git check-ignore` that the ignore rules and the intended-tracked folder behave exactly as expected before staging anything.
-- Copied the 6 light-themed files from the worktree into the main checkout's `.claude/BTC_Lovable/` (didn't exist there before this session).
+- Checked GitHub Pages' Jekyll behavior first — Jekyll excludes dotfiles/dotfolders by default, so `forecast_copilot/` would 404 on GitHub Pages even if pushed. Added an empty `.nojekyll` file at the repo root (standard fix for pure-static-HTML Pages sites) so the dotfolder is served as-is.
+- `.claude/` also contains `settings.local.json` and `worktrees/` (a full nested git worktree) — neither should ever be committed. Added both as explicit `.gitignore` entries (`.claude/worktrees/`, `.claude/settings.local.json`) with a comment noting `forecast_copilot/` is the intentional exception, then verified with `git check-ignore` that the ignore rules and the intended-tracked folder behave exactly as expected before staging anything.
+- Copied the 6 light-themed files from the worktree into the main checkout's `forecast_copilot/` (didn't exist there before this session).
 
-**UI Selection library** (`index.html` + `landing_v2.html`): added a new Primary Tool card for Forecast Copilot, placed **first** in both the visual grid and the sort-priority logic (both files' `PRIMARY` set / `LABELS` map / sort comparator, and `landing_v2.html`'s `ORDER` array) — per the explicit "put it on TOP" instruction. Card links to `.claude/BTC_Lovable/Dashboard — Forecast Copilot.html` as the natural entry point into the 6-page workflow. Both files use CRLF line endings, which silently broke the first pass of Node-based string replacement (`\n`-based search strings didn't match `\r\n` content) — fixed by switching to line-ending-agnostic regexes (`\r?\n`).
+**UI Selection library** (`index.html` + `landing_v2.html`): added a new Primary Tool card for Forecast Copilot, placed **first** in both the visual grid and the sort-priority logic (both files' `PRIMARY` set / `LABELS` map / sort comparator, and `landing_v2.html`'s `ORDER` array) — per the explicit "put it on TOP" instruction. Card links to `forecast_copilot/Dashboard — Forecast Copilot.html` as the natural entry point into the 6-page workflow. Both files use CRLF line endings, which silently broke the first pass of Node-based string replacement (`\n`-based search strings didn't match `\r\n` content) — fixed by switching to line-ending-agnostic regexes (`\r?\n`).
 
-**A note on tool reliability**: mid-task, `node -e "..."` calls containing backtick-wrapped Markdown code spans (e.g. `` `.claude/BTC_Lovable/*.html` ``) inside the double-quoted shell argument got partially corrupted — Bash treats backticks as command substitution even inside double quotes, so those spans were executed as (nonexistent) shell commands and their empty output silently replaced the intended text. Caught by re-reading the file after each patch rather than trusting the "success" log line, and fixed by writing patch content to standalone files first and having Node read them (avoiding shell string interpolation entirely) for any replacement text containing backticks.
+**A note on tool reliability**: mid-task, `node -e "..."` calls containing backtick-wrapped Markdown code spans (e.g. `` `forecast_copilot/*.html` ``) inside the double-quoted shell argument got partially corrupted — Bash treats backticks as command substitution even inside double quotes, so those spans were executed as (nonexistent) shell commands and their empty output silently replaced the intended text. Caught by re-reading the file after each patch rather than trusting the "success" log line, and fixed by writing patch content to standalone files first and having Node read them (avoiding shell string interpolation entirely) for any replacement text containing backticks.
 
 **Docs sync**: updated the Forecast Copilot section, Active Files table row, and Current State bullet in `IMP_DOCS/HANDOFF.md` to reflect: light theme, pushed, live on GitHub Pages, linked in both UI Selection library files.
+
+---
+
+## Session 26 — Forecast Copilot: ALL filter option, Historical 0–100% y-axes, folder rename to `forecast_copilot/`
+**Files**: `forecast_copilot/*.html` (all 6, moved from `.claude/BTC_Lovable/`), `index.html`, `landing_v2.html`, `.gitignore`, `IMP_DOCS/HANDOFF.md`
+**Prompts**: "fix it now it is not showing the ALL button before and rename the file to 'forecast_copilot' and in Historical tab put (0-100)% properly in the UI"
+
+**What was done**:
+- **ALL filter option**: added `ALL` as the *first* option in the Region, Global LOB, Product Business and Service Type dropdowns on all 6 pages (`FILTER_OPTIONS`). Fiscal Quarter / Fiscal Week deliberately do NOT get ALL — `fcWeeksForQuarter()` / `fcPriorQuarters()` parse the quarter string (`split('-Q')`) and would produce NaN.
+- **ALL semantics**: aggregate = sum of that dimension's factors — `FC_REGION_FACTOR.ALL: 2.65`, `FC_LOB_FACTOR.ALL: 6.25`, `FC_BUSINESS_FACTOR.ALL: 2.90`, `FC_SERVICE_FACTOR.ALL: { volume: 5.05, dispatchRatio: 0.50 }` (dispatch ratio is the volume-weighted mean). Because the engine is multiplicative, all-ALL = product of sums = exact total over the full cross-product of slices — self-consistent, verified finite via Node vm smoke test.
+- **Historical y-axes**: `fcDrawLineSeries()` (shared engine, updated identically on all 6 pages) now accepts `opts.yTicks` + `opts.yFmt` — draws gridlines + right-anchored tick labels in a 40px left gutter; behaviour unchanged when the options are absent. Historical page now passes `0/25/50/75/100` with `%` formatting on Forecast Accuracy (was a zoomed 80–100 axis with no labels at all) and AOP & Modernization charts, and `0/3/6/9` `%` on the BTC trend.
+- **Rename**: `git mv .claude/BTC_Lovable forecast_copilot` — the suite now lives at repo root, so the GH Pages URL loses the `.claude/` dotfolder segment. All links updated in `index.html` (card, PRIMARY set, LABELS, sort comparator), `landing_v2.html` (incl. `ORDER` array), HANDOFF.md; `.gitignore` comment refreshed. Cross-page nav links are relative filenames, so they survived the move untouched.
+
+**Gotcha recorded**: these files are CRLF; a perl `\{\n` multiline pattern silently no-op'd until rewritten as `(\r?\n)` with the captured ending reused in the replacement.

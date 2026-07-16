@@ -222,12 +222,12 @@
     <p class="section-label">Primary Tools</p>
     <div class="primary-grid">
 
-      <a href=".claude/BTC_Lovable/Dashboard — Forecast Copilot.html" class="primary-card" style="--card-accent:#0d9488;">
+      <a href="forecast_copilot/Dashboard — Forecast Copilot.html" class="primary-card" style="--card-accent:#0d9488;">
         <div class="card-tag">AI Planning Suite ✦</div>
         <div class="card-title">Forecast Copilot <span class="new-badge">New</span></div>
         <div class="card-desc">Full Bend-The-Curve planning workflow — New Contracts &amp; APOS Simulation, a real 3-strategy BTC Recommendation Engine, Automatic Weekly Distribution, and Final Forecast submission. Cross-page filters and selections persist across all 6 pages.</div>
         <div class="card-footer">
-          <span class="card-file">.claude/BTC_Lovable/Dashboard — Forecast Copilot.html</span>
+          <span class="card-file">forecast_copilot/Dashboard — Forecast Copilot.html</span>
           <span class="card-cta">Open &#8594;</span>
         </div>
       </a>
@@ -306,7 +306,7 @@
 
   <script>
     const PRIMARY = new Set([
-      '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html',
+      'forecast_copilot/Dashboard — Forecast Copilot.html',
       'BPA_FORCASTING_MOCK.HTML',
       'ISG BPA — Business Planning and Analytics.html',
       'IBP_Forcasting.html',
@@ -316,7 +316,7 @@
     ]);
 
     const LABELS = {
-      '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
+      'forecast_copilot/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
       'BPA_FORCASTING_MOCK.HTML':                     'ISG BPA — Forecasting Suite (Active)',
       'ISG BPA — Business Planning and Analytics.html':                       'ISG BPA v2 — Redesign',
       'IBP_Forcasting.html':                          'ISG BPA: Business Planning and Analytics',
@@ -365,8 +365,8 @@
         .sort((a, b) => {
           const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
           if (aP !== bP) return aP ? -1 : 1;
-          if (a[0] === '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html') return -1;
-          if (b[0] === '.claude/BTC_Lovable/Dashboard — Forecast Copilot.html') return 1;
+          if (a[0] === 'forecast_copilot/Dashboard — Forecast Copilot.html') return -1;
+          if (b[0] === 'forecast_copilot/Dashboard — Forecast Copilot.html') return 1;
           if (a[0] === 'BPA_FORCASTING_MOCK.HTML')   return -1;
           if (b[0] === 'BPA_FORCASTING_MOCK.HTML')   return 1;
           if (a[0] === 'ISG BPA — Business Planning and Analytics.html') return -1;
