@@ -424,3 +424,17 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - **Rename**: `git mv .claude/BTC_Lovable forecast_copilot` — the suite now lives at repo root, so the GH Pages URL loses the `.claude/` dotfolder segment. All links updated in `index.html` (card, PRIMARY set, LABELS, sort comparator), `landing_v2.html` (incl. `ORDER` array), HANDOFF.md; `.gitignore` comment refreshed. Cross-page nav links are relative filenames, so they survived the move untouched.
 
 **Gotcha recorded**: these files are CRLF; a perl `\{\n` multiline pattern silently no-op'd until rewritten as `(\r?\n)` with the captured ending reused in the replacement.
+
+---
+
+## Session 26b — Forecast Copilot: chart hover inspection + fluid transitions; BTC range KPI shows 0%—100%
+**Files**: `forecast_copilot/*.html` (all 6)
+**Prompts**: "include the Graphs hover design... it should highlight values corresponds to the graph... in all the graphs of the UI, and make the graph design change fluidly"; "Best Historical BTC Range 3.8% — 6.4% change this value to 0%-100%"
+
+**What was done**:
+- **Hover layer on every SVG chart** (shared engine, identical on all 6 pages): `fcAttachHover()` adds a transparent capture rect per chart — on mousemove it snaps to the nearest data index, shows a dashed vertical guide line, colored marker dots on each series, and a floating dark tooltip (fixed-position, follows the chart point) listing series name + formatted value. CSS for the tooltip/markers is injected from JS (`fcHoverUI`) so no per-page style edits.
+- **Fluid transitions**: `fcDrawLineSeries`/`fcDrawGroupedBars` now tween old→new data over 320ms (ease-in-out, rAF, cancels in-flight tween) whenever a chart re-renders with the same shape — filter changes and slider drags animate smoothly instead of snapping. First render draws instantly.
+- **Series/label metadata**: all 15 chart call sites updated with `name:` per series and `labels:` (weeks/quarters) so tooltips read "2024-Q3 · AOP: 84%" instead of generic text. Percent charts pass `fmt` for % formatting.
+- **BTC Distribution h-bars**: hover brightens the bar and highlights label+value (CSS only). Donuts keep their static legends (conic-gradient divs, values already visible).
+- **Best Historical BTC Range KPI**: per explicit instruction, value text is now the literal "0% — 100%"; the meter below still marks where the historical band sits on the 0–100 track.
+- Verified: Node vm smoke test loads and renders all 6 pages with ALL filters, stub DOM covering the hover layer APIs.
