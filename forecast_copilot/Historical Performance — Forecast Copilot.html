@@ -67,6 +67,10 @@
   .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
   .kpi-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
   .kpi-value{font-size:22px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;}
+  .range-meter{margin-top:12px;}
+  .range-track{position:relative;height:8px;border-radius:4px;background:var(--card-hi);border:1px solid var(--border);}
+  .range-band{position:absolute;top:-1px;bottom:-1px;background:var(--teal);border-radius:4px;min-width:6px;}
+  .range-scale{display:flex;justify-content:space-between;font-size:9.5px;font-weight:600;color:var(--text-3);margin-top:5px;}
 
   .quarter-list{display:flex;gap:12px;}
   .quarter-item{flex:1;background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:10px 14px;position:relative;}
@@ -122,6 +126,10 @@
       <div class="kpi-card">
         <div class="kpi-label">Best Historical BTC Range</div>
         <div class="kpi-value" id="kpi-btc-range">—</div>
+        <div class="range-meter">
+          <div class="range-track"><div class="range-band" id="btc-range-band"></div></div>
+          <div class="range-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Most Successful Planning Periods</div>
@@ -469,6 +477,9 @@ function fcRenderHistorical() {
 
   const btcMin = Math.min(...hist.btc), btcMax = Math.max(...hist.btc);
   document.getElementById('kpi-btc-range').textContent = `${btcMin.toFixed(1)}% — ${btcMax.toFixed(1)}%`;
+  const band = document.getElementById('btc-range-band');
+  band.style.left = Math.max(0, Math.min(100, btcMin)) + '%';
+  band.style.width = Math.max(1.2, Math.min(100, btcMax) - Math.max(0, btcMin)) + '%';
 
   const ranked = hist.quarters.map((q,i) => ({ q, aop: hist.aop[i] })).sort((a,b) => b.aop - a.aop).slice(0,3);
   document.getElementById('quarter-list').innerHTML = ranked.map((item,i) => `
