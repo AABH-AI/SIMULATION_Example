@@ -1,2 +1,8 @@
 lovable ai format/
 /Media.jpg
+New Mockup Designs/Visuals/
+
+# Local Claude Code tooling state — never publish worktrees or local settings.
+# (Forecast Copilot now lives at repo-root forecast_copilot/ — outside .claude/.)
+.claude/worktrees/
+.claude/settings.local.json
