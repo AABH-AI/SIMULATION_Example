@@ -1,11 +1,11 @@
-﻿# HANDOFF — ISG BPA Project
+﻿# HANDOFF — TET BPA Project
 > Quick-start context for any new AI session or teammate.
 > Last updated: 2026-06-25 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
 ## What This Project Is
-Interactive simulation + analytics dashboards for **ISG BPA: Business Planning and Analytics** at Aligned Automation Services. Hosted as a static GitHub Pages site — pure HTML/CSS/JS, no backend.
+Interactive simulation + analytics dashboards for **TET BPA: Business Planning and Analytics** at He. Hosted as a static GitHub Pages site — pure HTML/CSS/JS, no backend.
 
 ## Live URLs
 - **Site**: https://aabh-ai.github.io/SIMULATION_Example/
@@ -22,8 +22,8 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | `data.html` | **Standalone Data Management dashboard** — 3 tabs: Data Overview · Data Quality · Full Raw View (session 22) |
 | `Week.html` | Prototype: Forecast Trend with SR/ASU/Dispatch switcher on main chart — review before merging to BPA |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
-| `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
-| `ISG BPA — Business Planning and Analytics.html` | **Redesign of `IBP_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `IBP_Forcasting_v2.html` on 2026-06-25 |
+| `AST_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
+| `TET BPA — Business Planning and Analytics.html` | **Redesign of `AST_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `AST_Forcasting_v2.html` on 2026-06-25 |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
@@ -110,7 +110,7 @@ Base data: `_ftBaseData` (SR base), `_ftMetricData` (ASU + Dispatch generated in
 | Week | `week` | All, W1–W52 | All |
 | Region | `region` | All, AMER, EMEA, APJ | All |
 | Sub-Region | `subregion` | All + 7 values | All |
-| **Product Group** | `lob` | All, ISG, ESG, HES | All |
+| **Product Group** | `lob` | All, TET, TES, THS | All |
 | Location | `location` | All + 4 values | All |
 | Queue | `queue` | All + 4 values | All |
 
@@ -120,16 +120,16 @@ Base data: `_ftBaseData` (SR base), `_ftMetricData` (ASU + Dispatch generated in
 ```js
 getActiveFilters()         // returns { group: [values] } — group absent = All selected
 getActiveFYMultiplier()    // FY26=1.0, FY27=1.08, FY25=0.93; avg if multiple selected; 0 if none
-getDPLOBMult()             // returns 0.60/0.25/0.15 for ISG/ESG/HES; 1.0 for All
+getDPLOBMult()             // returns 0.60/0.25/0.15 for TET/TES/THS; 1.0 for All
 shouldHideAll()            // true if FY, Quarter, Month, or Region has 0 selected
 resetPageFilters()         // resets FY→FY26, Quarter→Q1, LOB→All; closes open dropdowns
 ```
 
 ### Product Group Demand Splits
 ```js
-const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };  // quadrant chart scaling
-// Exact per-group demand arrays (ISG+ESG+HES = combined total):
-const DP_TREND_PG = { ISG: { yoy:[...], qoq:[...] }, ESG: {...}, HES: {...} };
+const DP_LOB_SHARE = { TET: 0.60, TES: 0.25, THS: 0.15 };  // quadrant chart scaling
+// Exact per-group demand arrays (TET+TES+THS = combined total):
+const DP_TREND_PG = { TET: { yoy:[...], qoq:[...] }, TES: {...}, THS: {...} };
 ```
 
 ### Global Filter Reset
@@ -191,7 +191,7 @@ Purpose-built standalone page (995 lines, no BPA dependencies). Auto-opens to Da
 ### Tab 3: Full Raw View
 - Sticky-header sortable table, 13 columns, search across all values
 - CSV + JSON export (filtered rows only)
-- LOB column colour-coded: ISG=#3a6ef0 · ESG=#16a34a · HES=#7c3aed
+- LOB column colour-coded: TET=#3a6ef0 · TES=#16a34a · THS=#7c3aed
 
 ### data.html Architecture
 ```js
@@ -210,7 +210,7 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 
 ## Forecast Copilot — `forecast_copilot/` (rebuilt + light theme + pushed 2026-06-25)
 
-A **separate, standalone product** from the ISG BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the ISG BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the ISG BPA suite. **Now pushed and live** at `forecast_copilot/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
+A **separate, standalone product** from the TET BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the TET BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the TET BPA suite. **Now pushed and live** at `forecast_copilot/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
 
 ### Files (nav order)
 | File | Purpose |
@@ -248,21 +248,21 @@ Rebuilt as a real, wired application:
   - Actuals Profiling: 4-quadrant overview + Demand Trends (WoW/MoM/QoQ)
 - `data.html` — new standalone Data Management file (3 tabs), local only pending review
 - `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
-- `IBP_Forcasting.html` — stable, session 13 was last update
-- `ISG BPA — Business Planning and Analytics.html` — redesign of `IBP_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
+- `AST_Forcasting.html` — stable, session 13 was last update
+- `TET BPA — Business Planning and Analytics.html` — redesign of `AST_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
 - `forecast_copilot/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
 
 ---
 
 ## New AI Session — Paste This
 ```
-Project: ISG BPA dashboard — Aligned Automation Services
-Repo: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
+Project: TET BPA dashboard — He
+Repo: D:\OneDrive - He\Documents\simulations
 Live: https://aabh-ai.github.io/SIMULATION_Example/
 ACTIVE file: BPA_FORCASTING_MOCK.HTML (sessions 14+)
 NEW standalone: data.html (Data Management, 3 tabs), Week.html (Forecast Trend prototype)
-Legacy: IBP_Forcasting.html (sessions 1–13, stable)
-Redesign: "ISG BPA — Business Planning and Analytics.html" (renamed from IBP_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
+Legacy: AST_Forcasting.html (sessions 1–13, stable)
+Redesign: "TET BPA — Business Planning and Analytics.html" (renamed from AST_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
 SEPARATE PRODUCT: forecast_copilot/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
