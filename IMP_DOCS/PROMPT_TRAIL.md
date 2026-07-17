@@ -46,7 +46,7 @@
 ## Session 11 — What-If Slider Reorder + Data Raw Rename
 **Files**: `IBP_Forcasting.html`
 **Prompts**:
-- Reorder What-If sliders: New Contract Growth first, APOS Renewal second
+- Reorder What-If sliders: New Contract Growth first, Service Renewals second
 - Rename Data Raw → Data Management
 - Update What-If tile stat to show lever names
 
@@ -360,18 +360,18 @@
 **Prompts**:
 - "now if i change filter in one workspace it should be reflected in all workspaces" — plus a full pasted product spec ("AI-Powered Forecast Planning & Bend the Curve (BTC)") to check sliders and functionality against, and "keep the IMP_DOCS in check"
 
-**Audit before any changes** (3 parallel agents): confirmed `forecast_copilot/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/APOS overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
+**Audit before any changes** (3 parallel agents): confirmed `forecast_copilot/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/Renewals overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
 
 **Clarifying question asked before implementing**: whether "BTC%" should be a small bend/uplift percentage (matching the already-built Historical BTC Trend chart's 3-8% scale) or a large 90%+ achievement percentage (matching the spec's own example numbers, which used values like "97%"). User confirmed: small bend/uplift %. Implementing the spec's literal example would have contradicted 4 already-built pages that consistently used the smaller scale.
 
 **What was built**:
 - A single shared JS engine block, embedded identically (copy-pasted, unchanged) into all 6 files per the repo's existing "fully self-contained, no shared CSS/JS" convention for this product:
   - `fcState` — persisted to `localStorage` under `fc_state_v1`: filters (quarter/week/region/lob/business/service), `ncOverride`/`aposOverride`, `simMode`, `btcStrategy`/`manualBTC`, `distMode`, `approvals`. Loaded on every page load (`fcLoadState()`), saved on every change (`fcSaveState()`) — this is what makes a filter or selection made on one page appear already-selected when any other page loads next.
-  - `fcGenerateWeeklySeries()` / `fcGenerateHistory()` — seeded dummy-data generator (same `seeded(s)` PRNG pattern as `data.html`), keyed by a hash of the active filter combo so the same combo always produces the same numbers and different combos produce different, realistically-scaled ones. Generates 13 fiscal weeks of New Contracts/APOS/ASU/SR/Dispatch per the selected quarter, and 12 historical quarters of BTC/Forecast Accuracy/AOP/Modernization achievement.
-  - Real ASU Conversion formula: `ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations (weekly churn) and Renewals modeled as distinct variables — the original page's subtitle stated this formula but the actual code just multiplied everything by one shared scalar.
+  - `fcGenerateWeeklySeries()` / `fcGenerateHistory()` — seeded dummy-data generator (same `seeded(s)` PRNG pattern as `data.html`), keyed by a hash of the active filter combo so the same combo always produces the same numbers and different combos produce different, realistically-scaled ones. Generates 13 fiscal weeks of New Contracts/Renewals/ASU/SR/Dispatch per the selected quarter, and 12 historical quarters of BTC/Forecast Accuracy/AOP/Modernization achievement.
+  - Real ASU Conversion formula: `ASU[w] = ASU[w-1] - Expirations[w] + Renewals[w] + New Contracts[w]`, with Expirations (weekly churn) and Renewals modeled as distinct variables — the original page's subtitle stated this formula but the actual code just multiplied everything by one shared scalar.
   - `fcRecommendBTC()` — real 3-strategy BTC Recommendation Engine: Historical Best Fit (recency-weighted average of 12 historical quarters), Closest to AOP (derived from the accuracy-shortfall-driven target gap), Balanced (their midpoint) — 3 genuinely distinct numbers every time, not the previous single weighted-sum formula duplicated into 3 static table rows.
   - `fcDistributeWeekly()` — Automatic Weekly Distribution across the 13 selected fiscal weeks, with Equal/Historical/AI Recommended modes producing genuinely different per-week shapes while always summing to the same total uplift.
-  - `fcRecommendOverrides()` — Recommendation Mode for ASU Simulation: analyzes 12-quarter average Forecast Accuracy and suggests NC/APOS overrides, with Accept/Modify/Reject actions.
+  - `fcRecommendOverrides()` — Recommendation Mode for ASU Simulation: analyzes 12-quarter average Forecast Accuracy and suggests NC/Renewals overrides, with Accept/Modify/Reject actions.
 - **Dashboard**: added the filters panel (previously had none at all — no JS, no filters, 100% static) plus the spec's 9 KPI cards, Forecast vs Target table, and 5 trend charts.
 - **ASU Simulation**: kept the 2 sliders, wired them to the real formula; added Original/Adjusted/Variance display and a full Recommendation Mode panel (previously the "AI Auto Simulation" toggle button did nothing beyond swapping its own CSS class).
 - **Historical Performance**: wired all 4 charts + the "Best Historical BTC Range" / "Most Successful Planning Periods" KPIs to the real 12-quarter history instead of one-time static render from hardcoded arrays.
@@ -454,3 +454,15 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - **Label crowding**: `rotation: labels.length > 6 ? -35 : 0`. Note: `autoRotation` is IGNORED when `labels.step` is set — cost one iteration to learn.
 - Verified with Canary/Chromium on all 6 pages: 0 console errors, expected chart counts (5/3/4/0/1/1), slider-update path exercised, screenshots confirm no label overlap.
 - Note: Highcharts is commercially licensed (free for personal/non-commercial use) — flagged to owner for internal-demo licensing review.
+
+---
+
+## Session 27 — Compliance content sweep
+**Files**: all active HTML files, IMP_DOCS, CLAUDE.md, .gitignore; 13 legacy prototype files untracked
+
+**What was done**:
+- Company-compliance sweep replacing client-specific references across all deployed UI files and docs with neutral terminology (partner names, product-line names, renewal terminology), with a consistent identifier rename in the Forecast Copilot shared engine (`fc_state` localStorage key bumped to v2 so stale saved filter values reset cleanly).
+- 13 legacy/prototype HTML files removed from git tracking and added to `.gitignore` — they remain on local disk but are no longer deployed or listed in manifest.json/All Modules.
+- Full inventory of what was found and changed is documented in the local-only, gitignored `remove.md` at the repo root.
+- Fixed: `distributeByFactor()` on BTC Distribution now excludes the `ALL` aggregate key so donut/h-bar breakdowns don't double-count.
+- Verified: Node vm smoke tests on all 6 Forecast Copilot pages + real-browser checks (0 console errors, correct chart counts, slider path, forbidden-term scan = 0 hits).

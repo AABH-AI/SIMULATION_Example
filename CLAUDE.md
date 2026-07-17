@@ -24,8 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `IBP_Forcasting.html` | **Main dashboard** — 5 modules with 2,950 lines of embedded CSS/JS |
 | `index.html` | Landing page — Primary Tools grid plus searchable All Modules list |
 | `bend_the_curve.html` | Goal-first strategic planner with 8 lever toggles and target slider |
-| `enterprise_whatif_forecasting_platform.html` | Standalone What-If reference (don't edit; kept for design inspiration) |
-| `dell_workflow.html` | Workflow simulation (standalone, not integrated into main dashboard) |
+| `enterprise_whatif_forecasting_platform.html` | Standalone What-If reference (don't edit; local-only — gitignored for compliance, not deployed) |
 
 ### Documentation (Always Keep Updated)
 
@@ -169,7 +168,7 @@ const WI_BASE = {
 };
 
 const WI_SLIDERS = [
-  { key:'renewal',  label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+  { key:'renewal',  label:'Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
   { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8    },
   { key:'modifier', label:'Forecast Modifier',     min:-15, max:25,  step:1,   val:2    },
 ];

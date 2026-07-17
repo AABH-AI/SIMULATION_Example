@@ -599,7 +599,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
       </div>
       <div class="hk">
         <div class="hk-val">89.5%</div>
-        <div class="hk-label">APOS Renewal Rate</div>
+        <div class="hk-label">Renewal Rate</div>
         <div class="hk-trend" style="color:var(--emerald)"><i class="ti ti-arrow-up-right" style="font-size:9px;"></i> vs 85.3%</div>
       </div>
     </div>
@@ -666,7 +666,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
         <div class="tile-body">
           <div class="tile-name">What-If Simulation</div>
           <div class="tile-desc">Slider-driven scenario explorer — model renewal rates, contract growth, and dispatch conversion to forecast ASU, SR, and revenue outcomes.</div>
-          <div class="tile-footer">New Contract Growth &nbsp;·&nbsp; <span class="tile-tag">APOS Renewal</span></div>
+          <div class="tile-footer">New Contract Growth &nbsp;·&nbsp; <span class="tile-tag">Service Renewals</span></div>
         </div>
       </div>
 
@@ -819,7 +819,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
           </div>
           <div class="visual-row">
             <div class="visual-card">
-              <div class="vc-head"><div class="vc-titles"><div class="vc-title">MDR Work Orders by Partner</div><div class="vc-sub">Dell vs OSP</div></div></div>
+              <div class="vc-head"><div class="vc-titles"><div class="vc-title">MDR Work Orders by Partner</div><div class="vc-sub">OEM vs OSP</div></div></div>
               <div style="flex:1;min-height:220px;"><canvas id="fa-chart-partner"></canvas></div>
             </div>
             <div class="visual-card">
@@ -870,7 +870,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
             <div class="kpi-row">
               <div class="kpi-card"><span class="kpi-label">Total ASU</span><div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="asu-kpi-total">1.47M</div><div class="kpi-sub" style="color:var(--emerald)"><i class="ti ti-arrow-up-right"></i> +8.6% vs PY</div></div>
               <div class="kpi-card"><span class="kpi-label">New Contracts (MTD)</span><div class="kpi-value kpi-dynamic" id="asu-kpi-new-contracts">6,402</div><div class="kpi-sub" style="color:var(--emerald)"><i class="ti ti-arrow-up-right"></i> +5.1% vs PY</div></div>
-              <div class="kpi-card"><span class="kpi-label">APOS Renewal Rate</span><div class="kpi-value kpi-dynamic" style="color:var(--emerald)" id="asu-kpi-renewal-rate">89.5%</div><div class="kpi-sub" style="color:var(--text-2)">Target: 85.3%</div></div>
+              <div class="kpi-card"><span class="kpi-label">Renewal Rate</span><div class="kpi-value kpi-dynamic" style="color:var(--emerald)" id="asu-kpi-renewal-rate">89.5%</div><div class="kpi-sub" style="color:var(--text-2)">Target: 85.3%</div></div>
               <div class="kpi-card"><span class="kpi-label">Declined Units (MTD)</span><div class="kpi-value kpi-dynamic" style="color:var(--red)" id="asu-kpi-decline">2,841</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> +0.8% vs PY</div></div>
             </div>
             <div class="visual-row">
@@ -878,7 +878,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
               <div class="visual-card"><div class="vc-head"><div class="vc-titles"><div class="vc-title">New Contracts — Monthly Trend</div><div class="vc-sub">Feb–Jan fiscal year</div></div></div><div style="flex:1;min-height:240px;"><canvas id="ap-new-contracts"></canvas></div></div>
             </div>
             <div class="visual-row">
-              <div class="visual-card"><div class="vc-head"><div class="vc-titles"><div class="vc-title">APOS Renewal — Opportunity vs Renewed Units</div><div class="vc-sub">With renewal rate % (right axis)</div></div></div><div style="flex:1;min-height:240px;"><canvas id="ap-apos-renewal"></canvas></div></div>
+              <div class="visual-card"><div class="vc-head"><div class="vc-titles"><div class="vc-title">Service Renewals — Opportunity vs Renewed Units</div><div class="vc-sub">With renewal rate % (right axis)</div></div></div><div style="flex:1;min-height:240px;"><canvas id="ap-renew-renewal"></canvas></div></div>
               <div class="visual-card"><div class="vc-head"><div class="vc-titles"><div class="vc-title">Decline Analysis — Monthly Churned Units</div><div class="vc-sub">Threshold: 3,000 units</div></div></div><div style="flex:1;min-height:240px;"><canvas id="ap-decline"></canvas></div></div>
             </div>
           </div>
@@ -901,7 +901,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
           <div id="dp-channel-care" style="display:none;">
             <div class="kpi-row">
               <div class="kpi-card"><span class="kpi-label">Care Contracted Fill (CF)</span><div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="care-kpi-cf">86.4K</div><div class="kpi-sub" style="color:var(--emerald)"><i class="ti ti-arrow-up-right"></i> +4.2% vs PY</div></div>
-              <div class="kpi-card"><span class="kpi-label">Care APOS Renewals</span><div class="kpi-value kpi-dynamic" id="care-kpi-apos">18.2K</div><div class="kpi-sub" style="color:var(--emerald)"><i class="ti ti-arrow-up-right"></i> +2.8% vs PY</div></div>
+              <div class="kpi-card"><span class="kpi-label">Care Renewals</span><div class="kpi-value kpi-dynamic" id="care-kpi-renew">18.2K</div><div class="kpi-sub" style="color:var(--emerald)"><i class="ti ti-arrow-up-right"></i> +2.8% vs PY</div></div>
               <div class="kpi-card"><span class="kpi-label">Care Service Requests</span><div class="kpi-value kpi-dynamic" id="care-kpi-sr">38.6K</div><div class="kpi-sub" style="color:var(--text-2)">Current period</div></div>
               <div class="kpi-card"><span class="kpi-label">Care Dispatches</span><div class="kpi-value kpi-dynamic" id="care-kpi-dsp">9.8K</div><div class="kpi-sub" style="color:var(--amber)"><i class="ti ti-alert-triangle"></i> −0.6% vs PY</div></div>
             </div>
@@ -911,7 +911,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
             </div>
             <div class="visual-row">
               <div class="visual-card" style="grid-column:1/-1;">
-                <div class="vc-head"><div class="vc-titles"><div class="vc-title">Care Sub-Channels — CF · APOS · SR · Dispatch</div><div class="vc-sub">Actuals (solid) vs Forecast (dashed) · Monthly, Feb–Jan</div></div></div>
+                <div class="vc-head"><div class="vc-titles"><div class="vc-title">Care Sub-Channels — CF · Renewals · SR · Dispatch</div><div class="vc-sub">Actuals (solid) vs Forecast (dashed) · Monthly, Feb–Jan</div></div></div>
                 <div style="flex:1;min-height:260px;"><canvas id="ap-care-sub"></canvas></div>
               </div>
             </div>
@@ -1215,7 +1215,7 @@ hr.rule { border: none; border-top: 1px solid var(--border); margin: 5px 0; }
 ═══════════════════════════════════════════════════════════ */
 const REGIONS=['AMER','AMER','EMEA','APJ'];
 const SUBREGS={AMER:['North America','LATAM'],EMEA:['Western Europe','Eastern Europe'],APJ:['SEA','ANZ','Japan']};
-const PARTNERS=['Dell','OSP'], LOCS=['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
+const PARTNERS=['OEM','OSP'], LOCS=['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
 const QUEUES=['Queue_Alpha','Queue_Beta','Queue_Delta'], BRS=['BR_Direct','BR_Indirect'], LOBS=['ISG','ESG','HES'];
 function ri(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function rf(arr){return arr[Math.floor(Math.random()*arr.length)];}
@@ -1242,7 +1242,7 @@ const ALERTS_DATA=[
   {sev:'High',  desc:'Forecast demand drop >15% for Care queue — APJ',    date:'2026-06-03',region:'APJ', subregion:'SEA'},
   {sev:'High',  desc:'Tech ASU weekly actuals below threshold — W22',      date:'2026-06-01',region:'AMER',subregion:'LATAM'},
   {sev:'High',  desc:'Partner SLA breach — OSP dispatch >48hr',           date:'2026-06-04',region:'EMEA',subregion:'Eastern Europe'},
-  {sev:'Medium',desc:'Partner Dell SLA missed warning',                    date:'2026-06-01',region:'APJ', subregion:'ANZ'},
+  {sev:'Medium',desc:'Partner OEM SLA missed warning',                    date:'2026-06-01',region:'APJ', subregion:'ANZ'},
   {sev:'Medium',desc:'Data completeness dropped to 94% — Austin DC',      date:'2026-06-02',region:'AMER',subregion:'North America'},
   {sev:'Medium',desc:'Queue_Beta backlog growing — 3 consecutive weeks',  date:'2026-06-03',region:'EMEA',subregion:'Western Europe'},
   {sev:'Medium',desc:'MDR >8% sustained for Tokyo Base — review needed',  date:'2026-05-30',region:'APJ', subregion:'Japan'},
@@ -1260,9 +1260,9 @@ const FA_REGION_BASE={
   EMEA:{actuals:3495, forecast:3700},
   APJ: {actuals:1917, forecast:2030}
 };
-// MDR work orders per week · Dell handles 59% of volume
+// MDR work orders per week · OEM handles 59% of volume
 const FA_PARTNER_BASE=[
-  {name:'Dell',mdr:4100,color:'rgba(13,148,136,0.72)'},
+  {name:'OEM',mdr:4100,color:'rgba(13,148,136,0.72)'},
   {name:'OSP', mdr:2900,color:'rgba(5,150,105,0.65)'}
 ];
 // Monthly SR by region: 587K/yr ÷ 12 = 48.9K/mo · same regional split
@@ -1288,8 +1288,8 @@ const AP_ASU_TREND_BASE={
 };
 // Monthly new contracts (73,140/yr ÷ 12 ≈ 6,095 · slightly seasonal)
 const AP_NEW_CONTRACTS_BASE=[5820,6050,6280,5940,6180,6402,6100,6480,6220,6390,6560,6510];
-// APOS renewal: 284,500 annual opportunity · 89.5% rate target
-const AP_APOS_BASE={
+// Renewals renewal: 284,500 annual opportunity · 89.5% rate target
+const AP_Renewals_BASE={
   opportunity:[23200,23600,24100,23800,24200,24500,23900,24300,24600,24800,25100,24900],
   renewed:    [19800,20280,20730,20420,20810,21920,20570,20960,21280,21420,21680,21540],
   rate:       [85.3,85.9,86.0,85.8,86.0,89.5,86.1,86.2,86.5,86.4,86.4,86.5]
@@ -1325,7 +1325,7 @@ const T52={
   'dp-fld-dis':_t(11700,1200,1),'dp-fld-fct':_t(12300,1100,1),
   'dp-care-forecast':_t(38600,3800,2),'dp-care-actuals':_t(36700,3600,2),
   'care-cf-fct':_t(32000,3200,1),'care-cf-act':_t(30400,3000,1),
-  'care-apos-fct':_t(18200,1800,3),'care-apos-act':_t(17300,1700,3),
+  'care-renew-fct':_t(18200,1800,3),'care-renew-act':_t(17300,1700,3),
   'care-sr-fct':_t(27500,2700,2),'care-sr-act':_t(26100,2600,2),
   'care-dsp-fct':_t(9800,980,4),'care-dsp-act':_t(9300,930,4),
   'dp-care-amer':_t(20100,2000,0),'dp-care-emea':_t(12000,1200,3),'dp-care-apj':_t(6500,650,6),
@@ -1449,7 +1449,7 @@ function updateChips(){
 function onFilterChange(){updateChips();triggerUpdate();}
 
 /* ─ TRIGGER UPDATE ─ */
-const FAC=new Set(['fa-chart-hbar','fa-chart-partner','dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow','ap-asu-trend','ap-new-contracts','ap-apos-renewal','ap-decline','ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region','ap-fs-trend','ap-fs-overall','ap-care-trend','ap-care-region','ap-care-sub']);
+const FAC=new Set(['fa-chart-hbar','fa-chart-partner','dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow','ap-asu-trend','ap-new-contracts','ap-renew-renewal','ap-decline','ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region','ap-fs-trend','ap-fs-overall','ap-care-trend','ap-care-region','ap-care-sub']);
 function triggerUpdate(){
   document.querySelectorAll('.kpi-dynamic:not(#dr-total-records):not(#da-total)').forEach(el=>{
     let t=el.innerText.trim(); if(t.startsWith('+')||t.startsWith('-')) return;
@@ -1501,7 +1501,7 @@ function initCharts(){
     {label:'Weekly Actuals',  data:[5876,3495,1917],backgroundColor:'rgba(13,148,136,0.75)',borderRadius:5},
     {label:'Forecast Demand', data:[6216,3700,2030],backgroundColor:'rgba(5,150,105,0.68)',borderRadius:5}]});
   // FA Partner: MDR work orders per week
-  mk('fa-chart-partner','bar',{labels:['Dell','OSP'],datasets:[{label:'MDR Work Orders',data:[4100,2900],backgroundColor:['rgba(13,148,136,0.72)','rgba(5,150,105,0.68)'],borderRadius:6}]},{...bOpts(),indexAxis:'y'});
+  mk('fa-chart-partner','bar',{labels:['OEM','OSP'],datasets:[{label:'MDR Work Orders',data:[4100,2900],backgroundColor:['rgba(13,148,136,0.72)','rgba(5,150,105,0.68)'],borderRadius:6}]},{...bOpts(),indexAxis:'y'});
   // Overall: monthly SR by region (48.9K/mo total)
   mk('dp-chart-overall-region','bar',{labels:['AMER','EMEA','APJ'],datasets:[{label:'ISG Forecast',data:[24500,14800,9617],backgroundColor:'rgba(13,148,136,0.72)',borderRadius:5},{label:'Actuals',data:[23275,14060,9136],backgroundColor:'rgba(5,150,105,0.65)',borderRadius:5}]});
   mk('dp-chart-overall-qoq','bar',{labels:['Q1','Q2','Q3','Q4'],datasets:[{label:'ISG Forecast',data:DP_OVERALL_QOQ_BASE.forecast,backgroundColor:'rgba(13,148,136,0.70)',borderRadius:4},{label:'Actuals',data:DP_OVERALL_QOQ_BASE.actuals,backgroundColor:'rgba(5,150,105,0.63)',borderRadius:4}]});
@@ -1510,10 +1510,10 @@ function initCharts(){
   // ASU
   mk('ap-asu-trend','line',{labels:AP_MONTHS,datasets:[{label:'ISG ASU Actuals (M)',data:AP_ASU_TREND_BASE.actuals,borderColor:'#0d9488',backgroundColor:'rgba(13,148,136,0.08)',tension:0.4,fill:true,pointRadius:2},{label:'Forecast (M)',data:AP_ASU_TREND_BASE.forecast,borderColor:'#7c3aed',backgroundColor:'transparent',tension:0.4,fill:false,borderDash:[4,3],pointRadius:0}]});
   mk('ap-new-contracts','line',{labels:AP_MONTHS,datasets:[{label:'New Contracts',data:AP_NEW_CONTRACTS_BASE,borderColor:'#059669',backgroundColor:'rgba(5,150,105,0.08)',tension:0.4,fill:true,pointRadius:2}]});
-  mk('ap-apos-renewal','bar',{labels:AP_MONTHS,datasets:[
-    {label:'Renewal Opportunity',data:AP_APOS_BASE.opportunity,backgroundColor:'rgba(13,148,136,0.55)',borderRadius:3},
-    {label:'Renewed Units',data:AP_APOS_BASE.renewed,backgroundColor:'rgba(5,150,105,0.70)',borderRadius:3},
-    {type:'line',label:'Renewal Rate %',data:AP_APOS_BASE.rate,borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,yAxisID:'y2',pointRadius:2}]},{
+  mk('ap-renew-renewal','bar',{labels:AP_MONTHS,datasets:[
+    {label:'Renewal Opportunity',data:AP_Renewals_BASE.opportunity,backgroundColor:'rgba(13,148,136,0.55)',borderRadius:3},
+    {label:'Renewed Units',data:AP_Renewals_BASE.renewed,backgroundColor:'rgba(5,150,105,0.70)',borderRadius:3},
+    {type:'line',label:'Renewal Rate %',data:AP_Renewals_BASE.rate,borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,yAxisID:'y2',pointRadius:2}]},{
     responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tc(),boxWidth:10,font:{size:11}}},tooltip:{backgroundColor:'#fff',borderColor:'var(--border)',borderWidth:1,titleColor:'#0c1526',bodyColor:'#4a5578'}},
     scales:{x:{grid:{color:gc(),drawTicks:false},ticks:{color:tc(),font:{size:10}},border:{display:false}},y:{grid:{color:gc(),drawTicks:false},ticks:{color:tc(),font:{size:10}},border:{display:false}},y2:{position:'right',min:70,max:100,grid:{drawOnChartArea:false},border:{display:false},ticks:{color:tc(),font:{size:10},callback:v=>v+'%'}}}});
   mk('ap-decline','bar',{labels:AP_MONTHS,datasets:[{label:'Churned Units',data:AP_DECLINE_BASE,backgroundColor:AP_DECLINE_BASE.map(v=>v>3000?'rgba(220,38,38,0.75)':'rgba(220,38,38,0.40)'),borderRadius:3}]});
@@ -1537,8 +1537,8 @@ function initCharts(){
   mk('ap-care-sub','line',{labels:AP_MONTHS,datasets:[
     {label:'CF Actuals',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-cf-act'][i*4]||900)),borderColor:'#0d9488',backgroundColor:'transparent',tension:0.4,fill:false,pointRadius:2},
     {label:'CF Forecast',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-cf-fct'][i*4]||950)),borderColor:'#0d9488',backgroundColor:'transparent',tension:0.4,fill:false,borderDash:[4,3],pointRadius:0},
-    {label:'APOS Actuals',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-apos-act'][i*4]||399)),borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,fill:false,pointRadius:2},
-    {label:'APOS Forecast',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-apos-fct'][i*4]||420)),borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,fill:false,borderDash:[4,3],pointRadius:0},
+    {label:'Renewals Actuals',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-renew-act'][i*4]||399)),borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,fill:false,pointRadius:2},
+    {label:'Renewals Forecast',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-renew-fct'][i*4]||420)),borderColor:'#d97706',backgroundColor:'transparent',tension:0.4,fill:false,borderDash:[4,3],pointRadius:0},
     {label:'SR Actuals',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-sr-act'][i*4]||646)),borderColor:'#7c3aed',backgroundColor:'transparent',tension:0.4,fill:false,pointRadius:2},
     {label:'DSP Actuals',data:AP_MONTHS.map((_,i)=>Math.round(T52['care-dsp-act'][i*4]||494)),borderColor:'#059669',backgroundColor:'transparent',tension:0.4,fill:false,pointRadius:2}]});
   // Dispatch
@@ -1558,7 +1558,7 @@ function switchChannel(ch,tabEl){
   activeChannel=ch; resetFilters();
   ['overall','asu','fs','care','dsp','sr'].forEach(c=>{const el=document.getElementById('dp-channel-'+c);if(el) el.style.display=c===ch?'block':'none';});
   document.querySelectorAll('.channel-tab').forEach(t=>t.classList.remove('active')); tabEl.classList.add('active');
-  setTimeout(()=>{['dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow','ap-asu-trend','ap-new-contracts','ap-apos-renewal','ap-decline','ap-fs-trend','ap-fs-overall','ap-care-trend','ap-care-region','ap-care-sub','ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region'].forEach(id=>{const c=CI[id];if(c) c.update();});applyAll();},30);
+  setTimeout(()=>{['dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow','ap-asu-trend','ap-new-contracts','ap-renew-renewal','ap-decline','ap-fs-trend','ap-fs-overall','ap-care-trend','ap-care-region','ap-care-sub','ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region'].forEach(id=>{const c=CI[id];if(c) c.update();});applyAll();},30);
 }
 
 /* ─ FILTER-AWARE UPDATES ─ */
@@ -1571,14 +1571,14 @@ function updDP_MoM(){const c=CI['dp-chart-overall-mom'];if(!c) return;const m=ge
 function updDP_WoW(){const c=CI['dp-chart-overall-wow'];if(!c) return;const m=getFYMult(),wi=getWeekIdx().slice(0,9),hide=hideAll()||!wi.length;c.data.labels=hide?[]:wi.map(i=>`W${i+1}`);c.data.datasets[0].data=hide?[]:wi.map(i=>Math.round(T52['dp-ov-forecast'][i]*m));c.data.datasets[1].data=hide?[]:wi.map(i=>Math.round(T52['dp-ov-actuals'][i]*m));c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
 function updAP_ASU(){const c=CI['ap-asu-trend'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>parseFloat((AP_ASU_TREND_BASE.actuals[i]*m).toFixed(2)));c.data.datasets[1].data=hide?[]:idx.map(i=>parseFloat((AP_ASU_TREND_BASE.forecast[i]*m).toFixed(2)));c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
 function updAP_NewC(){const c=CI['ap-new-contracts'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(AP_NEW_CONTRACTS_BASE[i]*m));c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
-function updAP_APOS(){const c=CI['ap-apos-renewal'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(AP_APOS_BASE.opportunity[i]*m));c.data.datasets[1].data=hide?[]:idx.map(i=>Math.round(AP_APOS_BASE.renewed[i]*m));c.data.datasets[2].data=hide?[]:idx.map(i=>AP_APOS_BASE.rate[i]);c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
+function updAP_Renewals(){const c=CI['ap-renew-renewal'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(AP_Renewals_BASE.opportunity[i]*m));c.data.datasets[1].data=hide?[]:idx.map(i=>Math.round(AP_Renewals_BASE.renewed[i]*m));c.data.datasets[2].data=hide?[]:idx.map(i=>AP_Renewals_BASE.rate[i]);c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
 function updAP_Dec(){const c=CI['ap-decline'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);const d=hide?[]:idx.map(i=>Math.round(AP_DECLINE_BASE[i]*m));c.data.datasets[0].data=d;c.data.datasets[0].backgroundColor=d.map(v=>v>3000?'rgba(220,38,38,0.75)':'rgba(220,38,38,0.40)');c.data.datasets.forEach(x=>{x.hidden=hide;});c.update();}
 function updFS(){const c=CI['ap-fs-trend'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(T52['dp-fld-dis'][i*4]*m));c.data.datasets[1].data=hide?[]:idx.map(i=>Math.round(T52['dp-fld-fct'][i*4]*m));c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();}
 function updCare(){
   const c=CI['ap-care-trend'];if(!c) return;const m=getFYMult(),idx=getMonIdx(),hide=hideAll()||!idx.length;
   c.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);c.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(T52['dp-care-forecast'][i*4]*m));c.data.datasets[1].data=hide?[]:idx.map(i=>Math.round(T52['dp-care-actuals'][i*4]*m));c.data.datasets.forEach(d=>{d.hidden=hide;});c.update();
   const cs=CI['ap-care-sub'];if(!cs) return;
-  const keys=['care-cf-act','care-cf-fct','care-apos-act','care-apos-fct','care-sr-act','care-dsp-act'];
+  const keys=['care-cf-act','care-cf-fct','care-renew-act','care-renew-fct','care-sr-act','care-dsp-act'];
   cs.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);
   keys.forEach((k,di)=>{cs.data.datasets[di].data=hide?[]:idx.map(i=>Math.round(T52[k][i*4]*m));cs.data.datasets[di].hidden=hide;});cs.update();
 }
@@ -1598,7 +1598,7 @@ function updSR(){
   const t=CI['ap-sr-trend'];if(t){t.data.labels=hide?[]:idx.map(i=>AP_MONTHS[i]);t.data.datasets[0].data=hide?[]:idx.map(i=>Math.round(AP_SR_TREND_BASE.forecast[i]*m));t.data.datasets[1].data=hide?[]:idx.map(i=>Math.round(AP_SR_TREND_BASE.actuals[i]*m));t.data.datasets.forEach(d=>{d.hidden=hide;});t.update();}
   const rr=CI['ap-sr-region'];if(rr){rr.data.labels=hR?[]:regs;rr.data.datasets[0].data=hR?[]:regs.map(x=>Math.round(SR[x].f*m));rr.data.datasets[1].data=hR?[]:regs.map(x=>Math.round(SR[x].a*m));rr.data.datasets.forEach(d=>{d.hidden=hR;});rr.update();}
 }
-function applyAll(){updFA_Region();updFA_Partner();updFA_Overview();updDP_Region();updDP_QoQ();updDP_MoM();updDP_WoW();updAP_ASU();updAP_NewC();updAP_APOS();updAP_Dec();updFS();updCare();updDSP();updSR();}
+function applyAll(){updFA_Region();updFA_Partner();updFA_Overview();updDP_Region();updDP_QoQ();updDP_MoM();updDP_WoW();updAP_ASU();updAP_NewC();updAP_Renewals();updAP_Dec();updFS();updCare();updDSP();updSR();}
 
 /* ═══════════════════════════════════════════════════════════
    TABLE FUNCTIONS
@@ -1671,7 +1671,7 @@ const WI_DSP=[0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.105,1.155,
 const WI_BASE={asu:1350000,sr:587000,disp:233700,renewalOppQty:284500,baseRenewalRate:85.3,renewedUnits:242678,newContracts:73140};
 const WI_SL=[
   {key:'growth', label:'New Contracts Growth',min:-20,max:50, step:1,  val:8,   fmt:v=>(v>=0?'+':'')+v+'%'},
-  {key:'renewal',label:'APOS Renewal Rate',   min:70, max:100,step:0.5,val:89.5,fmt:v=>v.toFixed(1)+'%'},
+  {key:'renewal',label:'Renewal Rate',   min:70, max:100,step:0.5,val:89.5,fmt:v=>v.toFixed(1)+'%'},
 ];
 const WI_DEF_SC=[
   {id:'conservative',label:'Conservative',     renewal:78,  growth:-5, color:'#64748b'},
@@ -1692,7 +1692,7 @@ function wiCompute(st){
   const wA=Math.round(WI_BASE.asu*am),wS=Math.round(WI_BASE.sr*(1+(st.growth/100)*0.7+(rr/br-1)*0.2)),wD=Math.round(WI_BASE.disp*(1+(st.growth/100)*0.6+(rr/br-1)*0.15));
   const ru=st.unitsOverride?(parseInt(st.unitsOverride)||WI_BASE.renewedUnits):Math.round(WI_BASE.renewalOppQty*rr);
   const nc=Math.round(WI_BASE.newContracts*gm);
-  return{whatifASU:wA,whatifSR:wS,whatifDisp:wD,renewedUnits:ru,newContracts:nc,aposRenewals:Math.round(ru*2840),newContractsVal:Math.round(nc*2754),asuDelta:wA-WI_BASE.asu,srDelta:wS-WI_BASE.sr,dispDelta:wD-WI_BASE.disp,growthPct:(wA/WI_BASE.asu-1)*100};
+  return{whatifASU:wA,whatifSR:wS,whatifDisp:wD,renewedUnits:ru,newContracts:nc,renewRenewals:Math.round(ru*2840),newContractsVal:Math.round(nc*2754),asuDelta:wA-WI_BASE.asu,srDelta:wS-WI_BASE.sr,dispDelta:wD-WI_BASE.disp,growthPct:(wA/WI_BASE.asu-1)*100};
 }
 function wiRenderKPIs(){
   const fc=wiCompute(wiSt),pos=v=>v>=0?'var(--emerald)':'var(--red)';
@@ -1720,7 +1720,7 @@ function wiRenderImpact(){
 }
 function wiRenderPipeline(){
   const fc=wiCompute(wiSt);
-  const nodes=[{l:'NEW CONTRACTS',v:'$'+wiN(fc.newContractsVal),i:'ti-file-plus',g:'linear-gradient(135deg,#134e4a,#0f766e)'},{l:'APOS RENEWALS',v:'$'+wiN(fc.aposRenewals),i:'ti-refresh',g:'linear-gradient(135deg,#1e3a5f,#1d4ed8)'},{l:'ASU FORECAST',v:wiN(fc.whatifASU),i:'ti-chart-arrows',g:'linear-gradient(135deg,#064e3b,#059669)'},{l:'SERVICE REQUESTS',v:wiN(fc.whatifSR),i:'ti-headset',g:'linear-gradient(135deg,#064e3b,#059669)'},{l:'DISPATCHES',v:wiN(fc.whatifDisp),i:'ti-truck',g:'linear-gradient(135deg,#0c4a6e,#0369a1)'}];
+  const nodes=[{l:'NEW CONTRACTS',v:'$'+wiN(fc.newContractsVal),i:'ti-file-plus',g:'linear-gradient(135deg,#134e4a,#0f766e)'},{l:'Renewals RENEWALS',v:'$'+wiN(fc.renewRenewals),i:'ti-refresh',g:'linear-gradient(135deg,#1e3a5f,#1d4ed8)'},{l:'ASU FORECAST',v:wiN(fc.whatifASU),i:'ti-chart-arrows',g:'linear-gradient(135deg,#064e3b,#059669)'},{l:'SERVICE REQUESTS',v:wiN(fc.whatifSR),i:'ti-headset',g:'linear-gradient(135deg,#064e3b,#059669)'},{l:'DISPATCHES',v:wiN(fc.whatifDisp),i:'ti-truck',g:'linear-gradient(135deg,#0c4a6e,#0369a1)'}];
   const chev=`<div style="display:flex;align-items:center;padding:0 4px;"><i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-3);"></i></div>`;
   document.getElementById('wi-pipeline').innerHTML=nodes.map((n,i)=>`${i>0?chev:''}<div style="flex:1;min-width:130px;border-radius:10px;padding:14px 16px;background:${n.g};position:relative;overflow:hidden;"><div style="position:absolute;top:8px;right:10px;opacity:0.18;"><i class="ti ${n.i}" style="font-size:26px;color:#fff;"></i></div><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;color:rgba(255,255,255,0.6);margin-bottom:8px;text-transform:uppercase;">${n.l}</div><div style="font-family:var(--font-data);font-size:18px;font-weight:700;color:#fff;">${n.v}</div></div>`).join('');
 }

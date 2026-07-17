@@ -25,7 +25,6 @@ Interactive simulation + analytics dashboards for **ISG BPA: Business Planning a
 | `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
 | `ISG BPA — Business Planning and Analytics.html` | **Redesign of `IBP_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `IBP_Forcasting_v2.html` on 2026-06-25 |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
-| `dell_workflow.html` | Dell workflow simulation (standalone) |
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
@@ -70,7 +69,7 @@ Color coded: ≥95% green · ≥90% amber · <90% red.
   - Key constants: `FT_METRIC_CONF` (title/sub/yFmt per metric), `AOP_METRIC_TARGETS` (SR/ASU/Dispatch × FY25/FY26/FY27)
   - Key globals: `_ftMetric` (current metric), `_ftMetricData` (actuals/forecast/adj per metric, seeded PRNG)
 - **Right (~35%)** — **Weekly LOB Breakdown** (`fa-chart-lob-weekly`)
-  - 5-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
+  - 5-line chart: five product-line series
   - X-axis: W01–W52, always static — only the Week filter (all-unchecked) blanks it
   - SR / ASU / Dispatch toggle via `switchLOBMetric()` · stat tiles (MAPE/Bias) **removed**
 
@@ -217,7 +216,7 @@ A **separate, standalone product** from the ISG BPA suite — an "AI Planning Su
 | File | Purpose |
 |---|---|
 | `Dashboard` | 9 KPI cards, Forecast vs Target table, 5 trend charts |
-| `ASU Simulation` | Manual Simulation (NC/APOS override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
+| `ASU Simulation` | Manual Simulation (NC/Renewals override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
 | `Historical Performance` | 12-quarter BTC/accuracy/AOP/Modernization trends, Forecast vs Actual |
 | `AI BTC Advisor` | Real 3-strategy BTC Recommendation Engine (Historical Best Fit / Balanced / Closest to AOP) + Manual override |
 | `BTC Distribution` | Automatic Weekly Distribution (Equal/Historical/AI Recommended modes), Weekly Forecast Table, region/LOB/business/service breakdowns |
@@ -227,9 +226,9 @@ A **separate, standalone product** from the ISG BPA suite — an "AI Planning Su
 The previous version (built by an earlier session, never merged to master) had a **fully cosmetic filter and interaction layer** across all 6 pages — every dropdown only changed a button's label text, 3-way toggles only swapped an `.active` CSS class, and almost every number on every page was a static value baked into the HTML at authoring time. Confirmed via full audit before starting: zero `localStorage`/`sessionStorage` usage anywhere, no filter click handler touched any chart/KPI/table, and the one working slider pair (ASU Simulation) applied a single crude multiplier uniformly across ASU/SR/Dispatch rather than the distinct formula the page's own subtitle described.
 
 Rebuilt as a real, wired application:
-- **Cross-page shared state** (`fc_state_v1` in `localStorage`) — filters, NC/APOS overrides, selected BTC strategy, distribution mode, and approvals all persist and carry forward when navigating between pages (confirmed via a full simulated navigation test: change a filter on Dashboard → it's already selected when ASU Simulation loads → an override set there is visible on AI BTC Advisor → a BTC strategy picked there flows through to BTC Distribution and Final Forecast)
+- **Cross-page shared state** (`fc_state_v1` in `localStorage`) — filters, NC/Renewals overrides, selected BTC strategy, distribution mode, and approvals all persist and carry forward when navigating between pages (confirmed via a full simulated navigation test: change a filter on Dashboard → it's already selected when ASU Simulation loads → an override set there is visible on AI BTC Advisor → a BTC strategy picked there flows through to BTC Distribution and Final Forecast)
 - **Seeded dummy-data engine** (`fcGenerateWeeklySeries` / `fcGenerateHistory`) — same seeded-PRNG pattern as `data.html` (`seeded(s)`), keyed by the active Region/LOB/Business/Service/Quarter combo so the same filter selection always produces the same numbers (deterministic) while different combos produce genuinely different, realistically-scaled ones
-- **Real business-logic pipeline**: New Contracts + APOS → ASU (`ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations and Renewals modeled as distinct variables, not folded into one factor) → SR → Dispatch, matching the spec's funnel exactly
+- **Real business-logic pipeline**: New Contracts + Renewals → ASU (`ASU[w] = ASU[w-1] - Expirations[w] + Renewals[w] + New Contracts[w]`, with Expirations and Renewals modeled as distinct variables, not folded into one factor) → SR → Dispatch, matching the spec's funnel exactly
 - **BTC Recommendation Engine** computes 3 genuinely distinct values every time (e.g. Historical Best Fit 5.87% / Balanced 5.04% / Closest to AOP 4.2% for the default filter combo) — Historical Best Fit is a recency-weighted average of 12 historical quarters, Closest to AOP is derived from the accuracy-shortfall-driven target gap, Balanced is their midpoint
 - **Automatic Weekly Distribution**: Equal/Historical/AI Recommended modes produce genuinely different per-week shapes while always summing to the identical total uplift (verified: same total, different weekly split)
 - **BTC scale confirmed with user before implementing**: BTC is a small bend/uplift percentage (single digits to ~15-20%), matching what the pre-existing Historical BTC Trend chart and AI BTC Advisor already displayed — not a large 90%+ achievement metric (the spec's own example numbers used that larger scale, but implementing it would have contradicted the rest of the already-built app)
@@ -278,7 +277,7 @@ resetPageFilters() fires on every switchPage() call.
 Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend SR/ASU/Dispatch).
 
 Forecast Copilot (forecast_copilot/) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
-Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->APOS->ASU->SR->Dispatch->BTC pipeline.
+Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->Renewals->ASU->SR->Dispatch->BTC pipeline.
 
 Read IMP_DOCS/ for full context before making changes.
 ```
