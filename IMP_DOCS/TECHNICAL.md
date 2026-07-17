@@ -1,4 +1,4 @@
-# Technical Reference — ISG BPA
+# Technical Reference — TET BPA
 > Architecture, filter system, chart patterns, Git workflow. Last updated: 2026-06-22
 
 ---
@@ -8,7 +8,7 @@
 | File | Status | Sessions |
 |---|---|---|
 | `BPA_FORCASTING_MOCK.HTML` | **Active development** | 14–current |
-| `IBP_Forcasting.html` | Stable, not under active development | 1–13 |
+| `AST_Forcasting.html` | Stable, not under active development | 1–13 |
 
 ---
 
@@ -68,7 +68,7 @@ function switchPage(pageId, linkEl, moduleId, label) {
 // Returns { group: [values] } for groups with specific selections.
 // If "(All)" is checked, the group key is ABSENT from the returned object (= all values).
 // If nothing is checked, group key is present with empty array [] (= show nothing).
-getActiveFilters()   // → e.g. { fy: ['FY26'], lob: ['ISG','ESG'] }
+getActiveFilters()   // → e.g. { fy: ['FY26'], lob: ['TET','TES'] }
 ```
 
 ### resetPageFilters()
@@ -82,16 +82,16 @@ const resetDPFilters = resetPageFilters; // backward-compat alias
 ```
 
 ### Product Group (LOB) Filter
-Display label: "Product Group". Internal `data-group`: `"lob"`. Values: All / ISG / ESG / HES.
+Display label: "Product Group". Internal `data-group`: `"lob"`. Values: All / TET / TES / THS.
 ```js
-const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
+const DP_LOB_SHARE = { TET: 0.60, TES: 0.25, THS: 0.15 };
 
 function getDPLOBMult() {
   const f = getActiveFilters();
   if (!f.lob || f.lob.length === 0) return 1.0;
   return f.lob.reduce((s, pg) => s + (DP_LOB_SHARE[pg] || 0), 0);
 }
-// ISG only: 0.60, ESG only: 0.25, ISG+ESG: 0.85, all three: 1.0
+// TET only: 0.60, TES only: 0.25, TET+TES: 0.85, all three: 1.0
 ```
 
 ### applyAllFilteredCharts()
@@ -129,15 +129,15 @@ function updateDPQuadrantCharts() {
 
 ### Demand Trends Pattern
 ```js
-// Per-product-group demand arrays — ISG+ESG+HES = combined totals
+// Per-product-group demand arrays — TET+TES+THS = combined totals
 const DP_TREND_PG = {
-  ISG: { wow: [...], mom: [...], qoq: [...] },  // 60% of total
-  ESG: { wow: [...], mom: [...], qoq: [...] },  // 25%
-  HES: { wow: [...], mom: [...], qoq: [...] },  // 15%
+  TET: { wow: [...], mom: [...], qoq: [...] },  // 60% of total
+  TES: { wow: [...], mom: [...], qoq: [...] },  // 25%
+  THS: { wow: [...], mom: [...], qoq: [...] },  // 15%
 };
 
 function updateDemandTrends() {
-  const selPGs = (!f.lob || f.lob.length===0) ? ['ISG','ESG','HES'] : f.lob;
+  const selPGs = (!f.lob || f.lob.length===0) ? ['TET','TES','THS'] : f.lob;
   // sum demand arrays for selected groups, scale by FY mult, recalculate % change
   // update bar colors (green/red) + line data in-place, call c.update('none')
 }
@@ -245,7 +245,7 @@ icacls .git\objects /grant "${env:USERNAME}:(OI)(CI)F" /T
 
 ---
 
-## IBP_Forcasting.html — Architecture (legacy reference)
+## AST_Forcasting.html — Architecture (legacy reference)
 
 ### Chart Stores
 - `chartInstances` — FA, Demand Profiling, Alerts, Raw Data charts

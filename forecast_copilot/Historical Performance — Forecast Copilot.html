@@ -119,8 +119,8 @@
       <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Rack Servers<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">TES<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour TES<span class="caret">▾</span></button></div>
     </div>
 
     <div class="kpi-row">
@@ -178,13 +178,13 @@ const FILTER_OPTIONS = {
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
   region: ['ALL','AMERICAS','EMEA','APJ'],
   lob: ['ALL','Rack Servers','Mid-Range Storage','Scale-Out Storage','SDS Platform','HCI Appliance','Data Protection','Networking','Entry Products'],
-  business: ['ALL','ESG','ISG','HES'],
-  service: ['ALL','Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
+  business: ['ALL','TES','TET','THS'],
+  service: ['ALL','Parts Only TES','Parts Only TET','Parts + Labour TES','Parts + Labour TET','Labour Only TES','Labour Only TET']
 };
 
-const FC_STATE_KEY = 'fc_state_v2';
+const FC_STATE_KEY = 'fc_state_v3';
 const FC_DEFAULT_STATE = {
-  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Rack Servers', business: 'ESG', service: 'Parts + Labour ESG' },
+  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Rack Servers', business: 'TES', service: 'Parts + Labour TES' },
   ncOverride: 10, renewOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
   approvals: { scenario: false, btc: false, submitted: false }
@@ -209,24 +209,24 @@ function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, 
 
 const FC_REGION_FACTOR   = { ALL: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
 const FC_LOB_FACTOR       = { 'ALL': 6.25, 'Rack Servers': 1.20, 'Mid-Range Storage': 0.90, 'Scale-Out Storage': 0.80, 'SDS Platform': 0.85, 'HCI Appliance': 1.00, 'Data Protection': 0.50, 'Networking': 0.60, 'Entry Products': 0.40 };
-const FC_BUSINESS_FACTOR  = { ALL: 2.90, ESG: 1.00, ISG: 1.30, HES: 0.60 };
+const FC_BUSINESS_FACTOR  = { ALL: 2.90, TES: 1.00, TET: 1.30, THS: 0.60 };
 const FC_SERVICE_FACTOR   = {
   'ALL':                { volume: 5.05, dispatchRatio: 0.50 },
-  'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
-  'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
-  'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
-  'Parts + Labour ISG': { volume: 0.95, dispatchRatio: 0.58 },
-  'Labour Only ESG':    { volume: 0.55, dispatchRatio: 0.68 },
-  'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 }
+  'Parts Only TES':     { volume: 1.00, dispatchRatio: 0.32 },
+  'Parts Only TET':     { volume: 1.05, dispatchRatio: 0.35 },
+  'Parts + Labour TES': { volume: 0.90, dispatchRatio: 0.55 },
+  'Parts + Labour TET': { volume: 0.95, dispatchRatio: 0.58 },
+  'Labour Only TES':    { volume: 0.55, dispatchRatio: 0.68 },
+  'Labour Only TET':    { volume: 0.60, dispatchRatio: 0.70 }
 };
 const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_RENEW_WEEKLY = 21500;
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
 
 function fcCombinedFactor(filters) {
-  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG'];
+  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES'];
   return (FC_REGION_FACTOR[filters.region]||1) * (FC_LOB_FACTOR[filters.lob]||1) * (FC_BUSINESS_FACTOR[filters.business]||1) * svc.volume;
 }
-function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG']).dispatchRatio; }
+function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES']).dispatchRatio; }
 
 function fcWeeksForQuarter(quarter) {
   const [y, qStr] = quarter.split('-Q'); const q = +qStr;

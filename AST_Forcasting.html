@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>TET BPA: Business Planning and Analytics</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -516,14 +516,14 @@
 
   <div class="home-hero">
     <div class="home-hero-inner">
-      <p class="home-eyebrow">Aligned Automation Services &nbsp;·&nbsp; ISG</p>
+      <p class="home-eyebrow">He &nbsp;·&nbsp; TET</p>
       <h1 class="home-title">Business Planning<br>and Analytics</h1>
       <p class="home-title-sub">Demand Intelligence Platform</p>
       <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
     </div>
     <div class="home-logo">
-      <img src="D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations\Aligned logo.png" alt="Aligned Automation" style="height:34px;"
-        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>Aligned Automation</span>'">
+      <img src="Aligned logo.png" alt="He" style="height:34px;"
+        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>He</span>'">
     </div>
   </div>
 
@@ -546,7 +546,7 @@
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
         <div class="tile-title">Actuals Profiling</div>
-        <div class="tile-desc">ISG demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
+        <div class="tile-desc">TET demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
         <div class="tile-stat">1 view &nbsp;·&nbsp; <span>Overall · Region · Trend</span></div>
       </div>
 
@@ -590,7 +590,7 @@
     <div class="header-left">
       <button class="btn-icon" onclick="toggleLeftPanel()" title="Toggle Nav"><i class="ti ti-menu-2"></i></button>
       <div>
-        <div class="header-brand" id="dash-title">ISG BPA: Business Planning and Analytics</div>
+        <div class="header-brand" id="dash-title">TET BPA: Business Planning and Analytics</div>
         <div class="breadcrumb" id="breadcrumb">
           <span onclick="goHome()">Home</span>
           <span class="sep">›</span>
@@ -772,7 +772,7 @@
           <div id="dp-channel-overall">
             <div class="kpi-row">
               <div class="kpi-card">
-                <div class="kpi-label">Overall Forecast ISG</div>
+                <div class="kpi-label">Overall Forecast TET</div>
                 <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ov-kpi-forecast">284.6K</div>
                 <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 5.2% vs PY</div>
               </div>
@@ -1216,9 +1216,9 @@
           <div class="filter-dropdown-content">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ISG" onchange="onFilterChange()"> ISG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ESG" onchange="onFilterChange()"> ESG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="HES" onchange="onFilterChange()"> HES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TET" onchange="onFilterChange()"> TET</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TES" onchange="onFilterChange()"> TES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="THS" onchange="onFilterChange()"> THS</label>
             </div>
           </div>
         </div>
@@ -1265,11 +1265,11 @@ const SUBREGIONS = {
   'EMEA': ['Western Europe','Eastern Europe'],
   'APJ': ['SEA','ANZ','Japan']
 };
-const PARTNERS = ['OEM','OSP'];
+const PARTNERS = ['ATC','OSP'];
 const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
 const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
 const BRS = ['BR_Direct','BR_Indirect'];
-const LOBS = ['ISG','ESG','HES'];
+const LOBS = ['TET','TES','THS'];
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -1310,7 +1310,7 @@ const ALERTS_DATA = [
   { sev:'High', desc:'Forecast demand drop >15% for Care queue — APJ', date:'2026-06-03', region:'APJ', subregion:'SEA' },
   { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
   { sev:'High', desc:'Partner SLA breach — OSP dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
-  { sev:'Medium', desc:'Partner OEM SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
+  { sev:'Medium', desc:'Partner ATC SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
   { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
   { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
   { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APJ', subregion:'Japan' },
@@ -1630,7 +1630,7 @@ function initCharts() {
     ]
   });
   mk('fa-chart-partner', 'bar', {
-    labels: ['OEM','OSP'],
+    labels: ['ATC','OSP'],
     datasets: [{ label: 'MDR Work Orders', data: [1200,850], backgroundColor: ['#4c7ef8','#22d472'] }]
   }, { ...baseLineOptions(), indexAxis: 'y' });
 
@@ -1638,7 +1638,7 @@ function initCharts() {
   mk('dp-chart-overall-region', 'bar', {
     labels: ['AMER','EMEA','APJ'],
     datasets: [
-      { label: 'ISG Forecast', data: [4500,3100,2500], backgroundColor: '#3a6ef0' },
+      { label: 'TET Forecast', data: [4500,3100,2500], backgroundColor: '#3a6ef0' },
       { label: 'Actuals',      data: [4284,2945,2376], backgroundColor: '#16a34a' }
     ]
   });
@@ -1647,7 +1647,7 @@ function initCharts() {
   mk('dp-chart-overall-qoq', 'bar', {
     labels: ['Q1','Q2','Q3','Q4'],
     datasets: [
-      { label: 'ISG Forecast', data: DP_OVERALL_QOQ_BASE.forecast, backgroundColor: 'rgba(58,110,240,0.75)' },
+      { label: 'TET Forecast', data: DP_OVERALL_QOQ_BASE.forecast, backgroundColor: 'rgba(58,110,240,0.75)' },
       { label: 'Actuals',      data: DP_OVERALL_QOQ_BASE.actuals,  backgroundColor: 'rgba(22,163,74,0.75)' }
     ]
   });
@@ -1656,7 +1656,7 @@ function initCharts() {
   mk('dp-chart-overall-mom', 'line', {
     labels: ['M1','M2','M3','M4','M5','M6'],
     datasets: [
-      { label: 'ISG Forecast', data: DP_OVERALL_MOM_BASE.forecast, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'TET Forecast', data: DP_OVERALL_MOM_BASE.forecast, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
       { label: 'Actuals',      data: DP_OVERALL_MOM_BASE.actuals,  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
     ]
   });
@@ -1665,7 +1665,7 @@ function initCharts() {
   mk('dp-chart-overall-wow', 'line', {
     labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9'],
     datasets: [
-      { label: 'ISG Forecast', data: TREND_DATA_52['dp-ov-forecast'].slice(0,9), borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'TET Forecast', data: TREND_DATA_52['dp-ov-forecast'].slice(0,9), borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
       { label: 'Actuals',      data: TREND_DATA_52['dp-ov-actuals'].slice(0,9),  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
     ]
   });
@@ -1674,7 +1674,7 @@ function initCharts() {
   mk('ap-asu-trend', 'line', {
     labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
     datasets: [
-      { label: 'ISG ASU (M)', data: AP_ASU_TREND_BASE.actuals, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'TET ASU (M)', data: AP_ASU_TREND_BASE.actuals, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
       { label: 'Forecast (M)', data: AP_ASU_TREND_BASE.forecast, borderColor: '#9d78f0', backgroundColor: 'rgba(157,120,240,0.06)', tension: 0.4, fill: false, borderDash: [4,3] }
     ]
   });
@@ -1784,7 +1784,7 @@ const DP_OVERALL_BASE = [
   { subregion: 'Japan',         region: 'APJ',  fs: 140, care: 110, ms:  55 },
 ];
 const FA_PARTNER_BASE = [
-  { name: 'OEM', mdr: 1200, color: '#4c7ef8' },
+  { name: 'ATC', mdr: 1200, color: '#4c7ef8' },
   { name: 'OSP',  mdr: 850,  color: '#22d472' }
 ];
 
@@ -1795,7 +1795,7 @@ const DP_OVERALL_REGION_BASE = {
   APJ:  { forecast: 2500, actuals: 2376 },
 };
 
-// QoQ base: ISG Forecast & Actuals (summed across regions)
+// QoQ base: TET Forecast & Actuals (summed across regions)
 const DP_OVERALL_QOQ_BASE = {
   forecast: [8400, 8900, 9200, 8700],
   actuals:  [7990, 8468, 8740, 8295],
@@ -2300,7 +2300,7 @@ function exportExcel() {
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ISG BPA Raw Data');
+  XLSX.utils.book_append_sheet(wb, ws, 'TET BPA Raw Data');
   XLSX.writeFile(wb, 'isg_bpa_raw_data.xlsx');
 }
 

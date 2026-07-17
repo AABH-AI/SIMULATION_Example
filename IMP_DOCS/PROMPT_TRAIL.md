@@ -1,4 +1,4 @@
-﻿# Prompt Trail — ISG BPA
+﻿# Prompt Trail — TET BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
 > Last updated: 2026-06-25 (Session 24)
 
@@ -14,8 +14,8 @@
 ---
 
 ## Session 2 — Rebranding & Professional Redesign
-**Files**: `IBP_Forcasting.html`, `index.html`
-**Prompts**: Rename to ISG BPA, recreate UI professionally
+**Files**: `AST_Forcasting.html`, `index.html`
+**Prompts**: Rename to TET BPA, recreate UI professionally
 **What was done**:
 - Full title/branding rename; adopted Indigo-Black design system
 - Plus Jakarta Sans + IBM Plex Mono font pairing
@@ -24,11 +24,11 @@
 ---
 
 ## Session 3 — Landing Page + Two New Modules
-**Files**: `index.html`, `bend_the_curve.html`, `IBP_Forcasting.html`
+**Files**: `index.html`, `bend_the_curve.html`, `AST_Forcasting.html`
 **What was built**:
 - `index.html`: 3-column Primary Tools grid + searchable All Modules list
 - `bend_the_curve.html`: 8 toggle levers, target slider, gap-to-target chart
-- What-If Simulation added as native module inside `IBP_Forcasting.html`
+- What-If Simulation added as native module inside `AST_Forcasting.html`
 
 ---
 
@@ -39,12 +39,12 @@
 ---
 
 ## Sessions 5–10 — What-If Simulation Buildout
-(Various slider, chart, scenario, and publish page iterations in `IBP_Forcasting.html`)
+(Various slider, chart, scenario, and publish page iterations in `AST_Forcasting.html`)
 
 ---
 
 ## Session 11 — What-If Slider Reorder + Data Raw Rename
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **Prompts**:
 - Reorder What-If sliders: New Contract Growth first, Service Renewals second
 - Rename Data Raw → Data Management
@@ -57,7 +57,7 @@
 ---
 
 ## Session 12 — Remove Forecast Modifier + Hide Filters in What-If
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **What was done**:
 - `WI_SLIDERS`: removed `{ key:'modifier', ... }` entry; `wiState.modifier` removed
 - `wiCompute()`: removed all `st.modifier` terms from all formulas
@@ -66,7 +66,7 @@
 ---
 
 ## Session 13 — Universal Filter Enforcement + KPI Sanity
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **Root causes**:
 1. Chart update functions only checked `mult === 0` — Quarter/Month/Region empty states silently ignored
 2. `switchChannel()` had no filter reset
@@ -104,7 +104,7 @@
 **Files**: `BPA_FORCASTING_MOCK.HTML`, `TODO`
 **Prompts**:
 - Make quadrant + trend charts respond to FY and LOB filters
-- Rename LOB → Product Group (ESG / HES / ISG)
+- Rename LOB → Product Group (TES / THS / TET)
 - Remove "SKUs" suffix from KPI card labels
 - Reset filters when switching between sub-pages
 - Create TODO backlog file
@@ -113,8 +113,8 @@
 - KPI labels: "Consistent SKUs" → "Consistent" (all 4 cards)
 - Filter panel label: "LOB" → "Product Group" (internal `data-group="lob"` kept for compatibility)
 - Table column headers + CSV/Excel export headers: "LOB" → "Product Group"
-- `DP_LOB_SHARE = { ISG:0.60, ESG:0.25, HES:0.15 }` — demand shares for quadrant scaling
-- `DP_TREND_PG` — exact per-product-group demand arrays (ISG+ESG+HES = combined totals)
+- `DP_LOB_SHARE = { TET:0.60, TES:0.25, THS:0.15 }` — demand shares for quadrant scaling
+- `DP_TREND_PG` — exact per-product-group demand arrays (TET+TES+THS = combined totals)
 - `getDPLOBMult()` — returns sum of selected group shares (1.0 for All)
 - `updateDPQuadrantCharts()` — scales `_dpBaseData` arrays by LOB × FY multiplier
 - `updateDemandTrends()` — sums `DP_TREND_PG` for selected groups, scales by FY, recalculates % change
@@ -280,7 +280,7 @@
 - **Aesthetic risk**: Data Quality tab opens with an animated counter (0.0 → real score in 1.1s, ease-in-out) for the overall data health %. One orchestrated moment, nothing else moves. Respects `prefers-reduced-motion`. Justified: data health is a single pass/fail number — the reveal mirrors how analysts wait for a result.
 - Completeness bars also animate via CSS transition (respects `prefers-reduced-motion`)
 - Copy written from the analyst's POV — verdict text changes based on score: ≥98% = "ready for forecasting", ≥95% = "minor issues", else = "clean before forecasting"
-- LOB values in raw table colour-coded by group colour (ISG=blue, ESG=green, HES=purple)
+- LOB values in raw table colour-coded by group colour (TET=blue, TES=green, THS=purple)
 - JSON export alongside CSV
 
 **Architecture** (`data.html`, 995 lines — standalone, no BPA dependencies):
@@ -308,32 +308,32 @@
 **Tab: Full Raw View**:
 - Sticky-header sortable table, 13 columns, search across all values
 - CSV + JSON export (filtered rows only)
-- LOB column colour-coded (ISG blue, ESG green, HES purple)
+- LOB column colour-coded (TET blue, TES green, THS purple)
 
 ---
 
-## Session 23 — ISG BPA redesign (`IBP_Forcasting_v2.html` -> `ISG BPA — Business Planning and Analytics.html`) and `index.html` light theme
+## Session 23 — TET BPA redesign (`AST_Forcasting_v2.html` -> `TET BPA — Business Planning and Analytics.html`) and `index.html` light theme
 **Date**: 2026-06-25
-**Files**: `ISG BPA — Business Planning and Analytics.html` (new, renamed from `IBP_Forcasting_v2.html`), `index.html`, `landing_v2.html`, `IMP_DOCS/`
+**Files**: `TET BPA — Business Planning and Analytics.html` (new, renamed from `AST_Forcasting_v2.html`), `index.html`, `landing_v2.html`, `IMP_DOCS/`
 
 **Prompts**:
-- Build a new, professional-looking dashboard referencing `IBP_Forcasting.html` — first attempt was too close to a template; iterated twice on user feedback ("bruh, did you actually check... there are only 5 tabs" / "TO BE CLEAR SHOULD NOT LOOK GENERIC")
-- Fix filter logic to match `IBP_Forcasting.html` exactly; focus further passes on UI polish only
+- Build a new, professional-looking dashboard referencing `AST_Forcasting.html` — first attempt was too close to a template; iterated twice on user feedback ("bruh, did you actually check... there are only 5 tabs" / "TO BE CLEAR SHOULD NOT LOOK GENERIC")
+- Fix filter logic to match `AST_Forcasting.html` exactly; focus further passes on UI polish only
 - Keep KPI data realistic — "not too much not too low... explain it as a future product"
 - Update `index.html` to light theme and link the new file
-- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `forecast_copilot/` (clarified via AskUserQuestion: adopt the naming *style* only, keep ISG BPA content — do not merge with the separate Forecast Copilot product)
+- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `forecast_copilot/` (clarified via AskUserQuestion: adopt the naming *style* only, keep TET BPA content — do not merge with the separate Forecast Copilot product)
 
-**What was built** (`IBP_Forcasting.html` redesign, 3 iterations):
-- Home page: dark near-black hero (`#0c1526` nav), 5 module tiles matching `IBP_Forcasting.html`'s exact copy and tile count (first draft wrongly added a 6th tile and generic gradient hero — corrected)
+**What was built** (`AST_Forcasting.html` redesign, 3 iterations):
+- Home page: dark near-black hero (`#0c1526` nav), 5 module tiles matching `AST_Forcasting.html`'s exact copy and tile count (first draft wrongly added a 6th tile and generic gradient hero — corrected)
 - Teal accent design system (`--accent: #0d9488`) replacing the original's blue, applied consistently across KPI cards, chart palettes, channel tabs, and the left nav active state
 - **Actuals Profiling expanded from 4 to 6 channel tabs** — added Field Services and Care, wiring up `TREND_DATA_52` keys (`dp-fld-dis/fct`, `care-cf/apos/sr/dsp-fct/act`, `dp-care-amer/emea/apj`) that existed in the original file's data layer but were never rendered as tabs or charts
 - KPI cards redesigned as shadow-only (no colored border/icon) — the 36→40px monospace number is the entire visual weight of the card
 - Two-section module tiles: colored metric-area strip (icon + big number) + white body (name/desc/footer)
-- All filter-aware chart update functions (`updFA_Region`, `updDP_QoQ`, `updCare`, etc.) ported 1:1 from `IBP_Forcasting.html`'s `applyAllFilteredCharts()` pattern, extended for the 2 new channels
+- All filter-aware chart update functions (`updFA_Region`, `updDP_QoQ`, `updCare`, etc.) ported 1:1 from `AST_Forcasting.html`'s `applyAllFilteredCharts()` pattern, extended for the 2 new channels
 - Fixed a real bug found during this work: `FA_PARTNER_BASE` was referenced by `updFA_Partner()` but never defined — would have thrown a ReferenceError the first time a region filter was applied while viewing the Partner chart
 
-**Root cause of iteration 1 & 2 failures**: didn't actually read `IBP_Forcasting.html`'s real home-page HTML/copy before building — assumed structure instead of verifying it, producing a 6-tile generic-looking page when the source has exactly 5 tiles with specific copy.
-**Fix**: full agent-driven audit of every module/page/chart/KPI in `IBP_Forcasting.html` before the second rebuild; exact copy match on the 5 tiles.
+**Root cause of iteration 1 & 2 failures**: didn't actually read `AST_Forcasting.html`'s real home-page HTML/copy before building — assumed structure instead of verifying it, producing a 6-tile generic-looking page when the source has exactly 5 tiles with specific copy.
+**Fix**: full agent-driven audit of every module/page/chart/KPI in `AST_Forcasting.html` before the second rebuild; exact copy match on the 5 tiles.
 
 **Data realism pass**: every static KPI value and every JS chart-data constant (`FA_REGION_BASE`, `DP_OVERALL_REGION_BASE`, `AP_DSP_TREND_BASE`, `AP_SR_TREND_BASE`, `T52` weekly trends) rescaled to derive consistently from 3 annual anchors: **1.47M ASU / 5.87L SR / 2.34L Dispatch** — weekly = annual÷52, monthly = annual÷12, so every KPI across every page tells the same underlying story.
 
@@ -343,7 +343,7 @@
 - Added the new dashboard as a Primary Tool card
 
 **Rename (this session, final step)**:
-- `IBP_Forcasting_v2.html` → `ISG BPA — Business Planning and Analytics.html`, matching the file's own `<title>` tag and adopting BTC_Lovable's "Title — Suffix" em-dash convention — but staying pure ISG BPA content, no Forecast Copilot branding (those are documented in HANDOFF.md as two separate products)
+- `AST_Forcasting_v2.html` → `TET BPA — Business Planning and Analytics.html`, matching the file's own `<title>` tag and adopting BTC_Lovable's "Title — Suffix" em-dash convention — but staying pure TET BPA content, no Forecast Copilot branding (those are documented in HANDOFF.md as two separate products)
 - Updated all 6 references in `index.html` (href, card-file label, `PRIMARY` set, `LABELS` map, sort-priority checks) and all 5 references in `landing_v2.html` (a parallel fork of `index.html` created by another session) — found via repo-wide grep before editing, to avoid missing a reference
 - `manifest.json` not hand-edited — it's auto-regenerated by the `update-manifest` GitHub Action on push
 
@@ -466,3 +466,15 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - Full inventory of what was found and changed is documented in the local-only, gitignored `remove.md` at the repo root.
 - Fixed: `distributeByFactor()` on BTC Distribution now excludes the `ALL` aggregate key so donut/h-bar breakdowns don't double-count.
 - Verified: Node vm smoke tests on all 6 Forecast Copilot pages + real-browser checks (0 console errors, correct chart counts, slider path, forbidden-term scan = 0 hits).
+
+---
+
+## Session 28 — Nomenclature generalization
+**Files**: `AST_Forcasting.html` (renamed from former main-dashboard filename), `TET BPA — Business Planning and Analytics.html` (renamed), index.html, landing_v2.html, bend_the_curve.html, epic_dashboard_mockup.html, forecast_copilot/*.html, CLAUDE.md, IMP_DOCS/*
+
+**What was done**:
+- Owner-directed nomenclature mapping applied across all tracked HTML + docs (word-boundary, case-sensitive): partner/brand and segment terms replaced with neutral codes (→ ATC, He, AST, TET, TES, THS; TEC/XTC mappings had zero occurrences).
+- Both main dashboard files renamed via `git mv`; every internal link, card, label map, sort comparator, and doc reference updated. Old URLs 404 after deploy.
+- forecast_copilot localStorage key bumped `fc_state_v2`→`fc_state_v3` so previously saved filter values (old segment names) reset instead of silently missing factor-map keys.
+- Fixed collateral: the main dashboard's logo `<img>` used a hard-coded absolute `D:\` path (broken on the live site since day one) — now relative `Aligned logo.png`, which is tracked in the repo.
+- Verified: Node parse/engine tests on all 6 copilot pages; real-browser checks on both renamed dashboards + index (0 unexpected console errors, 18/23 canvases render, nav click works, forbidden-term scan = 0; manifest.json fetch CORS error under file:// is expected and absent on https).
