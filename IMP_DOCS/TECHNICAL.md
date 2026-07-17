@@ -256,7 +256,7 @@ icacls .git\objects /grant "${env:USERNAME}:(OI)(CI)F" /T
 ```js
 const WI_SLIDERS = [
   { key:'growth',  label:'New Contracts Growth', min:-20, max:50,  step:1,   val:8    },
-  { key:'renewal', label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+  { key:'renewal', label:'Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
 ];
 let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
 // Default produces ~7.6% ASU lift

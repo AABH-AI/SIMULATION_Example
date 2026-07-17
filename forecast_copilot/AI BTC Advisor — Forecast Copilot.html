@@ -125,7 +125,7 @@
       <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Rack Servers<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
     </div>
@@ -177,15 +177,15 @@ const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
   region: ['ALL','AMERICAS','EMEA','APJ'],
-  lob: ['ALL','PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
+  lob: ['ALL','Rack Servers','Mid-Range Storage','Scale-Out Storage','SDS Platform','HCI Appliance','Data Protection','Networking','Entry Products'],
   business: ['ALL','ESG','ISG','HES'],
   service: ['ALL','Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
 };
 
-const FC_STATE_KEY = 'fc_state_v1';
+const FC_STATE_KEY = 'fc_state_v2';
 const FC_DEFAULT_STATE = {
-  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'PowerEdge', business: 'ESG', service: 'Parts + Labour ESG' },
-  ncOverride: 10, aposOverride: 5, simMode: 'manual',
+  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Rack Servers', business: 'ESG', service: 'Parts + Labour ESG' },
+  ncOverride: 10, renewOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
   approvals: { scenario: false, btc: false, submitted: false }
 };
@@ -208,7 +208,7 @@ function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h 
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
 const FC_REGION_FACTOR   = { ALL: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { ALL: 6.25, PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
+const FC_LOB_FACTOR       = { 'ALL': 6.25, 'Rack Servers': 1.20, 'Mid-Range Storage': 0.90, 'Scale-Out Storage': 0.80, 'SDS Platform': 0.85, 'HCI Appliance': 1.00, 'Data Protection': 0.50, 'Networking': 0.60, 'Entry Products': 0.40 };
 const FC_BUSINESS_FACTOR  = { ALL: 2.90, ESG: 1.00, ISG: 1.30, HES: 0.60 };
 const FC_SERVICE_FACTOR   = {
   'ALL':                { volume: 5.05, dispatchRatio: 0.50 },
@@ -219,7 +219,7 @@ const FC_SERVICE_FACTOR   = {
   'Labour Only ESG':    { volume: 0.55, dispatchRatio: 0.68 },
   'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 }
 };
-const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_APOS_WEEKLY = 21500;
+const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_RENEW_WEEKLY = 21500;
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
 
 function fcCombinedFactor(filters) {
@@ -239,19 +239,19 @@ function fcGenerateWeeklySeries(filters) {
   const factor = fcCombinedFactor(filters);
   const dispatchRatio = fcDispatchRatio(filters);
   const rngNC = seeded(fcSeedFor(filters, 'nc'));
-  const rngAPOS = seeded(fcSeedFor(filters, 'apos'));
-  const newContracts = [], apos = [];
+  const rngRENEW = seeded(fcSeedFor(filters, 'renew'));
+  const newContracts = [], renew = [];
   for (let w = 0; w < 13; w++) {
     const seasonal = 1 + 0.08 * Math.sin((w / 13) * Math.PI * 2);
     const trend = 1 + w * 0.004;
     newContracts.push(Math.round(FC_BASE_NC_WEEKLY * factor * seasonal * trend * (0.94 + rngNC() * 0.12)));
-    apos.push(Math.round(FC_BASE_APOS_WEEKLY * factor * seasonal * trend * (0.94 + rngAPOS() * 0.12)));
+    renew.push(Math.round(FC_BASE_RENEW_WEEKLY * factor * seasonal * trend * (0.94 + rngRENEW() * 0.12)));
   }
-  function rollASU(ncFactor, aposFactor) {
+  function rollASU(ncFactor, renewFactor) {
     const asu = []; let prior = FC_BASE_ASU * factor;
     for (let w = 0; w < 13; w++) {
       const expirations = prior * FC_EXPIRATION_RATE;
-      const renewals = apos[w] * FC_BASE_RENEWAL_RATE * aposFactor;
+      const renewals = renew[w] * FC_BASE_RENEWAL_RATE * renewFactor;
       const additions = newContracts[w] * ncFactor;
       const cur = prior - expirations + renewals + additions;
       asu.push(Math.round(cur)); prior = cur;
@@ -261,18 +261,18 @@ function fcGenerateWeeklySeries(filters) {
   const asuBase = rollASU(1, 1);
   const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
-  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, apos, asuBase, srBase, dspBase, factor, dispatchRatio, rollASU };
+  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, renew, asuBase, srBase, dspBase, factor, dispatchRatio, rollASU };
 }
 
-function fcSensitivity() { return { nc: 0.6, apos: 0.4 }; }
-function fcApplyOverrides(series, ncOverridePct, aposOverridePct) {
+function fcSensitivity() { return { nc: 0.6, renew: 0.4 }; }
+function fcApplyOverrides(series, ncOverridePct, renewOverridePct) {
   const sens = fcSensitivity();
   const ncFactor = 1 + ((ncOverridePct - 10) / 100) * sens.nc;
-  const aposFactor = 1 + ((aposOverridePct - 5) / 100) * sens.apos;
-  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, aposFactor));
+  const renewFactor = 1 + ((renewOverridePct - 5) / 100) * sens.renew;
+  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, renewFactor));
   const srAdj = asuAdj.map(v => Math.round(v * FC_SR_RATIO));
   const dspAdj = srAdj.map(v => Math.round(v * series.dispatchRatio));
-  return { asuAdj, srAdj, dspAdj, ncFactor, aposFactor };
+  return { asuAdj, srAdj, dspAdj, ncFactor, renewFactor };
 }
 function fcSum(arr) { return arr.reduce((a,b) => a+b, 0); }
 function fcAvg(arr) { return arr.length ? fcSum(arr)/arr.length : 0; }
@@ -310,8 +310,8 @@ function fcRecommendOverrides(filters) {
   const avgAccuracy = fcAvg(hist.accuracy);
   const shortfall = Math.max(0, 100 - avgAccuracy);
   const nc = Math.max(0, Math.min(100, Math.round(10 + shortfall * 1.8)));
-  const apos = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
-  return { nc, apos, avgAccuracy: Math.round(avgAccuracy),
+  const renew = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
+  return { nc, renew, avgAccuracy: Math.round(avgAccuracy),
     rationale: `Based on a ${Math.round(avgAccuracy)}% average forecast accuracy over the last 12 fiscal quarters, a corrective override is recommended to compensate for historical variance.` };
 }
 
@@ -359,9 +359,9 @@ function fcDistributeWeekly(series, btcPct, distMode) {
 function fcCompute() {
   const filters = fcState.filters;
   const series = fcGenerateWeeklySeries(filters);
-  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride);
+  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.renewOverride);
   const hist = fcGenerateHistory(filters);
-  const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase) };
+  const originalTotals = { nc: fcSum(series.newContracts), renew: fcSum(series.renew), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase) };
   const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
   const btcRec = fcRecommendBTC(filters, { srTotal: scenarioTotals.sr, dspTotal: scenarioTotals.dsp });
   let selectedBTCPct = 0, selectedDetail = null;
