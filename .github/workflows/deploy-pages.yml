@@ -2,6 +2,8 @@ name: Update manifest and Deploy Pages
 
 on:
   push:
+    branches:
+      - master
     paths:
       - '**/*.html'
   workflow_dispatch: {}
@@ -14,6 +16,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Publish to gh-pages ONLY from master. Guards against pushes or manual
+    # dispatches on other branches (e.g. hn-new) overwriting the live site.
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
         with:
