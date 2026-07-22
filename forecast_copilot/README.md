@@ -233,8 +233,10 @@ Mechanically: each original (product, week) value is scaled by 0.10 then split a
 regions by that product's own regional mix via a largest-remainder integer split (Warranty
 Expirations scaled + split the same way).
 
-- `densify_service_dataset.py` regenerates it (idempotent) and only rewrites the Service Dataset
-  worksheet; the real Dell 10-K sheets (FY26 Official, Product Estimates, …) are left byte-identical.
+- `densify_service_dataset.py` regenerates it (idempotent). It rewrites the Service Dataset worksheet
+  and adds an **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per
+  product = ASU summed across regions, plus a Total, with an Excel AutoFilter). The real Dell 10-K
+  sheets (FY26 Official, Product Estimates, …), styles, sharedStrings and calcChain are byte-identical.
 - `input/dell_isg,esg_fy24-26.source.xlsx` is the pristine pre-densification sample (provenance).
 - `input/INPUT_SHA256.txt` pins the sha256 of both the working file and the source.
 

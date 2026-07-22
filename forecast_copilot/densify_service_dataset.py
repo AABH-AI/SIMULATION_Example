@@ -24,13 +24,19 @@ support units summed unrealistically high (whole-business single-week ~50M, and
 ~8.1B summed across 156 weeks). At 0.10 the whole-business single-week installed
 base is ~5M units. Set SCALE = 1.0 to densify without rescaling.
 
+It also adds an **"ASU by Product"** summary sheet: one row per FY > Quarter >
+Week, one column per product (ASU summed across regions) plus a Total, with an
+Excel AutoFilter on the header. This is a read-only view of the same numbers.
+
 Safety:
-  - Only the Service Dataset worksheet part (xl/worksheets/sheet1.xml) is
-    rewritten. Every other part -- the real 10-K sheets (FY26 Official, Product
-    Estimates, ...), styles, sharedStrings, calcChain -- is copied byte for
-    byte. (Verified: the Service Dataset has no formulas and calcChain never
-    references it.) String cells are written as inline strings so sharedStrings
-    is not touched.
+  - The Service Dataset worksheet part (xl/worksheets/sheet1.xml) is rewritten;
+    the summary sheet is added as a new part (xl/worksheets/sheet6.xml) and
+    registered in workbook.xml / workbook.xml.rels / [Content_Types].xml (plus
+    the stale Service Dataset AutoFilter range is corrected). Every other part --
+    the real 10-K sheets (FY26 Official, Product Estimates, ...), styles,
+    sharedStrings, calcChain, theme -- is copied byte for byte. (Verified: the
+    Service Dataset has no formulas and calcChain never references it.) String
+    cells are written as inline strings so sharedStrings is not touched.
   - Idempotent: reads from a pristine source copy (`*.source.xlsx`, created on
     first run), so re-running always regenerates from the original sample.
 
@@ -52,6 +58,15 @@ SOURCE = os.path.join(HERE, "input", "dell_isg,esg_fy24-26.source.xlsx")
 SHEET_PART = "xl/worksheets/sheet1.xml"
 REGIONS = ["Americas", "EMEA", "APJ"]
 SCALE = 0.10   # global ASU/Expiration scale (uniform -> ratios preserved). 1.0 = no rescale.
+
+# --- "ASU by Product" summary sheet (added to the workbook) ---
+SUMMARY_SHEET_NAME = "ASU by Product"
+SUMMARY_PART = "xl/worksheets/sheet6.xml"      # sheet1-5 already exist
+SUMMARY_REL_TARGET = "worksheets/sheet6.xml"
+SUMMARY_RID = "rId10"                          # rId1-9 already used
+SUMMARY_SHEET_ID = 6                           # sheetId 1-5 already used
+SUMMARY_LOCAL_IDX = 5                          # 0-based tab position (appended last)
+CT_WORKSHEET = "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"
 
 # Column letter -> record key, in the sheet's A..M order (from serve.FIELD_SCHEMA).
 _LETTERS = [chr(ord("A") + i) for i in range(len(serve.FIELD_SCHEMA))]
@@ -136,9 +151,104 @@ def build_sheet_data(dense_rows) -> str:
 def rewrite_sheet(original_sheet_xml: str, dense_rows) -> str:
     last_row = len(dense_rows) + 1
     xml = re.sub(r'<dimension ref="[^"]+"/>', f'<dimension ref="A1:M{last_row}"/>', original_sheet_xml, count=1)
+    # Fix the sheet's AutoFilter range so it covers all densified rows (was A1:M2965).
+    xml = re.sub(r'(<autoFilter ref=")A1:M\d+(")', rf'\g<1>A1:M{last_row}\g<2>', xml, count=1)
     head = xml[: xml.index("<sheetData>")]
     tail = xml[xml.index("</sheetData>") + len("</sheetData>"):]
     return head + build_sheet_data(dense_rows) + tail
+
+
+# --------------------------------------------------------------------------- #
+# "ASU by Product" summary sheet
+# --------------------------------------------------------------------------- #
+
+def _col_letter(n: int) -> str:
+    """1 -> A, 26 -> Z, 27 -> AA."""
+    s = ""
+    while n > 0:
+        n, r = divmod(n - 1, 26)
+        s = chr(ord("A") + r) + s
+    return s
+
+
+def build_asu_by_product(dense_rows):
+    """ASU per product, laid out one row per (FY > Quarter > Week), one column per
+    product (summed across regions) plus a Total. Returns (headers, rows)."""
+    from collections import defaultdict
+    products = sorted({r["product"] for r in dense_rows})
+    wk_meta = {}                                   # week -> (fy, quarter)
+    cell = defaultdict(int)                        # (week, product) -> ASU
+    for r in dense_rows:
+        wk_meta[r["fiscalWeek"]] = (r["fy"], r["fiscalQuarter"])
+        cell[(r["fiscalWeek"], r["product"])] += r["asu"]
+    headers = ["FY", "Fiscal Quarter", "Fiscal Week"] + products + ["Total"]
+    out = []
+    for w in sorted(wk_meta):                      # 'YYYY-Www' sorts chronologically
+        fy, q = wk_meta[w]
+        vals = [cell[(w, p)] for p in products]
+        out.append([fy, q, w] + vals + [sum(vals)])
+    return headers, out
+
+
+def build_summary_sheet_xml(headers, data_rows) -> str:
+    ncols, nrows = len(headers), len(data_rows) + 1
+    last_col, last_ref = _col_letter(ncols), f"A1:{_col_letter(ncols)}{nrows}"
+    n_text = 3   # first three columns (FY, Quarter, Week) are text; the rest numeric
+
+    def cell(col_i, row_i, value, text):
+        ref = f"{_col_letter(col_i)}{row_i}"
+        if text:
+            return f'<c r="{ref}" t="inlineStr"><is><t>{_xml_escape(value)}</t></is></c>'
+        return f'<c r="{ref}"><v>{value}</v></c>'
+
+    body = [f'<row r="1">' + "".join(cell(i + 1, 1, h, True) for i, h in enumerate(headers)) + "</row>"]
+    for ri, row in enumerate(data_rows, start=2):
+        cells = "".join(cell(ci + 1, ri, v, ci < n_text) for ci, v in enumerate(row))
+        body.append(f'<row r="{ri}">{cells}</row>')
+
+    cols = (
+        '<cols>'
+        '<col min="1" max="1" width="7" customWidth="1"/>'
+        '<col min="2" max="2" width="14" customWidth="1"/>'
+        '<col min="3" max="3" width="12" customWidth="1"/>'
+        f'<col min="4" max="{ncols - 1}" width="15" customWidth="1"/>'
+        f'<col min="{ncols}" max="{ncols}" width="14" customWidth="1"/>'
+        '</cols>'
+    )
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        f'<dimension ref="{last_ref}"/>'
+        '<sheetViews><sheetView workbookViewId="0">'
+        '<pane xSplit="3" ySplit="1" topLeftCell="D2" activePane="bottomRight" state="frozen"/>'
+        '</sheetView></sheetViews>'
+        '<sheetFormatPr defaultRowHeight="14.4"/>'
+        + cols +
+        '<sheetData>' + "".join(body) + '</sheetData>'
+        f'<autoFilter ref="{last_ref}"/>'
+        '<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>'
+        '</worksheet>'
+    ), last_ref
+
+
+def register_summary_sheet(wb_xml, rels_xml, ct_xml, filter_ref, service_last_row):
+    """Add the summary sheet to workbook.xml / rels / [Content_Types], and fix the
+    Service Dataset filter range. Every other part is left untouched."""
+    wb = wb_xml.replace(
+        "</sheets>",
+        f'<sheet name="{SUMMARY_SHEET_NAME}" sheetId="{SUMMARY_SHEET_ID}" r:id="{SUMMARY_RID}"/></sheets>')
+    wb = re.sub(r"('Service Dataset'!\$A\$1:\$M\$)\d+", rf"\g<1>{service_last_row}", wb, count=1)
+    new_dn = (f'<definedName name="_xlnm._FilterDatabase" localSheetId="{SUMMARY_LOCAL_IDX}" hidden="1">'
+              f"'{SUMMARY_SHEET_NAME}'!{filter_ref}</definedName>")
+    wb = wb.replace("</definedNames>", new_dn + "</definedNames>")
+    rels = rels_xml.replace(
+        "</Relationships>",
+        f'<Relationship Id="{SUMMARY_RID}" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" '
+        f'Target="{SUMMARY_REL_TARGET}"/></Relationships>')
+    ct = ct_xml.replace("</Types>", f'<Override PartName="/{SUMMARY_PART}" ContentType="{CT_WORKSHEET}"/></Types>')
+    return wb, rels, ct
 
 
 def main():
@@ -157,13 +267,35 @@ def main():
 
     with zipfile.ZipFile(SOURCE) as zf:
         sheet_xml = zf.read(SHEET_PART).decode("utf-8")
+        wb_xml = zf.read("xl/workbook.xml").decode("utf-8")
+        rels_xml = zf.read("xl/_rels/workbook.xml.rels").decode("utf-8")
+        ct_xml = zf.read("[Content_Types].xml").decode("utf-8")
         names = zf.namelist()
         blobs = {n: zf.read(n) for n in names}
+
+    # (a) densify + scale the Service Dataset sheet.
     blobs[SHEET_PART] = rewrite_sheet(sheet_xml, dense_rows).encode("utf-8")
+
+    # (b) add the "ASU by Product" summary sheet and register it everywhere.
+    headers, summary_rows = build_asu_by_product(dense_rows)
+    summary_xml, last_ref = build_summary_sheet_xml(headers, summary_rows)
+    abs_ref = re.sub(r"([A-Z]+)(\d+)", r"$\1$\2", last_ref)       # A1:W157 -> $A$1:$W$157
+    service_last_row = len(dense_rows) + 1
+    wb_xml, rels_xml, ct_xml = register_summary_sheet(wb_xml, rels_xml, ct_xml, abs_ref, service_last_row)
+    blobs["xl/workbook.xml"] = wb_xml.encode("utf-8")
+    blobs["xl/_rels/workbook.xml.rels"] = rels_xml.encode("utf-8")
+    blobs["[Content_Types].xml"] = ct_xml.encode("utf-8")
+    blobs[SUMMARY_PART] = summary_xml.encode("utf-8")
+    print(f"summary sheet {SUMMARY_SHEET_NAME!r}: {len(summary_rows)} week rows x "
+          f"{len(headers)} cols (range {last_ref})")
+
+    # Write order: original parts (preserved order) with the new sheet after sheet5.
+    write_names = list(names)
+    write_names.insert(write_names.index("xl/worksheets/sheet5.xml") + 1, SUMMARY_PART)
 
     tmp = INPUT + ".tmp"
     with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
-        for n in names:                       # preserve original part order
+        for n in write_names:
             zf.writestr(n, blobs[n])
     os.replace(tmp, INPUT)
     print(f"wrote {os.path.basename(INPUT)}")
