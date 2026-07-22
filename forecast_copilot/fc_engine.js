@@ -41,6 +41,145 @@ function fcSaveState(state) { localStorage.setItem(FC_STATE_KEY, JSON.stringify(
 let fcState = fcLoadState();
 function fcSetFilter(key, value) { fcState.filters[key] = value; fcSaveState(fcState); }
 
+/* ==== DATA PROVIDER (Phase 2) ============================================
+ * Live mode: the real input workbook, read via serve.py's GET /api/dataset.
+ * Simulated mode: the seeded generator below (used when there is no server,
+ * e.g. opening a page from file://). The mode is decided once at load and
+ * surfaced by a "Live / Simulated" badge. In live mode:
+ *   - real weekly ASU + Warranty Expirations drive each slice,
+ *   - SR / Dispatch stay derived (ratios),
+ *   - New Contracts / APOS stay modeled levers (no such columns exist),
+ *   - filter OPTIONS are derived from the data's own distinct values.
+ * Historical BTC / accuracy / AOP remain modeled overlays in both modes.
+ * ------------------------------------------------------------------------ */
+var fcDataMode = 'simulated';   // 'live' once /api/dataset loads successfully
+var fcDataset = null;           // raw /api/dataset payload
+var fcLiveRows = null;          // cached row array for slice aggregation
+
+// Engine filter key -> real dataset field. Keys absent here are seeded-only.
+// 'business' has no real column, so in live mode it is repurposed to the real
+// (and useful) Warranty Type dimension; 'lob' maps to the Product column.
+const FC_LIVE_FIELD = {
+  quarter: 'fiscalQuarter', week: 'fiscalWeek', region: 'region', lob: 'product',
+  business: 'warrantyType', service: 'serviceType', coreupsell: 'coreUpsell',
+  wotype: 'woType', fqm: 'fqmFlag', gcfa: 'gcfaType'
+};
+// Relabel the filter rail in live mode where the seeded label no longer fits.
+const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type' };
+// Derived Dispatch/SR ratio per real Service Type (no real dispatch column exists).
+const FC_LIVE_DISPATCH_RATIO = { 'All': 0.50, 'Labour Only': 0.68, 'Parts + Labour': 0.56, 'Parts Only': 0.33 };
+
+function fcFetchDatasetSync() {
+  // Synchronous on purpose: the engine script runs before each page's inline
+  // render script, so a blocking GET here guarantees real data is ready before
+  // the first fcCompute() -- no per-page async wiring needed. Any failure
+  // (no server, file://) is caught and we stay in simulated mode.
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/dataset', false);
+    xhr.send(null);
+    if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) return JSON.parse(xhr.responseText);
+  } catch (e) { /* fall through to simulated */ }
+  return null;
+}
+
+function fcDistinctFromRows(field) {
+  const seen = Object.create(null), out = [];
+  for (let i = 0; i < fcLiveRows.length; i++) {
+    let v = fcLiveRows[i][field];
+    if (v === null || v === undefined) continue;
+    v = String(v);
+    if (!seen[v]) { seen[v] = 1; out.push(v); }
+  }
+  out.sort();
+  return out;
+}
+
+function fcApplyLiveFilterOptions() {
+  // Options derived from the data's distinct values (not hardcoded). Quarter and
+  // Week get no 'All' (the engine parses the quarter string); the rest do.
+  const withAll = (field) => ['All'].concat(fcDistinctFromRows(field));
+  FILTER_OPTIONS.quarter    = fcDistinctFromRows('fiscalQuarter');
+  FILTER_OPTIONS.week       = fcDistinctFromRows('fiscalWeek');
+  FILTER_OPTIONS.region     = withAll('region');
+  FILTER_OPTIONS.lob        = withAll('product');
+  FILTER_OPTIONS.business    = withAll('warrantyType');
+  FILTER_OPTIONS.service    = withAll('serviceType');
+  FILTER_OPTIONS.coreupsell = withAll('coreUpsell');
+  FILTER_OPTIONS.wotype     = withAll('woType');
+  FILTER_OPTIONS.fqm        = withAll('fqmFlag');
+  FILTER_OPTIONS.gcfa       = withAll('gcfaType');
+}
+
+function fcRepairLiveFilters() {
+  // A stored fc_state_v1 (or the seeded defaults) may hold values that don't
+  // exist in the real data (AMERICAS vs Americas, PowerEdge vs Poweredge, the
+  // ESG/ISG service combos, ...). Snap any invalid value to a sensible real one
+  // so the default live slice is populated.
+  Object.keys(FC_LIVE_FIELD).forEach((key) => {
+    const opts = FILTER_OPTIONS[key] || [];
+    if (opts.indexOf(fcState.filters[key]) !== -1) return;
+    if (key === 'quarter')   fcState.filters.quarter = opts.indexOf('2025-Q1') >= 0 ? '2025-Q1' : opts[opts.length - 1];
+    else if (key === 'week') fcState.filters.week = opts[0];
+    else                     fcState.filters[key] = 'All';   // broad, dense default slice
+  });
+  fcSaveState(fcState);
+}
+
+function fcInitData() {
+  const d = fcFetchDatasetSync();
+  if (!d || !Array.isArray(d.rows) || !d.rows.length) { fcDataMode = 'simulated'; return; }
+  fcDataset = d; fcLiveRows = d.rows; fcDataMode = 'live';
+  fcApplyLiveFilterOptions();
+  fcRepairLiveFilters();
+}
+
+function fcRowMatches(row, filters) {
+  for (const key in FC_LIVE_FIELD) {
+    if (key === 'quarter' || key === 'week') continue;   // quarter applied separately; week is not a slice constraint
+    const sel = filters[key];
+    if (sel == null || sel === 'All') continue;
+    const rv = row[FC_LIVE_FIELD[key]];
+    if (rv == null || String(rv) !== String(sel)) return false;
+  }
+  return true;
+}
+
+function fcLiveDispatchRatio(filters) {
+  const s = filters.service;
+  return FC_LIVE_DISPATCH_RATIO[s] != null ? FC_LIVE_DISPATCH_RATIO[s] : FC_LIVE_DISPATCH_RATIO['All'];
+}
+
+// Aggregate the real workbook into 13 canonical weekly ASU + Expiration values
+// for the selected quarter + slice. ASU is a stock -> carry the last observed
+// value forward into weeks with no matching rows (and back-fill leading gaps);
+// Expirations is a flow -> zero when absent. Returns null unless live.
+function fcLiveWeeklyBase(filters) {
+  if (fcDataMode !== 'live' || !fcLiveRows) return null;
+  const weeks = fcWeeksForQuarter(filters.quarter);
+  const sums = Object.create(null);
+  weeks.forEach((w) => { sums[w] = { asu: 0, exp: 0, has: false }; });
+  for (let i = 0; i < fcLiveRows.length; i++) {
+    const r = fcLiveRows[i];
+    if (r.fiscalQuarter !== filters.quarter) continue;
+    const w = r.fiscalWeek;
+    if (!(w in sums)) continue;
+    if (!fcRowMatches(r, filters)) continue;
+    sums[w].asu += r.asu || 0; sums[w].exp += r.warrantyExpirations || 0; sums[w].has = true;
+  }
+  let anyHas = false, firstVal = 0;
+  for (let k = 0; k < weeks.length; k++) { if (sums[weeks[k]].has) { anyHas = true; firstVal = sums[weeks[k]].asu; break; } }
+  if (!anyHas) return { weeks, asuBase: weeks.map(() => 0), expirations: weeks.map(() => 0), empty: true };
+  const asuBase = [], expirations = [];
+  let last = firstVal;
+  weeks.forEach((w) => {
+    if (sums[w].has) last = sums[w].asu;
+    asuBase.push(Math.round(last));
+    expirations.push(Math.round(sums[w].exp));
+  });
+  return { weeks, asuBase, expirations, empty: false };
+}
+
 function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) % 2147483647; } return h || 1; }
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
@@ -81,32 +220,64 @@ function fcWeeksForQuarter(quarter) {
 }
 
 function fcGenerateWeeklySeries(filters) {
+  const live = fcLiveWeeklyBase(filters);                 // real slice base, or null when simulated
   const factor = fcCombinedFactor(filters);
-  const dispatchRatio = fcDispatchRatio(filters);
+  const dispatchRatio = live ? fcLiveDispatchRatio(filters) : fcDispatchRatio(filters);
   const rngNC = seeded(fcSeedFor(filters, 'nc'));
   const rngAPOS = seeded(fcSeedFor(filters, 'apos'));
+
+  // New Contracts / APOS stay modeled levers. Scale their magnitude to the slice:
+  // seeded uses the multiplicative factor; live scales to the real ASU level so
+  // the levers move the forecast by a sensible proportion.
+  let ncApScale = factor;
+  if (live && !live.empty) ncApScale = fcAvg(live.asuBase) / FC_BASE_ASU;
   const newContracts = [], apos = [];
   for (let w = 0; w < 13; w++) {
     const seasonal = 1 + 0.08 * Math.sin((w / 13) * Math.PI * 2);
     const trend = 1 + w * 0.004;
-    newContracts.push(Math.round(FC_BASE_NC_WEEKLY * factor * seasonal * trend * (0.94 + rngNC() * 0.12)));
-    apos.push(Math.round(FC_BASE_APOS_WEEKLY * factor * seasonal * trend * (0.94 + rngAPOS() * 0.12)));
+    newContracts.push(Math.round(FC_BASE_NC_WEEKLY * ncApScale * seasonal * trend * (0.94 + rngNC() * 0.12)));
+    apos.push(Math.round(FC_BASE_APOS_WEEKLY * ncApScale * seasonal * trend * (0.94 + rngAPOS() * 0.12)));
   }
-  function rollASU(ncFactor, aposFactor) {
-    const asu = []; let prior = FC_BASE_ASU * factor;
+
+  // Modeled roll-forward. startPrior/expSeries let live mode anchor it to real
+  // data; when omitted it behaves exactly as the original seeded model.
+  function rollModeled(ncFactor, aposFactor, startPrior, expSeries) {
+    const asu = []; let prior = startPrior;
     for (let w = 0; w < 13; w++) {
-      const expirations = prior * FC_EXPIRATION_RATE;
+      const expirations = expSeries ? expSeries[w] : prior * FC_EXPIRATION_RATE;
       const renewals = apos[w] * FC_BASE_RENEWAL_RATE * aposFactor;
       const additions = newContracts[w] * ncFactor;
       const cur = prior - expirations + renewals + additions;
-      asu.push(Math.round(cur)); prior = cur;
+      asu.push(cur); prior = cur;
     }
     return asu;
   }
+
+  if (live && !live.empty) {
+    // Baseline = real observed ASU; SR/Dispatch derived by ratio.
+    const asuBase = live.asuBase.slice();
+    const expirations = live.expirations.slice();
+    const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
+    const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
+    // Levers apply as the modeled lift RELATIVE to default overrides, so the
+    // real baseline is preserved at default sliders (ratio = 1) and moves
+    // proportionally as NC/APOS change.
+    const startPrior = asuBase[0];
+    const modeledDefault = rollModeled(1, 1, startPrior, expirations);
+    const rollASU = (ncFactor, aposFactor) => {
+      const m = rollModeled(ncFactor, aposFactor, startPrior, expirations);
+      return asuBase.map((v, w) => Math.round(v * (modeledDefault[w] ? m[w] / modeledDefault[w] : 1)));
+    };
+    return { weeks: live.weeks, newContracts, apos, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'live' };
+  }
+
+  // ---- seeded fallback (original behavior) ----
+  const rollASU = (ncFactor, aposFactor) => rollModeled(ncFactor, aposFactor, FC_BASE_ASU * factor).map(Math.round);
   const asuBase = rollASU(1, 1);
   const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
-  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, apos, asuBase, srBase, dspBase, factor, dispatchRatio, rollASU };
+  const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE));
+  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, apos, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
 }
 
 function fcSensitivity() { return { nc: 0.6, apos: 0.4 }; }
@@ -206,7 +377,7 @@ function fcCompute() {
   const series = fcGenerateWeeklySeries(filters);
   const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride);
   const hist = fcGenerateHistory(filters);
-  const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase) };
+  const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase), expir: fcSum(series.expirations || []) };
   const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
   const btcRec = fcRecommendBTC(filters, { srTotal: scenarioTotals.sr, dspTotal: scenarioTotals.dsp });
   let selectedBTCPct = 0, selectedDetail = null;
@@ -236,6 +407,10 @@ function fcCompute() {
 function fcWireFilters(onChange) {
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
     const key = item.dataset.filter;
+    if (fcDataMode === 'live' && FC_LIVE_LABEL[key]) {
+      const lab = item.querySelector('.filter-label');
+      if (lab) lab.textContent = FC_LIVE_LABEL[key];
+    }
     const btn = item.querySelector('.filter-value');
     btn.firstChild.textContent = fcState.filters[key];
     const dd = document.createElement('div'); dd.className = 'filter-dropdown';
@@ -427,5 +602,36 @@ function fcDrawGroupedBars(svgId, categories, seriesArr, opts) {
     series: sData
   });
 }
+/* ---- Live / Simulated data-source badge ---- */
+function fcInjectBadge() {
+  if (typeof document === 'undefined' || document.getElementById('fc-data-badge')) return;
+  const live = fcDataMode === 'live';
+  const el = document.createElement('div');
+  el.id = 'fc-data-badge';
+  el.setAttribute('role', 'status');
+  el.title = live
+    ? 'Live data: ASU & Warranty Expirations read from the input workbook (dell_isg,esg_fy24-26.xlsx). SR/Dispatch are derived; New Contracts, APOS and BTC are modeled. Click to re-check.'
+    : 'Simulated data: no local server detected, so figures are seeded/generated. Run "python serve.py" and click to switch to live data.';
+  el.style.cssText = [
+    'position:fixed', 'left:14px', 'bottom:14px', 'z-index:9999',
+    'display:inline-flex', 'align-items:center', 'gap:7px',
+    'font:600 11.5px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+    'letter-spacing:.02em', 'padding:7px 11px', 'border-radius:999px', 'cursor:pointer',
+    'user-select:none', 'box-shadow:0 4px 14px rgba(15,23,42,.16)',
+    'border:1px solid ' + (live ? '#99e3d5' : '#f4d29a'),
+    'background:' + (live ? '#e7f8f3' : '#fef4e2'),
+    'color:' + (live ? '#0f766e' : '#b45309')
+  ].join(';');
+  el.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:'
+    + (live ? '#0d9488' : '#d97706') + ';box-shadow:0 0 0 3px '
+    + (live ? 'rgba(13,148,136,.18)' : 'rgba(217,119,6,.18)') + '"></span>'
+    + (live ? 'Live data' : 'Simulated data');
+  el.onclick = () => location.reload();   // re-check the data source (e.g. after starting the server)
+  (document.body || document.documentElement).appendChild(el);
+}
+
 /* ==== END SHARED ENGINE ==== */
+fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcInjectBadge);
+else fcInjectBadge();

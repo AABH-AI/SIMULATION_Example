@@ -29,6 +29,45 @@ Navigation order (left sidebar): Dashboard → ASU Simulation → Historical →
 
 ---
 
+## Data source: Live vs Simulated (`fc_engine.js` provider — Phase 2)
+
+The engine runs in one of two modes, decided once at load and shown by a fixed
+**badge** in the bottom-left corner:
+
+| Mode | When | Data | Badge |
+|---|---|---|---|
+| **Live** | `serve.py` is running (page served over `http://`) | Real workbook via `GET /api/dataset` | teal "Live data" |
+| **Simulated** | No server (e.g. opened from `file://`, or a plain static host) | Seeded generator | amber "Simulated data" |
+
+`fcInitData()` does a **synchronous** `GET /api/dataset` at engine load — because
+the engine script runs *before* each page's inline render script, real data is
+guaranteed ready before the first `fcCompute()`, so no page needed changing. Any
+failure (no server, `file://`, non-2xx) is caught and the engine stays Simulated.
+Clicking the badge reloads to re-check (e.g. after starting the server).
+
+**In Live mode:**
+- **Filter options are derived from the data's distinct values** (not hardcoded),
+  which removes the `AMERICAS`/`Americas`, `PowerEdge`/`Poweredge` reconciliation
+  problem — the rail shows exactly what's in the workbook. Two filters are
+  remapped/relabelled because the seeded model doesn't match the sheet: **Global
+  LOB → Product** (the real `Product` column), and **Product Business → Warranty
+  Type** (the sheet has no ESG/ISG/HES column but does have Warranty Type). A
+  stored/seeded filter value that isn't a real option is snapped to `All`.
+- **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
+  quarter + slice, rows are aggregated into the quarter's 13 canonical weeks; ASU
+  is a *stock* so the last observed value is carried forward into weeks with no
+  matching rows (narrow slices are sparse), Expirations is a *flow* so absent
+  weeks are 0.
+- **SR / Dispatch stay derived** by ratio (`SR = ASU × 0.185`; Dispatch =
+  `SR × serviceRatio`).
+- **New Contracts / APOS stay modeled levers** (no such columns exist). They apply
+  as the modeled lift *relative to* the default slider position, so at default
+  sliders the scenario equals the real baseline and moving a slider adjusts it
+  proportionally.
+- **Historical BTC / accuracy / AOP remain modeled overlays** in both modes.
+
+Simulated mode is the original seeded engine, unchanged — it is the fallback.
+
 ## Architecture: shared engine (`fc_engine.js`)
 
 The engine (`fc_engine v1`) was previously an **identical block copy-pasted into all 6 HTML files**.

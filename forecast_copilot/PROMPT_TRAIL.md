@@ -501,3 +501,29 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 **Verified**: `python -m unittest -v` → 8/8 pass. Booted the server and confirmed `GET /api/health` (200, correct sha256), `GET /api/dataset` (200, ~915 KB, 2964 rows, faithful first/last rows, correct headers), static HTML + `fc_engine.js` serve 200, the two 501 stubs, and a 404 on an unknown `/api/*` route.
 
 **Gotcha recorded**: this machine's console is cp1252 — a `Σ` in the startup banner crashed the process on print (JSON output was always UTF-8 and fine); banner switched to ASCII. Unrelated localhost noise in the log (`Dell Peripheral Manager` probing `/`) is harmless and just exercises the `/`→Dashboard redirect.
+
+---
+
+## Phase 2 — Engine data adapter: real-data dashboard (`fc_engine.js`)
+**Date**: 2026-07-22 | **Branch**: `hn-new`
+**Plan ref**: `BUILD_PLAN.md` → "Phase 2 — Engine data adapter" *(milestone: real-data dashboard)*
+**Files**: `forecast_copilot/fc_engine.js`, docs
+
+**What was built** — a data provider in the shared engine with two modes, decided once at load and shown by a fixed **Live/Simulated badge** (bottom-left):
+- **Live** (serve.py running): real workbook via `GET /api/dataset`.
+- **Simulated** (no server / `file://`): the original seeded engine, unchanged, as fallback.
+
+**Load ordering solved without touching any page**: `fcInitData()` does a **synchronous** `GET /api/dataset` at engine load. Because the engine `<script>` runs before each page's inline render script, real data is ready before the first `fcCompute()` — no per-page async wiring. Any failure (no server, `file://`, non-2xx) is caught → stays Simulated. Badge click reloads to re-check.
+
+**Filter options derived from the data's distinct values** (live) — kills the `AMERICAS`/`Americas`, `PowerEdge`/`Poweredge` reconciliation at the root. Mapping engine key → real column: `region→region`, `lob→product` (relabelled **Product**), `business→warrantyType` (relabelled **Warranty Type** — the sheet has no ESG/ISG/HES column, so this dead control is repurposed to a real, useful one), `service→serviceType`, `coreupsell→coreUpsell`, `wotype→woType`, `fqm→fqmFlag`, `gcfa→gcfaType`, `quarter→fiscalQuarter` (12 real quarters, no All), `week→fiscalWeek`. A stored/seeded filter value not present in the real options is snapped to `All` (`fcRepairLiveFilters`) so the default slice is populated.
+
+**Pipeline anchoring** (live): `fcGenerateWeeklySeries` builds the slice from real weekly **ASU + Warranty Expirations** for the selected quarter, aggregated into the quarter's 13 canonical weeks. ASU is a stock → last observed value **carried forward** into weeks with no matching rows (narrow slices are sparse); Expirations is a flow → 0 when absent. **SR/Dispatch derived** by ratio (SR = ASU × 0.185; Dispatch = SR × per-serviceType ratio). **NC/APOS stay modeled levers**, scaled to the slice's real ASU level and applied as the modeled lift *relative to* the default slider position — so at default sliders the scenario equals the real baseline (ratio = 1) and sliders move it proportionally. Historical BTC/accuracy/AOP remain modeled overlays. The seeded branch is byte-for-byte the original behavior (kept as fallback).
+
+**Design tension noted**: the seeded filter model doesn't cleanly map to the real sheet (no NC/APOS/SR/Dispatch/business columns; different casing/naming). Resolved by deriving options from the data, mapping/relabelling two filters, and keeping SR/Dispatch derived + NC/APOS as levers — exactly the split the plan's "data reality" section prescribes.
+
+**Verification**:
+- **Node `vm` smoke test** (stubbed DOM + XHR) in both modes: simulated reproduces the original seeded numbers; live derives real options, repairs state, and computes real slices. JS live aggregation **matches the Python parser exactly** (2025-Q1 All/All weekly ASU 47,344,042 … 50,109,496) and sparse-slice **carry-forward** confirmed (2026-Q1 Americas/Poweredge: 7 real weeks, gaps carried).
+- **Real browser** (served by serve.py): all 6 pages load **live, 0 console errors**; badge "Live data"; Dashboard ASU 50.11M for the default slice; a filter change to EMEA×Poweredge recomputed to 38.29M (matches Python, carry-forward from W08); relabels + real options present.
+- **Fallback** (plain `python -m http.server`, no `/api`): badge "Simulated data" (amber), seeded numbers, original labels, **0 console errors**. Screenshot confirms the badge is well-placed and non-overlapping.
+
+**Note**: `let`/`const` engine globals aren't attached to `window`; introspect them as bare identifiers in the page realm (or via a `var` probe under Node `vm`).
