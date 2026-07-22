@@ -69,6 +69,32 @@ Clicking the badge reloads to re-check (e.g. after starting the server).
 
 Simulated mode is the original seeded engine, unchanged — it is the fallback.
 
+## Scenarios (`fc_engine.js` — Phase 3)
+
+The single working plan is now a **library of named scenarios**. A scenario is a full snapshot of a
+plan: the slice (all filters), NC/APOS overrides, BTC strategy/manual value, distribution mode, and
+approvals. `fcState.scenarios[]` holds them; `fcState.activeScenarioId` marks the one loaded into the
+live fields — so **the active scenario *is* the live working state**, and every page reads
+`fcState.filters` etc. unchanged. `fcSaveState()` mirrors live edits back into the active scenario
+automatically, so edits stick to it. All in `localStorage`; no backend (publishing one to Excel is Phase 5).
+
+A **scenario bar** is injected at the top of the filter rail (same injection pattern as the badge):
+a dropdown to switch, **New / Duplicate / Rename / Delete**, a **Compare** button, and three
+**preset** chips — **Baseline / Aggressive / Conservative** — that apply a fixed recipe of levers to
+the current slice (deterministic, no LLM). Switching a scenario or applying a preset reloads the page
+so every page-specific input (sliders, filter buttons) reflects the new plan; New/Duplicate/Rename
+just update the bar.
+
+**Compare** (up to 3 scenarios) opens a modal that recomputes each selected plan via `fcComputeFor()`
+— which applies the plan to the live fields, runs `fcCompute()`, then restores the live state — and
+tabulates slice, levers, BTC strategy/%, baseline vs lever-adjusted ASU/SR/Dispatch, final SR, and
+accuracy. Migration: any existing `fc_state_v1` (or a fresh one) is wrapped into a first "Baseline"
+scenario, so nothing is lost.
+
+Key symbols: `fcSnapshotPlan` / `fcApplyPlan`, `fcSwitchScenario`, `fcSaveAsScenario`,
+`fcDuplicateScenario`, `fcRenameScenario`, `fcDeleteScenario`, `fcApplyPreset`, `fcComputeFor`,
+`FC_PRESETS`, `fcActiveScenario`.
+
 ## Architecture: shared engine (`fc_engine.js`)
 
 The engine (`fc_engine v1`) was previously an **identical block copy-pasted into all 6 HTML files**.

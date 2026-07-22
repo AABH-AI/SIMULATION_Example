@@ -25,19 +25,103 @@ const FC_DEFAULT_STATE = {
   filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'PowerEdge', business: 'ESG', service: 'Parts + Labour ESG', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
   ncOverride: 10, aposOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
-  approvals: { scenario: false, btc: false, submitted: false }
+  approvals: { scenario: false, btc: false, submitted: false },
+  scenarios: [], activeScenarioId: null
 };
 function fcLoadState() {
+  let state;
   try {
     const raw = localStorage.getItem(FC_STATE_KEY);
-    if (!raw) return JSON.parse(JSON.stringify(FC_DEFAULT_STATE));
-    const parsed = JSON.parse(raw);
-    return { ...JSON.parse(JSON.stringify(FC_DEFAULT_STATE)), ...parsed,
-      filters: { ...FC_DEFAULT_STATE.filters, ...(parsed.filters||{}) },
-      approvals: { ...FC_DEFAULT_STATE.approvals, ...(parsed.approvals||{}) } };
-  } catch(e) { return JSON.parse(JSON.stringify(FC_DEFAULT_STATE)); }
+    if (!raw) state = JSON.parse(JSON.stringify(FC_DEFAULT_STATE));
+    else {
+      const parsed = JSON.parse(raw);
+      state = { ...JSON.parse(JSON.stringify(FC_DEFAULT_STATE)), ...parsed,
+        filters: { ...FC_DEFAULT_STATE.filters, ...(parsed.filters||{}) },
+        approvals: { ...FC_DEFAULT_STATE.approvals, ...(parsed.approvals||{}) } };
+    }
+  } catch(e) { state = JSON.parse(JSON.stringify(FC_DEFAULT_STATE)); }
+  return fcEnsureScenarios(state);
 }
-function fcSaveState(state) { localStorage.setItem(FC_STATE_KEY, JSON.stringify(state)); }
+function fcSaveState(state) {
+  try { fcSyncActiveScenario(); } catch(e) {}   // mirror live edits into the active scenario
+  localStorage.setItem(FC_STATE_KEY, JSON.stringify(state));
+}
+
+/* ==== SCENARIO LAYER (Phase 3) ==========================================
+ * fcState.scenarios[] = named full-state plans; fcState.activeScenarioId is the
+ * one currently loaded into the live fields (filters / overrides / BTC / dist /
+ * approvals). The "active scenario" IS the live working state -- every page
+ * reads fcState.filters etc. unchanged, and fcSaveState() mirrors live edits
+ * back into the active scenario automatically (so edits stick to it). Switching
+ * loads another scenario's plan into the live fields. All in localStorage; no
+ * backend. Publishing one to Excel is Phase 5.
+ * ---------------------------------------------------------------------- */
+const FC_PLAN_KEYS = ['filters','ncOverride','aposOverride','simMode','btcStrategy','manualBTC','distMode','approvals'];
+const FC_PRESETS = {
+  Baseline:     { ncOverride:10, aposOverride:5,  simMode:'manual', btcStrategy:null,                manualBTC:null, distMode:'equal' },
+  Aggressive:   { ncOverride:30, aposOverride:20, simMode:'manual', btcStrategy:'historicalBestFit', manualBTC:null, distMode:'ai' },
+  Conservative: { ncOverride:0,  aposOverride:0,  simMode:'manual', btcStrategy:'closestToAOP',       manualBTC:null, distMode:'historical' }
+};
+function fcGenId() { return 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fcDeep(v) { return (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v; }
+function fcSnapshotPlanFrom(obj) { const p = {}; FC_PLAN_KEYS.forEach(k => { p[k] = fcDeep(obj[k]); }); return p; }
+function fcSnapshotPlan() { return fcSnapshotPlanFrom(fcState); }
+function fcEnsureScenarios(state) {
+  if (!Array.isArray(state.scenarios) || state.scenarios.length === 0) {
+    const sc = { id: fcGenId(), name: 'Baseline', plan: fcSnapshotPlanFrom(state) };
+    state.scenarios = [sc]; state.activeScenarioId = sc.id;
+  } else if (!state.scenarios.find(s => s.id === state.activeScenarioId)) {
+    state.activeScenarioId = state.scenarios[0].id;
+  }
+  return state;
+}
+function fcActiveScenario() { return (fcState.scenarios || []).find(s => s.id === fcState.activeScenarioId) || null; }
+function fcSyncActiveScenario() { const s = fcActiveScenario(); if (s) s.plan = fcSnapshotPlan(); }
+function fcApplyPlan(plan) { FC_PLAN_KEYS.forEach(k => { if (k in plan) fcState[k] = fcDeep(plan[k]); }); }
+function fcComputeFor(plan) {
+  const backup = fcSnapshotPlan();
+  fcApplyPlan(plan);
+  let r; try { r = fcCompute(); } finally { fcApplyPlan(backup); }
+  return r;
+}
+function fcSwitchScenario(id, reload) {
+  const s = (fcState.scenarios || []).find(x => x.id === id); if (!s) return;
+  fcSyncActiveScenario();                       // persist current edits to the outgoing scenario first
+  fcState.activeScenarioId = id; fcApplyPlan(s.plan); fcSaveState(fcState);
+  if (reload !== false && typeof location !== 'undefined' && location.reload) location.reload();
+}
+function fcSaveAsScenario(name) {
+  const sc = { id: fcGenId(), name: name || ('Scenario ' + ((fcState.scenarios || []).length + 1)), plan: fcSnapshotPlan() };
+  fcState.scenarios.push(sc); fcState.activeScenarioId = sc.id; fcSaveState(fcState); return sc;
+}
+function fcDuplicateScenario(id) {
+  const src = (fcState.scenarios || []).find(x => x.id === id) || fcActiveScenario(); if (!src) return null;
+  fcSyncActiveScenario();
+  const sc = { id: fcGenId(), name: src.name + ' copy', plan: fcDeep(src.plan) };
+  fcState.scenarios.push(sc); fcState.activeScenarioId = sc.id; fcSaveState(fcState); return sc;
+}
+function fcRenameScenario(id, name) {
+  const s = (fcState.scenarios || []).find(x => x.id === id); if (s && name) { s.name = name; fcSaveState(fcState); }
+}
+function fcDeleteScenario(id) {
+  const list = fcState.scenarios || []; if (list.length <= 1) return false;   // always keep at least one
+  const idx = list.findIndex(x => x.id === id); if (idx < 0) return false;
+  const wasActive = fcState.activeScenarioId === id;
+  list.splice(idx, 1);
+  if (wasActive) { fcState.activeScenarioId = list[0].id; fcApplyPlan(list[0].plan); }
+  fcSaveState(fcState); return wasActive;        // caller reloads when the active scenario changed
+}
+function fcApplyPreset(name, reload) {
+  const preset = FC_PRESETS[name]; if (!preset) return;
+  const plan = fcSnapshotPlan();                 // keep the current slice (filters); recipe sets the levers
+  Object.assign(plan, preset);
+  plan.approvals = { scenario: false, btc: false, submitted: false };
+  let sc = (fcState.scenarios || []).find(s => s.name === name);
+  if (sc) sc.plan = plan; else { sc = { id: fcGenId(), name, plan }; fcState.scenarios.push(sc); }
+  fcState.activeScenarioId = sc.id; fcApplyPlan(plan); fcSaveState(fcState);
+  if (reload !== false && typeof location !== 'undefined' && location.reload) location.reload();
+}
+
 let fcState = fcLoadState();
 function fcSetFilter(key, value) { fcState.filters[key] = value; fcSaveState(fcState); }
 
@@ -630,8 +714,139 @@ function fcInjectBadge() {
   (document.body || document.documentElement).appendChild(el);
 }
 
+/* ---- Scenario UI: bar in the filter rail + compare modal (Phase 3) ---- */
+function fcEsc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fcBtcLabel(k) { return { historicalBestFit:'Historical Best Fit', balanced:'Balanced', closestToAOP:'Closest to AOP', manual:'Manual' }[k] || '—'; }
+
+function fcInjectScenarioCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-scenario-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-scenario-css';
+  st.textContent = `
+  #fc-scenario-bar{margin:0 0 16px;padding:12px;border:1px solid #d7e0ef;border-radius:12px;background:#f4f8fe;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  #fc-scenario-bar .fc-scn-hd{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#0f766e;margin-bottom:7px}
+  #fc-scn-select{width:100%;padding:7px 8px;border:1px solid #cfd9ea;border-radius:8px;background:#fff;font:600 12.5px Inter,sans-serif;color:#0d1020}
+  .fc-scn-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .fc-scn-actions button{flex:1 1 auto;padding:5px 8px;border:1px solid #cfd9ea;border-radius:7px;background:#fff;font:600 11px Inter,sans-serif;color:#37415a;cursor:pointer}
+  .fc-scn-actions button:hover{background:#eef3fb;border-color:#b4c2dd}
+  .fc-scn-actions button.fc-scn-cmp{background:#0d9488;border-color:#0d9488;color:#fff;flex-basis:100%}
+  .fc-scn-actions button.fc-scn-cmp:hover{background:#0b7f74}
+  .fc-scn-presets{margin-top:9px;padding-top:9px;border-top:1px dashed #d7e0ef}
+  .fc-scn-presets .fc-scn-plabel{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a94ad;margin-bottom:5px}
+  .fc-scn-presets .fc-scn-chips{display:flex;gap:5px}
+  .fc-scn-presets button{flex:1;padding:5px 6px;border:1px solid #cfd9ea;border-radius:999px;background:#fff;font:600 10.5px Inter,sans-serif;color:#37415a;cursor:pointer}
+  .fc-scn-presets button:hover{background:#e7f8f3;border-color:#99e3d5;color:#0f766e}
+  .fc-cmp-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:10000;display:flex;align-items:center;justify-content:center}
+  .fc-cmp-overlay[hidden]{display:none}
+  .fc-cmp-modal{background:#fff;border-radius:16px;max-width:820px;width:92%;max-height:88vh;overflow:auto;padding:20px;box-shadow:0 24px 60px rgba(15,23,42,.3);font-family:Inter,sans-serif}
+  .fc-cmp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .fc-cmp-head b{font-size:16px;color:#0d1020}
+  #fc-cmp-close{border:none;background:#eef1f7;border-radius:8px;width:30px;height:30px;font-size:15px;cursor:pointer;color:#5a6280}
+  .fc-cmp-pick{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 0 14px;border-bottom:1px solid #eef1f7;margin-bottom:12px}
+  .fc-cmp-pick label{font-size:12.5px;color:#37415a;display:flex;gap:5px;align-items:center}
+  .fc-cmp-hint{font-size:11.5px;color:#8a94ad}
+  .fc-cmp-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .fc-cmp-table th,.fc-cmp-table td{padding:9px 12px;text-align:right;border-bottom:1px solid #eef1f7}
+  .fc-cmp-table th:first-child,.fc-cmp-table td.fc-cmp-lbl{text-align:left;color:#5a6280;font-weight:600}
+  .fc-cmp-table thead th{color:#0d1020;font-weight:800;border-bottom:2px solid #dbe3f0}
+  .fc-cmp-table td{font-variant-numeric:tabular-nums;color:#0d1020}`;
+  document.head.appendChild(st);
+}
+
+function fcRenderScenarioBar() {
+  const bar = document.getElementById('fc-scenario-bar'); if (!bar) return;
+  const list = fcState.scenarios || [];
+  const active = fcState.activeScenarioId;
+  bar.innerHTML =
+    '<div class="fc-scn-hd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>Scenario</div>' +
+    '<select id="fc-scn-select">' + list.map(s => `<option value="${s.id}" ${s.id===active?'selected':''}>${fcEsc(s.name)}</option>`).join('') + '</select>' +
+    '<div class="fc-scn-actions">' +
+      '<button data-act="new">New</button>' +
+      '<button data-act="dup">Duplicate</button>' +
+      '<button data-act="rename">Rename</button>' +
+      '<button data-act="del">Delete</button>' +
+      '<button data-act="cmp" class="fc-scn-cmp">Compare scenarios</button>' +
+    '</div>' +
+    '<div class="fc-scn-presets"><div class="fc-scn-plabel">Presets (apply to current slice)</div><div class="fc-scn-chips">' +
+      Object.keys(FC_PRESETS).map(p => `<button data-preset="${p}">${p}</button>`).join('') +
+    '</div></div>';
+
+  bar.querySelector('#fc-scn-select').addEventListener('change', e => fcSwitchScenario(e.target.value));
+  bar.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => {
+    const act = btn.dataset.act, cur = fcActiveScenario();
+    if (act === 'new') { const n = prompt('Name this scenario', 'Scenario ' + ((fcState.scenarios||[]).length + 1)); if (n) { fcSaveAsScenario(n.trim()); fcRenderScenarioBar(); } }
+    else if (act === 'dup') { fcDuplicateScenario(fcState.activeScenarioId); fcRenderScenarioBar(); }
+    else if (act === 'rename') { const n = prompt('Rename scenario', cur ? cur.name : ''); if (n) { fcRenameScenario(fcState.activeScenarioId, n.trim()); fcRenderScenarioBar(); } }
+    else if (act === 'del') { if ((fcState.scenarios||[]).length <= 1) { alert('Keep at least one scenario.'); return; } if (confirm(`Delete "${cur ? cur.name : ''}"?`)) { const wasActive = fcDeleteScenario(fcState.activeScenarioId); if (wasActive && location.reload) location.reload(); else fcRenderScenarioBar(); } }
+    else if (act === 'cmp') fcOpenCompare();
+  }));
+  bar.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => fcApplyPreset(btn.dataset.preset)));
+}
+
+function fcInjectScenarioUI() {
+  if (typeof document === 'undefined') return;
+  fcInjectScenarioCSS();
+  const rail = document.querySelector('.filter-rail');
+  if (rail && !document.getElementById('fc-scenario-bar')) {
+    const bar = document.createElement('div'); bar.id = 'fc-scenario-bar';
+    const sub = rail.querySelector('.filter-rail-sub');
+    if (sub && sub.nextSibling) rail.insertBefore(bar, sub.nextSibling);
+    else if (sub) rail.appendChild(bar);
+    else rail.insertBefore(bar, rail.firstChild);
+    fcRenderScenarioBar();
+  }
+  if (!document.getElementById('fc-cmp-overlay')) {
+    const ov = document.createElement('div'); ov.id = 'fc-cmp-overlay'; ov.className = 'fc-cmp-overlay'; ov.hidden = true;
+    ov.innerHTML = '<div class="fc-cmp-modal"><div class="fc-cmp-head"><b>Compare scenarios</b><button id="fc-cmp-close" title="Close">✕</button></div><div class="fc-cmp-pick" id="fc-cmp-pick"></div><div id="fc-cmp-body"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', e => { if (e.target === ov) ov.hidden = true; });
+    const closeBtn = ov.querySelector('#fc-cmp-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => { ov.hidden = true; });
+  }
+}
+
+function fcOpenCompare() {
+  const ov = document.getElementById('fc-cmp-overlay'); if (!ov) return;
+  const list = fcState.scenarios || [];
+  const chosen = new Set([fcState.activeScenarioId]);
+  for (const s of list) { if (chosen.size >= 3) break; chosen.add(s.id); }
+  document.getElementById('fc-cmp-pick').innerHTML =
+    '<span class="fc-cmp-hint">Pick up to 3 scenarios:</span>' +
+    list.map(s => `<label><input type="checkbox" value="${s.id}" ${chosen.has(s.id)?'checked':''}>${fcEsc(s.name)}</label>`).join('');
+  document.querySelectorAll('#fc-cmp-pick input').forEach(cb => cb.addEventListener('change', fcRenderCompare));
+  fcRenderCompare();
+  ov.hidden = false;
+}
+
+function fcRenderCompare() {
+  const boxes = [...document.querySelectorAll('#fc-cmp-pick input')];
+  const ids = boxes.filter(b => b.checked).map(b => b.value).slice(0, 3);
+  boxes.forEach(b => { b.disabled = (!b.checked && ids.length >= 3); });
+  const list = fcState.scenarios || [];
+  const cols = ids.map(id => list.find(s => s.id === id)).filter(Boolean);
+  const body = document.getElementById('fc-cmp-body');
+  if (!cols.length) { body.innerHTML = '<p class="fc-cmp-hint">Select at least one scenario.</p>'; return; }
+  const rows = cols.map(s => ({ name: s.name, plan: s.plan, r: fcComputeFor(s.plan) }));
+  const metrics = [
+    ['Slice',                 x => `${x.plan.filters.quarter} · ${x.plan.filters.region} · ${x.plan.filters.lob}`],
+    ['NC / APOS override',    x => `${x.plan.ncOverride}% / ${x.plan.aposOverride}%`],
+    ['BTC strategy',          x => fcBtcLabel(x.plan.btcStrategy)],
+    ['BTC %',                 x => fcPct(x.r.final.btcPct || 0, 2)],
+    ['ASU baseline (qtr end)',x => fcN(x.r.originalTotals.asu)],
+    ['ASU scenario (levers)', x => fcN(x.r.scenarioTotals.asu)],
+    ['SR scenario (levers)',  x => fcN(x.r.scenarioTotals.sr)],
+    ['Dispatch scenario',     x => fcN(x.r.scenarioTotals.dsp)],
+    ['Final SR (with BTC)',   x => fcN(x.r.final.sr)],
+    ['Forecast accuracy',     x => x.r.hist.accuracy[x.r.hist.accuracy.length-1] + '%']
+  ];
+  let html = '<table class="fc-cmp-table"><thead><tr><th></th>' + rows.map(x => `<th>${fcEsc(x.name)}</th>`).join('') + '</tr></thead><tbody>';
+  for (const [label, fn] of metrics) html += `<tr><td class="fc-cmp-lbl">${label}</td>` + rows.map(x => `<td>${fn(x)}</td>`).join('') + '</tr>';
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
 /* ==== END SHARED ENGINE ==== */
 fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcInjectBadge);
-else fcInjectBadge();
+function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcBoot);
+else fcBoot();
