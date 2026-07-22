@@ -25,6 +25,7 @@ const FC_DEFAULT_STATE = {
   filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'PowerEdge', business: 'ESG', service: 'Parts + Labour ESG', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
   ncOverride: 10, aposOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
+  weekOverrides: {},
   approvals: { scenario: false, btc: false, submitted: false },
   scenarios: [], activeScenarioId: null
 };
@@ -37,7 +38,8 @@ function fcLoadState() {
       const parsed = JSON.parse(raw);
       state = { ...JSON.parse(JSON.stringify(FC_DEFAULT_STATE)), ...parsed,
         filters: { ...FC_DEFAULT_STATE.filters, ...(parsed.filters||{}) },
-        approvals: { ...FC_DEFAULT_STATE.approvals, ...(parsed.approvals||{}) } };
+        approvals: { ...FC_DEFAULT_STATE.approvals, ...(parsed.approvals||{}) },
+        weekOverrides: { ...(parsed.weekOverrides||{}) } };
     }
   } catch(e) { state = JSON.parse(JSON.stringify(FC_DEFAULT_STATE)); }
   return fcEnsureScenarios(state);
@@ -56,7 +58,7 @@ function fcSaveState(state) {
  * loads another scenario's plan into the live fields. All in localStorage; no
  * backend. Publishing one to Excel is Phase 5.
  * ---------------------------------------------------------------------- */
-const FC_PLAN_KEYS = ['filters','ncOverride','aposOverride','simMode','btcStrategy','manualBTC','distMode','approvals'];
+const FC_PLAN_KEYS = ['filters','ncOverride','aposOverride','simMode','btcStrategy','manualBTC','distMode','weekOverrides','approvals'];
 const FC_PRESETS = {
   Baseline:     { ncOverride:10, aposOverride:5,  simMode:'manual', btcStrategy:null,                manualBTC:null, distMode:'equal' },
   Aggressive:   { ncOverride:30, aposOverride:20, simMode:'manual', btcStrategy:'historicalBestFit', manualBTC:null, distMode:'ai' },
@@ -120,6 +122,38 @@ function fcApplyPreset(name, reload) {
   if (sc) sc.plan = plan; else { sc = { id: fcGenId(), name, plan }; fcState.scenarios.push(sc); }
   fcState.activeScenarioId = sc.id; fcApplyPlan(plan); fcSaveState(fcState);
   if (reload !== false && typeof location !== 'undefined' && location.reload) location.reload();
+}
+
+/* ---- Per-week edits + change ledger (Phase 4) ----
+ * weekOverrides (a plan field) maps a fiscal-week label to a hand-typed BTC
+ * Forecast value; fcDistributeWeekly applies them and fcCompute reflects the
+ * result in the final SR, so an edit flows through to every page. Each edit is
+ * appended as a timestamped delta to the ACTIVE scenario's ledger (an audit
+ * trail that travels with the scenario). */
+function fcNowISO() { try { return new Date().toISOString(); } catch (e) { return ''; } }
+function fcScenarioLedger() { const s = fcActiveScenario(); if (!s) return []; if (!s.ledger) s.ledger = []; return s.ledger; }
+function fcLogEdit(entry) { const s = fcActiveScenario(); if (!s) return; if (!s.ledger) s.ledger = []; s.ledger.push({ ts: fcNowISO(), ...entry }); }
+function fcSetWeekOverride(week, value) {
+  if (!fcState.weekOverrides) fcState.weekOverrides = {};
+  const prev = fcState.weekOverrides[week];
+  fcState.weekOverrides[week] = value;
+  fcLogEdit({ action: 'set', field: 'btcForecast', week, from: (prev == null ? null : prev), to: value });
+  fcSaveState(fcState);
+}
+function fcClearWeekOverride(week) {
+  if (fcState.weekOverrides && week in fcState.weekOverrides) {
+    const prev = fcState.weekOverrides[week];
+    delete fcState.weekOverrides[week];
+    fcLogEdit({ action: 'reset', field: 'btcForecast', week, from: prev, to: null });
+    fcSaveState(fcState);
+  }
+}
+function fcClearAllWeekOverrides() {
+  const keys = Object.keys(fcState.weekOverrides || {});
+  if (!keys.length) return;
+  fcState.weekOverrides = {};
+  fcLogEdit({ action: 'reset-all', field: 'btcForecast', week: '*', count: keys.length, from: null, to: null });
+  fcSaveState(fcState);
 }
 
 let fcState = fcLoadState();
@@ -439,7 +473,7 @@ function fcRecommendBTC(filters, scenarioTotals) {
     target: Math.round(target), aopTargetPct: hist.aopTargetPct, modernTargetPct: hist.modernTargetPct, triadCommitmentPct: hist.triadCommitmentPct, hist };
 }
 
-function fcDistributeWeekly(series, btcPct, distMode) {
+function fcDistributeWeekly(series, btcPct, distMode, overrides) {
   const n = series.weeks.length;
   let weights = new Array(n).fill(1);
   if (distMode === 'historical') weights = series.weeks.map((_,i) => 0.7 + (i/(n-1)) * 0.6);
@@ -449,11 +483,17 @@ function fcDistributeWeekly(series, btcPct, distMode) {
   const dsForecast = series.srBase.slice();
   const totalUplift = fcSum(dsForecast) * (btcPct/100);
   const shareBase = dsForecast.map((v,i) => v * wNorm[i]);
-  const shareSum = fcSum(shareBase);
-  const btcForecast = dsForecast.map((v,i) => Math.round(v + totalUplift * (shareBase[i]/shareSum)));
+  const shareSum = fcSum(shareBase) || 1;
+  // Per-week edits (Phase 4): an override replaces that week's BTC Forecast with
+  // the hand-typed value; other weeks keep their computed distribution.
+  overrides = overrides || {};
+  const edited = series.weeks.map(w => overrides[w] != null);
+  const btcForecast = dsForecast.map((v,i) => edited[i]
+    ? Math.round(overrides[series.weeks[i]])
+    : Math.round(v + totalUplift * (shareBase[i] / shareSum)));
   const variance = btcForecast.map((v,i) => v - dsForecast[i]);
-  const wowChange = btcForecast.map((v,i) => i===0 ? null : +(((v - btcForecast[i-1]) / btcForecast[i-1]) * 100).toFixed(1));
-  return { weeks: series.weeks, dsForecast, btcForecast, variance, wowChange };
+  const wowChange = btcForecast.map((v,i) => (i === 0 || !btcForecast[i-1]) ? null : +(((v - btcForecast[i-1]) / btcForecast[i-1]) * 100).toFixed(1));
+  return { weeks: series.weeks, dsForecast, btcForecast, variance, wowChange, edited, hasOverrides: edited.some(Boolean) };
 }
 
 function fcCompute() {
@@ -473,9 +513,14 @@ function fcCompute() {
   } else if (fcState.btcStrategy && btcRec[fcState.btcStrategy]) {
     selectedDetail = btcRec[fcState.btcStrategy]; selectedBTCPct = selectedDetail.btcPct;
   }
-  const weekly = fcDistributeWeekly({ weeks: series.weeks, srBase: adj.srAdj }, selectedBTCPct, fcState.distMode);
-  const finalSR = selectedDetail ? selectedDetail.srAdj : scenarioTotals.sr;
-  const finalDsp = selectedDetail ? selectedDetail.dspAdj : scenarioTotals.dsp;
+  const weekly = fcDistributeWeekly({ weeks: series.weeks, srBase: adj.srAdj }, selectedBTCPct, fcState.distMode, fcState.weekOverrides);
+  let finalSR = selectedDetail ? selectedDetail.srAdj : scenarioTotals.sr;
+  let finalDsp = selectedDetail ? selectedDetail.dspAdj : scenarioTotals.dsp;
+  if (weekly.hasOverrides) {   // hand-edited weeks make the plan bottom-up: total = sum of weekly BTC Forecast
+    finalSR = fcSum(weekly.btcForecast);
+    const ratio = scenarioTotals.sr ? (scenarioTotals.dsp / scenarioTotals.sr) : series.dispatchRatio;
+    finalDsp = Math.round(finalSR * ratio);
+  }
   const finalGap = btcRec.target - finalSR;
   const meetsAOP = finalSR >= btcRec.target * 0.98;
   const modernAchievement = hist.modern[hist.modern.length-1];

@@ -95,6 +95,23 @@ Key symbols: `fcSnapshotPlan` / `fcApplyPlan`, `fcSwitchScenario`, `fcSaveAsScen
 `fcDuplicateScenario`, `fcRenameScenario`, `fcDeleteScenario`, `fcApplyPreset`, `fcComputeFor`,
 `FC_PRESETS`, `fcActiveScenario`.
 
+## Weekly edits & change ledger (Phase 4)
+
+The **Weekly Forecast Table** on the BTC Distribution page is editable: type a new number in the
+**BTC Forecast** column to override a week. Edits are stored per-week in the active scenario
+(`weekOverrides`, a plan field — so they persist, travel when you switch scenarios, and flow through
+`fcCompute()` to every page). `fcDistributeWeekly()` applies an override by replacing that week's
+computed value (other weeks keep their auto-distribution); when any override exists, the **final SR
+becomes the bottom-up sum of the weekly plan**, so the Final Forecast page reflects hand-edits.
+
+Edited cells are flagged (teal), each has a per-week reset (↺), and a **Reset all edits** button
+clears them. Every edit appends a **timestamped delta** to the active scenario's `ledger`
+(`{ts, action, week, from, to}`), shown newest-first in the **Change Ledger** panel below the table.
+Actions: `set` / `reset` / `reset-all`.
+
+Key symbols: `fcSetWeekOverride`, `fcClearWeekOverride`, `fcClearAllWeekOverrides`, `fcScenarioLedger`,
+`fcLogEdit`; `weekly.edited[]` / `weekly.hasOverrides` from `fcDistributeWeekly`.
+
 ## Architecture: shared engine (`fc_engine.js`)
 
 The engine (`fc_engine v1`) was previously an **identical block copy-pasted into all 6 HTML files**.

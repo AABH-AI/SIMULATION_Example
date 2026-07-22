@@ -210,11 +210,26 @@
 
     <div class="panel">
       <div class="panel-title">Weekly Forecast Table</div>
-      <div class="panel-sub">Fiscal week, DS Forecast, BTC Forecast, Variance and Week-on-Week Change for the selected quarter</div>
+      <div class="panel-sub">Type a new number in the <b>BTC Forecast</b> column to override a week. Edits are flagged, resettable, and recorded in the Change Ledger below.</div>
+      <div id="edit-status" style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-size:12px;color:var(--text-2);">
+        <span id="edit-count"></span>
+        <button id="reset-all" class="fc-mini-btn" style="display:none;">Reset all edits</button>
+      </div>
       <div class="tw">
         <table class="data-tbl">
-          <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th>WoW Change</th></tr></thead>
+          <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th>WoW Change</th><th></th></tr></thead>
           <tbody id="weekly-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Change Ledger</div>
+      <div class="panel-sub">Timestamped record of every weekly edit in the active scenario — newest first.</div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>When</th><th>Action</th><th>Week</th><th>From</th><th>To</th></tr></thead>
+          <tbody id="ledger-body"></tbody>
         </table>
       </div>
     </div>
@@ -260,7 +275,24 @@ function renderHBars(containerId, shares) {
   `).join('');
 }
 
+function fcFmtTs(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return ts || '—'; } }
+function fcInjectEditCSS() {
+  if (document.getElementById('fc-edit-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-edit-css';
+  st.textContent = `
+  .wk-input{width:104px;padding:3px 7px;border:1px solid #cfd9ea;border-radius:6px;font:inherit;text-align:right;background:#fff;color:var(--text-1);font-variant-numeric:tabular-nums}
+  .wk-input:focus{outline:none;border-color:#0d9488;box-shadow:0 0 0 2px rgba(13,148,136,.18)}
+  .wk-input.edited{border-color:#0d9488;background:#e7f8f3;font-weight:700;color:#0f766e}
+  .wk-reset{border:none;background:transparent;color:#0d9488;cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;border-radius:6px}
+  .wk-reset:hover{background:#e7f8f3;color:#0b7f74}
+  .fc-mini-btn{border:1px solid #cfd9ea;background:#fff;border-radius:7px;padding:5px 11px;font:600 11.5px Inter,sans-serif;color:#0f766e;cursor:pointer}
+  .fc-mini-btn:hover{background:#e7f8f3;border-color:#99e3d5}
+  .led-empty{color:var(--text-3);text-align:center;padding:16px}`;
+  document.head.appendChild(st);
+}
+
 function fcRenderDistribution() {
+  fcInjectEditCSS();
   const r = fcCompute();
   document.getElementById('empty-note').style.display = fcState.btcStrategy ? 'none' : 'block';
 
@@ -277,14 +309,49 @@ function fcRenderDistribution() {
   document.getElementById('weekly-body').innerHTML = r.weekly.weeks.map((w,i) => {
     const variance = r.weekly.variance[i];
     const wow = r.weekly.wowChange[i];
+    const edited = r.weekly.edited[i];
+    const val = r.weekly.btcForecast[i];
     return `<tr>
       <td>${w}</td>
       <td>${fcN(r.weekly.dsForecast[i])}</td>
-      <td>${fcN(r.weekly.btcForecast[i])}</td>
+      <td><input type="text" inputmode="numeric" class="wk-input${edited?' edited':''}" data-week="${w}" value="${val.toLocaleString('en-IN')}" aria-label="BTC Forecast for ${w}"></td>
       <td class="${variance>=0?'pos':'neg'}">${variance>=0?'+':''}${fcN(variance)}</td>
       <td class="${wow==null?'':(wow>=0?'pos':'neg')}">${wow==null?'—':(wow>=0?'+':'')+wow+'%'}</td>
+      <td>${edited?`<button class="wk-reset" data-week="${w}" title="Reset to computed value">↺</button>`:''}</td>
     </tr>`;
   }).join('');
+
+  // Wire the editable BTC Forecast cells + per-week reset buttons.
+  document.querySelectorAll('#weekly-body .wk-input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const wk = e.target.dataset.week;
+      const raw = e.target.value.replace(/[^0-9.-]/g,'');
+      if (raw === '') fcClearWeekOverride(wk);
+      else { const v = Math.round(parseFloat(raw)); if (!isNaN(v)) fcSetWeekOverride(wk, v); }
+      fcRenderDistribution();
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+  });
+  document.querySelectorAll('#weekly-body .wk-reset').forEach(btn => {
+    btn.addEventListener('click', () => { fcClearWeekOverride(btn.dataset.week); fcRenderDistribution(); });
+  });
+
+  // Edit status + reset-all visibility.
+  const nEdits = Object.keys(fcState.weekOverrides || {}).length;
+  document.getElementById('edit-count').textContent = nEdits ? `${nEdits} week${nEdits>1?'s':''} manually edited — final forecast now sums the weekly plan.` : 'No manual edits — weekly plan is auto-distributed.';
+  document.getElementById('reset-all').style.display = nEdits ? 'inline-block' : 'none';
+
+  // Change ledger (newest first).
+  const led = fcScenarioLedger().slice().reverse();
+  document.getElementById('ledger-body').innerHTML = led.length
+    ? led.map(e => `<tr>
+        <td>${fcFmtTs(e.ts)}</td>
+        <td>${e.action}</td>
+        <td>${e.week}</td>
+        <td>${e.from==null?'—':fcN(e.from)}</td>
+        <td>${e.to==null?'—':fcN(e.to)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="led-empty">No edits yet — override a week above to start the audit trail.</td></tr>';
 
   // Opportunity table: rank regions by their share of the total variance (uplift), largest first
   const regionShares = distributeByFactor(FC_REGION_FACTOR, fcSum(r.weekly.variance));
@@ -308,6 +375,8 @@ document.querySelectorAll('#dist-toggle .toggle-btn').forEach(b => {
   };
 });
 document.querySelectorAll('#dist-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === fcState.distMode));
+
+document.getElementById('reset-all').onclick = () => { fcClearAllWeekOverrides(); fcRenderDistribution(); };
 
 fcRenderDistribution();
   </script>
