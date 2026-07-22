@@ -131,3 +131,46 @@ so because the engine is multiplicative, all-`All` equals the total over the ful
 After any engine edit, load each page in a browser and confirm: 0 console errors, engine loaded
 (`typeof fcCompute === 'function'`), and charts render. Expected chart counts:
 Dashboard 5 · ASU Simulation 3 · Historical 4 · AI BTC Advisor 0 · BTC Distribution 1 · Final Forecast 1.
+
+---
+
+## Local server & read path (`serve.py`) — Phase 1
+
+`serve.py` is a **zero-dependency** local server (Python 3 standard library only — no `pip install`,
+no network). It serves the static suite over `http://` *and* exposes a small JSON API over the
+**read-only** input workbook (`input/dell_isg,esg_fy24-26.xlsx`, sheet **Service Dataset**).
+
+```bash
+cd forecast_copilot
+python serve.py            # -> http://127.0.0.1:8000/  (Ctrl+C to stop)
+# options: --port 8000  --host 127.0.0.1  --input <path to .xlsx>
+```
+
+| Route | Method | Returns |
+|---|---|---|
+| `/` | GET | 302 redirect to the Dashboard page |
+| `/api/health` | GET | `{status, source, sheet, sha256, rowCount}` |
+| `/api/dataset` | GET | `{source, sheet, sha256, columns[], rowCount, rows[], summary{totals,distinct}}` |
+| `/api/outputs` | GET | **501** — publish history (Phase 5) |
+| `/api/publish` | POST | **501** — write path (Phase 5) |
+| any other path | GET | static file from `forecast_copilot/` |
+
+- **Read-only input.** The server never writes to the workbook. Every response echoes the file's
+  `sha256`, which `test_dataset.py` pins to `input/INPUT_SHA256.txt`, so "input never mutated" is provable.
+- **Parsing.** An `.xlsx` is a zip of XML; the fixed-format Service Dataset sheet is parsed with
+  `zipfile` + `xml.etree`. The sheet is found by **name** and columns are mapped by **header label**,
+  so the parser survives sheet/column reordering. Categorical values are kept verbatim (no
+  `Poweredge→PowerEdge` normalization) — Phase 2 derives filter options from the data's distinct values.
+- **Result is cached** in memory (re-parsed only if the file's mtime/size change).
+
+### Test
+
+```bash
+cd forecast_copilot
+python -m unittest -v          # 8 tests, stdlib only
+```
+
+`test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 12 slice
+aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 2,964-row × 13-column
+schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
+The expected pivot was ground-truthed with an independent regex parse of the workbook.

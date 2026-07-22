@@ -1,2 +1,6 @@
 # Excel lock / owner temp files (created while a workbook is open) — never commit.
 ~$*.xlsx
+
+# Python bytecode cache from serve.py / test_dataset.py — regenerated, never commit.
+__pycache__/
+*.pyc

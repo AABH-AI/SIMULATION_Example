@@ -477,3 +477,27 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 **Tooling note**: this machine (user harshit.nair) has **no Node.js** — the extraction was scripted in **Python 3.13** instead (the project docs assume Node from the original author's machine). No git in this checkout, so the 6 HTML files were backed up before the bulk edit. Runtime app has **zero Node dependency** (pure browser + Highcharts CDN), so it is unaffected either way.
 
 **Not done without asking**: no `git add`/commit/push — changes are local-only, consistent with how this untracked-in-main product has been handled.
+
+---
+
+## Phase 1 — Local server + read path (`serve.py`, `test_dataset.py`)
+**Date**: 2026-07-22 | **Branch**: `hn-new`
+**Plan ref**: `BUILD_PLAN.md` → "Phase 1 — Server + read path"
+**Files**: new `forecast_copilot/serve.py`, new `forecast_copilot/test_dataset.py`, `forecast_copilot/.gitignore` (ignore `__pycache__/`), docs
+
+**What was built**:
+- **`serve.py`** — a **zero-dependency** local server (Python stdlib only). Two jobs:
+  1. Serves the static suite from `forecast_copilot/` (so pages load over `http://`, which the Phase 2 adapter needs); `/` 302-redirects to the Dashboard page.
+  2. Read API over the immutable input workbook:
+     - `GET /api/health` — liveness + `source`/`sheet`/`sha256`/`rowCount`.
+     - `GET /api/dataset` — the **Service Dataset** sheet parsed to cached JSON: `columns` (13, keyed + typed), `rowCount`, `rows` (faithful records, ASU/Expirations/FQM as numbers), and a `summary` (numeric `totals` + `distinct` categorical values). `no-store` + CORS headers.
+     - `GET /api/outputs` and `POST /api/publish` — honest **501** stubs (write path is Phase 5).
+- **Parsing decision**: an `.xlsx` is a zip of XML, and this is a small fixed-format demo sheet, so the workbook is parsed with `zipfile` + `xml.etree` — **no openpyxl/pandas** (neither was installed here anyway; adding them would break the offline/static posture). Resolves the target sheet by *name* via `workbook.xml` + rels (robust to sheet reordering) and maps columns by *header label* (robust to column reordering). Values kept **verbatim** — no `Poweredge→PowerEdge`-style normalization (Phase 2 derives filter options from the data's own distinct values, which removes that reconciliation problem at the root).
+- **Input immutability**: the server only ever *reads* the workbook; every `health`/`dataset` response echoes its `sha256`, which the test pins to the committed `input/INPUT_SHA256.txt`.
+- **`test_dataset.py`** (stdlib `unittest`, 8 tests): asserts `load_dataset()` reproduces a **hand-checked pivot** of 12 slice aggregates (grand + by-FY + by-Region + 2-/3-dim slices), plus row count (2964), the 13-column schema, distinct values, the sha256 pin, and two structural checks (Region slices and FY slices each partition the grand total).
+
+**How the pivot was ground-truthed**: computed with a **separate regex/streaming parse** of the `.xlsx` — a genuinely different code path from `serve.py`'s ElementTree parser — then cross-checked for internal consistency (regions sum to grand ΣASU 8,126,618,028; FYs likewise; counts reconcile to 2964). So the test cross-validates the parser rather than checking it against itself.
+
+**Verified**: `python -m unittest -v` → 8/8 pass. Booted the server and confirmed `GET /api/health` (200, correct sha256), `GET /api/dataset` (200, ~915 KB, 2964 rows, faithful first/last rows, correct headers), static HTML + `fc_engine.js` serve 200, the two 501 stubs, and a 404 on an unknown `/api/*` route.
+
+**Gotcha recorded**: this machine's console is cp1252 — a `Σ` in the startup banner crashed the process on print (JSON output was always UTF-8 and fine); banner switched to ASCII. Unrelated localhost noise in the log (`Dell Peripheral Manager` probing `/`) is harmless and just exercises the `/`→Dashboard redirect.
