@@ -215,30 +215,27 @@ aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 8,89
 schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
 The expected pivot was ground-truthed with an independent regex parse of the workbook.
 
-### Input data (Service Dataset)
+### Input data
 
-`input/dell_isg,esg_fy24-26.xlsx`, sheet **Service Dataset** — **8,892 rows** = 19 products ×
-3 regions × 156 weeks (52 × 3 fiscal years), one row per Product × Region × week. Columns: FY,
-Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type, ASU, Warranty Expirations,
-Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. It is **modeled/dummy demo data**
-(the workbook's own sheets are labelled "MODELED ESTIMATES").
+Two workbooks in `input/`, both **modeled/dummy demo data**:
 
-This sheet was **densified** from an original 2,964-row sample (one row per Product × week, with a
-single rotating region) so that Product + Region drill-downs show full weekly trends instead of
-gaps, and **scaled to 10%** so ASU sits at a believable magnitude (the raw sample's units were
-unrealistically large — whole-business single-week ~50M, ~8.1B summed over 156 weeks). The scale is
-**uniform, so every distribution ratio is preserved** (region mix, product mix, weekly shape); after
-scaling, the whole-business single-week installed base is **~5M units** and grand ASU is ~812.66M.
-Mechanically: each original (product, week) value is scaled by 0.10 then split across the three
-regions by that product's own regional mix via a largest-remainder integer split (Warranty
-Expirations scaled + split the same way).
+- **`dell_isg,esg_fy24-26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
+  **8,892 rows** = 19 products × 3 regions × 156 weeks (52 × 3 fiscal years), one row per Product ×
+  Region × week. Columns: FY, Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type, ASU,
+  Warranty Expirations, Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. Whole-business
+  single-week installed base is ~5M units; grand ASU ~812.66M.
+- **`fy24-26_info.xlsx` — reference/info only, not read by the app.** Holds the Dell 10-K-derived
+  sheets (FY26 Official, Product Estimates, Product x Quarter, Warranty Assumptions) plus an
+  **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per product = ASU
+  summed across regions, plus a Total, with an Excel AutoFilter).
 
-- `densify_service_dataset.py` regenerates it (idempotent). It rewrites the Service Dataset worksheet
-  and adds an **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per
-  product = ASU summed across regions, plus a Total, with an Excel AutoFilter). The real Dell 10-K
-  sheets (FY26 Official, Product Estimates, …), styles, sharedStrings and calcChain are byte-identical.
-- `input/dell_isg,esg_fy24-26.source.xlsx` is the pristine pre-densification sample (provenance).
-- `input/INPUT_SHA256.txt` pins the sha256 of both the working file and the source.
+`input/INPUT_SHA256.txt` pins the sha256 of both files. The **runtime rule** holds: the server only
+ever *reads* the source and never writes to it.
 
-The **runtime** rule is unchanged: the server never writes to the input. Densification is a
-one-time, dev-time refinement of demo data, run deliberately and recorded here.
+> **Provenance.** The Service Dataset was derived from an original 2,964-row sample (one row per
+> Product × week, single rotating region) by densifying to a full Product × Region × week grid and
+> scaling ASU uniformly to 10% (so all distribution ratios are preserved and magnitudes are
+> believable). That was a one-time, dev-time transformation — the two workbooks are now **maintained
+> directly as the source of truth**. The derivation is preserved in git history and in
+> `PROMPT_TRAIL.md` (the earlier `densify_service_dataset.py` generator that produced it has been
+> retired now that the workbooks are hand-maintained).
