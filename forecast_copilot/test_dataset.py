@@ -22,40 +22,40 @@ import serve
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Hand-checked pivot: name -> (predicate over a record, (count, ΣASU, ΣExpirations, ΣFQM)).
-# For the DENSE Service Dataset (8,892 rows = 19 products x 3 regions x 156 weeks),
-# produced by densify_service_dataset.py. The grid is total-preserving: grand ASU
-# and ΣExpirations are unchanged from the original sample; FQM is inherited into
-# each of the 3 region rows (so ΣFQM = 3 x the original 2074 = 6222). Regional ASU
-# totals shift slightly vs the original sample because each (product,week) value is
-# now split across regions by a largest-remainder integer split. Ground-truthed via
-# an independent inline-string regex parse of the workbook.
+# For the DENSE + SCALED Service Dataset (8,892 rows = 19 products x 3 regions x 156
+# weeks), produced by densify_service_dataset.py with SCALE=0.10. Every ASU and
+# Expiration was uniformly scaled to 10% (so all distribution ratios are preserved
+# and grand ASU is ~812.66M, a believable installed base), then each (product,week)
+# value split across regions by a largest-remainder integer split. FQM is inherited
+# into each of the 3 region rows (ΣFQM = 3 x the original 2074 = 6222). Ground-truthed
+# via an independent inline-string regex parse of the workbook.
 PIVOT = {
     "GRAND":                    (lambda r: True,
-                                 (8892, 8126618028, 46961720, 6222)),
+                                 (8892, 812661800, 4696068, 6222)),
     "FY=FY24":                  (lambda r: r["fy"] == "FY24",
-                                 (2964, 2156332756, 12135552, 2079)),
+                                 (2964, 215633277, 1213576, 2079)),
     "FY=FY25":                  (lambda r: r["fy"] == "FY25",
-                                 (2964, 2706366343, 15647476, 2055)),
+                                 (2964, 270636630, 1564732, 2055)),
     "FY=FY26":                  (lambda r: r["fy"] == "FY26",
-                                 (2964, 3263918929, 19178692, 2088)),
+                                 (2964, 326391893, 1917760, 2088)),
     "Region=Americas":          (lambda r: r["region"] == "Americas",
-                                 (2964, 4133546981, 23877048, 2074)),
+                                 (2964, 413354715, 2387788, 2074)),
     "Region=EMEA":              (lambda r: r["region"] == "EMEA",
-                                 (2964, 2211365747, 12786696, 2074)),
+                                 (2964, 221136574, 1278576, 2074)),
     "Region=APJ":               (lambda r: r["region"] == "APJ",
-                                 (2964, 1781705300, 10297976, 2074)),
+                                 (2964, 178170511, 1029704, 2074)),
     "FY26 & EMEA":              (lambda r: r["fy"] == "FY26" and r["region"] == "EMEA",
-                                 (988, 887242721, 5217992, 696)),
+                                 (988, 88724249, 521768, 696)),
     "Product=Poweredge":        (lambda r: r["product"] == "Poweredge",
-                                 (468, 6456134248, 37273392, 351)),
+                                 (468, 645613425, 3727308, 351)),
     "Quarter=2026-Q1":          (lambda r: r["fiscalQuarter"] == "2026-Q1",
-                                 (741, 765863013, 4794673, 525)),
+                                 (741, 76586300, 479440, 525)),
     "Week=2024-W01":            (lambda r: r["fiscalWeek"] == "2024-W01",
-                                 (57, 36760198, 233376, 42)),
+                                 (57, 3676019, 23338, 42)),
     "FY26 & Poweredge & Americas": (
                                  lambda r: r["fy"] == "FY26" and r["product"] == "Poweredge"
                                  and r["region"] == "Americas",
-                                 (52, 1319546987, 7746856, 40)),
+                                 (52, 131954700, 774696, 40)),
 }
 
 EXPECTED_COLUMNS = [

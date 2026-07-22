@@ -225,9 +225,13 @@ Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. It is **modeled/dummy 
 
 This sheet was **densified** from an original 2,964-row sample (one row per Product × week, with a
 single rotating region) so that Product + Region drill-downs show full weekly trends instead of
-gaps. The densification is **total-preserving**: each original (product, week) value is split across
-the three regions by that product's own regional mix via a largest-remainder integer split, so
-grand ASU (8,126,618,028) and every per-product total are unchanged — only regional detail fills in.
+gaps, and **scaled to 10%** so ASU sits at a believable magnitude (the raw sample's units were
+unrealistically large — whole-business single-week ~50M, ~8.1B summed over 156 weeks). The scale is
+**uniform, so every distribution ratio is preserved** (region mix, product mix, weekly shape); after
+scaling, the whole-business single-week installed base is **~5M units** and grand ASU is ~812.66M.
+Mechanically: each original (product, week) value is scaled by 0.10 then split across the three
+regions by that product's own regional mix via a largest-remainder integer split (Warranty
+Expirations scaled + split the same way).
 
 - `densify_service_dataset.py` regenerates it (idempotent) and only rewrites the Service Dataset
   worksheet; the real Dell 10-K sheets (FY26 Official, Product Estimates, …) are left byte-identical.

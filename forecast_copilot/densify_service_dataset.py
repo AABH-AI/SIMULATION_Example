@@ -10,12 +10,19 @@ Product x Region x Week has a real value, and drill-downs show full weekly
 trends. The sheet is explicitly labelled "MODELED ESTIMATES", so this is a
 deliberate, dev-time refinement of demo data -- not real Dell figures.
 
-Total-preserving: each original (product, week) row is split across the three
-regions using that product's own realised regional ASU mix, with an integer
-largest-remainder split so the three parts sum EXACTLY to the original. Result:
-grand totals and every per-product total are unchanged (grand ASU stays
-8,126,618,028); only the regional detail fills in. Warranty Expirations split
-the same way; FQM flag and the other attributes are inherited unchanged.
+Ratio-preserving with a global scale: each original (product, week) value is
+first scaled by SCALE (a uniform factor, so ALL distribution ratios -- region
+mix, product mix, weekly shape -- are preserved exactly), then split across the
+three regions using that product's own realised regional ASU mix, with an
+integer largest-remainder split so the three parts sum EXACTLY to the scaled
+per-(product,week) total. Warranty Expirations are scaled + split the same way
+(keeping the ASU<->Expiration relationship sane); FQM flag and the other
+attributes are inherited unchanged.
+
+SCALE = 0.10 brings ASU to a believable magnitude: the raw sample's active
+support units summed unrealistically high (whole-business single-week ~50M, and
+~8.1B summed across 156 weeks). At 0.10 the whole-business single-week installed
+base is ~5M units. Set SCALE = 1.0 to densify without rescaling.
 
 Safety:
   - Only the Service Dataset worksheet part (xl/worksheets/sheet1.xml) is
@@ -44,6 +51,7 @@ INPUT = os.path.join(HERE, "input", "dell_isg,esg_fy24-26.xlsx")
 SOURCE = os.path.join(HERE, "input", "dell_isg,esg_fy24-26.source.xlsx")
 SHEET_PART = "xl/worksheets/sheet1.xml"
 REGIONS = ["Americas", "EMEA", "APJ"]
+SCALE = 0.10   # global ASU/Expiration scale (uniform -> ratios preserved). 1.0 = no rescale.
 
 # Column letter -> record key, in the sheet's A..M order (from serve.FIELD_SCHEMA).
 _LETTERS = [chr(ord("A") + i) for i in range(len(serve.FIELD_SCHEMA))]
@@ -89,8 +97,10 @@ def build_dense_rows(rows):
     out = []
     for r in rows:
         sp = shares[r["product"]]
-        asu_parts = _split_int(int(r["asu"] or 0), sp)
-        exp_parts = _split_int(int(r["warrantyExpirations"] or 0), sp)
+        # Scale the per-(product,week) total first (uniform -> ratios preserved),
+        # then split the scaled total across regions with exact integer parts.
+        asu_parts = _split_int(round(int(r["asu"] or 0) * SCALE), sp)
+        exp_parts = _split_int(round(int(r["warrantyExpirations"] or 0) * SCALE), sp)
         for i, rg in enumerate(REGIONS):
             nr = dict(r)
             nr["region"] = rg
@@ -158,15 +168,18 @@ def main():
     os.replace(tmp, INPUT)
     print(f"wrote {os.path.basename(INPUT)}")
 
-    # 2) Verify with the same parser and confirm total preservation.
+    # 2) Verify with the same parser and confirm the scaled totals are exact.
     out = serve.load_dataset(INPUT)
     ot, st = out["summary"]["totals"], src_data["summary"]["totals"]
-    print(f"verify: rowCount {out['rowCount']}, ASU {ot['asu']:,}, Expir {ot['warrantyExpirations']:,}")
+    exp_asu = sum(round(int(r["asu"] or 0) * SCALE) for r in rows)
+    exp_exp = sum(round(int(r["warrantyExpirations"] or 0) * SCALE) for r in rows)
+    print(f"verify: rowCount {out['rowCount']}, ASU {ot['asu']:,} "
+          f"(source {st['asu']:,} x {SCALE}), Expir {ot['warrantyExpirations']:,}")
     assert out["rowCount"] == len(dense_rows), "row count mismatch"
-    assert ot["asu"] == st["asu"], "ASU total not preserved!"
-    assert ot["warrantyExpirations"] == st["warrantyExpirations"], "Expirations total not preserved!"
+    assert ot["asu"] == exp_asu, "scaled ASU total mismatch!"
+    assert ot["warrantyExpirations"] == exp_exp, "scaled Expirations total mismatch!"
     assert sorted(out["summary"]["distinct"]["region"]) == sorted(REGIONS), "region set changed"
-    print("OK: totals preserved, sheet densified.")
+    print(f"OK: densified + scaled x{SCALE}; ratios preserved (uniform scale).")
 
 
 if __name__ == "__main__":
