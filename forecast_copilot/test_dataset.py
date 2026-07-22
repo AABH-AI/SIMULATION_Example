@@ -22,33 +22,40 @@ import serve
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Hand-checked pivot: name -> (predicate over a record, (count, ΣASU, ΣExpirations, ΣFQM)).
+# For the DENSE Service Dataset (8,892 rows = 19 products x 3 regions x 156 weeks),
+# produced by densify_service_dataset.py. The grid is total-preserving: grand ASU
+# and ΣExpirations are unchanged from the original sample; FQM is inherited into
+# each of the 3 region rows (so ΣFQM = 3 x the original 2074 = 6222). Regional ASU
+# totals shift slightly vs the original sample because each (product,week) value is
+# now split across regions by a largest-remainder integer split. Ground-truthed via
+# an independent inline-string regex parse of the workbook.
 PIVOT = {
     "GRAND":                    (lambda r: True,
-                                 (2964, 8126618028, 46961720, 2074)),
+                                 (8892, 8126618028, 46961720, 6222)),
     "FY=FY24":                  (lambda r: r["fy"] == "FY24",
-                                 (988, 2156332756, 12135552, 693)),
+                                 (2964, 2156332756, 12135552, 2079)),
     "FY=FY25":                  (lambda r: r["fy"] == "FY25",
-                                 (988, 2706366343, 15647476, 685)),
+                                 (2964, 2706366343, 15647476, 2055)),
     "FY=FY26":                  (lambda r: r["fy"] == "FY26",
-                                 (988, 3263918929, 19178692, 696)),
+                                 (2964, 3263918929, 19178692, 2088)),
     "Region=Americas":          (lambda r: r["region"] == "Americas",
-                                 (1528, 4133547010, 23804506, 1077)),
+                                 (2964, 4133546981, 23877048, 2074)),
     "Region=EMEA":              (lambda r: r["region"] == "EMEA",
-                                 (833, 2211365752, 12866977, 577)),
+                                 (2964, 2211365747, 12786696, 2074)),
     "Region=APJ":               (lambda r: r["region"] == "APJ",
-                                 (603, 1781705266, 10290237, 420)),
+                                 (2964, 1781705300, 10297976, 2074)),
     "FY26 & EMEA":              (lambda r: r["fy"] == "FY26" and r["region"] == "EMEA",
-                                 (268, 906408748, 5402958, 188)),
+                                 (988, 887242721, 5217992, 696)),
     "Product=Poweredge":        (lambda r: r["product"] == "Poweredge",
-                                 (156, 6456134248, 37273392, 117)),
+                                 (468, 6456134248, 37273392, 351)),
     "Quarter=2026-Q1":          (lambda r: r["fiscalQuarter"] == "2026-Q1",
-                                 (247, 765863013, 4794673, 175)),
+                                 (741, 765863013, 4794673, 525)),
     "Week=2024-W01":            (lambda r: r["fiscalWeek"] == "2024-W01",
-                                 (19, 36760198, 233376, 14)),
+                                 (57, 36760198, 233376, 42)),
     "FY26 & Poweredge & Americas": (
                                  lambda r: r["fy"] == "FY26" and r["product"] == "Poweredge"
                                  and r["region"] == "Americas",
-                                 (22, 1094326303, 6451918, 18)),
+                                 (52, 1319546987, 7746856, 40)),
 }
 
 EXPECTED_COLUMNS = [
@@ -79,8 +86,8 @@ class DatasetReadPathTest(unittest.TestCase):
 
     # --- shape -------------------------------------------------------------- #
     def test_row_count(self):
-        self.assertEqual(self.data["rowCount"], 2964)
-        self.assertEqual(len(self.rows), 2964)
+        self.assertEqual(self.data["rowCount"], 8892)
+        self.assertEqual(len(self.rows), 8892)
 
     def test_columns(self):
         got = [(c["key"], c["type"]) for c in self.data["columns"]]

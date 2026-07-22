@@ -54,10 +54,11 @@ Clicking the badge reloads to re-check (e.g. after starting the server).
   Type** (the sheet has no ESG/ISG/HES column but does have Warranty Type). A
   stored/seeded filter value that isn't a real option is snapped to `All`.
 - **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
-  quarter + slice, rows are aggregated into the quarter's 13 canonical weeks; ASU
-  is a *stock* so the last observed value is carried forward into weeks with no
-  matching rows (narrow slices are sparse), Expirations is a *flow* so absent
-  weeks are 0.
+  quarter + slice, rows are aggregated into the quarter's 13 canonical weeks. The
+  Service Dataset is dense on **Product × Region × week** (see *Input data* below),
+  so single- and two-dimension drill-downs show a full 13-week trend. For any
+  weeks with no matching rows (only deeper 3-plus-filter combos), ASU — a *stock* —
+  carries its last observed value forward, and Expirations — a *flow* — is 0.
 - **SR / Dispatch stay derived** by ratio (`SR = ASU × 0.185`; Dispatch =
   `SR × serviceRatio`).
 - **New Contracts / APOS stay modeled levers** (no such columns exist). They apply
@@ -210,6 +211,28 @@ python -m unittest -v          # 8 tests, stdlib only
 ```
 
 `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 12 slice
-aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 2,964-row × 13-column
+aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 8,892-row × 13-column
 schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
 The expected pivot was ground-truthed with an independent regex parse of the workbook.
+
+### Input data (Service Dataset)
+
+`input/dell_isg,esg_fy24-26.xlsx`, sheet **Service Dataset** — **8,892 rows** = 19 products ×
+3 regions × 156 weeks (52 × 3 fiscal years), one row per Product × Region × week. Columns: FY,
+Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type, ASU, Warranty Expirations,
+Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. It is **modeled/dummy demo data**
+(the workbook's own sheets are labelled "MODELED ESTIMATES").
+
+This sheet was **densified** from an original 2,964-row sample (one row per Product × week, with a
+single rotating region) so that Product + Region drill-downs show full weekly trends instead of
+gaps. The densification is **total-preserving**: each original (product, week) value is split across
+the three regions by that product's own regional mix via a largest-remainder integer split, so
+grand ASU (8,126,618,028) and every per-product total are unchanged — only regional detail fills in.
+
+- `densify_service_dataset.py` regenerates it (idempotent) and only rewrites the Service Dataset
+  worksheet; the real Dell 10-K sheets (FY26 Official, Product Estimates, …) are left byte-identical.
+- `input/dell_isg,esg_fy24-26.source.xlsx` is the pristine pre-densification sample (provenance).
+- `input/INPUT_SHA256.txt` pins the sha256 of both the working file and the source.
+
+The **runtime** rule is unchanged: the server never writes to the input. Densification is a
+one-time, dev-time refinement of demo data, run deliberately and recorded here.

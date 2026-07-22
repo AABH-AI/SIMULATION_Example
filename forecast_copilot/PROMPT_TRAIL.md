@@ -527,3 +527,22 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - **Fallback** (plain `python -m http.server`, no `/api`): badge "Simulated data" (amber), seeded numbers, original labels, **0 console errors**. Screenshot confirms the badge is well-placed and non-overlapping.
 
 **Note**: `let`/`const` engine globals aren't attached to `window`; introspect them as bare identifiers in the page realm (or via a `var` probe under Node `vm`).
+
+---
+
+## Phase 2b — Densify the modeled Service Dataset (Product × Region × week)
+**Date**: 2026-07-22 | **Branch**: `hn-new`
+**Prompt**: after Phase 2, user flagged that narrow (Product + Region) slices were sparse; decided to "rewrite the service dataset with products x region x 52 weeks x 3 fiscal years", then "explain option 1" and "proceed".
+**Files**: new `forecast_copilot/densify_service_dataset.py`, `input/dell_isg,esg_fy24-26.xlsx` (rewritten sheet), new `input/dell_isg,esg_fy24-26.source.xlsx` (provenance), `input/INPUT_SHA256.txt`, `test_dataset.py`, docs
+
+**Why**: the shipped Service Dataset was a *sample* — 2,964 rows = one row per (product, week), with Region and the other attributes set to a single rotating value. So a product appeared in only one region per week, and Product + Region drill-downs were sparse (~1/3 of weeks; e.g. Poweredge × Americas × 2026-Q1 = 7 of 13 weeks, filled by carry-forward). Structure confirmed first: distinct (week,product) == row count (2,964); each of 19 products has 156 rows (one per week); `2026-W01` had 19 rows, one per product, single region each.
+
+**What was done**: densified to **8,892 rows** = 19 products × 3 regions × 156 weeks (one row per Product × Region × week). Each original (product, week) row is split into three region rows; ASU and Warranty Expirations are split across regions by that product's **own realised regional mix** (floored at 10% each, renormalised) using a **largest-remainder integer split** so the three parts sum EXACTLY to the original. Secondary attributes (Warranty Type, Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type) are inherited unchanged.
+
+**Total-preserving** (the key property): grand ASU stays exactly **8,126,618,028** and ΣExpirations exactly **46,961,720**; every per-product total is unchanged. Only regional detail fills in. ΣFQM = 3 × 2074 = 6,222 (flag inherited into each region row). Regional ASU totals shift slightly vs the original sample (largest-remainder split vs whole-row assignment) but still partition the grand total exactly — the test's structural partition checks confirm this automatically.
+
+**Safety of the file rewrite**: verified the Service Dataset sheet has **no formulas** and `calcChain` references only sheetIds 1–4 (the four official/modeled sheets), never the Service Dataset (sheetId 5). So only `xl/worksheets/sheet1.xml` is rewritten (dimension + sheetData; string cells as **inline strings** to avoid touching the shared string table); a byte comparison confirms **every other part identical** — the real Dell 10-K sheets (FY26 Official, Product Estimates, Product x Quarter, Warranty Assumptions), styles, sharedStrings and calcChain are untouched. `densify_service_dataset.py` is **idempotent**: it preserves a pristine `*.source.xlsx` on first run and always regenerates from it. `INPUT_SHA256.txt` now pins both the working file (`e0645a76…`) and the source (`f3dc03a8…`).
+
+**Verification**: generator's own asserts (totals preserved, row count, region set); independent inline-string regex parse recomputed the pivot ground truth for the new file; `test_dataset.py` updated to the dense pivot (row count 8,892; grand ASU/Expir unchanged; FQM ×3; region/product/multi-dim slices updated) → **8/8 pass**. Browser (served live): the Poweredge × Americas × 2026-Q1 ASU trend is now **13 distinct weekly points** (23.42M → 24.59M) matching Python exactly — no carry-forward — with 0 console errors.
+
+**Runtime posture unchanged**: the server still only reads the input; densification is a deliberate one-time dev-time refinement of clearly-labelled modeled/dummy data, recorded here. Original sample recoverable from the `.source.xlsx` (and git history).
