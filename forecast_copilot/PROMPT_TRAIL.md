@@ -570,6 +570,16 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 
 ---
 
+## Phase 6 — End-to-end walkthrough + docs refresh
+**Date**: 2026-07-23 | **Branch**: `hn-new`
+**Plan ref**: `BUILD_PLAN.md` → "Phase 6 — E2E + docs"
+**Files**: `HANDOFF.md` (rewritten), `README.md`, `BUILD_PLAN.md`, `PROMPT_TRAIL.md`, memory. (No product code changed.)
+**Prompt**: "phase 6. go. optional demo > later, when others' changes are consolidated."
+
+**End-to-end walkthrough** (served live, one clean pass from a cleared `fc_state_v1`, checking console errors on every page): Dashboard → **Live** badge, real numbers, fresh state auto-migrated to a "Baseline" scenario, ASU 5.01M (All/All) → 2.46M on an Americas/Poweredge/2026-Q1 drill-down. Slice **carried** to ASU Simulation; NC/APOS 25/15 raised scenario ASU 2.46M→2.52M. Historical clean. AI BTC Advisor → picked "Balanced" (6.82%). BTC Distribution → strategy carried; edited week 2026-W06 (474,900→514,900) → ledger recorded it with a timestamp. Final Forecast → the whole chain flowed (slice + levers + strategy + weekly edit; final SR bottom-up 6,255,720); Approve Scenario + Approve BTC; **Submit → published** `forecast_baseline_2026-07-23_190748.xlsx` to `output/`, button disabled with tooltip, history panel listed it. Inspected the file on disk: **Final Forecast** sheet shows the weekly plan with W06 flagged **Edited=Yes**; **Assumptions** shows the slice + levers (Balanced, 25/15); **Audit** records the input **sha256** + the ledger entry — the full input→edit→publish story captured in one artifact. Killed the server, loaded via a plain static host → **Simulated** badge + seeded numbers, 0 errors. **Input sha256 unchanged** throughout; **14/14 tests pass**. Test-published files cleaned from `output/` (kept `.gitkeep`).
+
+**Docs refresh**: rewrote the stale `HANDOFF.md` into a focused, current quick-start for the product (what it is, `python serve.py`, the loop, where things live, status, guardrails); README intro updated (static→live/loop, points to HANDOFF); `BUILD_PLAN.md` marked Phases 0–6 complete and the Power BI decision now evidence-backed; this entry. **Demo runbook deferred** per instruction (do it later, once other people's branches are consolidated). Phase 7 (LLM insights) remains optional.
+
 ## Phase 5 — Publish / write path (`serve.py`, Final Forecast page) — loop closed
 **Date**: 2026-07-23 | **Branch**: `hn-new`
 **Plan ref**: `BUILD_PLAN.md` → "Phase 5 — Publish / write path (1)" *(milestone: loop closed)*

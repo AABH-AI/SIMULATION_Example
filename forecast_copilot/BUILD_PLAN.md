@@ -76,6 +76,10 @@ browser download when the server is absent. (A pure-static app cannot silently w
 
 ## Build order
 
+> **Status (2026-07-23): Phases 0–6 COMPLETE on `hn-new` (pushed).** The full input → edit → publish
+> loop works end-to-end (verified in-browser, 0 console errors; 14 stdlib tests pass). Phase 7 (LLM
+> insights) is the only remaining, optional item. See `HANDOFF.md` for the current quick-start.
+
 Each phase is independently verifiable. Natural stop-and-review after **Phase 2** and **Phase 5**.
 
 - **Phase 0 — Connect to `hn-new` + scaffold**
@@ -123,6 +127,12 @@ Once Phases 0–6 exist as a working demo, use it to answer a real question befo
 **should the production version live in Power BI instead of a custom app?** The demo is the cheap,
 offline, fast-to-iterate way to prove the flow and show stakeholders — *then* decide the platform.
 
+> **The demo now exists (Phases 0–6 done).** This decision is ready to make with evidence rather than
+> guesswork: the read/slice/slider side maps natively to Power BI, but the parts this build proved out
+> — **cell-level weekly editing, saved/compared named scenarios *with* data edits, and a structured,
+> timestamped, audited output workbook** — do not, and would need Inforiver/Acterys or the Power
+> Apps + Automate stack (paid, cloud, Dell data off-prem). Decision remains the owner's call.
+
 **Splits sharply along read vs. write:**
 - **Maps natively (Power BI's home turf):** connect the input (Power Query), slicers = the filter rail,
   KPIs/trends/tables = the pages, and **What-If parameters** = the NC/APOS/BTC sliders. You can even
@@ -160,7 +170,7 @@ you make that call with evidence instead of guesswork.
 - Commit the `.xlsx` data files (modeled/dummy demo data) **and** the published `output/` files (the forecast
   record). Gitignore only the Excel lock temp files (`~$*.xlsx`).
 
-**Start at:** Phase 0 (unless told otherwise).
+**Start at:** Phase 0 (unless told otherwise). — *Done: Phases 0–6 complete; only optional Phase 7 remains.*
 
 ---
 

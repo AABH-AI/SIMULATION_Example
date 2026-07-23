@@ -2,11 +2,17 @@
 
 > Folder-local documentation for the `forecast_copilot/` product.
 > This is a **copy** kept inside the folder; the canonical project docs in `../IMP_DOCS/` are left as-is.
-> Last updated: 2026-07-20
+> New here? Start with `HANDOFF.md` (quick-start), then this file for detail.
+> Last updated: 2026-07-23 (Phases 0–6 complete).
 
-A standalone, static 6-page suite for **BTC (Bend-the-Curve) forecast planning**. Pure HTML/CSS/JS,
-no backend or build step. Light theme (Inter font, teal `#0d9488` accent), charts via Highcharts 11.4.8.
-Live on GitHub Pages (served through the repo-root `.nojekyll` file).
+A 6-page suite for **BTC (Bend-the-Curve) forecast planning**, built around an **input → edit →
+publish** loop. Light theme (Inter font, teal `#0d9488` accent), charts via Highcharts 11.4.8.
+
+The pages run standalone (pure HTML/CSS/JS, live on GitHub Pages via the repo-root `.nojekyll`) in
+**Simulated** mode on seeded data. Run the optional **`serve.py`** (zero-dependency, Python stdlib) and
+they switch to **Live** mode: reading the real input workbook and publishing timestamped, audited
+forecasts to `output/`. No `pip install`, no build step, no cloud. See "Data source: Live vs
+Simulated" and "Local server & read path" below.
 
 Separate product from the ISG BPA dashboards (`../BPA_FORCASTING_MOCK.HTML` etc.) — no shared code with them.
 
