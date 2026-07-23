@@ -5,11 +5,12 @@ A zero-dependency local server for the Forecast Copilot suite. It does two jobs:
 
   1. Serves the static HTML/JS suite from this folder (so the pages load over
      http:// instead of file://, which is what the Phase 2 data adapter needs).
-  2. Exposes a small JSON read API over the immutable input workbook:
+  2. Exposes a small JSON API over the immutable input workbook + output folder:
        GET /api/health   -> liveness + which workbook is loaded (name + sha256)
        GET /api/dataset  -> the "Service Dataset" sheet parsed to cached JSON
-       GET /api/outputs  -> 501 (published-forecast history; Phase 5)
-       POST /api/publish -> 501 (write path; Phase 5)
+       GET /api/outputs  -> published-forecast history (output/*.xlsx, newest first)
+       POST /api/publish -> writes a timestamped forecast .xlsx to output/ (never
+                            overwrites); body is the forecast JSON from the page
 
 The workbook is parsed with the Python standard library only (`zipfile` + XML) --
 an .xlsx is a zip of XML, and this file is a small, fixed-format demo sheet, so a
@@ -37,6 +38,7 @@ import re
 import sys
 import threading
 import zipfile
+from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlparse
 from xml.etree import ElementTree as ET
@@ -48,6 +50,7 @@ from xml.etree import ElementTree as ET
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_INPUT = os.path.join(HERE, "input", "dell_isg,esg_fy24-26.xlsx")
 SHEET_NAME = "Service Dataset"
+OUTPUT_DIR = os.path.join(HERE, "output")
 
 # OOXML SpreadsheetML namespaces.
 _MAIN = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
@@ -274,6 +277,177 @@ class DatasetCache:
 
 
 # --------------------------------------------------------------------------- #
+# Write path: publish a forecast to output/ (Phase 5)
+# --------------------------------------------------------------------------- #
+# A minimal, dependency-free .xlsx WRITER (same stdlib-only posture as the
+# reader): strings are written as inline strings so there is no shared-string
+# table to manage; a tiny styles part gives a normal + a bold cell style.
+
+def _xml_escape(s: str) -> str:
+    return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace('"', "&quot;"))
+
+
+def _col_name(n: int) -> str:
+    """1 -> A, 26 -> Z, 27 -> AA (for writing A1-style refs)."""
+    s = ""
+    while n > 0:
+        n, r = divmod(n - 1, 26)
+        s = chr(ord("A") + r) + s
+    return s
+
+
+def _cell_xml(ref: str, value) -> str:
+    """A cell is a scalar, or {'v': value, 'b': True} for bold."""
+    bold = False
+    if isinstance(value, dict):
+        bold, value = bool(value.get("b")), value.get("v")
+    s = ' s="1"' if bold else ""
+    if isinstance(value, bool):
+        value = "TRUE" if value else "FALSE"
+    if value is None or value == "":
+        return f'<c r="{ref}"{s}/>'
+    if isinstance(value, (int, float)):
+        return f'<c r="{ref}"{s}><v>{value}</v></c>'
+    return f'<c r="{ref}"{s} t="inlineStr"><is><t xml:space="preserve">{_xml_escape(value)}</t></is></c>'
+
+
+def _sheet_xml(rows) -> str:
+    maxc = max((len(r) for r in rows), default=1)
+    body = []
+    for ri, row in enumerate(rows, start=1):
+        cells = "".join(_cell_xml(f"{_col_name(ci + 1)}{ri}", row[ci]) for ci in range(len(row)))
+        body.append(f'<row r="{ri}">{cells}</row>')
+    dim = f"A1:{_col_name(max(maxc, 1))}{max(len(rows), 1)}"
+    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            f'<dimension ref="{dim}"/><sheetData>' + "".join(body) + "</sheetData></worksheet>")
+
+
+def _write_xlsx(path, sheets):
+    """sheets = [{'name': str, 'rows': [[cell, ...], ...]}]. Writes a valid .xlsx."""
+    n = len(sheets)
+    ct = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+          '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+          '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+          '<Default Extension="xml" ContentType="application/xml"/>'
+          '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+          + "".join(f'<Override PartName="/xl/worksheets/sheet{i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' for i in range(n))
+          + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>')
+    root_rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                 '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                 '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')
+    sheet_tags = "".join(f'<sheet name="{_xml_escape(s["name"])}" sheetId="{i+1}" r:id="rId{i+1}"/>' for i, s in enumerate(sheets))
+    workbook = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+                'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                f'<sheets>{sheet_tags}</sheets></workbook>')
+    wb_rels = ("".join(f'<Relationship Id="rId{i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet{i+1}.xml"/>' for i in range(n))
+               + f'<Relationship Id="rId{n+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>')
+    wb_rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+               '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + wb_rels + "</Relationships>")
+    styles = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+              '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+              '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
+              '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
+              '<borders count="1"><border/></borders>'
+              '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+              '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+              '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
+              '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>')
+
+    tmp = path + ".tmp"
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", ct)
+        zf.writestr("_rels/.rels", root_rels)
+        zf.writestr("xl/workbook.xml", workbook)
+        zf.writestr("xl/_rels/workbook.xml.rels", wb_rels)
+        zf.writestr("xl/styles.xml", styles)
+        for i, s in enumerate(sheets):
+            zf.writestr(f"xl/worksheets/sheet{i+1}.xml", _sheet_xml(s["rows"]))
+    os.replace(tmp, path)
+
+
+def publish_forecast(payload, output_dir=OUTPUT_DIR, input_path=DEFAULT_INPUT):
+    """Write a timestamped forecast workbook (Final Forecast / Assumptions / Audit)
+    to output_dir. Never overwrites. Returns metadata. Reads-only the input (its
+    sha256 is recorded in the Audit sheet)."""
+    os.makedirs(output_dir, exist_ok=True)
+    now = datetime.now()
+    published_at = now.strftime("%Y-%m-%d %H:%M:%S")
+    input_sha = ""
+    if os.path.exists(input_path):
+        with open(input_path, "rb") as fh:
+            input_sha = hashlib.sha256(fh.read()).hexdigest()
+    scenario = str(payload.get("scenario") or "forecast")
+    data_mode = str(payload.get("dataMode") or "")
+
+    def B(v):
+        return {"v": v, "b": True}
+
+    # --- Final Forecast sheet ---
+    ff = [[B("Final Forecast")], ["Scenario", scenario], ["Published", published_at],
+          ["Data source", data_mode], [],
+          [B("Metric"), B("Forecast"), B("Target"), B("Gap"), B("BTC %")]]
+    for m in payload.get("summary", []) or []:
+        ff.append([m.get("metric"), m.get("forecast"), m.get("target"), m.get("gap"), m.get("btcPct")])
+    ff += [[], [B("Fiscal Week"), B("DS Forecast"), B("BTC Forecast"), B("Variance"), B("Edited")]]
+    for w in payload.get("weekly", []) or []:
+        ff.append([w.get("week"), w.get("ds"), w.get("btc"), w.get("variance"), ("Yes" if w.get("edited") else "")])
+
+    # --- Assumptions sheet ---
+    asm = [[B("Assumptions")], [B("Slice")]]
+    for k, v in (payload.get("slice") or {}).items():
+        asm.append([k, v])
+    asm += [[], [B("Levers")]]
+    for k, v in (payload.get("assumptions") or {}).items():
+        asm.append([k, v])
+
+    # --- Audit sheet ---
+    aud = [[B("Audit")], ["Published at", published_at], ["Scenario", scenario],
+           ["Input file", os.path.basename(input_path)], ["Input SHA-256", input_sha],
+           ["Data source", data_mode], [],
+           [B("Change ledger")], [B("Timestamp"), B("Action"), B("Week"), B("From"), B("To")]]
+    ledger = payload.get("ledger", []) or []
+    if ledger:
+        for e in ledger:
+            aud.append([e.get("ts"), e.get("action"), e.get("week"),
+                        ("" if e.get("from") is None else e.get("from")),
+                        ("" if e.get("to") is None else e.get("to"))])
+    else:
+        aud.append(["(no manual edits)"])
+
+    sheets = [{"name": "Final Forecast", "rows": ff},
+              {"name": "Assumptions", "rows": asm},
+              {"name": "Audit", "rows": aud}]
+
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", scenario).strip("-").lower() or "forecast"
+    base = f"forecast_{slug}_{now.strftime('%Y-%m-%d_%H%M%S')}"
+    name, i = base + ".xlsx", 2
+    while os.path.exists(os.path.join(output_dir, name)):   # never overwrite
+        name, i = f"{base}-{i}.xlsx", i + 1
+    dest = os.path.join(output_dir, name)
+    _write_xlsx(dest, sheets)
+    return {"ok": True, "filename": name, "publishedAt": published_at,
+            "inputSha256": input_sha, "bytes": os.path.getsize(dest)}
+
+
+def list_outputs(output_dir=OUTPUT_DIR):
+    """List published .xlsx files (newest first) with size + mtime."""
+    if not os.path.isdir(output_dir):
+        return []
+    out = []
+    for n in os.listdir(output_dir):
+        if n.lower().endswith(".xlsx") and not n.startswith("~$"):
+            st = os.stat(os.path.join(output_dir, n))
+            out.append({"filename": n, "bytes": st.st_size,
+                        "modified": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M:%S")})
+    out.sort(key=lambda x: x["modified"], reverse=True)
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # HTTP handler
 # --------------------------------------------------------------------------- #
 
@@ -345,15 +519,16 @@ class Handler(SimpleHTTPRequestHandler):
             if path == "/api/dataset" and method in ("GET", "HEAD"):
                 return self._send_json(self.cache.get())
             if path == "/api/outputs" and method in ("GET", "HEAD"):
-                return self._send_json(
-                    {"error": "not implemented", "phase": 5,
-                     "detail": "Published-forecast history arrives in Phase 5."},
-                    status=501)
+                return self._send_json({"outputs": list_outputs()})
             if path == "/api/publish" and method == "POST":
-                return self._send_json(
-                    {"error": "not implemented", "phase": 5,
-                     "detail": "The write path (POST /api/publish) arrives in Phase 5."},
-                    status=501)
+                length = int(self.headers.get("Content-Length", 0) or 0)
+                raw = self.rfile.read(length) if length else b""
+                try:
+                    payload = json.loads(raw.decode("utf-8")) if raw else {}
+                except json.JSONDecodeError as exc:
+                    return self._send_json({"error": "bad request", "detail": f"invalid JSON: {exc}"}, status=400)
+                res = publish_forecast(payload, input_path=self.cache.input_path)
+                return self._send_json(res, status=201)
             return self._send_json({"error": "not found", "path": path}, status=404)
         except Exception as exc:  # noqa: BLE001 -- surface parse/IO errors as JSON
             return self._send_json({"error": "server error", "detail": str(exc)}, status=500)

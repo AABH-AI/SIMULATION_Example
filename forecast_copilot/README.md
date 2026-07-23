@@ -234,8 +234,8 @@ python serve.py            # -> http://127.0.0.1:8000/  (Ctrl+C to stop)
 | `/` | GET | 302 redirect to the Dashboard page |
 | `/api/health` | GET | `{status, source, sheet, sha256, rowCount}` |
 | `/api/dataset` | GET | `{source, sheet, sha256, columns[], rowCount, rows[], summary{totals,distinct}}` |
-| `/api/outputs` | GET | **501** — publish history (Phase 5) |
-| `/api/publish` | POST | **501** — write path (Phase 5) |
+| `/api/outputs` | GET | `{outputs:[{filename, bytes, modified}]}` — publish history, newest first |
+| `/api/publish` | POST | writes a timestamped forecast `.xlsx` to `output/`; returns `{ok, filename, publishedAt, inputSha256, bytes}` |
 | any other path | GET | static file from `forecast_copilot/` |
 
 - **Read-only input.** The server never writes to the workbook. Every response echoes the file's
@@ -246,14 +246,37 @@ python serve.py            # -> http://127.0.0.1:8000/  (Ctrl+C to stop)
   `Poweredge→PowerEdge` normalization) — Phase 2 derives filter options from the data's distinct values.
 - **Result is cached** in memory (re-parsed only if the file's mtime/size change).
 
+### Publish / write path (Phase 5)
+
+**Submit Forecast** on the Final Forecast page `POST`s the current plan to `/api/publish`; `serve.py`
+writes a **timestamped** workbook to `output/` — e.g. `forecast_<scenario>_2026-07-23_182121.xlsx` —
+with three sheets:
+- **Final Forecast** — summary (ASU/SR/Dispatch: forecast, target, gap, BTC %) + the weekly plan (with an *Edited* flag per week).
+- **Assumptions** — the slice (all filters) and levers (NC/APOS, BTC strategy/%, distribution mode, confidence, risk).
+- **Audit** — publish metadata + the **input file's sha256** + the scenario's change ledger.
+
+It **never overwrites** (a name clash gets a `-2`, `-3` suffix), so `output/` is an append-only record;
+the input workbook is only read (its hash is recorded in Audit). The `.xlsx` is written with the same
+**stdlib-only** writer (inline strings, a tiny styles part) — no openpyxl.
+
+**Submit button behavior:** after publishing, Submit shows **"Published ✓"** and **disables itself**
+until the plan changes — it fingerprints the plan on publish and re-enables the moment any filter,
+lever, BTC choice, or weekly edit differs (tooltip: *"Published — edit the plan to publish a new
+version"*). It never deletes; re-publishing later just adds a new file. **Approve Scenario / Approve
+BTC** remain per-review toggles that reset on load. A **Published Forecasts** panel lists the history
+(via `/api/outputs`). With no server (static/`file://`), Submit falls back to a browser **JSON
+download** so nothing is lost.
+
 ### Test
 
 ```bash
 cd forecast_copilot
-python -m unittest -v          # 8 tests, stdlib only
+python -m unittest -v          # 14 tests, stdlib only (read path + write path)
 ```
 
-`test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 12 slice
+`test_publish.py` asserts the write path: a publish produces a valid 3-sheet `.xlsx`, a second publish
+never overwrites the first, the payload's numbers + ledger + input hash are recorded, and the input
+workbook is left untouched. `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 12 slice
 aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 8,892-row × 13-column
 schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
 The expected pivot was ground-truthed with an independent regex parse of the workbook.

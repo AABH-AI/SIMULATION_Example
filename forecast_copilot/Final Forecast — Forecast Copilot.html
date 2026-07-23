@@ -165,6 +165,7 @@
     </div>
 
     <div class="status-row" id="status-row"></div>
+    <div id="publish-status"></div>
 
     <div class="panel">
       <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
@@ -187,6 +188,17 @@
         <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th><th>BTC %</th><th>Confidence</th><th>Risk</th></tr></thead>
         <tbody id="summary-body"></tbody>
       </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Published Forecasts</div>
+      <div class="panel-sub">Timestamped workbooks written to the output folder, newest first. Publishing never overwrites — each submit is a new file.</div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>File</th><th>Published</th><th>Size</th></tr></thead>
+          <tbody id="outputs-body"></tbody>
+        </table>
+      </div>
     </div>
    </div>
   </main>
@@ -232,40 +244,149 @@ function fcRenderFinal() {
     const gap = row.target - row.forecast;
     return `<tr><td><strong>${row.metric}</strong></td><td>${fcN(row.forecast)}</td><td>${fcN(row.target)}</td><td>${gap>=0?'+':''}${fcN(gap)}</td><td>${fcPct(btcPct,2)}</td><td>${conf}%</td><td class="${riskClass(risk)}">${risk}</td></tr>`;
   }).join('');
+  fcApplySubmitUI();
 }
 
-// Approval buttons are TOGGLES: click to approve/submit, click again to undo.
-// (They are never left permanently disabled — an approval you can't reverse is a bug.)
-const APPROVAL_BTNS = [
-  { id: 'btn-approve-scenario', key: 'scenario', base: 'Approve Scenario', done: 'Scenario Approved', primary: false },
-  { id: 'btn-approve-btc',      key: 'btc',       base: 'Approve BTC',      done: 'BTC Approved',      primary: false },
-  { id: 'btn-submit',           key: 'submitted', base: 'Submit Forecast',  done: 'Forecast Submitted', primary: true }
+/* ---- Approvals (Scenario / BTC): review toggles, reset on each page load ---- */
+const APPROVE_BTNS = [
+  { id: 'btn-approve-scenario', key: 'scenario', base: 'Approve Scenario', done: 'Scenario Approved' },
+  { id: 'btn-approve-btc',      key: 'btc',       base: 'Approve BTC',      done: 'BTC Approved' }
 ];
-function fcApplyApprovalUI() {
-  APPROVAL_BTNS.forEach(cfg => {
+function fcApplyApproveUI() {
+  APPROVE_BTNS.forEach(cfg => {
     const btn = document.getElementById(cfg.id);
     const on = !!fcState.approvals[cfg.key];
     btn.disabled = false;
     btn.classList.toggle('done', on);
-    btn.classList.toggle('primary', cfg.primary && !on);
     btn.textContent = on ? (cfg.done + ' ✓') : cfg.base;
     btn.title = on ? 'Approved — click to undo' : '';
   });
 }
-function toggleApproval(cfg) {
+APPROVE_BTNS.forEach(cfg => { document.getElementById(cfg.id).onclick = () => {
   fcState.approvals[cfg.key] = !fcState.approvals[cfg.key];
-  fcSaveState(fcState);          // persists to the active scenario
-  fcApplyApprovalUI();
-}
-APPROVAL_BTNS.forEach(cfg => { document.getElementById(cfg.id).onclick = () => toggleApproval(cfg); });
+  fcSaveState(fcState);
+  fcApplyApproveUI();
+}; });
 
+/* ---- Submit = publish a timestamped .xlsx to output/ (Phase 5) ----
+ * After publishing, Submit disables itself until the plan changes (fingerprint),
+ * so the same plan can't be double-published; any edit re-enables it. Publishing
+ * never deletes or overwrites — each submit is a new file. */
+function fcInjectPublishCSS() {
+  if (document.getElementById('fc-publish-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-publish-css';
+  st.textContent = `
+  #publish-status{margin:2px 0 6px;font-size:12.5px;min-height:18px}
+  #publish-status .ok{color:#0f766e;font-weight:600}
+  #publish-status .warn{color:#b45309;font-weight:600}
+  #outputs-body .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px}
+  #outputs-body .empty{color:var(--text-3);text-align:center;padding:14px}`;
+  document.head.appendChild(st);
+}
+function fcSetPublishStatus(msg, cls) {
+  document.getElementById('publish-status').innerHTML = msg ? `<span class="${cls || ''}">${msg}</span>` : '';
+}
+function fcPlanFingerprint() {
+  const f = fcState.filters;
+  return JSON.stringify([f.quarter, f.region, f.lob, f.business, f.service, f.coreupsell, f.wotype, f.fqm, f.gcfa,
+    fcState.ncOverride, fcState.aposOverride, fcState.btcStrategy, fcState.manualBTC, fcState.distMode, fcState.weekOverrides]);
+}
+function fcApplySubmitUI() {
+  const btn = document.getElementById('btn-submit');
+  const sc = fcActiveScenario();
+  const pub = sc && sc.published;
+  const published = !!(pub && pub.fingerprint === fcPlanFingerprint());
+  btn.disabled = published;
+  btn.classList.toggle('done', published);
+  btn.classList.toggle('primary', !published);
+  btn.textContent = published ? 'Published ✓' : 'Submit Forecast';
+  btn.title = published
+    ? ('Published — edit the plan to publish a new version' + (pub.filename ? ' (' + pub.filename + ')' : ''))
+    : 'Publish a timestamped forecast to the output folder';
+}
+function fcBuildPublishPayload() {
+  const r = fcCompute(), f = fcState.filters;
+  const btcPct = r.selectedBTCPct;
+  const conf = r.selectedDetail ? r.selectedDetail.confidence : 60;
+  const risk = r.selectedDetail ? r.selectedDetail.risk : 'High';
+  const asuFc = Math.round(r.final.sr / FC_SR_RATIO), asuTarget = Math.round(r.btcRec.target / FC_SR_RATIO);
+  const dspTarget = Math.round(r.btcRec.target * r.series.dispatchRatio);
+  const sc = fcActiveScenario();
+  const lab = fcDataMode === 'live' ? { lob: 'Product', business: 'Warranty Type' } : { lob: 'Global LOB', business: 'Product Business' };
+  return {
+    scenario: sc ? sc.name : 'forecast',
+    dataMode: fcDataMode,
+    slice: {
+      'Fiscal Quarter': f.quarter, 'Region': f.region, [lab.lob]: f.lob, [lab.business]: f.business,
+      'Service Type': f.service, 'Core/Upsell': f.coreupsell, 'WO Type': f.wotype, 'FQM Flag': f.fqm, 'GCFA Type': f.gcfa
+    },
+    assumptions: {
+      'NC Override %': fcState.ncOverride, 'APOS Override %': fcState.aposOverride,
+      'BTC Strategy': fcBtcLabel(fcState.btcStrategy), 'BTC %': +btcPct.toFixed(2),
+      'Distribution Mode': fcState.distMode, 'Confidence %': conf, 'Risk': risk
+    },
+    summary: [
+      { metric: 'ASU', forecast: asuFc, target: asuTarget, gap: asuTarget - asuFc, btcPct: +btcPct.toFixed(2) },
+      { metric: 'SR', forecast: r.final.sr, target: r.btcRec.target, gap: r.btcRec.target - r.final.sr, btcPct: +btcPct.toFixed(2) },
+      { metric: 'Dispatch', forecast: r.final.dsp, target: dspTarget, gap: dspTarget - r.final.dsp, btcPct: +btcPct.toFixed(2) }
+    ],
+    weekly: r.weekly.weeks.map((w, i) => ({ week: w, ds: r.weekly.dsForecast[i], btc: r.weekly.btcForecast[i], variance: r.weekly.variance[i], edited: !!r.weekly.edited[i] })),
+    ledger: fcScenarioLedger(),
+    fingerprint: fcPlanFingerprint()
+  };
+}
+function fcDownloadJSON(payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'forecast_' + (payload.scenario || 'plan').replace(/[^A-Za-z0-9]+/g, '-').toLowerCase() + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function fcSubmit() {
+  const btn = document.getElementById('btn-submit');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Publishing…';
+  const payload = fcBuildPublishPayload();
+  try {
+    const res = await fetch('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!res.ok) throw new Error('server ' + res.status);
+    const data = await res.json();
+    const sc = fcActiveScenario();
+    if (sc) { sc.published = { fingerprint: payload.fingerprint, filename: data.filename, at: data.publishedAt }; fcSaveState(fcState); }
+    fcApplySubmitUI();
+    fcSetPublishStatus('Published ' + data.filename + ' to output/ — input workbook untouched.', 'ok');
+    fcLoadOutputs();
+  } catch (e) {
+    fcDownloadJSON(payload);
+    fcApplySubmitUI();
+    fcSetPublishStatus('Local server not running — downloaded a JSON copy instead. Run "python serve.py" to publish an Excel to output/.', 'warn');
+  }
+}
+document.getElementById('btn-submit').onclick = fcSubmit;
+
+async function fcLoadOutputs() {
+  const body = document.getElementById('outputs-body');
+  try {
+    const res = await fetch('/api/outputs');
+    if (!res.ok) throw new Error('server ' + res.status);
+    const list = (await res.json()).outputs || [];
+    body.innerHTML = list.length
+      ? list.map(o => `<tr><td class="mono">${o.filename}</td><td>${o.modified}</td><td>${(o.bytes / 1024).toFixed(1)} KB</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty">No forecasts published yet.</td></tr>';
+  } catch (e) {
+    body.innerHTML = '<tr><td colspan="3" class="empty">Start the local server (python serve.py) to publish and see history.</td></tr>';
+  }
+}
+
+fcInjectPublishCSS();
 fcWireFilters(fcRenderFinal);
-// Approvals are per-review: they reset on every page load, so each visit starts
-// from a clean, unapproved state (persisted so other pages agree).
+// Approvals are per-review: reset on every page load. (Submit state is driven by
+// the published fingerprint, not this flag.)
 fcState.approvals = { scenario: false, btc: false, submitted: false };
 fcSaveState(fcState);
-fcApplyApprovalUI();
-fcRenderFinal();
+fcApplyApproveUI();
+fcRenderFinal();     // also calls fcApplySubmitUI()
+fcLoadOutputs();
   </script>
 </body>
 </html>

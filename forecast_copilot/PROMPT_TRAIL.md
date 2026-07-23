@@ -570,6 +570,20 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 
 ---
 
+## Phase 5 — Publish / write path (`serve.py`, Final Forecast page) — loop closed
+**Date**: 2026-07-23 | **Branch**: `hn-new`
+**Plan ref**: `BUILD_PLAN.md` → "Phase 5 — Publish / write path (1)" *(milestone: loop closed)*
+**Files**: `forecast_copilot/serve.py`, `forecast_copilot/Final Forecast — Forecast Copilot.html`, new `forecast_copilot/test_publish.py`, docs
+**Prompt**: "build Phase 5 with that behavior" (Submit disables until the plan changes; no delete/overwrite).
+
+**Server (`serve.py`)** — a **stdlib-only .xlsx writer** (no openpyxl): `_write_xlsx(path, sheets)` builds a valid workbook (Content_Types, rels, workbook, a tiny styles part with normal+bold, one sheet part each) writing strings as **inline strings** so there's no shared-string table. `publish_forecast(payload)` lays the payload into three sheets — **Final Forecast** (summary + weekly plan with an Edited flag), **Assumptions** (slice + levers), **Audit** (publish metadata + the input file's sha256 + the change ledger) — and writes `forecast_<slug>_<YYYY-MM-DD_HHMMSS>.xlsx` to `output/`, **never overwriting** (`-2`/`-3` on clash). `list_outputs()` lists `output/*.xlsx` newest-first. Routes: `POST /api/publish` (reads the JSON body, writes, returns `{ok, filename, publishedAt, inputSha256, bytes}` with 201) and `GET /api/outputs`. Input is only read — its sha256 is captured into Audit and is unchanged after publishing.
+
+**Client (Final Forecast page)** — Submit is now a **publish** action, not a toggle. `fcBuildPublishPayload()` assembles the on-screen summary + weekly series + slice/levers (live-mode labels: Product / Warranty Type) + `fcScenarioLedger()`. `fcSubmit()` POSTs to `/api/publish`; on success it stores `{fingerprint, filename, at}` on the active scenario and refreshes the **Published Forecasts** history panel (`/api/outputs`). **Disable-until-changed**: `fcApplySubmitUI()` (called from every render) shows "Published ✓" + disabled while the current plan's fingerprint (`fcPlanFingerprint()` over filters + levers + BTC + weekOverrides) matches the published one, tooltip "Published — edit the plan to publish a new version"; any edit re-enables it. **No delete/overwrite** — re-publishing adds a new file. Approve Scenario / Approve BTC stay per-review toggles that reset on load. **No-server fallback**: Submit downloads a JSON copy of the payload and shows a note to run `serve.py`.
+
+**Verification**:
+- **Python `test_publish.py`** (6 new tests; 14 total with the read-path suite): publish writes a valid zip with 3 sheets + well-formed XML; the payload's scenario/SR/week/edited flag appear; Audit records the input sha256 + ledger action + input filename; a **second publish never overwrites** (distinct file, `list_outputs` returns 2); the **input sha256 is unchanged**. 14/14 pass.
+- **Real browser** (served live, 0 console errors): Submit enabled → click → **file written to `output/`** (`forecast_baseline_...xlsx`, ~4 KB), button → "Published ✓" disabled with the tooltip+filename, status line, history panel lists it; **editing NC 10→25 re-enabled Submit**; a second publish produced a **second file** (history shows both, newest first). Confirmed on disk + via `/api/outputs`; input sha256 still matches the committed pin. Test-published files were cleaned from `output/` afterward (kept `.gitkeep`).
+
 ## Fix — Final Forecast approval buttons were one-way (stuck disabled)
 **Date**: 2026-07-23 | **Branch**: `hn-new`
 **Files**: `forecast_copilot/Final Forecast — Forecast Copilot.html`
