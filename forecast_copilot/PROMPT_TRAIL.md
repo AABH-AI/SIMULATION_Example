@@ -570,6 +570,14 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 
 ---
 
+## Fix — Final Forecast approval buttons were one-way (stuck disabled)
+**Date**: 2026-07-23 | **Branch**: `hn-new`
+**Files**: `forecast_copilot/Final Forecast — Forecast Copilot.html`
+**Report**: user had clicked Approve Scenario / Approve BTC / Submit Forecast long ago; the state persisted, and the buttons "don't reset, can't submit or approve".
+**Root cause**: `markDone()` set `btn.disabled = true` and `fcApplyApprovalUI()` re-disabled any button whose `fcState.approvals[key]` was true on load — so once approved (state persisted in `fc_state_v1`, now per-scenario after Phase 3), a button was permanently locked with no undo path.
+**Fix**: made all three buttons **toggles** — click to approve/submit, click again to undo — and never left disabled. `fcApplyApprovalUI()` now sets label/`done`/`primary` from the current approval state with `disabled=false`; a single `toggleApproval(cfg)` flips `fcState.approvals[key]`, persists (to the active scenario), and re-applies the UI.
+**Verified** (browser): reproduced the stuck all-approved state → buttons load enabled showing "✓"; one click resets each to its base label (`{scenario:false,btc:false,submitted:false}`); clicking again re-submits; 0 console errors.
+
 ## Phase 4 — Editing + ledger (`fc_engine.js`, BTC Distribution page)
 **Date**: 2026-07-22 | **Branch**: `hn-new`
 **Plan ref**: `BUILD_PLAN.md` → "Phase 4 — Editing + ledger (#4)"

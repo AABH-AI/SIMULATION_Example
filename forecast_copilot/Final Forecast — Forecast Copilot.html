@@ -234,30 +234,30 @@ function fcRenderFinal() {
   }).join('');
 }
 
+// Approval buttons are TOGGLES: click to approve/submit, click again to undo.
+// (They are never left permanently disabled — an approval you can't reverse is a bug.)
+const APPROVAL_BTNS = [
+  { id: 'btn-approve-scenario', key: 'scenario', base: 'Approve Scenario', done: 'Scenario Approved', primary: false },
+  { id: 'btn-approve-btc',      key: 'btc',       base: 'Approve BTC',      done: 'BTC Approved',      primary: false },
+  { id: 'btn-submit',           key: 'submitted', base: 'Submit Forecast',  done: 'Forecast Submitted', primary: true }
+];
 function fcApplyApprovalUI() {
-  function setBtn(id, key, label) {
-    const btn = document.getElementById(id);
-    if (fcState.approvals[key]) {
-      btn.classList.remove('primary'); btn.classList.add('done');
-      btn.textContent = label + ' ✓'; btn.disabled = true;
-    }
-  }
-  setBtn('btn-approve-scenario', 'scenario', 'Scenario Approved');
-  setBtn('btn-approve-btc', 'btc', 'BTC Approved');
-  setBtn('btn-submit', 'submitted', 'Forecast Submitted');
+  APPROVAL_BTNS.forEach(cfg => {
+    const btn = document.getElementById(cfg.id);
+    const on = !!fcState.approvals[cfg.key];
+    btn.disabled = false;
+    btn.classList.toggle('done', on);
+    btn.classList.toggle('primary', cfg.primary && !on);
+    btn.textContent = on ? (cfg.done + ' ✓') : cfg.base;
+    btn.title = on ? 'Approved — click to undo' : '';
+  });
 }
-
-function markDone(btn, key, label) {
-  btn.classList.remove('primary');
-  btn.classList.add('done');
-  btn.textContent = label + ' ✓';
-  btn.disabled = true;
-  fcState.approvals[key] = true;
-  fcSaveState(fcState);
+function toggleApproval(cfg) {
+  fcState.approvals[cfg.key] = !fcState.approvals[cfg.key];
+  fcSaveState(fcState);          // persists to the active scenario
+  fcApplyApprovalUI();
 }
-document.getElementById('btn-approve-scenario').onclick = e => markDone(e.target, 'scenario', 'Scenario Approved');
-document.getElementById('btn-approve-btc').onclick = e => markDone(e.target, 'btc', 'BTC Approved');
-document.getElementById('btn-submit').onclick = e => markDone(e.target, 'submitted', 'Forecast Submitted');
+APPROVAL_BTNS.forEach(cfg => { document.getElementById(cfg.id).onclick = () => toggleApproval(cfg); });
 
 fcWireFilters(fcRenderFinal);
 fcApplyApprovalUI();
