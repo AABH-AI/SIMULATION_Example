@@ -260,6 +260,10 @@ function toggleApproval(cfg) {
 APPROVAL_BTNS.forEach(cfg => { document.getElementById(cfg.id).onclick = () => toggleApproval(cfg); });
 
 fcWireFilters(fcRenderFinal);
+// Approvals are per-review: they reset on every page load, so each visit starts
+// from a clean, unapproved state (persisted so other pages agree).
+fcState.approvals = { scenario: false, btc: false, submitted: false };
+fcSaveState(fcState);
 fcApplyApprovalUI();
 fcRenderFinal();
   </script>
