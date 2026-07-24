@@ -12,7 +12,7 @@
     --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
     --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
     --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
-    --chart1:#0d9488; --chart2:#d97706; --chart4:#7c3aed; --chart5:#db2777; --chart3:#0284c7;
+    --chart1:#0d9488; --chart2:#d97706; --chart4:#7c3aed; --chart5:#db2777; --chart3:#0284c7; --chart6:#64748b;
   }
   :root[data-theme="dark"]{
     --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
@@ -47,6 +47,8 @@
   .page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
   .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
   .page-sub{font-size:13.5px;color:var(--text-2);}
+  .ff-cmp-label{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;}
+  .ff-cmp-label input{accent-color:#0d9488;cursor:pointer;}
   .head-actions{display:flex;gap:8px;flex-shrink:0;}
   .btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-1);transition:all .12s;}
   .btn:hover{border-color:var(--teal);}
@@ -155,7 +157,11 @@
     <div class="page-head">
       <div>
         <div class="page-title">Final Forecast</div>
-        <div class="page-sub">Review, approve and submit the consolidated forecast.</div>
+        <div class="page-sub">Review, approve and submit the consolidated forecast for <strong id="ff-year-label">next year</strong>.</div>
+        <label class="ff-cmp-label">
+          <input type="checkbox" id="ff-compare-toggle">
+          Compare with previous year (<span id="ff-prev-year-label">—</span>)
+        </label>
       </div>
       <div class="head-actions">
         <button class="btn" id="btn-approve-scenario">Approve Scenario</button>
@@ -169,13 +175,14 @@
 
     <div class="panel">
       <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
-      <div class="panel-sub">Weekly SR-equivalent series across the selected quarter</div>
+      <div class="panel-sub" id="ff-panel-sub">Weekly SR-equivalent series across the fiscal year</div>
       <div class="chart-legend">
         <span><span class="dot" style="background:var(--chart1)"></span>Original</span>
         <span><span class="dot" style="background:var(--chart2)"></span>Scenario</span>
         <span><span class="dot" style="background:var(--chart4)"></span>BTC</span>
         <span><span class="dot" style="background:var(--chart5)"></span>Final</span>
         <span><span class="dot" style="background:var(--chart3)"></span>Target</span>
+        <span id="ff-legend-prev" style="display:none"><span class="dot" style="background:var(--chart6)"></span>Prev. Year Final</span>
       </div>
       <svg id="ff-chart" viewBox="0 0 900 190" width="100%" height="190"></svg>
       <div id="ff-axis" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;"></div>
@@ -206,46 +213,102 @@
   <script src="fc_engine.js"></script>
   <script>
 
+/* ---- Full fiscal year aggregation ----
+ * The page defaults to the year AFTER the currently selected quarter's year
+ * (e.g. filters.quarter = '2025-Q2' -> "next year" = 2026), with an optional
+ * overlay of the year before that ("previous year" = the selected quarter's
+ * own year) for comparison. Each quarter is computed with the existing
+ * per-quarter engine (fcComputeFor, unchanged) and the 4 quarters are
+ * concatenated into one 52-week view -- no changes to fc_engine.js needed. */
+function fcComputeQuarter(quarterStr) {
+  const plan = fcSnapshotPlan();
+  plan.filters = { ...plan.filters, quarter: quarterStr };
+  return fcComputeFor(plan);
+}
+function fcComputeYear(year) {
+  const quarters = [1, 2, 3, 4].map(q => year + '-Q' + q);
+  const qResults = quarters.map(q => fcComputeQuarter(q));
+  const weeks = [], dsForecast = [], scenarioSR = [], btcForecast = [];
+  let targetSum = 0, finalSR = 0, finalDsp = 0, dspTotal = 0;
+  qResults.forEach(r => {
+    weeks.push(...r.weekly.weeks);
+    dsForecast.push(...r.weekly.dsForecast);
+    scenarioSR.push(...r.adj.srAdj);
+    btcForecast.push(...r.weekly.btcForecast);
+    targetSum += r.btcRec.target;
+    finalSR += r.final.sr; finalDsp += r.final.dsp; dspTotal += r.series.dispatchRatio;
+  });
+  const avgConfidence = Math.round(qResults.reduce((s, r) => s + (r.selectedDetail ? r.selectedDetail.confidence : 60), 0) / 4);
+  const risks = qResults.map(r => r.selectedDetail ? r.selectedDetail.risk : 'High');
+  const worstRisk = risks.includes('High') ? 'High' : risks.includes('Medium') ? 'Medium' : 'Low';
+  const avgBtcPct = qResults.reduce((s, r) => s + r.selectedBTCPct, 0) / 4;
+  return {
+    year, quarters, qResults, weeks, dsForecast, scenarioSR, btcForecast,
+    target: targetSum, targetPerWeek: targetSum / weeks.length,
+    final: { sr: finalSR, dsp: finalDsp, btcPct: avgBtcPct },
+    dispatchRatio: dspTotal / 4, confidence: avgConfidence, risk: worstRisk,
+    status: {
+      meetsAOP: finalSR >= targetSum * 0.98,
+      meetsModernization: qResults.every(r => r.status.meetsModernization),
+      meetsTriad: qResults.every(r => r.status.meetsTriad),
+      readyForSubmission: qResults.every(r => r.status.readyForSubmission)
+    }
+  };
+}
+function fcSelectedYear() { return +fcState.filters.quarter.split('-Q')[0]; }
+function fcNextYear() { return fcSelectedYear() + 1; }
+
 /* ---- Final Forecast page-specific rendering ---- */
 function fcRenderFinal() {
-  const r = fcCompute();
+  const nextYear = fcNextYear(), prevYear = fcSelectedYear();
+  const y = fcComputeYear(nextYear);
+  document.getElementById('ff-year-label').textContent = 'FY' + nextYear;
+  document.getElementById('ff-prev-year-label').textContent = 'FY' + prevYear;
+  document.getElementById('ff-panel-sub').textContent = 'Weekly SR-equivalent series across FY' + nextYear
+    + (document.getElementById('ff-compare-toggle').checked ? ' (compared with FY' + prevYear + ')' : '');
 
   const statuses = [
-    { name: 'Meets AOP Target', ok: r.status.meetsAOP },
-    { name: 'Meets Modernization Target', ok: r.status.meetsModernization },
-    { name: 'Meets Triad Commitment', ok: r.status.meetsTriad },
-    { name: 'Ready For Submission', ok: r.status.readyForSubmission }
+    { name: 'Meets AOP Target', ok: y.status.meetsAOP },
+    { name: 'Meets Modernization Target', ok: y.status.meetsModernization },
+    { name: 'Meets Triad Commitment', ok: y.status.meetsTriad },
+    { name: 'Ready For Submission', ok: y.status.readyForSubmission }
   ];
   document.getElementById('status-row').innerHTML = statuses.map(s => `
     <div class="status-card"><span class="status-dot${s.ok?'':' off'}"></span><div><div class="status-name">${s.name}</div><div class="status-val${s.ok?'':' off'}">${s.ok?'Achieved':'Not Met'}</div></div></div>
   `).join('');
 
-  const targetPerWeek = r.btcRec.target / 13;
-  fcDrawLineSeries('ff-chart', [
-    { data: r.weekly.dsForecast, color: '#0d9488', name: 'Original' },                 // Original (base DS)
-    { data: r.adj.srAdj, color: '#d97706', name: 'Scenario' },                         // Scenario (ASU-sim adjusted)
-    { data: r.weekly.btcForecast, color: '#7c3aed', name: 'BTC' },                     // BTC (weekly-distributed)
-    { data: r.weekly.btcForecast, color: '#db2777', dashed: false, name: 'Final' },    // Final (== BTC forecast at submission time)
-    { data: new Array(13).fill(targetPerWeek), color: '#0284c7', dashed: true, name: 'Target' } // Target (flat line)
-  ], { w: 900, h: 190, labels: r.weekly.weeks.map(w => 'W' + w.split('-W')[1]) });
+  const wkLabels = y.weeks.map(w => 'W' + w.split('-W')[1]);
+  const series = [
+    { data: y.dsForecast, color: '#0d9488', name: 'Original' },
+    { data: y.scenarioSR, color: '#d97706', name: 'Scenario' },
+    { data: y.btcForecast, color: '#7c3aed', name: 'BTC' },
+    { data: y.btcForecast, color: '#db2777', name: 'Final' },
+    { data: new Array(y.weeks.length).fill(y.targetPerWeek), color: '#0284c7', dashed: true, name: 'Target' }
+  ];
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  document.getElementById('ff-legend-prev').style.display = comparing ? '' : 'none';
+  if (comparing) {
+    const py = fcComputeYear(prevYear);
+    series.push({ data: py.btcForecast, color: '#64748b', dashed: true, name: 'Prev. Year Final' });
+  }
+  fcDrawLineSeries('ff-chart', series, { w: 900, h: 190, labels: wkLabels });
 
   function riskClass(risk) { return risk === 'Low' ? 'risk-low' : risk === 'Medium' ? 'risk-medium' : 'risk-high'; }
-  const btcPct = r.selectedBTCPct;
-  const conf = r.selectedDetail ? r.selectedDetail.confidence : 60;
-  const risk = r.selectedDetail ? r.selectedDetail.risk : 'High';
-  const asuTarget = Math.round(r.btcRec.target / FC_SR_RATIO);
-  const dspTarget = Math.round(r.btcRec.target * r.series.dispatchRatio);
+  const btcPct = y.final.btcPct;
+  const asuTarget = Math.round(y.target / FC_SR_RATIO);
+  const dspTarget = Math.round(y.target * y.dispatchRatio);
   const rows = [
-    { metric: 'ASU', forecast: r.final.sr / FC_SR_RATIO, target: asuTarget },
-    { metric: 'SR', forecast: r.final.sr, target: r.btcRec.target },
-    { metric: 'Dispatch', forecast: r.final.dsp, target: dspTarget }
+    { metric: 'ASU', forecast: y.final.sr / FC_SR_RATIO, target: asuTarget },
+    { metric: 'SR', forecast: y.final.sr, target: y.target },
+    { metric: 'Dispatch', forecast: y.final.dsp, target: dspTarget }
   ];
   document.getElementById('summary-body').innerHTML = rows.map(row => {
     const gap = row.target - row.forecast;
-    return `<tr><td><strong>${row.metric}</strong></td><td>${fcN(row.forecast)}</td><td>${fcN(row.target)}</td><td>${gap>=0?'+':''}${fcN(gap)}</td><td>${fcPct(btcPct,2)}</td><td>${conf}%</td><td class="${riskClass(risk)}">${risk}</td></tr>`;
+    return `<tr><td><strong>${row.metric}</strong></td><td>${fcN(row.forecast)}</td><td>${fcN(row.target)}</td><td>${gap>=0?'+':''}${fcN(gap)}</td><td>${fcPct(btcPct,2)}</td><td>${y.confidence}%</td><td class="${riskClass(y.risk)}">${y.risk}</td></tr>`;
   }).join('');
   fcApplySubmitUI();
 }
+document.getElementById('ff-compare-toggle').onchange = fcRenderFinal;
 
 /* ---- Approvals (Scenario / BTC): review toggles, reset on each page load ---- */
 const APPROVE_BTNS = [
@@ -288,7 +351,8 @@ function fcSetPublishStatus(msg, cls) {
 }
 function fcPlanFingerprint() {
   const f = fcState.filters;
-  return JSON.stringify([f.quarter, f.region, f.lob, f.business, f.service, f.coreupsell, f.wotype, f.fqm, f.gcfa,
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  return JSON.stringify([fcNextYear(), comparing, f.region, f.lob, f.business, f.service, f.coreupsell, f.wotype, f.fqm, f.gcfa,
     fcState.ncOverride, fcState.aposOverride, fcState.btcStrategy, fcState.manualBTC, fcState.distMode, fcState.weekOverrides]);
 }
 function fcApplySubmitUI() {
@@ -305,35 +369,40 @@ function fcApplySubmitUI() {
     : 'Publish a timestamped forecast to the output folder';
 }
 function fcBuildPublishPayload() {
-  const r = fcCompute(), f = fcState.filters;
-  const btcPct = r.selectedBTCPct;
-  const conf = r.selectedDetail ? r.selectedDetail.confidence : 60;
-  const risk = r.selectedDetail ? r.selectedDetail.risk : 'High';
-  const asuFc = Math.round(r.final.sr / FC_SR_RATIO), asuTarget = Math.round(r.btcRec.target / FC_SR_RATIO);
-  const dspTarget = Math.round(r.btcRec.target * r.series.dispatchRatio);
+  const nextYear = fcNextYear(), prevYear = fcSelectedYear();
+  const y = fcComputeYear(nextYear), f = fcState.filters;
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  const btcPct = y.final.btcPct;
+  const asuFc = Math.round(y.final.sr / FC_SR_RATIO), asuTarget = Math.round(y.target / FC_SR_RATIO);
+  const dspTarget = Math.round(y.target * y.dispatchRatio);
   const sc = fcActiveScenario();
   const lab = fcDataMode === 'live' ? { lob: 'Product', business: 'Warranty Type' } : { lob: 'Global LOB', business: 'Product Business' };
-  return {
+  const payload = {
     scenario: sc ? sc.name : 'forecast',
     dataMode: fcDataMode,
     slice: {
-      'Fiscal Quarter': f.quarter, 'Region': f.region, [lab.lob]: f.lob, [lab.business]: f.business,
+      'Fiscal Year': 'FY' + nextYear, 'Region': f.region, [lab.lob]: f.lob, [lab.business]: f.business,
       'Service Type': f.service, 'Core/Upsell': f.coreupsell, 'WO Type': f.wotype, 'FQM Flag': f.fqm, 'GCFA Type': f.gcfa
     },
     assumptions: {
       'NC Override %': fcState.ncOverride, 'APOS Override %': fcState.aposOverride,
       'BTC Strategy': fcBtcLabel(fcState.btcStrategy), 'BTC %': +btcPct.toFixed(2),
-      'Distribution Mode': fcState.distMode, 'Confidence %': conf, 'Risk': risk
+      'Distribution Mode': fcState.distMode, 'Confidence %': y.confidence, 'Risk': y.risk
     },
     summary: [
       { metric: 'ASU', forecast: asuFc, target: asuTarget, gap: asuTarget - asuFc, btcPct: +btcPct.toFixed(2) },
-      { metric: 'SR', forecast: r.final.sr, target: r.btcRec.target, gap: r.btcRec.target - r.final.sr, btcPct: +btcPct.toFixed(2) },
-      { metric: 'Dispatch', forecast: r.final.dsp, target: dspTarget, gap: dspTarget - r.final.dsp, btcPct: +btcPct.toFixed(2) }
+      { metric: 'SR', forecast: y.final.sr, target: y.target, gap: y.target - y.final.sr, btcPct: +btcPct.toFixed(2) },
+      { metric: 'Dispatch', forecast: y.final.dsp, target: dspTarget, gap: dspTarget - y.final.dsp, btcPct: +btcPct.toFixed(2) }
     ],
-    weekly: r.weekly.weeks.map((w, i) => ({ week: w, ds: r.weekly.dsForecast[i], btc: r.weekly.btcForecast[i], variance: r.weekly.variance[i], edited: !!r.weekly.edited[i] })),
+    weekly: y.weeks.map((w, i) => ({ week: w, ds: y.dsForecast[i], btc: y.btcForecast[i], edited: false })),
     ledger: fcScenarioLedger(),
     fingerprint: fcPlanFingerprint()
   };
+  if (comparing) {
+    const py = fcComputeYear(prevYear);
+    payload.compare = { previousYear: 'FY' + prevYear, previousYearFinalSR: py.final.sr, previousYearFinalDsp: py.final.dsp };
+  }
+  return payload;
 }
 function fcDownloadJSON(payload) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });

@@ -211,22 +211,15 @@
       </div>
     </div>
 
-    <div class="grid-3">
-      <div class="panel">
-        <div class="panel-title">DS ASU vs Adjusted ASU</div>
-        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
-        <svg id="chart-asu" viewBox="0 0 640 170" width="100%" height="170"></svg>
+    <div class="panel">
+      <div class="panel-title" id="asu-metric-title">DS ASU vs Adjusted ASU</div>
+      <div class="toggle-group" id="asu-metric-toggle">
+        <button class="toggle-btn active" data-metric="asu">ASU</button>
+        <button class="toggle-btn" data-metric="sr">SR</button>
+        <button class="toggle-btn" data-metric="dsp">Dispatch</button>
       </div>
-      <div class="panel">
-        <div class="panel-title">DS SR vs Adjusted SR</div>
-        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
-        <svg id="chart-sr" viewBox="0 0 640 170" width="100%" height="170"></svg>
-      </div>
-      <div class="panel">
-        <div class="panel-title">DS Dispatch vs Adjusted Dispatch</div>
-        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
-        <svg id="chart-dsp" viewBox="0 0 640 170" width="100%" height="170"></svg>
-      </div>
+      <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+      <svg id="chart-metric" viewBox="0 0 640 170" width="100%" height="170"></svg>
     </div>
    </div>
   </main>
@@ -235,13 +228,24 @@
   <script>
 
 /* ---- ASU Simulation page-specific rendering ---- */
+// Metric switcher: one chart, ASU/SR/Dispatch toggle buttons show one forecast graph at a time.
+const ASU_METRIC_CONF = {
+  asu: { title: 'DS ASU vs Adjusted ASU', base: 'asuBase', adj: 'asuAdj' },
+  sr:  { title: 'DS SR vs Adjusted SR', base: 'srBase', adj: 'srAdj' },
+  dsp: { title: 'DS Dispatch vs Adjusted Dispatch', base: 'dspBase', adj: 'dspAdj' }
+};
+let _asuMetric = 'asu';
+
 function fcRenderASU() {
   const r = fcCompute();
 
   const wk = r.series.weeks.map(w => 'W' + w.split('-W')[1]);
-  fcDrawLineSeries('chart-asu', [{data:r.series.asuBase,color:'#0d9488',name:'Base'},{data:r.adj.asuAdj,color:'#d97706',name:'Scenario'}], {labels:wk});
-  fcDrawLineSeries('chart-sr',  [{data:r.series.srBase, color:'#0d9488',name:'Base'},{data:r.adj.srAdj,  color:'#d97706',name:'Scenario'}], {labels:wk});
-  fcDrawLineSeries('chart-dsp', [{data:r.series.dspBase,color:'#0d9488',name:'Base'},{data:r.adj.dspAdj, color:'#d97706',name:'Scenario'}], {labels:wk});
+  const conf = ASU_METRIC_CONF[_asuMetric];
+  document.getElementById('asu-metric-title').textContent = conf.title;
+  fcDrawLineSeries('chart-metric', [
+    { data: r.series[conf.base], color: '#0d9488', name: 'Base' },
+    { data: r.adj[conf.adj], color: '#d97706', name: 'Scenario' }
+  ], { labels: wk });
 
   function ovvCard(label, orig, adj) {
     const variance = adj - orig;
@@ -268,6 +272,16 @@ function fcRenderRecommendation() {
 }
 
 fcWireFilters(() => { fcRenderASU(); if (fcState.simMode === 'recommend') fcRenderRecommendation(); });
+
+// ASU / SR / Dispatch metric toggle — shows a single chart for the selected metric
+document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    _asuMetric = b.dataset.metric;
+    fcRenderASU();
+  };
+});
 
 // Sliders
 document.getElementById('nc-override').value = fcState.ncOverride;
