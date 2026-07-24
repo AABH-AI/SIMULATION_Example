@@ -533,7 +533,12 @@ function fcCompute() {
     status: { meetsAOP, meetsModernization, meetsTriad, readyForSubmission, modernAchievement } };
 }
 
+let _fcOnFilterChange = null;
+const _fcFilterRefreshers = [];
+
 function fcWireFilters(onChange) {
+  _fcOnFilterChange = onChange;
+  _fcFilterRefreshers.length = 0;
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
     const key = item.dataset.filter;
     if (fcDataMode === 'live' && FC_LIVE_LABEL[key]) {
@@ -541,29 +546,58 @@ function fcWireFilters(onChange) {
       if (lab) lab.textContent = FC_LIVE_LABEL[key];
     }
     const btn = item.querySelector('.filter-value');
-    btn.firstChild.textContent = fcState.filters[key];
     const dd = document.createElement('div'); dd.className = 'filter-dropdown';
+    function refresh() {
+      btn.firstChild.textContent = fcState.filters[key];
+      dd.querySelectorAll('.filter-option').forEach(o => o.classList.toggle('selected', o.textContent === fcState.filters[key]));
+    }
     FILTER_OPTIONS[key].forEach(opt => {
       const o = document.createElement('div');
       o.className = 'filter-option' + (fcState.filters[key] === opt ? ' selected' : '');
       o.textContent = opt;
       o.onclick = (e) => {
         e.stopPropagation();
-        btn.firstChild.textContent = opt;
-        dd.querySelectorAll('.filter-option').forEach(x => x.classList.remove('selected'));
-        o.classList.add('selected'); dd.classList.remove('open');
-        fcSetFilter(key, opt); onChange();
+        dd.classList.remove('open'); btn.classList.remove('open');
+        fcSetFilter(key, opt); refresh(); onChange();
       };
       dd.appendChild(o);
     });
+    refresh();
     item.appendChild(dd);
     btn.onclick = (e) => {
       e.stopPropagation();
       document.querySelectorAll('.filter-dropdown.open').forEach(x => { if (x!==dd) x.classList.remove('open'); });
+      document.querySelectorAll('.filter-value.open').forEach(x => { if (x!==btn) x.classList.remove('open'); });
       dd.classList.toggle('open');
+      btn.classList.toggle('open');
     };
+    _fcFilterRefreshers.push(refresh);
   });
-  document.addEventListener('click', () => document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open')));
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open'));
+    document.querySelectorAll('.filter-value.open').forEach(x => x.classList.remove('open'));
+  });
+}
+
+/* ---- Filter rail UI: Reset button + "More filters" collapse (both optional per page) ---- */
+function fcResetFilters() {
+  fcState.filters = { ...FC_DEFAULT_STATE.filters };
+  fcSaveState(fcState);
+  _fcFilterRefreshers.forEach(fn => fn());
+  if (_fcOnFilterChange) _fcOnFilterChange();
+}
+function fcWireFilterRailUI() {
+  const moreBtn = document.getElementById('more-filters-toggle');
+  const moreGrid = document.getElementById('secondary-filters');
+  if (moreBtn && moreGrid) {
+    moreBtn.onclick = (e) => {
+      e.stopPropagation();
+      const open = moreGrid.classList.toggle('open');
+      moreBtn.classList.toggle('open', open);
+    };
+  }
+  const resetBtn = document.getElementById('filter-reset-btn');
+  if (resetBtn) resetBtn.onclick = (e) => { e.stopPropagation(); fcResetFilters(); };
 }
 
 function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString()+'K':Math.round(v).toString(); }
@@ -892,6 +926,6 @@ function fcRenderCompare() {
 /* ==== END SHARED ENGINE ==== */
 fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
-function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); }
+function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcBoot);
 else fcBoot();
