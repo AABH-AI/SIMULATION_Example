@@ -1,11 +1,11 @@
-﻿# HANDOFF — TET BPA Project
+﻿# HANDOFF — ISG BPA Project
 > Quick-start context for any new AI session or teammate.
 > Last updated: 2026-06-25 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
 ## What This Project Is
-Interactive simulation + analytics dashboards for **TET BPA: Business Planning and Analytics** at He. Hosted as a static GitHub Pages site — pure HTML/CSS/JS, no backend.
+Interactive simulation + analytics dashboards for **ISG BPA: Business Planning and Analytics** at Aligned Automation Services. Hosted as a static GitHub Pages site — pure HTML/CSS/JS, no backend.
 
 ## Live URLs
 - **Site**: https://aabh-ai.github.io/SIMULATION_Example/
@@ -22,13 +22,14 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 | `data.html` | **Standalone Data Management dashboard** — 3 tabs: Data Overview · Data Quality · Full Raw View (session 22) |
 | `Week.html` | Prototype: Forecast Trend with SR/ASU/Dispatch switcher on main chart — review before merging to BPA |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
-| `AST_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
-| `TET BPA — Business Planning and Analytics.html` | **Redesign of `AST_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `AST_Forcasting_v2.html` on 2026-06-25 |
+| `IBP_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
+| `ISG BPA — Business Planning and Analytics.html` | **Redesign of `IBP_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `IBP_Forcasting_v2.html` on 2026-06-25 |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
+| `dell_workflow.html` | Dell workflow simulation (standalone) |
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated |
-| `forecast_copilot/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
+| `.claude/BTC_Lovable/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
 Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`
 
@@ -69,7 +70,7 @@ Color coded: ≥95% green · ≥90% amber · <90% red.
   - Key constants: `FT_METRIC_CONF` (title/sub/yFmt per metric), `AOP_METRIC_TARGETS` (SR/ASU/Dispatch × FY25/FY26/FY27)
   - Key globals: `_ftMetric` (current metric), `_ftMetricData` (actuals/forecast/adj per metric, seeded PRNG)
 - **Right (~35%)** — **Weekly LOB Breakdown** (`fa-chart-lob-weekly`)
-  - 5-line chart: five product-line series
+  - 5-line chart: PowerEdge · APEX · VXRAIL · POWERFLEX · AVAMAR
   - X-axis: W01–W52, always static — only the Week filter (all-unchecked) blanks it
   - SR / ASU / Dispatch toggle via `switchLOBMetric()` · stat tiles (MAPE/Bias) **removed**
 
@@ -110,7 +111,7 @@ Base data: `_ftBaseData` (SR base), `_ftMetricData` (ASU + Dispatch generated in
 | Week | `week` | All, W1–W52 | All |
 | Region | `region` | All, AMER, EMEA, APJ | All |
 | Sub-Region | `subregion` | All + 7 values | All |
-| **Product Group** | `lob` | All, TET, TES, THS | All |
+| **Product Group** | `lob` | All, ISG, ESG, HES | All |
 | Location | `location` | All + 4 values | All |
 | Queue | `queue` | All + 4 values | All |
 
@@ -120,16 +121,16 @@ Base data: `_ftBaseData` (SR base), `_ftMetricData` (ASU + Dispatch generated in
 ```js
 getActiveFilters()         // returns { group: [values] } — group absent = All selected
 getActiveFYMultiplier()    // FY26=1.0, FY27=1.08, FY25=0.93; avg if multiple selected; 0 if none
-getDPLOBMult()             // returns 0.60/0.25/0.15 for TET/TES/THS; 1.0 for All
+getDPLOBMult()             // returns 0.60/0.25/0.15 for ISG/ESG/HES; 1.0 for All
 shouldHideAll()            // true if FY, Quarter, Month, or Region has 0 selected
 resetPageFilters()         // resets FY→FY26, Quarter→Q1, LOB→All; closes open dropdowns
 ```
 
 ### Product Group Demand Splits
 ```js
-const DP_LOB_SHARE = { TET: 0.60, TES: 0.25, THS: 0.15 };  // quadrant chart scaling
-// Exact per-group demand arrays (TET+TES+THS = combined total):
-const DP_TREND_PG = { TET: { yoy:[...], qoq:[...] }, TES: {...}, THS: {...} };
+const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };  // quadrant chart scaling
+// Exact per-group demand arrays (ISG+ESG+HES = combined total):
+const DP_TREND_PG = { ISG: { yoy:[...], qoq:[...] }, ESG: {...}, HES: {...} };
 ```
 
 ### Global Filter Reset
@@ -191,7 +192,7 @@ Purpose-built standalone page (995 lines, no BPA dependencies). Auto-opens to Da
 ### Tab 3: Full Raw View
 - Sticky-header sortable table, 13 columns, search across all values
 - CSV + JSON export (filtered rows only)
-- LOB column colour-coded: TET=#3a6ef0 · TES=#16a34a · THS=#7c3aed
+- LOB column colour-coded: ISG=#3a6ef0 · ESG=#16a34a · HES=#7c3aed
 
 ### data.html Architecture
 ```js
@@ -208,15 +209,15 @@ function mkChart(id, type, data, opts) { /* null-safe factory, destroys existing
 
 ---
 
-## Forecast Copilot — `forecast_copilot/` (rebuilt + light theme + pushed 2026-06-25)
+## Forecast Copilot — `.claude/BTC_Lovable/` (rebuilt + light theme + pushed 2026-06-25)
 
-A **separate, standalone product** from the TET BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the TET BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the TET BPA suite. **Now pushed and live** at `forecast_copilot/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
+A **separate, standalone product** from the ISG BPA suite — an "AI Planning Suite" for BTC (Bend-The-Curve) forecast planning. Light theme (Inter font, teal `#0d9488` accent — converted from the original dark navy/teal so it matches the rest of the ISG BPA suite's "no dark mode" convention), 6 self-contained pages, no shared CSS/JS between files or with the ISG BPA suite. **Now pushed and live** at `.claude/BTC_Lovable/*.html` — a repo-root `.nojekyll` file was added so GitHub Pages serves the dotfolder (Jekyll excludes dotfiles/folders by default, which would otherwise 404 every page). Linked as the top Primary Tool card in `index.html` and `landing_v2.html`.
 
 ### Files (nav order)
 | File | Purpose |
 |---|---|
 | `Dashboard` | 9 KPI cards, Forecast vs Target table, 5 trend charts |
-| `ASU Simulation` | Manual Simulation (NC/Renewals override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
+| `ASU Simulation` | Manual Simulation (NC/APOS override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
 | `Historical Performance` | 12-quarter BTC/accuracy/AOP/Modernization trends, Forecast vs Actual |
 | `AI BTC Advisor` | Real 3-strategy BTC Recommendation Engine (Historical Best Fit / Balanced / Closest to AOP) + Manual override |
 | `BTC Distribution` | Automatic Weekly Distribution (Equal/Historical/AI Recommended modes), Weekly Forecast Table, region/LOB/business/service breakdowns |
@@ -226,16 +227,16 @@ A **separate, standalone product** from the TET BPA suite — an "AI Planning Su
 The previous version (built by an earlier session, never merged to master) had a **fully cosmetic filter and interaction layer** across all 6 pages — every dropdown only changed a button's label text, 3-way toggles only swapped an `.active` CSS class, and almost every number on every page was a static value baked into the HTML at authoring time. Confirmed via full audit before starting: zero `localStorage`/`sessionStorage` usage anywhere, no filter click handler touched any chart/KPI/table, and the one working slider pair (ASU Simulation) applied a single crude multiplier uniformly across ASU/SR/Dispatch rather than the distinct formula the page's own subtitle described.
 
 Rebuilt as a real, wired application:
-- **Cross-page shared state** (`fc_state_v1` in `localStorage`) — filters, NC/Renewals overrides, selected BTC strategy, distribution mode, and approvals all persist and carry forward when navigating between pages (confirmed via a full simulated navigation test: change a filter on Dashboard → it's already selected when ASU Simulation loads → an override set there is visible on AI BTC Advisor → a BTC strategy picked there flows through to BTC Distribution and Final Forecast)
+- **Cross-page shared state** (`fc_state_v1` in `localStorage`) — filters, NC/APOS overrides, selected BTC strategy, distribution mode, and approvals all persist and carry forward when navigating between pages (confirmed via a full simulated navigation test: change a filter on Dashboard → it's already selected when ASU Simulation loads → an override set there is visible on AI BTC Advisor → a BTC strategy picked there flows through to BTC Distribution and Final Forecast)
 - **Seeded dummy-data engine** (`fcGenerateWeeklySeries` / `fcGenerateHistory`) — same seeded-PRNG pattern as `data.html` (`seeded(s)`), keyed by the active Region/LOB/Business/Service/Quarter combo so the same filter selection always produces the same numbers (deterministic) while different combos produce genuinely different, realistically-scaled ones
-- **Real business-logic pipeline**: New Contracts + Renewals → ASU (`ASU[w] = ASU[w-1] - Expirations[w] + Renewals[w] + New Contracts[w]`, with Expirations and Renewals modeled as distinct variables, not folded into one factor) → SR → Dispatch, matching the spec's funnel exactly
+- **Real business-logic pipeline**: New Contracts + APOS → ASU (`ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations and Renewals modeled as distinct variables, not folded into one factor) → SR → Dispatch, matching the spec's funnel exactly
 - **BTC Recommendation Engine** computes 3 genuinely distinct values every time (e.g. Historical Best Fit 5.87% / Balanced 5.04% / Closest to AOP 4.2% for the default filter combo) — Historical Best Fit is a recency-weighted average of 12 historical quarters, Closest to AOP is derived from the accuracy-shortfall-driven target gap, Balanced is their midpoint
 - **Automatic Weekly Distribution**: Equal/Historical/AI Recommended modes produce genuinely different per-week shapes while always summing to the identical total uplift (verified: same total, different weekly split)
 - **BTC scale confirmed with user before implementing**: BTC is a small bend/uplift percentage (single digits to ~15-20%), matching what the pre-existing Historical BTC Trend chart and AI BTC Advisor already displayed — not a large 90%+ achievement metric (the spec's own example numbers used that larger scale, but implementing it would have contradicted the rest of the already-built app)
 - Every JS file was extracted and executed under Node's `vm` module during development to smoke-test the math before considering a page done — caught and fixed one real bug (Target was defined as a fraction of the current forecast, so it was always below baseline and "Closest to AOP" always clamped to 0%)
 
 ### Known state
-- Pushed to git — `forecast_copilot/*.html` is now tracked (added as an explicit exception; `.claude/worktrees/` and `.claude/settings.local.json` are ignored via `.gitignore` so a future broad `git add .claude/` stays safe)
+- Pushed to git — `.claude/BTC_Lovable/*.html` is now tracked (added as an explicit exception; `.claude/worktrees/` and `.claude/settings.local.json` are ignored via `.gitignore` so a future broad `git add .claude/` stays safe)
 - Live on GitHub Pages via a repo-root `.nojekyll` file
 - Drill-down is implemented as making the existing filter panel fully functional (spec's own workflow describes selecting Quarter → Region → LOB → Business → Service as the drill-down path) rather than a separate UI
 
@@ -248,24 +249,24 @@ Rebuilt as a real, wired application:
   - Actuals Profiling: 4-quadrant overview + Demand Trends (WoW/MoM/QoQ)
 - `data.html` — new standalone Data Management file (3 tabs), local only pending review
 - `Week.html` — Forecast Trend prototype (SR/ASU/Dispatch on main chart), local pending review
-- `AST_Forcasting.html` — stable, session 13 was last update
-- `TET BPA — Business Planning and Analytics.html` — redesign of `AST_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
-- `forecast_copilot/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
+- `IBP_Forcasting.html` — stable, session 13 was last update
+- `ISG BPA — Business Planning and Analytics.html` — redesign of `IBP_Forcasting.html`, pushed to GitHub Pages, linked from `index.html` and `landing_v2.html` as a Primary Tool
+- `.claude/BTC_Lovable/*.html` — Forecast Copilot rebuilt with real cross-page state and business logic, converted to light theme, pushed to GitHub Pages (via repo-root `.nojekyll`), linked as the top Primary Tool card in `index.html` and `landing_v2.html`
 
 ---
 
 ## New AI Session — Paste This
 ```
-Project: TET BPA dashboard — He
-Repo: D:\OneDrive - He\Documents\simulations
+Project: ISG BPA dashboard — Aligned Automation Services
+Repo: D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations
 Live: https://aabh-ai.github.io/SIMULATION_Example/
 ACTIVE file: BPA_FORCASTING_MOCK.HTML (sessions 14+)
 NEW standalone: data.html (Data Management, 3 tabs), Week.html (Forecast Trend prototype)
-Legacy: AST_Forcasting.html (sessions 1–13, stable)
-Redesign: "TET BPA — Business Planning and Analytics.html" (renamed from AST_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
+Legacy: IBP_Forcasting.html (sessions 1–13, stable)
+Redesign: "ISG BPA — Business Planning and Analytics.html" (renamed from IBP_Forcasting_v2.html) — 6 Actuals Profiling channels, teal theme, FY26 data
 Git binary: C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe (not in PATH)
 Git workflow: stash → pull --rebase origin master → stash pop → push
-SEPARATE PRODUCT: forecast_copilot/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
+SEPARATE PRODUCT: .claude/BTC_Lovable/*.html — Forecast Copilot AI Planning Suite (6 pages, light theme, pushed & live via .nojekyll, top card in index.html/landing_v2.html)
 
 BPA_FORCASTING_MOCK modules:
   Forecast Accuracy (Forecast Trend with SR/ASU/Dispatch switcher + AOP line + Weekly LOB Breakdown) |
@@ -276,8 +277,8 @@ Filters: FY + Product Group (data-group="lob") drive chart scaling.
 resetPageFilters() fires on every switchPage() call.
 Chart data: _dpBaseData (quadrant), _ftBaseData + _ftMetricData (forecast trend SR/ASU/Dispatch).
 
-Forecast Copilot (forecast_copilot/) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
-Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->Renewals->ASU->SR->Dispatch->BTC pipeline.
+Forecast Copilot (BTC_Lovable) nav order: Dashboard -> ASU Simulation -> Historical -> AI BTC Advisor -> BTC Distribution -> Final Forecast.
+Shared engine (identical embedded block in all 6 files): fcState (localStorage key fc_state_v1) holds filters/overrides/btcStrategy/distMode/approvals. fcCompute() runs the full New Contracts->APOS->ASU->SR->Dispatch->BTC pipeline.
 
 Read IMP_DOCS/ for full context before making changes.
 ```

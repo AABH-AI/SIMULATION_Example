@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BTC Distribution — Forecast Copilot</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
 <style>
   :root{
     --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
@@ -87,11 +86,7 @@
   .hbar-label{width:110px;flex-shrink:0;color:var(--text-2);}
   .hbar-track{flex:1;background:var(--card-hi);border-radius:4px;height:16px;overflow:hidden;}
   .hbar-fill{height:100%;background:linear-gradient(90deg,#0d9488,#0891b2);border-radius:4px;}
-  .hbar-val{width:52px;text-align:right;color:var(--text-1);font-weight:600;transition:color .15s ease;}
-  .hbar-row .hbar-fill{transition:filter .15s ease,width .32s ease;}
-  .hbar-row:hover .hbar-fill{filter:brightness(1.18);}
-  .hbar-row:hover .hbar-val{color:var(--teal);}
-  .hbar-row:hover .hbar-label{color:var(--text-1);}
+  .hbar-val{width:52px;text-align:right;color:var(--text-1);font-weight:600;}
 
   table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
   table.data-tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
@@ -130,9 +125,9 @@
       <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
       <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Rack Servers<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">TES<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour TES<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
     </div>
 
     <div id="empty-note" class="empty-note" style="display:none;">No BTC value selected yet. Choose a recommendation on <a href="AI BTC Advisor — Forecast Copilot.html">AI BTC Advisor</a> first — this page shows the Equal Distribution baseline (0% BTC) until then.</div>
@@ -204,16 +199,16 @@
 const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
-  region: ['ALL','AMERICAS','EMEA','APJ'],
-  lob: ['ALL','Rack Servers','Mid-Range Storage','Scale-Out Storage','SDS Platform','HCI Appliance','Data Protection','Networking','Entry Products'],
-  business: ['ALL','TES','TET','THS'],
-  service: ['ALL','Parts Only TES','Parts Only TET','Parts + Labour TES','Parts + Labour TET','Labour Only TES','Labour Only TET']
+  region: ['AMERICAS','EMEA','APJ'],
+  lob: ['PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
+  business: ['ESG','ISG','HES'],
+  service: ['Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG']
 };
 
-const FC_STATE_KEY = 'fc_state_v3';
+const FC_STATE_KEY = 'fc_state_v1';
 const FC_DEFAULT_STATE = {
-  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Rack Servers', business: 'TES', service: 'Parts + Labour TES' },
-  ncOverride: 10, renewOverride: 5, simMode: 'manual',
+  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'PowerEdge', business: 'ESG', service: 'Parts + Labour ESG' },
+  ncOverride: 10, aposOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
   approvals: { scenario: false, btc: false, submitted: false }
 };
@@ -235,26 +230,25 @@ function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1)
 function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) % 2147483647; } return h || 1; }
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
-const FC_REGION_FACTOR   = { ALL: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { 'ALL': 6.25, 'Rack Servers': 1.20, 'Mid-Range Storage': 0.90, 'Scale-Out Storage': 0.80, 'SDS Platform': 0.85, 'HCI Appliance': 1.00, 'Data Protection': 0.50, 'Networking': 0.60, 'Entry Products': 0.40 };
-const FC_BUSINESS_FACTOR  = { ALL: 2.90, TES: 1.00, TET: 1.30, THS: 0.60 };
+const FC_REGION_FACTOR   = { AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
+const FC_LOB_FACTOR       = { PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
+const FC_BUSINESS_FACTOR  = { ESG: 1.00, ISG: 1.30, HES: 0.60 };
 const FC_SERVICE_FACTOR   = {
-  'ALL':                { volume: 5.05, dispatchRatio: 0.50 },
-  'Parts Only TES':     { volume: 1.00, dispatchRatio: 0.32 },
-  'Parts Only TET':     { volume: 1.05, dispatchRatio: 0.35 },
-  'Parts + Labour TES': { volume: 0.90, dispatchRatio: 0.55 },
-  'Parts + Labour TET': { volume: 0.95, dispatchRatio: 0.58 },
-  'Labour Only TES':    { volume: 0.55, dispatchRatio: 0.68 },
-  'Labour Only TET':    { volume: 0.60, dispatchRatio: 0.70 }
+  'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
+  'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
+  'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
+  'Parts + Labour ISG': { volume: 0.95, dispatchRatio: 0.58 },
+  'Labour Only ESG':    { volume: 0.55, dispatchRatio: 0.68 },
+  'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 }
 };
-const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_RENEW_WEEKLY = 21500;
+const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_APOS_WEEKLY = 21500;
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
 
 function fcCombinedFactor(filters) {
-  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES'];
+  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG'];
   return (FC_REGION_FACTOR[filters.region]||1) * (FC_LOB_FACTOR[filters.lob]||1) * (FC_BUSINESS_FACTOR[filters.business]||1) * svc.volume;
 }
-function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES']).dispatchRatio; }
+function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG']).dispatchRatio; }
 
 function fcWeeksForQuarter(quarter) {
   const [y, qStr] = quarter.split('-Q'); const q = +qStr;
@@ -267,19 +261,19 @@ function fcGenerateWeeklySeries(filters) {
   const factor = fcCombinedFactor(filters);
   const dispatchRatio = fcDispatchRatio(filters);
   const rngNC = seeded(fcSeedFor(filters, 'nc'));
-  const rngRENEW = seeded(fcSeedFor(filters, 'renew'));
-  const newContracts = [], renew = [];
+  const rngAPOS = seeded(fcSeedFor(filters, 'apos'));
+  const newContracts = [], apos = [];
   for (let w = 0; w < 13; w++) {
     const seasonal = 1 + 0.08 * Math.sin((w / 13) * Math.PI * 2);
     const trend = 1 + w * 0.004;
     newContracts.push(Math.round(FC_BASE_NC_WEEKLY * factor * seasonal * trend * (0.94 + rngNC() * 0.12)));
-    renew.push(Math.round(FC_BASE_RENEW_WEEKLY * factor * seasonal * trend * (0.94 + rngRENEW() * 0.12)));
+    apos.push(Math.round(FC_BASE_APOS_WEEKLY * factor * seasonal * trend * (0.94 + rngAPOS() * 0.12)));
   }
-  function rollASU(ncFactor, renewFactor) {
+  function rollASU(ncFactor, aposFactor) {
     const asu = []; let prior = FC_BASE_ASU * factor;
     for (let w = 0; w < 13; w++) {
       const expirations = prior * FC_EXPIRATION_RATE;
-      const renewals = renew[w] * FC_BASE_RENEWAL_RATE * renewFactor;
+      const renewals = apos[w] * FC_BASE_RENEWAL_RATE * aposFactor;
       const additions = newContracts[w] * ncFactor;
       const cur = prior - expirations + renewals + additions;
       asu.push(Math.round(cur)); prior = cur;
@@ -289,18 +283,18 @@ function fcGenerateWeeklySeries(filters) {
   const asuBase = rollASU(1, 1);
   const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
-  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, renew, asuBase, srBase, dspBase, factor, dispatchRatio, rollASU };
+  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, apos, asuBase, srBase, dspBase, factor, dispatchRatio, rollASU };
 }
 
-function fcSensitivity() { return { nc: 0.6, renew: 0.4 }; }
-function fcApplyOverrides(series, ncOverridePct, renewOverridePct) {
+function fcSensitivity() { return { nc: 0.6, apos: 0.4 }; }
+function fcApplyOverrides(series, ncOverridePct, aposOverridePct) {
   const sens = fcSensitivity();
   const ncFactor = 1 + ((ncOverridePct - 10) / 100) * sens.nc;
-  const renewFactor = 1 + ((renewOverridePct - 5) / 100) * sens.renew;
-  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, renewFactor));
+  const aposFactor = 1 + ((aposOverridePct - 5) / 100) * sens.apos;
+  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, aposFactor));
   const srAdj = asuAdj.map(v => Math.round(v * FC_SR_RATIO));
   const dspAdj = srAdj.map(v => Math.round(v * series.dispatchRatio));
-  return { asuAdj, srAdj, dspAdj, ncFactor, renewFactor };
+  return { asuAdj, srAdj, dspAdj, ncFactor, aposFactor };
 }
 function fcSum(arr) { return arr.reduce((a,b) => a+b, 0); }
 function fcAvg(arr) { return arr.length ? fcSum(arr)/arr.length : 0; }
@@ -338,8 +332,8 @@ function fcRecommendOverrides(filters) {
   const avgAccuracy = fcAvg(hist.accuracy);
   const shortfall = Math.max(0, 100 - avgAccuracy);
   const nc = Math.max(0, Math.min(100, Math.round(10 + shortfall * 1.8)));
-  const renew = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
-  return { nc, renew, avgAccuracy: Math.round(avgAccuracy),
+  const apos = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
+  return { nc, apos, avgAccuracy: Math.round(avgAccuracy),
     rationale: `Based on a ${Math.round(avgAccuracy)}% average forecast accuracy over the last 12 fiscal quarters, a corrective override is recommended to compensate for historical variance.` };
 }
 
@@ -387,9 +381,9 @@ function fcDistributeWeekly(series, btcPct, distMode) {
 function fcCompute() {
   const filters = fcState.filters;
   const series = fcGenerateWeeklySeries(filters);
-  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.renewOverride);
+  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride);
   const hist = fcGenerateHistory(filters);
-  const originalTotals = { nc: fcSum(series.newContracts), renew: fcSum(series.renew), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase) };
+  const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase) };
   const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
   const btcRec = fcRecommendBTC(filters, { srTotal: scenarioTotals.sr, dspTotal: scenarioTotals.dsp });
   let selectedBTCPct = 0, selectedDetail = null;
@@ -448,142 +442,49 @@ function fcWireFilters(onChange) {
 function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString()+'K':Math.round(v).toString(); }
 function fcPct(v, d) { return v.toFixed(d==null?1:d)+'%'; }
 
-/* ---- chart rendering: Highcharts (11.4.8) ---- */
-const fcHCharts = {};
-if (typeof Highcharts !== 'undefined') Highcharts.setOptions({
-  chart: { style: { fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" } },
-  lang: { thousandsSep: ',' }
-});
-
-function fcDefaultFmt(v) { return v >= 1000 ? fcN(v) : String(Math.round(v * 10) / 10); }
-
-function fcHCContainer(id, fallbackH) {
-  let el = document.getElementById(id);
-  if (!el) return null;
-  if (el.tagName.toLowerCase() === 'svg') {
-    const div = document.createElement('div');
-    div.id = id;
-    div.style.width = '100%';
-    div.style.height = (el.getAttribute('height') || fallbackH || 170) + 'px';
-    el.replaceWith(div);
-    el = div;
-  }
-  return el;
-}
-
-function fcHCTooltip(fmt) {
-  const f = fmt || fcDefaultFmt;
-  return {
-    shared: true,
-    backgroundColor: '#0f172a', borderColor: '#0f172a', borderRadius: 8,
-    shadow: { color: 'rgba(15,23,42,0.28)', offsetY: 4, width: 10 },
-    padding: 10,
-    style: { color: '#f1f5f9', fontSize: '11.5px' },
-    formatter: function () {
-      let s = '<span style="font-size:10px;color:#94a3b8;text-transform:uppercase;font-weight:700">' + this.x + '</span>';
-      (this.points || [this.point && { series: this.series, color: this.color, y: this.y }]).forEach(p => {
-        if (!p) return;
-        s += '<br/><span style="color:' + p.color + '">●</span> ' + p.series.name + ': <b>' + f(p.y) + '</b>';
-      });
-      return s;
-    }
-  };
-}
-
-function fcHCAxes(labels, opts) {
-  return {
-    xAxis: {
-      categories: labels,
-      crosshair: { color: '#c7d2e6', dashStyle: 'ShortDot', width: 1 },
-      lineColor: '#dde5f2', tickLength: 0,
-      labels: { style: { color: '#94a3b8', fontSize: '9.5px', textOverflow: 'none', whiteSpace: 'nowrap' }, rotation: labels.length > 6 ? -35 : 0 }
-    },
-    yAxis: {
-      title: { text: null },
-      min: opts.min != null ? opts.min : 0,
-      max: opts.max != null ? opts.max : null,
-      gridLineColor: '#e8edf7',
-      tickPositions: opts.yTicks || undefined,
-      labels: {
-        style: { color: '#8a94ad', fontSize: '10px' },
-        formatter: function () { return opts.yFmt ? opts.yFmt(this.value) : fcDefaultFmt(this.value); }
-      }
-    }
-  };
-}
-
 function fcDrawLineSeries(svgId, series, opts) {
+  const svg = document.getElementById(svgId); if (!svg) return;
   opts = opts || {};
-  const el = fcHCContainer(svgId, opts.h); if (!el || typeof Highcharts === 'undefined') return;
-  const labels = opts.labels || series[0].data.map((_, i) => 'P' + (i + 1));
-  const sData = series.map((s, i) => ({
-    name: s.name || 'Series ' + (i + 1),
-    data: s.data.slice(), color: s.color,
-    dashStyle: s.dashed ? 'ShortDash' : 'Solid'
-  }));
-  const existing = fcHCharts[svgId];
-  if (existing && existing.series.length === sData.length && existing.options.chart.type === 'line') {
-    existing.xAxis[0].setCategories(labels, false);
-    sData.forEach((s, i) => existing.series[i].setData(s.data, false, { duration: 320 }));
-    existing.redraw();
-    return;
-  }
-  if (existing) existing.destroy();
-  const ax = fcHCAxes(labels, opts);
-  fcHCharts[svgId] = Highcharts.chart(el, {
-    chart: { type: 'line', backgroundColor: 'transparent', spacing: [10, 8, 4, 4], animation: { duration: 320 } },
-    title: { text: null }, credits: { enabled: false }, legend: { enabled: false },
-    xAxis: ax.xAxis, yAxis: ax.yAxis,
-    tooltip: fcHCTooltip(opts.fmt),
-    plotOptions: {
-      line: {
-        lineWidth: 2.2,
-        animation: { duration: 320 },
-        marker: { enabled: false, symbol: 'circle', radius: 3.5, lineWidth: 1.5, lineColor: '#ffffff' },
-        states: { hover: { lineWidthPlus: 0.6, halo: { size: 6 } } }
-      }
-    },
-    series: sData
+  const W = opts.w || 640, H = opts.h || 170, pad = 8;
+  const allVals = series.flatMap(s => s.data);
+  const max = opts.max != null ? opts.max : Math.max(...allVals) * 1.08;
+  const min = opts.min != null ? opts.min : Math.min(0, Math.min(...allVals));
+  const n = series[0].data.length;
+  const x = i => pad + i * (W - pad*2) / (n - 1);
+  const y = v => H - pad - ((v - min) / (max - min || 1)) * (H - pad*2);
+  let html = `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="#dde5f2" stroke-width="1"/>`;
+  series.forEach(s => {
+    const d = s.data.map((v,i) => (i===0?'M':'L') + x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+    html += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"${s.dashed?' stroke-dasharray="5,4"':''}/>`;
   });
+  svg.innerHTML = html;
 }
 
 function fcDrawGroupedBars(svgId, categories, seriesArr, opts) {
+  const svg = document.getElementById(svgId); if (!svg) return;
   opts = opts || {};
-  const el = fcHCContainer(svgId, opts.h); if (!el || typeof Highcharts === 'undefined') return;
-  const sData = seriesArr.map((s, i) => ({
-    name: s.label || 'Series ' + (i + 1),
-    data: s.values.slice(), color: s.color
-  }));
-  const existing = fcHCharts[svgId];
-  if (existing && existing.series.length === sData.length && existing.options.chart.type === 'column') {
-    existing.xAxis[0].setCategories(categories, false);
-    sData.forEach((s, i) => existing.series[i].setData(s.data, false, { duration: 320 }));
-    existing.redraw();
-    return;
-  }
-  if (existing) existing.destroy();
-  const ax = fcHCAxes(categories, opts);
-  fcHCharts[svgId] = Highcharts.chart(el, {
-    chart: { type: 'column', backgroundColor: 'transparent', spacing: [10, 8, 4, 4], animation: { duration: 320 } },
-    title: { text: null }, credits: { enabled: false }, legend: { enabled: false },
-    xAxis: ax.xAxis, yAxis: ax.yAxis,
-    tooltip: fcHCTooltip(opts.fmt),
-    plotOptions: {
-      column: {
-        borderRadius: 3, borderWidth: 0,
-        groupPadding: 0.14, pointPadding: 0.06,
-        animation: { duration: 320 },
-        states: { hover: { brightness: 0.08 } }
-      }
-    },
-    series: sData
+  const W = opts.w || 640, H = opts.h || 170, pad = 10;
+  const allVals = seriesArr.flatMap(s => s.values);
+  const max = opts.max != null ? opts.max : Math.max(...allVals) * 1.12;
+  const n = categories.length, nSeries = seriesArr.length;
+  const groupW = (W - pad*2) / n;
+  const barW = (groupW * 0.62) / nSeries;
+  const y = v => H - 26 - (v/max) * (H - 40);
+  let html = `<line x1="${pad}" y1="${H-26}" x2="${W-pad}" y2="${H-26}" stroke="#dde5f2" stroke-width="1"/>`;
+  categories.forEach((cat, ci) => {
+    const gx = pad + ci * groupW + groupW*0.19;
+    seriesArr.forEach((s, si) => {
+      const bx = gx + si * barW; const v = s.values[ci];
+      html += `<rect x="${bx.toFixed(1)}" y="${y(v).toFixed(1)}" width="${(barW*0.82).toFixed(1)}" height="${(H-26-y(v)).toFixed(1)}" rx="3" fill="${s.color}"/>`;
+    });
   });
+  svg.innerHTML = html;
 }
 /* ==== END SHARED ENGINE ==== */
 
 /* ---- BTC Distribution page-specific rendering ---- */
 function distributeByFactor(factorMap, total) {
-  const keys = Object.keys(factorMap).filter(k => k !== 'ALL');
+  const keys = Object.keys(factorMap);
   const vals = keys.map(k => typeof factorMap[k]==='object' ? factorMap[k].volume : factorMap[k]);
   const sum = vals.reduce((a,b)=>a+b,0);
   return keys.map((k,i) => ({ key:k, value: Math.round(total * vals[i]/sum) }));
@@ -621,6 +522,7 @@ function fcRenderDistribution() {
   fcDrawGroupedBars('fwbars', r.weekly.weeks.map(w=>w.split('-W')[1]),
     [{label:'DS Forecast',color:'rgba(13,148,136,0.45)',values:r.weekly.dsForecast},
      {label:'BTC Forecast',color:'#0d9488',values:r.weekly.btcForecast}], {w:700,h:150});
+  document.getElementById('fw-axis').innerHTML = r.weekly.weeks.map(w=>`<span>W${w.split('-W')[1]}</span>`).join('');
 
   document.getElementById('weekly-body').innerHTML = r.weekly.weeks.map((w,i) => {
     const variance = r.weekly.variance[i];

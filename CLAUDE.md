@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**TET BPA: Business Planning and Analytics** is a static HTML/CSS/JavaScript dashboard suite for demand forecasting and supply chain simulation at He. The project is hosted on GitHub Pages and requires no backend or build process.
+**ISG BPA: Business Planning and Analytics** is a static HTML/CSS/JavaScript dashboard suite for demand forecasting and supply chain simulation at Aligned Automation Services. The project is hosted on GitHub Pages and requires no backend or build process.
 
 - **Live site**: https://aabh-ai.github.io/SIMULATION_Example/
 - **Repo**: https://github.com/AABH-AI/SIMULATION_Example
@@ -21,10 +21,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | File | Purpose |
 |------|---------|
-| `AST_Forcasting.html` | **Main dashboard** — 5 modules with 2,950 lines of embedded CSS/JS |
+| `IBP_Forcasting.html` | **Main dashboard** — 5 modules with 2,950 lines of embedded CSS/JS |
 | `index.html` | Landing page — Primary Tools grid plus searchable All Modules list |
 | `bend_the_curve.html` | Goal-first strategic planner with 8 lever toggles and target slider |
-| `enterprise_whatif_forecasting_platform.html` | Standalone What-If reference (don't edit; local-only — gitignored for compliance, not deployed) |
+| `enterprise_whatif_forecasting_platform.html` | Standalone What-If reference (don't edit; kept for design inspiration) |
+| `dell_workflow.html` | Workflow simulation (standalone, not integrated into main dashboard) |
 
 ### Documentation (Always Keep Updated)
 
@@ -49,7 +50,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## Architecture: AST_Forcasting.html
+## Architecture: IBP_Forcasting.html
 
 ### Module System
 
@@ -156,7 +157,7 @@ CSS `:root` tokens are light-themed; the `[data-theme="light"]` block has been r
 
 ## What-If Simulation Module (Deep Dive)
 
-Located inside `AST_Forcasting.html`, moduleId: `'whatif'`. Sub-pages: Simulation Controls, Scenario Playground, Forecast Publish.
+Located inside `IBP_Forcasting.html`, moduleId: `'whatif'`. Sub-pages: Simulation Controls, Scenario Playground, Forecast Publish.
 
 ### Base Constants & Sliders
 
@@ -168,7 +169,7 @@ const WI_BASE = {
 };
 
 const WI_SLIDERS = [
-  { key:'renewal',  label:'Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+  { key:'renewal',  label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
   { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8    },
   { key:'modifier', label:'Forecast Modifier',     min:-15, max:25,  step:1,   val:2    },
 ];
@@ -236,7 +237,7 @@ Loaded via Google Fonts CDN.
 --text-1: #0d1020;          /* Primary text */
 --text-2: #5a6280;          /* Secondary */
 --text-3: #9099be;          /* Muted */
---accent: #3a6ef0;          /* Blue (TET BPA accent) */
+--accent: #3a6ef0;          /* Blue (ISG BPA accent) */
 --green: #16a34a;           /* Success */
 --red: #dc2626;             /* Error, alert */
 --amber: #b45309;           /* Warning */
@@ -275,7 +276,7 @@ Git is NOT in PATH. Use explicit binary:
 
 ```powershell
 $git = "C:\Users\arnav.bhargava\AppData\Local\Programs\Git\bin\git.exe"
-cd "D:\OneDrive - He\Documents\simulations"
+cd "D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations"
 ```
 
 ### Standard Workflow
