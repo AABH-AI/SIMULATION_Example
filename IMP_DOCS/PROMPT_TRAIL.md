@@ -1,4 +1,4 @@
-﻿# Prompt Trail — ISG BPA
+﻿# Prompt Trail — TET BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
 > Last updated: 2026-06-25 (Session 24)
 
@@ -14,8 +14,8 @@
 ---
 
 ## Session 2 — Rebranding & Professional Redesign
-**Files**: `IBP_Forcasting.html`, `index.html`
-**Prompts**: Rename to ISG BPA, recreate UI professionally
+**Files**: `AST_Forcasting.html`, `index.html`
+**Prompts**: Rename to TET BPA, recreate UI professionally
 **What was done**:
 - Full title/branding rename; adopted Indigo-Black design system
 - Plus Jakarta Sans + IBM Plex Mono font pairing
@@ -24,11 +24,11 @@
 ---
 
 ## Session 3 — Landing Page + Two New Modules
-**Files**: `index.html`, `bend_the_curve.html`, `IBP_Forcasting.html`
+**Files**: `index.html`, `bend_the_curve.html`, `AST_Forcasting.html`
 **What was built**:
 - `index.html`: 3-column Primary Tools grid + searchable All Modules list
 - `bend_the_curve.html`: 8 toggle levers, target slider, gap-to-target chart
-- What-If Simulation added as native module inside `IBP_Forcasting.html`
+- What-If Simulation added as native module inside `AST_Forcasting.html`
 
 ---
 
@@ -39,14 +39,14 @@
 ---
 
 ## Sessions 5–10 — What-If Simulation Buildout
-(Various slider, chart, scenario, and publish page iterations in `IBP_Forcasting.html`)
+(Various slider, chart, scenario, and publish page iterations in `AST_Forcasting.html`)
 
 ---
 
 ## Session 11 — What-If Slider Reorder + Data Raw Rename
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **Prompts**:
-- Reorder What-If sliders: New Contract Growth first, APOS Renewal second
+- Reorder What-If sliders: New Contract Growth first, Service Renewals second
 - Rename Data Raw → Data Management
 - Update What-If tile stat to show lever names
 
@@ -57,7 +57,7 @@
 ---
 
 ## Session 12 — Remove Forecast Modifier + Hide Filters in What-If
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **What was done**:
 - `WI_SLIDERS`: removed `{ key:'modifier', ... }` entry; `wiState.modifier` removed
 - `wiCompute()`: removed all `st.modifier` terms from all formulas
@@ -66,7 +66,7 @@
 ---
 
 ## Session 13 — Universal Filter Enforcement + KPI Sanity
-**Files**: `IBP_Forcasting.html`
+**Files**: `AST_Forcasting.html`
 **Root causes**:
 1. Chart update functions only checked `mult === 0` — Quarter/Month/Region empty states silently ignored
 2. `switchChannel()` had no filter reset
@@ -104,7 +104,7 @@
 **Files**: `BPA_FORCASTING_MOCK.HTML`, `TODO`
 **Prompts**:
 - Make quadrant + trend charts respond to FY and LOB filters
-- Rename LOB → Product Group (ESG / HES / ISG)
+- Rename LOB → Product Group (TES / THS / TET)
 - Remove "SKUs" suffix from KPI card labels
 - Reset filters when switching between sub-pages
 - Create TODO backlog file
@@ -113,8 +113,8 @@
 - KPI labels: "Consistent SKUs" → "Consistent" (all 4 cards)
 - Filter panel label: "LOB" → "Product Group" (internal `data-group="lob"` kept for compatibility)
 - Table column headers + CSV/Excel export headers: "LOB" → "Product Group"
-- `DP_LOB_SHARE = { ISG:0.60, ESG:0.25, HES:0.15 }` — demand shares for quadrant scaling
-- `DP_TREND_PG` — exact per-product-group demand arrays (ISG+ESG+HES = combined totals)
+- `DP_LOB_SHARE = { TET:0.60, TES:0.25, THS:0.15 }` — demand shares for quadrant scaling
+- `DP_TREND_PG` — exact per-product-group demand arrays (TET+TES+THS = combined totals)
 - `getDPLOBMult()` — returns sum of selected group shares (1.0 for All)
 - `updateDPQuadrantCharts()` — scales `_dpBaseData` arrays by LOB × FY multiplier
 - `updateDemandTrends()` — sums `DP_TREND_PG` for selected groups, scales by FY, recalculates % change
@@ -280,7 +280,7 @@
 - **Aesthetic risk**: Data Quality tab opens with an animated counter (0.0 → real score in 1.1s, ease-in-out) for the overall data health %. One orchestrated moment, nothing else moves. Respects `prefers-reduced-motion`. Justified: data health is a single pass/fail number — the reveal mirrors how analysts wait for a result.
 - Completeness bars also animate via CSS transition (respects `prefers-reduced-motion`)
 - Copy written from the analyst's POV — verdict text changes based on score: ≥98% = "ready for forecasting", ≥95% = "minor issues", else = "clean before forecasting"
-- LOB values in raw table colour-coded by group colour (ISG=blue, ESG=green, HES=purple)
+- LOB values in raw table colour-coded by group colour (TET=blue, TES=green, THS=purple)
 - JSON export alongside CSV
 
 **Architecture** (`data.html`, 995 lines — standalone, no BPA dependencies):
@@ -308,32 +308,32 @@
 **Tab: Full Raw View**:
 - Sticky-header sortable table, 13 columns, search across all values
 - CSV + JSON export (filtered rows only)
-- LOB column colour-coded (ISG blue, ESG green, HES purple)
+- LOB column colour-coded (TET blue, TES green, THS purple)
 
 ---
 
-## Session 23 — ISG BPA redesign (`IBP_Forcasting_v2.html` -> `ISG BPA — Business Planning and Analytics.html`) and `index.html` light theme
+## Session 23 — TET BPA redesign (`AST_Forcasting_v2.html` -> `TET BPA — Business Planning and Analytics.html`) and `index.html` light theme
 **Date**: 2026-06-25
-**Files**: `ISG BPA — Business Planning and Analytics.html` (new, renamed from `IBP_Forcasting_v2.html`), `index.html`, `landing_v2.html`, `IMP_DOCS/`
+**Files**: `TET BPA — Business Planning and Analytics.html` (new, renamed from `AST_Forcasting_v2.html`), `index.html`, `landing_v2.html`, `IMP_DOCS/`
 
 **Prompts**:
-- Build a new, professional-looking dashboard referencing `IBP_Forcasting.html` — first attempt was too close to a template; iterated twice on user feedback ("bruh, did you actually check... there are only 5 tabs" / "TO BE CLEAR SHOULD NOT LOOK GENERIC")
-- Fix filter logic to match `IBP_Forcasting.html` exactly; focus further passes on UI polish only
+- Build a new, professional-looking dashboard referencing `AST_Forcasting.html` — first attempt was too close to a template; iterated twice on user feedback ("bruh, did you actually check... there are only 5 tabs" / "TO BE CLEAR SHOULD NOT LOOK GENERIC")
+- Fix filter logic to match `AST_Forcasting.html` exactly; focus further passes on UI polish only
 - Keep KPI data realistic — "not too much not too low... explain it as a future product"
 - Update `index.html` to light theme and link the new file
-- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `.claude/BTC_Lovable/` (clarified via AskUserQuestion: adopt the naming *style* only, keep ISG BPA content — do not merge with the separate Forecast Copilot product)
+- Read `IMP_DOCS/` and rename the new UI to follow the em-dash naming convention used by `forecast_copilot/` (clarified via AskUserQuestion: adopt the naming *style* only, keep TET BPA content — do not merge with the separate Forecast Copilot product)
 
-**What was built** (`IBP_Forcasting.html` redesign, 3 iterations):
-- Home page: dark near-black hero (`#0c1526` nav), 5 module tiles matching `IBP_Forcasting.html`'s exact copy and tile count (first draft wrongly added a 6th tile and generic gradient hero — corrected)
+**What was built** (`AST_Forcasting.html` redesign, 3 iterations):
+- Home page: dark near-black hero (`#0c1526` nav), 5 module tiles matching `AST_Forcasting.html`'s exact copy and tile count (first draft wrongly added a 6th tile and generic gradient hero — corrected)
 - Teal accent design system (`--accent: #0d9488`) replacing the original's blue, applied consistently across KPI cards, chart palettes, channel tabs, and the left nav active state
 - **Actuals Profiling expanded from 4 to 6 channel tabs** — added Field Services and Care, wiring up `TREND_DATA_52` keys (`dp-fld-dis/fct`, `care-cf/apos/sr/dsp-fct/act`, `dp-care-amer/emea/apj`) that existed in the original file's data layer but were never rendered as tabs or charts
 - KPI cards redesigned as shadow-only (no colored border/icon) — the 36→40px monospace number is the entire visual weight of the card
 - Two-section module tiles: colored metric-area strip (icon + big number) + white body (name/desc/footer)
-- All filter-aware chart update functions (`updFA_Region`, `updDP_QoQ`, `updCare`, etc.) ported 1:1 from `IBP_Forcasting.html`'s `applyAllFilteredCharts()` pattern, extended for the 2 new channels
+- All filter-aware chart update functions (`updFA_Region`, `updDP_QoQ`, `updCare`, etc.) ported 1:1 from `AST_Forcasting.html`'s `applyAllFilteredCharts()` pattern, extended for the 2 new channels
 - Fixed a real bug found during this work: `FA_PARTNER_BASE` was referenced by `updFA_Partner()` but never defined — would have thrown a ReferenceError the first time a region filter was applied while viewing the Partner chart
 
-**Root cause of iteration 1 & 2 failures**: didn't actually read `IBP_Forcasting.html`'s real home-page HTML/copy before building — assumed structure instead of verifying it, producing a 6-tile generic-looking page when the source has exactly 5 tiles with specific copy.
-**Fix**: full agent-driven audit of every module/page/chart/KPI in `IBP_Forcasting.html` before the second rebuild; exact copy match on the 5 tiles.
+**Root cause of iteration 1 & 2 failures**: didn't actually read `AST_Forcasting.html`'s real home-page HTML/copy before building — assumed structure instead of verifying it, producing a 6-tile generic-looking page when the source has exactly 5 tiles with specific copy.
+**Fix**: full agent-driven audit of every module/page/chart/KPI in `AST_Forcasting.html` before the second rebuild; exact copy match on the 5 tiles.
 
 **Data realism pass**: every static KPI value and every JS chart-data constant (`FA_REGION_BASE`, `DP_OVERALL_REGION_BASE`, `AP_DSP_TREND_BASE`, `AP_SR_TREND_BASE`, `T52` weekly trends) rescaled to derive consistently from 3 annual anchors: **1.47M ASU / 5.87L SR / 2.34L Dispatch** — weekly = annual÷52, monthly = annual÷12, so every KPI across every page tells the same underlying story.
 
@@ -343,7 +343,7 @@
 - Added the new dashboard as a Primary Tool card
 
 **Rename (this session, final step)**:
-- `IBP_Forcasting_v2.html` → `ISG BPA — Business Planning and Analytics.html`, matching the file's own `<title>` tag and adopting BTC_Lovable's "Title — Suffix" em-dash convention — but staying pure ISG BPA content, no Forecast Copilot branding (those are documented in HANDOFF.md as two separate products)
+- `AST_Forcasting_v2.html` → `TET BPA — Business Planning and Analytics.html`, matching the file's own `<title>` tag and adopting BTC_Lovable's "Title — Suffix" em-dash convention — but staying pure TET BPA content, no Forecast Copilot branding (those are documented in HANDOFF.md as two separate products)
 - Updated all 6 references in `index.html` (href, card-file label, `PRIMARY` set, `LABELS` map, sort-priority checks) and all 5 references in `landing_v2.html` (a parallel fork of `index.html` created by another session) — found via repo-wide grep before editing, to avoid missing a reference
 - `manifest.json` not hand-edited — it's auto-regenerated by the `update-manifest` GitHub Action on push
 
@@ -355,23 +355,23 @@
 
 ## Session 24 — Forecast Copilot: cross-page shared state + real business logic (all 6 pages rebuilt)
 **Date**: 2026-06-25
-**Files**: all 6 `.claude/BTC_Lovable/*.html` pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast), `IMP_DOCS/`
+**Files**: all 6 `forecast_copilot/*.html` pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast), `IMP_DOCS/`
 
 **Prompts**:
 - "now if i change filter in one workspace it should be reflected in all workspaces" — plus a full pasted product spec ("AI-Powered Forecast Planning & Bend the Curve (BTC)") to check sliders and functionality against, and "keep the IMP_DOCS in check"
 
-**Audit before any changes** (3 parallel agents): confirmed `.claude/BTC_Lovable/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/APOS overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
+**Audit before any changes** (3 parallel agents): confirmed `forecast_copilot/` exists only in this worktree (never in the main checkout, untracked by git either way), and found every one of the 6 pages' filter dropdowns was purely cosmetic — clicking an option only changed the button's displayed text and a `.selected` CSS class, with zero effect on any chart, KPI, or table anywhere. No `localStorage`/`sessionStorage`/`postMessage`/`BroadcastChannel` existed at all — no cross-page state of any kind. The only working interactivity was two slider pairs (ASU Simulation's NC/Renewals overrides, AI BTC Advisor's 6 driver sliders), and even those only drove a crude single combined multiplier rather than the distinct formula each page's own subtitle described.
 
 **Clarifying question asked before implementing**: whether "BTC%" should be a small bend/uplift percentage (matching the already-built Historical BTC Trend chart's 3-8% scale) or a large 90%+ achievement percentage (matching the spec's own example numbers, which used values like "97%"). User confirmed: small bend/uplift %. Implementing the spec's literal example would have contradicted 4 already-built pages that consistently used the smaller scale.
 
 **What was built**:
 - A single shared JS engine block, embedded identically (copy-pasted, unchanged) into all 6 files per the repo's existing "fully self-contained, no shared CSS/JS" convention for this product:
   - `fcState` — persisted to `localStorage` under `fc_state_v1`: filters (quarter/week/region/lob/business/service), `ncOverride`/`aposOverride`, `simMode`, `btcStrategy`/`manualBTC`, `distMode`, `approvals`. Loaded on every page load (`fcLoadState()`), saved on every change (`fcSaveState()`) — this is what makes a filter or selection made on one page appear already-selected when any other page loads next.
-  - `fcGenerateWeeklySeries()` / `fcGenerateHistory()` — seeded dummy-data generator (same `seeded(s)` PRNG pattern as `data.html`), keyed by a hash of the active filter combo so the same combo always produces the same numbers and different combos produce different, realistically-scaled ones. Generates 13 fiscal weeks of New Contracts/APOS/ASU/SR/Dispatch per the selected quarter, and 12 historical quarters of BTC/Forecast Accuracy/AOP/Modernization achievement.
-  - Real ASU Conversion formula: `ASU[w] = ASU[w-1] - Expirations[w] + APOS Renewals[w] + New Contracts[w]`, with Expirations (weekly churn) and Renewals modeled as distinct variables — the original page's subtitle stated this formula but the actual code just multiplied everything by one shared scalar.
+  - `fcGenerateWeeklySeries()` / `fcGenerateHistory()` — seeded dummy-data generator (same `seeded(s)` PRNG pattern as `data.html`), keyed by a hash of the active filter combo so the same combo always produces the same numbers and different combos produce different, realistically-scaled ones. Generates 13 fiscal weeks of New Contracts/Renewals/ASU/SR/Dispatch per the selected quarter, and 12 historical quarters of BTC/Forecast Accuracy/AOP/Modernization achievement.
+  - Real ASU Conversion formula: `ASU[w] = ASU[w-1] - Expirations[w] + Renewals[w] + New Contracts[w]`, with Expirations (weekly churn) and Renewals modeled as distinct variables — the original page's subtitle stated this formula but the actual code just multiplied everything by one shared scalar.
   - `fcRecommendBTC()` — real 3-strategy BTC Recommendation Engine: Historical Best Fit (recency-weighted average of 12 historical quarters), Closest to AOP (derived from the accuracy-shortfall-driven target gap), Balanced (their midpoint) — 3 genuinely distinct numbers every time, not the previous single weighted-sum formula duplicated into 3 static table rows.
   - `fcDistributeWeekly()` — Automatic Weekly Distribution across the 13 selected fiscal weeks, with Equal/Historical/AI Recommended modes producing genuinely different per-week shapes while always summing to the same total uplift.
-  - `fcRecommendOverrides()` — Recommendation Mode for ASU Simulation: analyzes 12-quarter average Forecast Accuracy and suggests NC/APOS overrides, with Accept/Modify/Reject actions.
+  - `fcRecommendOverrides()` — Recommendation Mode for ASU Simulation: analyzes 12-quarter average Forecast Accuracy and suggests NC/Renewals overrides, with Accept/Modify/Reject actions.
 - **Dashboard**: added the filters panel (previously had none at all — no JS, no filters, 100% static) plus the spec's 9 KPI cards, Forecast vs Target table, and 5 trend charts.
 - **ASU Simulation**: kept the 2 sliders, wired them to the real formula; added Original/Adjusted/Variance display and a full Recommendation Mode panel (previously the "AI Auto Simulation" toggle button did nothing beyond swapping its own CSS class).
 - **Historical Performance**: wired all 4 charts + the "Best Historical BTC Range" / "Most Successful Planning Periods" KPIs to the real 12-quarter history instead of one-time static render from hardcoded arrays.
@@ -385,14 +385,14 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 
 **Docs sync**: added a dedicated "Forecast Copilot" section to `IMP_DOCS/HANDOFF.md` (this product had never been documented in the canonical, git-tracked HANDOFF.md before — an earlier session's write-up of it only ever existed in a stale worktree copy that was never merged to master) — describes the 6 files, the shared-engine architecture, what changed in this rebuild, and known state (still local-only, not pushed).
 
-**Not done without asking**: did not `git add`/commit/push the `.claude/BTC_Lovable/` changes — that folder is untracked and has never been pushed for this product; pushing it would be a new decision (making local-only work visible/shared) rather than a continuation of an established pattern, so it's left for an explicit follow-up ask.
+**Not done without asking**: did not `git add`/commit/push the `forecast_copilot/` changes — that folder is untracked and has never been pushed for this product; pushing it would be a new decision (making local-only work visible/shared) rather than a continuation of an established pattern, so it's left for an explicit follow-up ask.
 
 
 ---
 
 ## Session 25 — Forecast Copilot: full light theme, pushed to git, added to UI Selection library
 **Date**: 2026-06-25
-**Files**: all 6 `.claude/BTC_Lovable/*.html` pages, `.gitignore`, `.nojekyll` (new), `index.html`, `landing_v2.html`, `IMP_DOCS/`
+**Files**: all 6 `forecast_copilot/*.html` pages, `.gitignore`, `.nojekyll` (new), `index.html`, `landing_v2.html`, `IMP_DOCS/`
 
 **Prompts**:
 - "add a full on light theme - and push it to the repo and put it in the UI Selection library which is hosted on gh pages"
@@ -401,12 +401,80 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 **Light theme conversion**: enumerated every distinct hex/rgba color used across all 6 files (28 unique values) before touching anything, then applied a single dark→light mapping via a Node script across all 6 files at once (167 total replacements) — background/sidebar/card tokens (`#0b0f1a`→`#f4f7fb`, `#0d1220`/`#111827`→`#ffffff`, etc.), text tokens inverted (light-on-dark → dark-on-light), and all 5 chart/semantic accent colors darkened for AA contrast against white (`#2dd4bf`→`#0d9488` teal, `#60a5fa`→`#0284c7` sky, `#a78bfa`→`#7c3aed` violet, `#f472b6`→`#db2777` pink, `#22c55e`→`#16a34a` green, `#ef4444`→`#dc2626` red) — plus softened box-shadows (`rgba(0,0,0,.4/.25)` → `rgba(15,23,42,0.16/0.10)`, appropriate for a light background instead of the harsh dark-theme shadow values). Re-ran the same Node `vm`-based smoke test from Session 24 on all 6 files afterward to confirm the bulk find/replace didn't break any embedded JS (all passed, all still produce identical, cross-page-consistent numbers).
 
 **Pushing this to git required real care**, since `.claude/` is untracked as a whole in the main checkout and contains things that must never be published:
-- Checked GitHub Pages' Jekyll behavior first — Jekyll excludes dotfiles/dotfolders by default, so `.claude/BTC_Lovable/` would 404 on GitHub Pages even if pushed. Added an empty `.nojekyll` file at the repo root (standard fix for pure-static-HTML Pages sites) so the dotfolder is served as-is.
-- `.claude/` also contains `settings.local.json` and `worktrees/` (a full nested git worktree) — neither should ever be committed. Added both as explicit `.gitignore` entries (`.claude/worktrees/`, `.claude/settings.local.json`) with a comment noting `.claude/BTC_Lovable/` is the intentional exception, then verified with `git check-ignore` that the ignore rules and the intended-tracked folder behave exactly as expected before staging anything.
-- Copied the 6 light-themed files from the worktree into the main checkout's `.claude/BTC_Lovable/` (didn't exist there before this session).
+- Checked GitHub Pages' Jekyll behavior first — Jekyll excludes dotfiles/dotfolders by default, so `forecast_copilot/` would 404 on GitHub Pages even if pushed. Added an empty `.nojekyll` file at the repo root (standard fix for pure-static-HTML Pages sites) so the dotfolder is served as-is.
+- `.claude/` also contains `settings.local.json` and `worktrees/` (a full nested git worktree) — neither should ever be committed. Added both as explicit `.gitignore` entries (`.claude/worktrees/`, `.claude/settings.local.json`) with a comment noting `forecast_copilot/` is the intentional exception, then verified with `git check-ignore` that the ignore rules and the intended-tracked folder behave exactly as expected before staging anything.
+- Copied the 6 light-themed files from the worktree into the main checkout's `forecast_copilot/` (didn't exist there before this session).
 
-**UI Selection library** (`index.html` + `landing_v2.html`): added a new Primary Tool card for Forecast Copilot, placed **first** in both the visual grid and the sort-priority logic (both files' `PRIMARY` set / `LABELS` map / sort comparator, and `landing_v2.html`'s `ORDER` array) — per the explicit "put it on TOP" instruction. Card links to `.claude/BTC_Lovable/Dashboard — Forecast Copilot.html` as the natural entry point into the 6-page workflow. Both files use CRLF line endings, which silently broke the first pass of Node-based string replacement (`\n`-based search strings didn't match `\r\n` content) — fixed by switching to line-ending-agnostic regexes (`\r?\n`).
+**UI Selection library** (`index.html` + `landing_v2.html`): added a new Primary Tool card for Forecast Copilot, placed **first** in both the visual grid and the sort-priority logic (both files' `PRIMARY` set / `LABELS` map / sort comparator, and `landing_v2.html`'s `ORDER` array) — per the explicit "put it on TOP" instruction. Card links to `forecast_copilot/Dashboard — Forecast Copilot.html` as the natural entry point into the 6-page workflow. Both files use CRLF line endings, which silently broke the first pass of Node-based string replacement (`\n`-based search strings didn't match `\r\n` content) — fixed by switching to line-ending-agnostic regexes (`\r?\n`).
 
-**A note on tool reliability**: mid-task, `node -e "..."` calls containing backtick-wrapped Markdown code spans (e.g. `` `.claude/BTC_Lovable/*.html` ``) inside the double-quoted shell argument got partially corrupted — Bash treats backticks as command substitution even inside double quotes, so those spans were executed as (nonexistent) shell commands and their empty output silently replaced the intended text. Caught by re-reading the file after each patch rather than trusting the "success" log line, and fixed by writing patch content to standalone files first and having Node read them (avoiding shell string interpolation entirely) for any replacement text containing backticks.
+**A note on tool reliability**: mid-task, `node -e "..."` calls containing backtick-wrapped Markdown code spans (e.g. `` `forecast_copilot/*.html` ``) inside the double-quoted shell argument got partially corrupted — Bash treats backticks as command substitution even inside double quotes, so those spans were executed as (nonexistent) shell commands and their empty output silently replaced the intended text. Caught by re-reading the file after each patch rather than trusting the "success" log line, and fixed by writing patch content to standalone files first and having Node read them (avoiding shell string interpolation entirely) for any replacement text containing backticks.
 
 **Docs sync**: updated the Forecast Copilot section, Active Files table row, and Current State bullet in `IMP_DOCS/HANDOFF.md` to reflect: light theme, pushed, live on GitHub Pages, linked in both UI Selection library files.
+
+---
+
+## Session 26 — Forecast Copilot: ALL filter option, Historical 0–100% y-axes, folder rename to `forecast_copilot/`
+**Files**: `forecast_copilot/*.html` (all 6, moved from `.claude/BTC_Lovable/`), `index.html`, `landing_v2.html`, `.gitignore`, `IMP_DOCS/HANDOFF.md`
+**Prompts**: "fix it now it is not showing the ALL button before and rename the file to 'forecast_copilot' and in Historical tab put (0-100)% properly in the UI"
+
+**What was done**:
+- **ALL filter option**: added `ALL` as the *first* option in the Region, Global LOB, Product Business and Service Type dropdowns on all 6 pages (`FILTER_OPTIONS`). Fiscal Quarter / Fiscal Week deliberately do NOT get ALL — `fcWeeksForQuarter()` / `fcPriorQuarters()` parse the quarter string (`split('-Q')`) and would produce NaN.
+- **ALL semantics**: aggregate = sum of that dimension's factors — `FC_REGION_FACTOR.ALL: 2.65`, `FC_LOB_FACTOR.ALL: 6.25`, `FC_BUSINESS_FACTOR.ALL: 2.90`, `FC_SERVICE_FACTOR.ALL: { volume: 5.05, dispatchRatio: 0.50 }` (dispatch ratio is the volume-weighted mean). Because the engine is multiplicative, all-ALL = product of sums = exact total over the full cross-product of slices — self-consistent, verified finite via Node vm smoke test.
+- **Historical y-axes**: `fcDrawLineSeries()` (shared engine, updated identically on all 6 pages) now accepts `opts.yTicks` + `opts.yFmt` — draws gridlines + right-anchored tick labels in a 40px left gutter; behaviour unchanged when the options are absent. Historical page now passes `0/25/50/75/100` with `%` formatting on Forecast Accuracy (was a zoomed 80–100 axis with no labels at all) and AOP & Modernization charts, and `0/3/6/9` `%` on the BTC trend.
+- **Rename**: `git mv .claude/BTC_Lovable forecast_copilot` — the suite now lives at repo root, so the GH Pages URL loses the `.claude/` dotfolder segment. All links updated in `index.html` (card, PRIMARY set, LABELS, sort comparator), `landing_v2.html` (incl. `ORDER` array), HANDOFF.md; `.gitignore` comment refreshed. Cross-page nav links are relative filenames, so they survived the move untouched.
+
+**Gotcha recorded**: these files are CRLF; a perl `\{\n` multiline pattern silently no-op'd until rewritten as `(\r?\n)` with the captured ending reused in the replacement.
+
+---
+
+## Session 26b — Forecast Copilot: chart hover inspection + fluid transitions; BTC range KPI shows 0%—100%
+**Files**: `forecast_copilot/*.html` (all 6)
+**Prompts**: "include the Graphs hover design... it should highlight values corresponds to the graph... in all the graphs of the UI, and make the graph design change fluidly"; "Best Historical BTC Range 3.8% — 6.4% change this value to 0%-100%"
+
+**What was done**:
+- **Hover layer on every SVG chart** (shared engine, identical on all 6 pages): `fcAttachHover()` adds a transparent capture rect per chart — on mousemove it snaps to the nearest data index, shows a dashed vertical guide line, colored marker dots on each series, and a floating dark tooltip (fixed-position, follows the chart point) listing series name + formatted value. CSS for the tooltip/markers is injected from JS (`fcHoverUI`) so no per-page style edits.
+- **Fluid transitions**: `fcDrawLineSeries`/`fcDrawGroupedBars` now tween old→new data over 320ms (ease-in-out, rAF, cancels in-flight tween) whenever a chart re-renders with the same shape — filter changes and slider drags animate smoothly instead of snapping. First render draws instantly.
+- **Series/label metadata**: all 15 chart call sites updated with `name:` per series and `labels:` (weeks/quarters) so tooltips read "2024-Q3 · AOP: 84%" instead of generic text. Percent charts pass `fmt` for % formatting.
+- **BTC Distribution h-bars**: hover brightens the bar and highlights label+value (CSS only). Donuts keep their static legends (conic-gradient divs, values already visible).
+- **Best Historical BTC Range KPI**: per explicit instruction, value text is now the literal "0% — 100%"; the meter below still marks where the historical band sits on the 0–100 track.
+- Verified: Node vm smoke test loads and renders all 6 pages with ALL filters, stub DOM covering the hover layer APIs.
+
+---
+
+## Session 26c — Forecast Copilot: charts migrated to Highcharts
+**Files**: `forecast_copilot/*.html` (all 6)
+**Prompts**: "improve the overall graphs, use highcharts i think it is better for the UI"
+
+**What was done**:
+- Replaced the hand-rolled SVG chart engine with **Highcharts 11.4.8** while keeping the same shared-engine API (`fcDrawLineSeries`/`fcDrawGroupedBars` signatures unchanged), so all 15 call sites work untouched. `fcHCContainer()` swaps each legacy `<svg>` for a same-id `<div>` at first draw.
+- Native Highcharts UX replaces the custom hover layer: shared dark tooltip (styled to match the old fc-tip), x-axis crosshair, hover halo/line-emphasis, 320ms animated `setData` updates on filter/slider changes (charts are cached in `fcHCharts` and updated in place, not recreated).
+- Light-theme styling via options: transparent background, Inter font, grid #e8edf7, axis labels #94a3b8/#8a94ad, no titles/legends/credits (pages keep their HTML legends), `yTicks`→`tickPositions`, `yFmt`→axis label formatter, y-min defaults to 0.
+- Removed the now-redundant page-drawn x-axis label divs writes (Historical ×4, Final Forecast, BTC Distribution) — Highcharts renders real axes.
+- **CDN**: cdnjs (`cdnjs.cloudflare.com/.../highcharts/11.4.8/highcharts.min.js`), NOT code.highcharts.com — the latter 403s requests without a Referer header (breaks file:// loads and strict referrer policies). Found via real-browser testing.
+- **Label crowding**: `rotation: labels.length > 6 ? -35 : 0`. Note: `autoRotation` is IGNORED when `labels.step` is set — cost one iteration to learn.
+- Verified with Canary/Chromium on all 6 pages: 0 console errors, expected chart counts (5/3/4/0/1/1), slider-update path exercised, screenshots confirm no label overlap.
+- Note: Highcharts is commercially licensed (free for personal/non-commercial use) — flagged to owner for internal-demo licensing review.
+
+---
+
+## Session 27 — Compliance content sweep
+**Files**: all active HTML files, IMP_DOCS, CLAUDE.md, .gitignore; 13 legacy prototype files untracked
+
+**What was done**:
+- Company-compliance sweep replacing client-specific references across all deployed UI files and docs with neutral terminology (partner names, product-line names, renewal terminology), with a consistent identifier rename in the Forecast Copilot shared engine (`fc_state` localStorage key bumped to v2 so stale saved filter values reset cleanly).
+- 13 legacy/prototype HTML files removed from git tracking and added to `.gitignore` — they remain on local disk but are no longer deployed or listed in manifest.json/All Modules.
+- Full inventory of what was found and changed is documented in the local-only, gitignored `remove.md` at the repo root.
+- Fixed: `distributeByFactor()` on BTC Distribution now excludes the `ALL` aggregate key so donut/h-bar breakdowns don't double-count.
+- Verified: Node vm smoke tests on all 6 Forecast Copilot pages + real-browser checks (0 console errors, correct chart counts, slider path, forbidden-term scan = 0 hits).
+
+---
+
+## Session 28 — Nomenclature generalization
+**Files**: `AST_Forcasting.html` (renamed from former main-dashboard filename), `TET BPA — Business Planning and Analytics.html` (renamed), index.html, landing_v2.html, bend_the_curve.html, epic_dashboard_mockup.html, forecast_copilot/*.html, CLAUDE.md, IMP_DOCS/*
+
+**What was done**:
+- Owner-directed nomenclature mapping applied across all tracked HTML + docs (word-boundary, case-sensitive): partner/brand and segment terms replaced with neutral codes (→ ATC, He, AST, TET, TES, THS; TEC/XTC mappings had zero occurrences).
+- Both main dashboard files renamed via `git mv`; every internal link, card, label map, sort comparator, and doc reference updated. Old URLs 404 after deploy.
+- forecast_copilot localStorage key bumped `fc_state_v2`→`fc_state_v3` so previously saved filter values (old segment names) reset instead of silently missing factor-map keys.
+- Fixed collateral: the main dashboard's logo `<img>` used a hard-coded absolute `D:\` path (broken on the live site since day one) — now relative `Aligned logo.png`, which is tracked in the repo.
+- Verified: Node parse/engine tests on all 6 copilot pages; real-browser checks on both renamed dashboards + index (0 unexpected console errors, 18/23 canvases render, nav click works, forbidden-term scan = 0; manifest.json fetch CORS error under file:// is expected and absent on https).

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASU Simulation — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#d97706;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1280px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  /* Filter rail — sits directly right of the nav */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+  .filter-reset:hover{color:var(--teal);}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value.open{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px;}
+  .primary-grid .filter-item{margin-bottom:0;}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px;}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums;}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0;}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg);}
+  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;}
+  .secondary-grid.open{max-height:220px;opacity:1;margin-top:12px;}
+  .secondary-grid .filter-item{margin-bottom:0;}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .toggle-group{display:flex;gap:6px;margin-bottom:18px;}
+  .toggle-btn{padding:8px 15px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .toggle-btn.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .toggle-btn:hover:not(.active){border-color:var(--text-3);color:var(--text-1);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+
+  .slider-row{margin-bottom:16px;}
+  .slider-head{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-bottom:7px;}
+  .slider-head .val{color:var(--teal);font-weight:700;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--card-hi);accent-color:#0d9488;cursor:pointer;}
+
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:8px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  .ovv-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;}
+  .ovv-card{background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .ovv-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+  .ovv-line{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;}
+  .ovv-line .k{color:var(--text-2);}
+  .ovv-line .v{font-weight:700;color:var(--text-1);}
+  .ovv-line .v.pos{color:var(--green);} .ovv-line .v.neg{color:var(--red);}
+
+  .rec-box{background:var(--card-hi);border:1px solid var(--teal);border-radius:10px;padding:16px 18px;margin-bottom:16px;}
+  .rec-title{font-size:12.5px;font-weight:700;color:var(--teal);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+  .rec-rationale{font-size:12px;color:var(--text-2);line-height:1.6;margin-bottom:12px;}
+  .rec-values{display:flex;gap:20px;margin-bottom:14px;}
+  .rec-values .item{font-size:13px;}
+  .rec-values .item .lbl{color:var(--text-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;}
+  .rec-values .item .num{color:var(--text-1);font-weight:700;font-size:16px;}
+  .rec-actions{display:flex;gap:8px;}
+  .rec-btn{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-1);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .rec-btn.accept{background:var(--teal);color:#f4f7fb;border-color:var(--teal);}
+  .rec-btn.accept:hover{opacity:.88;}
+  .rec-btn:not(.accept):hover{border-color:var(--text-3);}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">AI Planning Suite</span></div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+      <a class="nav-item active" href="ASU Simulation — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>ASU Simulation</a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
+      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>BTC Distribution</a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <div class="filter-rail-head-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </div>
+      <button type="button" class="filter-reset" id="filter-reset-btn">Reset</button>
+    </div>
+    <div class="filter-rail-sub">Planning slice selectors</div>
+
+    <div class="primary-grid">
+      <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service" style="grid-column:span 2"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+    </div>
+
+    <div class="filter-rail-divider"></div>
+
+    <button type="button" class="more-toggle" id="more-filters-toggle">
+      <span class="more-toggle-label">More filters <span class="more-toggle-count">5</span></span>
+      <svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="secondary-grid" id="secondary-filters">
+      <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div class="page-title">ASU What-If Simulation</div>
+      <div class="page-sub">Adjust New Contract and APOS drivers to project ASU, SR and Dispatch impact in real time.</div>
+    </div>
+
+    <div class="toggle-group" id="sim-mode-toggle">
+      <button class="toggle-btn active" data-mode="manual">Manual Simulation</button>
+      <button class="toggle-btn" data-mode="recommend">Recommendation Mode</button>
+    </div>
+
+    <div id="manual-panel">
+      <div class="panel">
+        <div class="panel-title">New Contracts &amp; APOS Overrides</div>
+        <div class="panel-sub">ASU = Prior ASU − Expirations + (APOS × Renewal Rate × APOS Modifier) + (New Contracts × NC Modifier)</div>
+        <div class="slider-row">
+          <div class="slider-head"><span>New Contract Override</span><span class="val" id="nc-val">10%</span></div>
+          <input type="range" id="nc-override" min="0" max="100" value="10">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span>APOS Override</span><span class="val" id="apos-val">5%</span></div>
+          <input type="range" id="apos-override" min="0" max="100" value="5">
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Original vs Adjusted Forecast</div>
+        <div class="panel-sub">Current-quarter totals (13 fiscal weeks)</div>
+        <div class="ovv-row" id="ovv-row"></div>
+      </div>
+    </div>
+
+    <div id="recommend-panel" style="display:none;">
+      <div class="rec-box">
+        <div class="rec-title">🧠 AI Recommendation</div>
+        <div class="rec-rationale" id="rec-rationale">—</div>
+        <div class="rec-values">
+          <div class="item"><span class="lbl">New Contract Override</span><span class="num" id="rec-nc">—</span></div>
+          <div class="item"><span class="lbl">APOS Override</span><span class="num" id="rec-apos">—</span></div>
+        </div>
+        <div class="rec-actions">
+          <button class="rec-btn accept" id="rec-accept">Accept Recommendation</button>
+          <button class="rec-btn" id="rec-modify">Modify Recommendation</button>
+          <button class="rec-btn" id="rec-reject">Reject</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" id="asu-metric-title">DS ASU vs Adjusted ASU</div>
+      <div class="toggle-group" id="asu-metric-toggle">
+        <button class="toggle-btn active" data-metric="asu">ASU</button>
+        <button class="toggle-btn" data-metric="sr">SR</button>
+        <button class="toggle-btn" data-metric="dsp">Dispatch</button>
+      </div>
+      <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+      <svg id="chart-metric" viewBox="0 0 640 170" width="100%" height="170"></svg>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js"></script>
+  <script>
+
+/* ---- ASU Simulation page-specific rendering ---- */
+// Metric switcher: one chart, ASU/SR/Dispatch toggle buttons show one forecast graph at a time.
+const ASU_METRIC_CONF = {
+  asu: { title: 'DS ASU vs Adjusted ASU', base: 'asuBase', adj: 'asuAdj' },
+  sr:  { title: 'DS SR vs Adjusted SR', base: 'srBase', adj: 'srAdj' },
+  dsp: { title: 'DS Dispatch vs Adjusted Dispatch', base: 'dspBase', adj: 'dspAdj' }
+};
+let _asuMetric = 'asu';
+
+function fcRenderASU() {
+  const r = fcCompute();
+
+  const wk = r.series.weeks.map(w => 'W' + w.split('-W')[1]);
+  const conf = ASU_METRIC_CONF[_asuMetric];
+  document.getElementById('asu-metric-title').textContent = conf.title;
+  fcDrawLineSeries('chart-metric', [
+    { data: r.series[conf.base], color: '#0d9488', name: 'Base' },
+    { data: r.adj[conf.adj], color: '#d97706', name: 'Scenario' }
+  ], { labels: wk });
+
+  function ovvCard(label, orig, adj) {
+    const variance = adj - orig;
+    const cls = variance >= 0 ? 'pos' : 'neg';
+    return `<div class="ovv-card">
+      <div class="ovv-label">${label}</div>
+      <div class="ovv-line"><span class="k">Original Forecast</span><span class="v">${fcN(orig)}</span></div>
+      <div class="ovv-line"><span class="k">Adjusted Forecast</span><span class="v">${fcN(adj)}</span></div>
+      <div class="ovv-line"><span class="k">Variance</span><span class="v ${cls}">${variance>=0?'+':''}${fcN(variance)}</span></div>
+    </div>`;
+  }
+  document.getElementById('ovv-row').innerHTML =
+    ovvCard('ASU', r.originalTotals.asu, r.scenarioTotals.asu) +
+    ovvCard('SR', r.originalTotals.sr, r.scenarioTotals.sr) +
+    ovvCard('Dispatch', r.originalTotals.dsp, r.scenarioTotals.dsp);
+}
+
+function fcRenderRecommendation() {
+  const rec = fcRecommendOverrides(fcState.filters);
+  document.getElementById('rec-rationale').textContent = rec.rationale;
+  document.getElementById('rec-nc').textContent = rec.nc + '%';
+  document.getElementById('rec-apos').textContent = rec.apos + '%';
+  return rec;
+}
+
+fcWireFilters(() => { fcRenderASU(); if (fcState.simMode === 'recommend') fcRenderRecommendation(); });
+
+// ASU / SR / Dispatch metric toggle — shows a single chart for the selected metric
+document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    _asuMetric = b.dataset.metric;
+    fcRenderASU();
+  };
+});
+
+// Sliders
+document.getElementById('nc-override').value = fcState.ncOverride;
+document.getElementById('apos-override').value = fcState.aposOverride;
+document.getElementById('nc-val').textContent = fcState.ncOverride + '%';
+document.getElementById('apos-val').textContent = fcState.aposOverride + '%';
+document.getElementById('nc-override').oninput = e => {
+  fcState.ncOverride = +e.target.value;
+  document.getElementById('nc-val').textContent = e.target.value + '%';
+  fcSaveState(fcState);
+  fcRenderASU();
+};
+document.getElementById('apos-override').oninput = e => {
+  fcState.aposOverride = +e.target.value;
+  document.getElementById('apos-val').textContent = e.target.value + '%';
+  fcSaveState(fcState);
+  fcRenderASU();
+};
+
+// Manual Simulation / Recommendation Mode toggle
+document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    fcState.simMode = b.dataset.mode;
+    fcSaveState(fcState);
+    document.getElementById('manual-panel').style.display = fcState.simMode === 'manual' ? 'block' : 'none';
+    document.getElementById('recommend-panel').style.display = fcState.simMode === 'recommend' ? 'block' : 'none';
+    if (fcState.simMode === 'recommend') fcRenderRecommendation();
+  };
+});
+if (fcState.simMode === 'recommend') {
+  document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'recommend'));
+  document.getElementById('manual-panel').style.display = 'none';
+  document.getElementById('recommend-panel').style.display = 'block';
+}
+
+document.getElementById('rec-accept').onclick = () => {
+  const rec = fcRecommendOverrides(fcState.filters);
+  fcState.ncOverride = rec.nc; fcState.aposOverride = rec.apos;
+  fcState.simMode = 'manual'; fcSaveState(fcState);
+  document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'manual'));
+  document.getElementById('manual-panel').style.display = 'block';
+  document.getElementById('recommend-panel').style.display = 'none';
+  document.getElementById('nc-override').value = rec.nc;
+  document.getElementById('apos-override').value = rec.apos;
+  document.getElementById('nc-val').textContent = rec.nc + '%';
+  document.getElementById('apos-val').textContent = rec.apos + '%';
+  fcRenderASU();
+};
+document.getElementById('rec-modify').onclick = () => {
+  // Pre-fill sliders with the recommendation, but stay in Manual Simulation so the planner can adjust further
+  const rec = fcRecommendOverrides(fcState.filters);
+  fcState.ncOverride = rec.nc; fcState.aposOverride = rec.apos;
+  fcState.simMode = 'manual'; fcSaveState(fcState);
+  document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'manual'));
+  document.getElementById('manual-panel').style.display = 'block';
+  document.getElementById('recommend-panel').style.display = 'none';
+  document.getElementById('nc-override').value = rec.nc;
+  document.getElementById('apos-override').value = rec.apos;
+  document.getElementById('nc-val').textContent = rec.nc + '%';
+  document.getElementById('apos-val').textContent = rec.apos + '%';
+  fcRenderASU();
+};
+document.getElementById('rec-reject').onclick = () => {
+  fcState.ncOverride = FC_DEFAULT_STATE.ncOverride; fcState.aposOverride = FC_DEFAULT_STATE.aposOverride;
+  fcState.simMode = 'manual'; fcSaveState(fcState);
+  document.querySelectorAll('#sim-mode-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'manual'));
+  document.getElementById('manual-panel').style.display = 'block';
+  document.getElementById('recommend-panel').style.display = 'none';
+  document.getElementById('nc-override').value = fcState.ncOverride;
+  document.getElementById('apos-override').value = fcState.aposOverride;
+  document.getElementById('nc-val').textContent = fcState.ncOverride + '%';
+  document.getElementById('apos-val').textContent = fcState.aposOverride + '%';
+  fcRenderASU();
+};
+
+fcRenderASU();
+if (fcState.simMode === 'recommend') fcRenderRecommendation();
+  </script>
+</body>
+</html>

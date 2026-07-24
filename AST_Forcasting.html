@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>TET BPA: Business Planning and Analytics</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -501,219 +501,6 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
 
     hr.rule { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
-
-    /* ── Demand Profiling 4-Quadrant Matrix ── */
-    .dp-matrix-wrap { display:flex; gap:0; margin:16px 0 10px; }
-    .dp-y-label {
-      display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-      gap:4px; padding:0 10px 38px 0; min-width:38px;
-    }
-    .dp-y-arrow { font-size:20px; color:var(--text-2); line-height:1; }
-    .dp-y-text {
-      writing-mode:vertical-rl; transform:rotate(180deg);
-      font-size:11px; font-weight:600; color:var(--text-2); letter-spacing:0.04em;
-      white-space:nowrap;
-    }
-    .dp-y-50pct {
-      font-size:10px; font-weight:700; color:var(--text-3);
-      border-top:2px dashed var(--border-hi); padding-top:5px; margin-top:6px;
-      white-space:nowrap;
-    }
-    .dp-matrix-body { flex:1; display:flex; flex-direction:column; }
-    .dp-quadrant-grid {
-      display:grid; grid-template-columns:1fr 1fr; gap:10px;
-      border-left:2px solid var(--text-2); border-bottom:2px solid var(--text-2);
-      padding:4px 4px 0 10px;
-    }
-    .dp-x-axis-row {
-      display:flex; align-items:center; gap:8px;
-      padding:7px 0 0 10px;
-    }
-    .dp-x-50pct { font-size:10px; font-weight:700; color:var(--text-3); }
-    .dp-x-arrow  { font-size:18px; color:var(--text-2); line-height:1; }
-    .dp-x-text   { font-size:11px; font-weight:600; color:var(--text-2); letter-spacing:0.04em; }
-
-    .dp-quad {
-      background:var(--surface); border-radius:8px; padding:10px 12px 10px;
-      border:1px solid var(--border); display:flex; flex-direction:column;
-    }
-    .dp-quad-title { font-size:12px; font-weight:700; margin-bottom:6px; }
-    .dp-quad-canvas { flex:1; min-height:190px; position:relative; }
-    .dp-trend-canvas-wrap { position:relative; height:260px; }
-
-    .dp-quad-consistent  { border-top:3px solid #16a34a; }
-    .dp-quad-erratic     { border-top:3px solid #d97706; }
-    .dp-quad-intermittent{ border-top:3px solid #2563eb; }
-    .dp-quad-lumpy       { border-top:3px solid #db2777; }
-
-    .dp-quad-consistent  .dp-quad-title { color:#16a34a; }
-    .dp-quad-erratic     .dp-quad-title { color:#d97706; }
-    .dp-quad-intermittent .dp-quad-title{ color:#2563eb; }
-    .dp-quad-lumpy       .dp-quad-title { color:#db2777; }
-
-    .dp-legend-box {
-      background:var(--card-hi); border:1px solid var(--border);
-      border-radius:8px; padding:10px 16px;
-    }
-    .dp-legend-row { display:flex; gap:16px; margin-bottom:6px; }
-    .dp-legend-row:last-child { margin-bottom:0; }
-    .dp-legend-item {
-      flex:1; font-size:11.5px; line-height:1.5;
-      display:flex; align-items:flex-start; gap:7px;
-    }
-    .dp-legend-dot {
-      width:9px; height:9px; border-radius:50%;
-      display:inline-block; margin-top:3px; flex-shrink:0;
-    }
-
-    /* CV info button & tooltip */
-    /* Forecast Trend — right-panel stat tiles */
-    .ft-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
-    .ft-stat-tile {
-      background:var(--card-hi); border-radius:8px; padding:10px 12px;
-      display:flex; flex-direction:column; gap:2px;
-    }
-    .ft-stat-tile-label {
-      font-size:10px; font-weight:600; color:var(--text-3);
-      text-transform:uppercase; letter-spacing:0.07em;
-    }
-    .ft-stat-tile-value {
-      font-size:20px; font-weight:700;
-      font-family:'IBM Plex Mono',monospace; color:var(--text-1); line-height:1.1;
-    }
-    .ft-stat-tile-sub { font-size:10px; color:var(--text-3); margin-top:1px; }
-    .ft-error-legend {
-      display:flex; gap:12px; font-size:10.5px; color:var(--text-3);
-      margin-bottom:6px; align-items:center;
-    }
-    .ft-error-legend-dot {
-      display:inline-block; width:8px; height:8px;
-      border-radius:2px; vertical-align:middle; margin-right:3px;
-    }
-
-    /* LOB Weekly chart */
-    .lob-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
-    .lob-metric-btn {
-      padding:3px 10px; font-size:11px; font-weight:600;
-      border:1.5px solid var(--border); border-radius:6px;
-      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
-    }
-    .lob-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .lob-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
-    .ft-metric-toggle { display:flex; gap:4px; flex-shrink:0; }
-    .ft-metric-btn {
-      padding:3px 12px; font-size:11px; font-weight:600;
-      border:1.5px solid var(--border); border-radius:6px;
-      background:transparent; color:var(--text-2); cursor:pointer; transition:all 0.15s;
-    }
-    .ft-metric-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
-    .ft-metric-btn:hover:not(.active) { border-color:var(--accent); color:var(--accent); }
-    .lob-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px; font-size:10.5px; color:var(--text-2); align-items:center; }
-    .lob-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:3px; vertical-align:middle; }
-
-    .cv-info-btn {
-      display:inline-flex; align-items:center; justify-content:center;
-      width:16px; height:16px; border-radius:50%;
-      border:1.5px solid var(--accent); background:transparent;
-      color:var(--accent); font-size:10px; font-weight:700;
-      font-family:'Plus Jakarta Sans',sans-serif;
-      cursor:pointer; padding:0; line-height:1;
-      vertical-align:middle; margin-left:5px;
-      transition:background 0.15s, color 0.15s;
-    }
-    .cv-info-btn:hover { background:var(--accent); color:#fff; }
-    .cv-tooltip-wrap { position:relative; display:inline-flex; align-items:center; }
-    .cv-tooltip-box {
-      position:absolute; bottom:calc(100% + 10px); left:50%;
-      transform:translateX(-50%);
-      background:var(--surface); border:1px solid var(--border-hi);
-      border-radius:10px; padding:14px 16px;
-      box-shadow:0 6px 24px rgba(0,0,0,0.14);
-      width:300px; z-index:400;
-      font-size:12px; line-height:1.65; color:var(--text-1);
-    }
-    .cv-tooltip-box::after {
-      content:''; position:absolute; top:100%; left:50%;
-      transform:translateX(-50%);
-      border:7px solid transparent;
-      border-top-color:var(--border-hi);
-    }
-    .cv-tooltip-title {
-      font-size:13px; font-weight:700; color:var(--text-1); margin-bottom:6px;
-    }
-    .cv-tooltip-formula {
-      background:var(--card-hi); border-radius:6px;
-      padding:5px 10px; font-family:'IBM Plex Mono',monospace;
-      font-size:11.5px; color:var(--accent); margin:6px 0;
-      text-align:center; letter-spacing:0.02em;
-    }
-    .cv-tooltip-rules { padding-left:0; margin:7px 0 0; list-style:none; }
-    .cv-tooltip-rules li { padding:2px 0; font-size:11.5px; }
-    .cv-tooltip-rules li::before { content:'• '; color:var(--accent); font-weight:700; }
-
-    /* ── Tab info button & popover ── */
-    .info-bar {
-      display: flex; justify-content: flex-end;
-      margin-bottom: 14px; position: relative;
-    }
-    .tab-info-btn {
-      width: 20px; height: 20px; border-radius: 50%;
-      border: none; background: transparent;
-      color: var(--text-3); font-size: 15px;
-      cursor: pointer; padding: 0;
-      display: inline-flex; align-items: center; justify-content: center;
-      transition: color 0.15s;
-    }
-    .tab-info-btn:hover  { color: var(--accent); }
-    .tab-info-btn.active { color: var(--accent); }
-    .tab-info-popover {
-      display: none; position: absolute;
-      right: 0; top: calc(100% + 6px);
-      width: 300px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px 16px;
-      box-shadow: 0 6px 24px rgba(13,16,32,0.08);
-      z-index: 400; font-size: 12px; color: var(--text-2); line-height: 1.65;
-    }
-    .tab-info-popover.open { display: block; }
-    .tab-info-popover-title {
-      font-size: 9.5px; font-weight: 700; color: var(--text-3);
-      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
-    }
-    .tab-info-popover p { margin-bottom: 8px; color: var(--text-2); }
-    .tab-info-popover ul { padding-left: 14px; margin: 0; }
-    .tab-info-popover li { margin-bottom: 5px; }
-    .tab-info-popover li strong { color: var(--text-1); font-weight: 600; }
-
-    /* Demand Trends Section */
-    .dp-trends-section { margin-top:24px; }
-    .dp-trends-header { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
-    .dp-trends-title { font-size:14px; font-weight:700; color:var(--text-1); }
-    .dp-trends-sub { font-size:11.5px; color:var(--text-3); }
-    .dp-trends-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .dp-trend-card {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:10px; padding:12px 14px 6px;
-    }
-    .dp-trend-card-header {
-      display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;
-    }
-    .dp-trend-label { font-size:12px; font-weight:600; color:var(--text-1); }
-    .dp-trend-badge {
-      font-size:10px; font-weight:700; padding:2px 8px;
-      border-radius:100px; letter-spacing:0.05em;
-    }
-    .dp-trend-badge-yoy { background:#fef3c7; color:#b45309; }
-    .dp-trend-badge-qoq { background:#ecfeff; color:#0e7490; }
-    .dp-trend-legend {
-      display:flex; gap:12px; margin-bottom:2px;
-      font-size:10.5px; color:var(--text-3);
-    }
-    .dp-trend-legend-dot {
-      display:inline-block; width:8px; height:8px;
-      border-radius:50%; margin-right:4px; vertical-align:middle;
-    }
-
   </style>
 </head>
 <body>
@@ -729,14 +516,14 @@
 
   <div class="home-hero">
     <div class="home-hero-inner">
-      <p class="home-eyebrow">Aligned Automation Services &nbsp;·&nbsp; ISG</p>
+      <p class="home-eyebrow">He &nbsp;·&nbsp; TET</p>
       <h1 class="home-title">Business Planning<br>and Analytics</h1>
       <p class="home-title-sub">Demand Intelligence Platform</p>
       <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
     </div>
     <div class="home-logo">
-      <img src="D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations\Aligned logo.png" alt="Aligned Automation" style="height:34px;"
-        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>Aligned Automation</span>'">
+      <img src="Aligned logo.png" alt="He" style="height:34px;"
+        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>He</span>'">
     </div>
   </div>
 
@@ -759,7 +546,7 @@
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
         <div class="tile-title">Actuals Profiling</div>
-        <div class="tile-desc">ISG demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
+        <div class="tile-desc">TET demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
         <div class="tile-stat">1 view &nbsp;·&nbsp; <span>Overall · Region · Trend</span></div>
       </div>
 
@@ -781,7 +568,7 @@
         </div>
         <div class="tile-title">What-If Simulation</div>
         <div class="tile-desc">Slider-driven scenario explorer — model renewal rates, contract growth, and dispatch conversion to forecast ASU, SR, and revenue outcomes.</div>
-        <div class="tile-stat">New Contract Growth &nbsp;·&nbsp; <span style="color:var(--purple);">APOS Renewal</span></div>
+        <div class="tile-stat">New Contract Growth &nbsp;·&nbsp; <span style="color:var(--purple);">Service Renewals</span></div>
       </div>
 
       <a href="bend_the_curve.html" class="tile" style="text-decoration:none;">
@@ -803,7 +590,7 @@
     <div class="header-left">
       <button class="btn-icon" onclick="toggleLeftPanel()" title="Toggle Nav"><i class="ti ti-menu-2"></i></button>
       <div>
-        <div class="header-brand" id="dash-title">ISG BPA: Business Planning and Analytics</div>
+        <div class="header-brand" id="dash-title">TET BPA: Business Planning and Analytics</div>
         <div class="breadcrumb" id="breadcrumb">
           <span onclick="goHome()">Home</span>
           <span class="sep">›</span>
@@ -836,128 +623,99 @@
 
       <!-- ══ MODULE: FORECAST ACCURACY ══ -->
       <div id="module-forecast-accuracy" class="module-section">
-        <!-- ══ SUB-PAGE: FORECAST TREND ══ -->
-        <div id="fa-page-forecast-trend" class="page-section active">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-fa" onclick="toggleInfo('info-fa')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-fa">
-              <div class="tab-info-popover-title">Forecast Accuracy</div>
-              <p>Tells you whether your model is working. Accuracy below 85% in any metric means it needs recalibration before the next publish cycle.</p>
-              <ul>
-                <li><strong>W22 is the cut-off</strong> — actuals are confirmed here; everything beyond is a projection</li>
-                <li><strong>Watch for divergence</strong> — large gaps between Adjusted Forecast and Actuals signal unmodelled external factors</li>
-                <li><strong>ASU and SR move independently</strong> — check both before declaring the model healthy</li>
-              </ul>
-            </div>
-          </div></div>
-
-          <!-- KPI strip -->
+        <div id="fa-page-overview" class="page-section active">
           <div class="kpi-row">
-            <div class="kpi-card">
-              <div class="kpi-label">Current Week</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ft-current-week">W22</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-current-week-sub">FY26 · Actuals through here</div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Tech ASU</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)">142.5K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 4% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Work Orders</div><div class="kpi-value kpi-dynamic">86.2K</div><div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Service Request</div><div class="kpi-value kpi-dynamic">32.1K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Forecast Demand SR</div><div class="kpi-value kpi-dynamic">8.4K</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Tech ASU vs Work Orders Trend</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-overview','line',this)">Line</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-overview','bar',this)">Bar</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-overview"></canvas></div>
             </div>
-            <div class="kpi-card">
-              <div class="kpi-label">ASU Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-asu-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-asu-acc-sub">Overall · W01–W22</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">SR Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-sr-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-sr-acc-sub">Overall · W01–W22</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Dispatch Forecast Accuracy</div>
-              <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ft-dsp-acc">—</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-dsp-acc-sub">Overall · W01–W22</div>
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Weekly Actuals vs Forecast by Region</span>
+                <div class="chart-toggle">
+                  <button class="chart-toggle-btn active" onclick="switchChartType('fa-chart-hbar','bar',this)">Bar</button>
+                  <button class="chart-toggle-btn" onclick="switchChartType('fa-chart-hbar','line',this)">Line</button>
+                </div>
+              </div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-hbar"></canvas></div>
             </div>
           </div>
-
-          <!-- Two-column chart area -->
-          <div class="visual-row" style="align-items:stretch;">
-
-            <!-- LEFT — SR / ASU / Dispatch trend chart -->
-            <div class="visual-card" style="flex:1.8; flex-direction:column; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; gap:12px;">
-                <div style="flex:1; min-width:0;">
-                  <div class="visual-title" style="margin-bottom:2px;" id="ft-chart-left-title">Weekly SR — FY26 Actuals &amp; Forecast</div>
-                  <div style="font-size:11px; color:var(--text-3);" id="ft-chart-left-sub">Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters</div>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; flex-shrink:0;">
-                  <div class="ft-metric-toggle">
-                    <button class="ft-metric-btn active" onclick="switchChartMetric('sr',this)">SR</button>
-                    <button class="ft-metric-btn" onclick="switchChartMetric('asu',this)">ASU</button>
-                    <button class="ft-metric-btn" onclick="switchChartMetric('dispatch',this)">Dispatch</button>
-                  </div>
-                  <div style="display:flex; gap:12px; align-items:center; font-size:11px; color:var(--text-2);">
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#3a6ef0" stroke-width="2"/></svg>Actuals
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#16a34a" stroke-width="2" stroke-dasharray="8 4"/></svg>Forecast
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#d97706" stroke-width="2" stroke-dasharray="3 3"/></svg>Adj.
-                    </span>
-                    <span style="display:flex;align-items:center;gap:5px;">
-                      <svg width="26" height="10"><line x1="0" y1="5" x2="26" y2="5" stroke="#6366f1" stroke-width="2" stroke-dasharray="10 4"/></svg>AOP
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div style="flex:1; min-height:320px; position:relative;">
-                <canvas id="fa-chart-forecast-trend"></canvas>
-              </div>
-            </div>
-
-            <!-- RIGHT — Weekly LOB Breakdown -->
-            <div class="visual-card" style="flex:1; flex-direction:column; min-width:0;">
-              <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px;">
-                <div>
-                  <div class="visual-title" style="margin-bottom:2px;">Weekly LOB Breakdown</div>
-                  <div style="font-size:11px; color:var(--text-3);">W01–W52 &nbsp;·&nbsp; Static — unaffected by filters</div>
-                </div>
-                <div class="lob-metric-toggle">
-                  <button class="lob-metric-btn active" onclick="switchLOBMetric('sr',this)">SR</button>
-                  <button class="lob-metric-btn" onclick="switchLOBMetric('asu',this)">ASU</button>
-                  <button class="lob-metric-btn" onclick="switchLOBMetric('dispatch',this)">Dispatch</button>
-                </div>
-              </div>
-              <div class="lob-legend">
-                <span><span class="lob-dot" style="background:#3a6ef0"></span>PowerEdge</span>
-                <span><span class="lob-dot" style="background:#16a34a"></span>APEX</span>
-                <span><span class="lob-dot" style="background:#d97706"></span>VXRAIL</span>
-                <span><span class="lob-dot" style="background:#7c3aed"></span>POWERFLEX</span>
-                <span><span class="lob-dot" style="background:#0891b2"></span>AVAMAR</span>
-              </div>
-              <div style="flex:1; min-height:180px; position:relative;">
-                <canvas id="fa-chart-lob-weekly"></canvas>
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
+        <div id="fa-page-actuals" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Weekly SR Actuals</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">8.2K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Field ASU Actuals</div><div class="kpi-value kpi-dynamic">12.1K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly Tech ASU</div><div class="kpi-value kpi-dynamic">14.5K</div></div>
+            <div class="kpi-card"><div class="kpi-label">Forecast Demand SR Actuals</div><div class="kpi-value kpi-dynamic">8.1K</div></div>
+          </div>
+          <div class="visual-card">
+            <div class="visual-title">Raw Data Matrix: Actuals vs Forecast</div>
+            <div class="table-wrap" style="max-height:340px;">
+              <table class="data-table">
+                <thead><tr>
+                  <th class="row-num">#</th>
+                  <th onclick="sortTable('actuals-table','region')">Region <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','lob')">LOB <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','week')">Week <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','sr')">Weekly SR Actuals <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fasu')">Weekly Field ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','tasu')">Weekly Tech ASU <span class="sort-icon"></span></th>
+                  <th onclick="sortTable('actuals-table','fdsr')">Forecast Demand SR <span class="sort-icon"></span></th>
+                  <th>Status</th>
+                </tr></thead>
+                <tbody id="actuals-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="fa-page-partner" class="page-section">
+          <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-label">Active Partners</div><div class="kpi-value kpi-dynamic">24</div></div>
+            <div class="kpi-card"><div class="kpi-label">Global Locations</div><div class="kpi-value kpi-dynamic">115</div></div>
+            <div class="kpi-card"><div class="kpi-label">Avg MDR Work Orders</div><div class="kpi-value kpi-dynamic">3.8K</div><div class="kpi-sub" style="color:var(--red)"><i class="ti ti-alert-triangle"></i> Needs Attention</div></div>
+            <div class="kpi-card"><div class="kpi-label">Weekly AVG MDR</div><div class="kpi-value kpi-dynamic">4.5%</div></div>
+          </div>
+          <div class="visual-row">
+            <div class="visual-card">
+              <div class="visual-title"><span>MDR Work Orders by Partner</span></div>
+              <div style="flex:1;min-height:220px;"><canvas id="fa-chart-partner"></canvas></div>
+            </div>
+            <div class="visual-card">
+              <div class="visual-title">Top Locations &amp; Queue Names</div>
+              <div class="table-wrap" style="max-height:260px;">
+                <table class="data-table">
+                  <thead><tr>
+                    <th onclick="sortTable('partner-table','loc')">Location <span class="sort-icon"></span></th>
+                    <th onclick="sortTable('partner-table','partner')">Partner <span class="sort-icon"></span></th>
+                    <th>Queue</th>
+                    <th>Bus Reporting</th>
+                    <th onclick="sortTable('partner-table','mdr')">Weekly AVG MDR <span class="sort-icon"></span></th>
+                  </tr></thead>
+                  <tbody id="partner-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ══ MODULE: DATA RAW ══ -->
       <div id="module-data-raw" class="module-section">
         <div id="dr-page-raw" class="page-section active">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-dr" onclick="toggleInfo('info-dr')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-dr">
-              <div class="tab-info-popover-title">Data Management</div>
-              <p>Run this check before every publish. Publishing with unresolved anomalies degrades accuracy scores in subsequent weeks and compounds over time.</p>
-              <ul>
-                <li><strong>1,204 anomalies in 1,204 records</strong> — this is a systemic signal, not isolated noise; investigate the source before proceeding</li>
-                <li><strong>43 duplicates</strong> — these inflate volume counts; resolve before the model ingests this data</li>
-                <li><strong>Export first</strong> — pull a CSV to share with the data owner when escalating issues</li>
-              </ul>
-            </div>
-          </div></div>
           <div class="kpi-row">
             <div class="kpi-card"><div class="kpi-label">Total Records</div><div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dr-total-records">1,204</div></div>
             <div class="kpi-card"><div class="kpi-label">Data Completeness</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">98.2%</div></div>
@@ -992,7 +750,7 @@
                   <th onclick="sortRawTable('fasu')" style="min-width:120px;">Weekly Field ASU <span class="sort-icon"></span></th>
                   <th onclick="sortRawTable('tasu')" style="min-width:120px;">Weekly Tech ASU <span class="sort-icon"></span></th>
                   <th onclick="sortRawTable('fdsr')" style="min-width:130px;">Forecast Demand SR <span class="sort-icon"></span></th>
-                  <th onclick="sortRawTable('lob')" style="min-width:120px;">Product Group <span class="sort-icon"></span></th>
+                  <th onclick="sortRawTable('lob')" style="min-width:120px;">LOB <span class="sort-icon"></span></th>
                   <th style="min-width:110px;">Status</th>
                 </tr></thead>
                 <tbody id="raw-table-body"></tbody>
@@ -1005,182 +763,181 @@
       <!-- ══ MODULE: ACTUALS PROFILING ══ -->
       <div id="module-demand-profiling" class="module-section">
         <div id="dp-page-overview" class="page-section active">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-dp" onclick="toggleInfo('info-dp')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-dp">
-              <div class="tab-info-popover-title">Actuals Profiling — Overview</div>
-              <p>Demand classification drives which forecasting method gets applied. Standard time-series models systematically underforecast Lumpy and Erratic demand.</p>
-              <ul>
-                <li><strong>832 Lumpy + Erratic records</strong> — these need ensemble methods or human-in-the-loop review, not standard extrapolation</li>
-                <li><strong>High lumpy count in one region</strong> — escalate to model ops; the regional accuracy score will look worse than it actually is</li>
-                <li><strong>CV threshold</strong> — CV ≥ 50% means demand fluctuates more than half its average value; plan for wide confidence intervals</li>
-              </ul>
-            </div>
-          </div></div>
-
-          <!-- KPI Summary Row -->
-          <div class="kpi-row">
-            <div class="kpi-card">
-              <div class="kpi-label">Consistent</div>
-              <div class="kpi-value kpi-dynamic" style="color:#16a34a">1,842</div>
-              <div class="kpi-sub" style="color:var(--text-2)">Occ &gt; 50% · CV &lt; 50%</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Erratic</div>
-              <div class="kpi-value kpi-dynamic" style="color:#d97706">634</div>
-              <div class="kpi-sub" style="color:var(--text-2)">Occ &ge; 50% · CV &ge; 50%</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Intermittent</div>
-              <div class="kpi-value kpi-dynamic" style="color:#2563eb">412</div>
-              <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &lt; 50%</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Lumpy</div>
-              <div class="kpi-value kpi-dynamic" style="color:#db2777">218</div>
-              <div class="kpi-sub" style="color:var(--text-2)">Occ &lt; 50% · CV &ge; 50%</div>
-            </div>
+          <div class="channel-tabs" id="channel-tabs">
+            <div class="channel-tab active" onclick="switchChannel('overall', this)">Overall</div>
+            <div class="channel-tab" onclick="switchChannel('asu', this)">ASU</div>
+            <div class="channel-tab" onclick="switchChannel('dsp', this)">Dispatch</div>
+            <div class="channel-tab" onclick="switchChannel('sr', this)">SR</div>
           </div>
-
-          <!-- 4-Quadrant Demand Classification Matrix -->
-          <div class="dp-matrix-wrap">
-            <div class="dp-y-label">
-              <div class="dp-y-arrow">&#8593;</div>
-              <div class="dp-y-text">Frequency % (Occurrence variation)</div>
-              <div class="dp-y-50pct">50%</div>
-            </div>
-            <div class="dp-matrix-body">
-              <div class="dp-quadrant-grid">
-                <div class="dp-quad dp-quad-consistent">
-                  <div class="dp-quad-title">Consistent Demand</div>
-                  <div class="dp-quad-canvas"><canvas id="dp-chart-consistent"></canvas></div>
-                </div>
-                <div class="dp-quad dp-quad-erratic">
-                  <div class="dp-quad-title">Erratic Demand</div>
-                  <div class="dp-quad-canvas"><canvas id="dp-chart-erratic"></canvas></div>
-                </div>
-                <div class="dp-quad dp-quad-intermittent">
-                  <div class="dp-quad-title">Intermittent Demand</div>
-                  <div class="dp-quad-canvas"><canvas id="dp-chart-intermittent"></canvas></div>
-                </div>
-                <div class="dp-quad dp-quad-lumpy">
-                  <div class="dp-quad-title">Lumpy Demand</div>
-                  <div class="dp-quad-canvas"><canvas id="dp-chart-lumpy"></canvas></div>
-                </div>
+          <div id="dp-channel-overall">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Overall Forecast TET</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ov-kpi-forecast">284.6K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 5.2% vs PY</div>
               </div>
-              <div class="dp-x-axis-row">
-                <div class="dp-x-50pct">50%</div>
-                <div class="dp-x-arrow">&#8594;</div>
-                <div class="cv-tooltip-wrap">
-                  <span class="dp-x-text">Coefficient of Variation (Demand)</span>
-                  <button class="cv-info-btn" onclick="toggleCVTooltip(event)" aria-label="What is Coefficient of Variation?">i</button>
-                  <div id="cv-tooltip-box" class="cv-tooltip-box" style="display:none;">
-                    <div class="cv-tooltip-title">Coefficient of Variation (CV)</div>
-                    <div style="font-size:11.5px; color:var(--text-2); margin-bottom:4px;">Measures how much demand fluctuates relative to its average.</div>
-                    <div class="cv-tooltip-formula">CV = Standard Deviation &divide; Mean</div>
-                    <div style="font-size:11.5px; font-weight:600; color:var(--text-2); margin-top:8px; margin-bottom:2px;">How to interpret:</div>
-                    <ul class="cv-tooltip-rules">
-                      <li><strong style="color:var(--green)">Low CV (&lt;50%)</strong> &rarr; Stable and consistent demand</li>
-                      <li><strong style="color:var(--red)">High CV (&ge;50%)</strong> &rarr; Irregular and unpredictable demand</li>
-                    </ul>
-                    <div style="font-size:11px; color:var(--text-3); margin-top:8px; border-top:1px solid var(--border); padding-top:7px;">Use this to identify whether demand is steady or highly variable over time.</div>
-                  </div>
-                </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Overall Actuals</div>
+                <div class="kpi-value kpi-dynamic" id="ov-kpi-actuals">271.3K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 3.8% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Overall Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="ov-kpi-accuracy">95.4%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 92%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Overall Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="ov-kpi-variance">+4.8%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Region Wise — Forecast vs Actuals</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-region"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Quarter on Quarter</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-qoq"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Month on Month</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-mom"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Week on Week (9‑Week Trend)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="dp-chart-overall-wow"></canvas></div>
               </div>
             </div>
           </div>
 
-          <!-- Legend Table -->
-          <div class="dp-legend-box">
-            <div class="dp-legend-row">
-              <div class="dp-legend-item">
-                <span class="dp-legend-dot" style="background:#16a34a"></span>
-                <span><strong>Consistent Demand</strong> :- Occurrence &gt; 50% &amp; Coefficient of Variation &lt; 50%</span>
+          <!-- ── ASU TAB ── -->
+          <div id="dp-channel-asu" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Total ASU</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="asu-kpi-total">1.47M</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> +8.6% vs PY</div>
               </div>
-              <div class="dp-legend-item">
-                <span class="dp-legend-dot" style="background:#2563eb"></span>
-                <span><strong>Intermittent Demand</strong> :- Occurrence &lt; 50% &amp; Coefficient of Variation &lt; 50%</span>
+              <div class="kpi-card">
+                <div class="kpi-label">New Contracts (MTD)</div>
+                <div class="kpi-value kpi-dynamic" id="asu-kpi-new-contracts">6,402</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> +5.1% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Renewal Rate</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="asu-kpi-renewal-rate">89.5%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 85.3%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Declined Units (MTD)</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--red)" id="asu-kpi-decline">2,841</div>
+                <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> +0.8% vs PY</div>
               </div>
             </div>
-            <div class="dp-legend-row">
-              <div class="dp-legend-item">
-                <span class="dp-legend-dot" style="background:#d97706"></span>
-                <span><strong>Erratic Demand</strong> :- Occurrence &gt;= 50% &amp; Coefficient of Variation &gt;= 50%</span>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Overall ASU — Monthly Trend (Millions)</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-asu-trend"></canvas></div>
               </div>
-              <div class="dp-legend-item">
-                <span class="dp-legend-dot" style="background:#db2777"></span>
-                <span><strong>Lumpy Demand</strong> :- Occurrence &lt; 50% &amp; Coefficient of Variation &gt;= 50%</span>
+              <div class="visual-card">
+                <div class="visual-title"><span>New Contracts — Monthly Trend</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-new-contracts"></canvas></div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Service Renewals — Opportunity vs Renewed Units</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-renew-renewal"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Decline Analysis — Monthly Churned Units</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-decline"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── DISPATCH TAB ── -->
+          <div id="dp-channel-dsp" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Dispatch Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="dsp-kpi-actuals">23.4K</div>
+                <div class="kpi-sub" style="color:var(--green)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Dispatch Forecast</div>
+                <div class="kpi-value kpi-dynamic" id="dsp-kpi-forecast">24.1K</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Current period</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="dsp-kpi-accuracy">97.1%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="dsp-kpi-variance">+2.9%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>Dispatch — Monthly Trend</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-dsp-trend"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>Dispatch — Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-dsp-region"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── SR TAB ── -->
+          <div id="dp-channel-sr" style="display:none;">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">SR Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="sr-kpi-actuals">42.1K</div>
+                <div class="kpi-sub" style="color:var(--red)"><i class="ti ti-arrow-down-right"></i> -0.8% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">SR Forecast</div>
+                <div class="kpi-value kpi-dynamic" id="sr-kpi-forecast">43.8K</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Current period</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Accuracy</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--green)" id="sr-kpi-accuracy">93.2%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Target: 91%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Variance</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--amber)" id="sr-kpi-variance">+4.1%</div>
+                <div class="kpi-sub" style="color:var(--text-2)">Forecast vs Actuals</div>
+              </div>
+            </div>
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title"><span>SR — Monthly Trend</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-sr-trend"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title"><span>SR — Region Wise</span></div>
+                <div style="flex:1;min-height:240px;"><canvas id="ap-sr-region"></canvas></div>
               </div>
             </div>
           </div>
 
         </div>
-
-        <!-- ══ SUB-PAGE: DEMAND TRENDS ══ -->
-        <div id="dp-page-trends" class="page-section">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-dp-trends" onclick="toggleInfo('info-dp-trends')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-dp-trends">
-              <div class="tab-info-popover-title">Actuals Profiling — Demand Trends</div>
-              <p>Use this to distinguish seasonal softening from structural decline before adjusting the forecast. Over-correcting a seasonal dip is a common planning error.</p>
-              <ul>
-                <li><strong>Declining QoQ + stable YoY</strong> — seasonal pattern; do not apply a permanent downward adjustment</li>
-                <li><strong>Dashed % line diverging from bars</strong> — an outlier period is distorting the average; investigate before using it as a multiplier</li>
-                <li><strong>Both YoY and QoQ declining</strong> — structural signal; flag for leadership before the next planning cycle</li>
-              </ul>
-            </div>
-          </div></div>
-          <div class="dp-trends-section" style="margin-top:0;">
-            <div class="dp-trends-header">
-              <span class="dp-trends-title">Demand Trends</span>
-              <span class="dp-trends-sub">Period-over-period movement &mdash; bars show demand volume, dashed line shows % change</span>
-            </div>
-            <div class="dp-trends-grid">
-              <div class="dp-trend-card">
-                <div class="dp-trend-card-header">
-                  <span class="dp-trend-label">Year over Year</span>
-                  <span class="dp-trend-badge dp-trend-badge-yoy">YoY</span>
-                </div>
-                <div class="dp-trend-legend">
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Growth year</span>
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Decline year</span>
-                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #b45309;vertical-align:middle;margin-right:4px"></span>YoY %</span>
-                </div>
-                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-yoy"></canvas></div>
-              </div>
-              <div class="dp-trend-card">
-                <div class="dp-trend-card-header">
-                  <span class="dp-trend-label">Quarter over Quarter</span>
-                  <span class="dp-trend-badge dp-trend-badge-qoq">QoQ</span>
-                </div>
-                <div class="dp-trend-legend">
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(22,163,74,0.75)"></span>Up quarter</span>
-                  <span><span class="dp-trend-legend-dot" style="background:rgba(220,38,38,0.7)"></span>Down quarter</span>
-                  <span><span style="display:inline-block;width:14px;height:2px;border-top:2px dashed #0891b2;vertical-align:middle;margin-right:4px"></span>QoQ %</span>
-                </div>
-                <div class="dp-trend-canvas-wrap"><canvas id="dp-trend-qoq"></canvas></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- ══ MODULE: DEMAND ALERTS ══ -->
       <div id="module-demand-alerts" class="module-section">
         <div id="da-page-log" class="page-section active">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-da" onclick="toggleInfo('info-da')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-da">
-              <div class="tab-info-popover-title">Demand Alerts</div>
-              <p>Unresolved High alerts block the Forecast Publish step. You cannot publish until all 5 are reviewed and closed.</p>
-              <ul>
-                <li><strong>High (5)</strong> — forecast deviations above threshold; must be resolved before publish</li>
-                <li><strong>Medium (4)</strong> — review before next planning cycle; do not block publish</li>
-                <li><strong>Low (3)</strong> — informational only; no action required this period</li>
-              </ul>
-            </div>
-          </div></div>
           <div class="kpi-row">
             <div class="kpi-card"><div class="kpi-label">Total Alerts</div><div class="kpi-value kpi-dynamic" style="color:var(--red)" id="da-total">12</div></div>
             <div class="kpi-card"><div class="kpi-label">High Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--red)">5</div></div>
@@ -1216,18 +973,6 @@
 
         <!-- ── PAGE 1: SIMULATION CONTROLS ── -->
         <div id="wi-page-sim" class="page-section active">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-wi-sim" onclick="toggleInfo('info-wi-sim')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-wi-sim">
-              <div class="tab-info-popover-title">What-If — Simulation</div>
-              <p>Use this before committing to headcount, capacity, or revenue plans. Changes propagate live so you can see the full downstream impact before locking anything in.</p>
-              <ul>
-                <li><strong>A 5% renewal rate drop</strong> — flows through to ~$30M ASU reduction and a proportional SR volume cut</li>
-                <li><strong>Pipeline shows the cascade</strong> — ASU → SR → Dispatch; each stage has its own sensitivity</li>
-                <li><strong>Lock a scenario first</strong> — save before your planning meeting so you present a range, not a single point estimate</li>
-              </ul>
-            </div>
-          </div></div>
 
           <!-- 6 KPI cards 3×2 -->
           <div id="wi-kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
@@ -1349,18 +1094,6 @@
 
         <!-- ── PAGE 2: SCENARIO PLAYGROUND ── -->
         <div id="wi-page-scenarios" class="page-section">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-wi-scen" onclick="toggleInfo('info-wi-scen')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-wi-scen">
-              <div class="tab-info-popover-title">What-If — Scenario Playground</div>
-              <p>Save base case, bull case, and bear case before leadership review. A named range is more defensible than a single forecast number.</p>
-              <ul>
-                <li><strong>AI Insights</strong> — highlights which assumptions are driving the biggest variance from baseline</li>
-                <li><strong>Name scenarios clearly</strong> — e.g. "Q3 Conservative" or "FY26 Upside" so stakeholders can follow the comparison</li>
-                <li><strong>Scenarios persist</strong> — they survive page navigation so you can build the full picture across multiple sessions</li>
-              </ul>
-            </div>
-          </div></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">
@@ -1383,18 +1116,6 @@
 
         <!-- ── PAGE 3: PUBLISH CENTER ── -->
         <div id="wi-page-publish" class="page-section">
-          <div class="info-bar"><div style="position:relative">
-            <button class="tab-info-btn" id="btn-info-wi-pub" onclick="toggleInfo('info-wi-pub')"><i class="ti ti-info-circle"></i></button>
-            <div class="tab-info-popover" id="info-wi-pub">
-              <div class="tab-info-popover-title">What-If — Forecast Publish</div>
-              <p>Publishing is a one-way action. Once published, the forecast is locked in downstream systems — finance, ops, and capacity planning all read from this.</p>
-              <ul>
-                <li><strong>Before you publish</strong> — confirm all High alerts are resolved and the pipeline shows expected numbers</li>
-                <li><strong>Export a PDF draft first</strong> — share for stakeholder review before the official publish if approval is needed</li>
-                <li><strong>Audit Log is immutable</strong> — every change and publish event is recorded; use it if there are questions about what changed and when</li>
-              </ul>
-            </div>
-          </div></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">Forecast Publish Center</div>
@@ -1491,13 +1212,13 @@
           </div>
         </div>
         <div class="filter-dropdown" data-filter="lob">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Product Group</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>LOB</span><i class="ti ti-chevron-down"></i></div>
           <div class="filter-dropdown-content">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ISG" onchange="onFilterChange()"> ISG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ESG" onchange="onFilterChange()"> ESG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="HES" onchange="onFilterChange()"> HES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TET" onchange="onFilterChange()"> TET</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TES" onchange="onFilterChange()"> TES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="THS" onchange="onFilterChange()"> THS</label>
             </div>
           </div>
         </div>
@@ -1544,11 +1265,11 @@ const SUBREGIONS = {
   'EMEA': ['Western Europe','Eastern Europe'],
   'APJ': ['SEA','ANZ','Japan']
 };
-const PARTNERS = ['Dell','OSP'];
+const PARTNERS = ['ATC','OSP'];
 const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
 const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
 const BRS = ['BR_Direct','BR_Indirect'];
-const LOBS = ['ISG','ESG','HES'];
+const LOBS = ['TET','TES','THS'];
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -1589,7 +1310,7 @@ const ALERTS_DATA = [
   { sev:'High', desc:'Forecast demand drop >15% for Care queue — APJ', date:'2026-06-03', region:'APJ', subregion:'SEA' },
   { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
   { sev:'High', desc:'Partner SLA breach — OSP dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
-  { sev:'Medium', desc:'Partner Dell SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
+  { sev:'Medium', desc:'Partner ATC SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
   { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
   { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
   { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APJ', subregion:'Japan' },
@@ -1617,12 +1338,11 @@ function updateChartTheme(chart) {
 // =========================================================
 const modules = {
   'data-raw': { title: 'Data Management', pages: [{ id: 'dr-page-raw', label: 'Full Raw View' }] },
-  'demand-profiling': { title: 'Actuals Profiling', pages: [
-    { id: 'dp-page-overview', label: 'Profiling Overview' },
-    { id: 'dp-page-trends',   label: 'Demand Trends' }
-  ]},
+  'demand-profiling': { title: 'Actuals Profiling', pages: [{ id: 'dp-page-overview', label: 'Profiling Overview' }] },
   'forecast-accuracy': { title: 'Forecast Accuracy', pages: [
-    { id: 'fa-page-forecast-trend', label: 'Forecast Trend' }
+    { id: 'fa-page-overview', label: 'Forecast Overview' },
+    { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
+    { id: 'fa-page-partner', label: 'Location & Partner View' }
   ]},
   'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
   'whatif': { title: 'What-If Simulation', pages: [
@@ -1690,20 +1410,13 @@ function switchPage(pageId, linkEl, moduleId, label) {
   bcPage.innerText = label;
   bcSep.style.display = 'inline';
 
-  // Always reset filters on any page switch
-  resetPageFilters();
-
   if (pageId === 'dr-page-raw') renderRawTable();
   if (pageId === 'da-page-log') renderAlerts('all');
-  if (pageId === 'fa-page-actuals')        generateActualsTable();
-  if (pageId === 'fa-page-partner')        generatePartnerTable();
+  if (pageId === 'fa-page-actuals') generateActualsTable();
+  if (pageId === 'fa-page-partner') generatePartnerTable();
   if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
   if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
   if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
-  if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
-    updateDPQuadrantCharts();
-    updateDemandTrends();
-  }
 }
 
 // =========================================================
@@ -1825,7 +1538,9 @@ function onFilterChange() {
 // =========================================================
 const FILTER_AWARE_CHARTS = new Set([
   'fa-chart-hbar','fa-chart-partner',
-  'dp-chart-consistent','dp-chart-erratic','dp-chart-intermittent','dp-chart-lumpy'
+  'dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow',
+  'ap-asu-trend','ap-new-contracts','ap-renew-renewal','ap-decline',
+  'ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region'
 ]);
 
 function triggerDataUpdate() {
@@ -1900,529 +1615,155 @@ function initCharts() {
     chartInstances[id] = new Chart(el.getContext('2d'), { type, data, options: options || baseLineOptions() });
   }
 
-  initForecastTrendChart();
-  initDemandProfilingQuadrants();
-  initDemandTrends();
+  mk('fa-chart-overview', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8'],
+    datasets: [
+      { label: 'Forecast Tech ASU', data: [120,135,125,145,155,140,160,150], borderColor: '#4c7ef8', backgroundColor: 'rgba(76,126,248,0.07)', tension: 0.4, fill: true },
+      { label: 'Forecast Work Orders', data: [80,90,85,95,100,90,105,98], borderColor: '#22d472', backgroundColor: 'rgba(34,212,114,0.05)', tension: 0.4, fill: true }
+    ]
+  });
+  mk('fa-chart-hbar', 'bar', {
+    labels: ['AMER','EMEA','APJ'],
+    datasets: [
+      { label: 'Weekly Actuals', data: [450,300,250], backgroundColor: '#4c7ef8' },
+      { label: 'Forecast Demand', data: [420,310,230], backgroundColor: '#22d472' }
+    ]
+  });
+  mk('fa-chart-partner', 'bar', {
+    labels: ['ATC','OSP'],
+    datasets: [{ label: 'MDR Work Orders', data: [1200,850], backgroundColor: ['#4c7ef8','#22d472'] }]
+  }, { ...baseLineOptions(), indexAxis: 'y' });
+
+  // Overall tab — Region Wise
+  mk('dp-chart-overall-region', 'bar', {
+    labels: ['AMER','EMEA','APJ'],
+    datasets: [
+      { label: 'TET Forecast', data: [4500,3100,2500], backgroundColor: '#3a6ef0' },
+      { label: 'Actuals',      data: [4284,2945,2376], backgroundColor: '#16a34a' }
+    ]
+  });
+
+  // Overall tab — QoQ
+  mk('dp-chart-overall-qoq', 'bar', {
+    labels: ['Q1','Q2','Q3','Q4'],
+    datasets: [
+      { label: 'TET Forecast', data: DP_OVERALL_QOQ_BASE.forecast, backgroundColor: 'rgba(58,110,240,0.75)' },
+      { label: 'Actuals',      data: DP_OVERALL_QOQ_BASE.actuals,  backgroundColor: 'rgba(22,163,74,0.75)' }
+    ]
+  });
+
+  // Overall tab — MoM
+  mk('dp-chart-overall-mom', 'line', {
+    labels: ['M1','M2','M3','M4','M5','M6'],
+    datasets: [
+      { label: 'TET Forecast', data: DP_OVERALL_MOM_BASE.forecast, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'Actuals',      data: DP_OVERALL_MOM_BASE.actuals,  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
+    ]
+  });
+
+  // Overall tab — WoW (9-week trend from W1)
+  mk('dp-chart-overall-wow', 'line', {
+    labels: ['W1','W2','W3','W4','W5','W6','W7','W8','W9'],
+    datasets: [
+      { label: 'TET Forecast', data: TREND_DATA_52['dp-ov-forecast'].slice(0,9), borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'Actuals',      data: TREND_DATA_52['dp-ov-actuals'].slice(0,9),  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
+    ]
+  });
+
+  // ── ASU tab ──
+  mk('ap-asu-trend', 'line', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'TET ASU (M)', data: AP_ASU_TREND_BASE.actuals, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'Forecast (M)', data: AP_ASU_TREND_BASE.forecast, borderColor: '#9d78f0', backgroundColor: 'rgba(157,120,240,0.06)', tension: 0.4, fill: false, borderDash: [4,3] }
+    ]
+  });
+  mk('ap-new-contracts', 'line', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'New Contracts', data: AP_NEW_CONTRACTS_BASE, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', tension: 0.4, fill: true }
+    ]
+  });
+  mk('ap-renew-renewal', 'bar', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'Renewal Opportunity', data: AP_Renewals_BASE.opportunity, backgroundColor: 'rgba(58,110,240,0.6)' },
+      { label: 'Renewed Units',       data: AP_Renewals_BASE.renewed,     backgroundColor: 'rgba(22,163,74,0.75)' },
+      { type: 'line', label: 'Renewal Rate %', data: AP_Renewals_BASE.rate, borderColor: '#b45309', backgroundColor: 'transparent', tension: 0.4, yAxisID: 'y2', pointRadius: 3 }
+    ]
+  }, {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: axisColor(), boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x:  { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } },
+      y:  { grid: { color: gridColor() }, ticks: { color: axisColor(), font: { size: 11 } } },
+      y2: { position: 'right', min: 70, max: 100, grid: { drawOnChartArea: false }, ticks: { color: axisColor(), font: { size: 11 }, callback: v => v + '%' } }
+    }
+  });
+  mk('ap-decline', 'bar', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'Churned Units', data: AP_DECLINE_BASE, backgroundColor: AP_DECLINE_BASE.map(v => v > 3000 ? '#dc2626' : '#f87171') }
+    ]
+  });
+
+  // ── Dispatch tab ──
+  mk('ap-dsp-trend', 'line', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'Dispatch Forecast', data: AP_DSP_TREND_BASE.forecast, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'Dispatch Actuals',  data: AP_DSP_TREND_BASE.actuals,  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
+    ]
+  });
+  mk('ap-dsp-region', 'bar', {
+    labels: ['AMER','EMEA','APJ'],
+    datasets: [
+      { label: 'Forecast', data: [9800, 7200, 6100], backgroundColor: 'rgba(58,110,240,0.75)' },
+      { label: 'Actuals',  data: [9540, 7060, 5980], backgroundColor: 'rgba(22,163,74,0.75)' }
+    ]
+  });
+
+  // ── SR tab ──
+  mk('ap-sr-trend', 'line', {
+    labels: ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'],
+    datasets: [
+      { label: 'SR Forecast', data: AP_SR_TREND_BASE.forecast, borderColor: '#3a6ef0', backgroundColor: 'rgba(58,110,240,0.08)', tension: 0.4, fill: true },
+      { label: 'SR Actuals',  data: AP_SR_TREND_BASE.actuals,  borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.06)',  tension: 0.4, fill: true }
+    ]
+  });
+  mk('ap-sr-region', 'bar', {
+    labels: ['AMER','EMEA','APJ'],
+    datasets: [
+      { label: 'Forecast', data: [18200, 13400, 11200], backgroundColor: 'rgba(58,110,240,0.75)' },
+      { label: 'Actuals',  data: [17650, 13020, 10870], backgroundColor: 'rgba(22,163,74,0.75)' }
+    ]
+  });
+
   applyAllFilteredCharts();
 }
 
 // =========================================================
-// ACTUALS PROFILING — 4-QUADRANT DEMAND CLASSIFICATION
+// DEMAND PROFILING CHANNEL TABS
 // =========================================================
-function initDemandProfilingQuadrants() {
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const labels = [];
-  for (let y = 2016; y <= 2022; y++) {
-    MONTHS.forEach(m => labels.push(m + ' ' + y));
-  }
-
-  function seeded(seed) {
-    let s = seed;
-    return () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
-  }
-
-  const rC = seeded(42);
-  const consistent = labels.map((_, i) => {
-    const seasonal = Math.sin((i / 12) * 2 * Math.PI - 1) * 18e6;
-    return +(Math.max(18e6, 38e6 + seasonal + i * 180000 + (rC() - 0.5) * 4e6)).toFixed(0);
+let activeChannel = 'overall';
+function switchChannel(channel, tabEl) {
+  activeChannel = channel;
+  resetFilters();
+  ['overall','asu','dsp','sr'].forEach(c => {
+    const el = document.getElementById('dp-channel-' + c);
+    if (el) el.style.display = c === channel ? 'block' : 'none';
   });
-
-  const rE = seeded(77);
-  const erratic = labels.map(() => +((0.3 + rE() * 4.5) * 1e6).toFixed(0));
-
-  const rI = seeded(13);
-  const intermittent = labels.map(() => rI() < 0.45 ? 0 : +((1.2 + rI() * 2.3) * 1e6).toFixed(0));
-
-  const rL = seeded(99);
-  const lumpy = labels.map(() => rL() < 0.68 ? 0 : +((0.05 + rL() * 0.43) * 1e6).toFixed(0));
-
-  _dpBaseData = { consistent, erratic, intermittent, lumpy };
-
-  const mkQ = (id, color, data, yMax, yStep) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
-    chartInstances[id] = new Chart(el, {
-      type: 'line',
-      data: { labels, datasets: [{ data, borderColor: color, backgroundColor: 'transparent', fill: false }] },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { title: ctx => ctx[0].label, label: ctx => ' ' + (ctx.raw/1e6).toFixed(2) + 'M' } }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: axisColor(), font: { size: 8.5 }, maxTicksLimit: 8,
-              callback: function(val, i) {
-                return labels[i] && labels[i].startsWith('Jan') ? labels[i].split(' ')[1] : '';
-              }
-            }
-          },
-          y: {
-            min: 0, max: yMax,
-            grid: { color: gridColor() },
-            ticks: { color: axisColor(), font: { size: 8.5 }, stepSize: yStep, callback: v => (v/1e6).toFixed(0)+'M' }
-          }
-        },
-        elements: { point: { radius: 0 }, line: { tension: 0.35, borderWidth: 1.5 } }
-      }
+  document.querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  setTimeout(() => {
+    ['dp-chart-overall-region','dp-chart-overall-qoq','dp-chart-overall-mom','dp-chart-overall-wow',
+     'ap-asu-trend','ap-new-contracts','ap-renew-renewal','ap-decline',
+     'ap-dsp-trend','ap-dsp-region','ap-sr-trend','ap-sr-region'].forEach(id => {
+      const c = chartInstances[id];
+      if (c) c.update();
     });
-  };
-
-  mkQ('dp-chart-consistent',   '#16a34a', consistent,   72e6,   18e6);
-  mkQ('dp-chart-erratic',      '#d97706', erratic,       5.5e6,  1e6);
-  mkQ('dp-chart-intermittent', '#2563eb', intermittent,  4e6,    1e6);
-  mkQ('dp-chart-lumpy',        '#db2777', lumpy,         0.6e6,  0.15e6);
-}
-
-// =========================================================
-// ACTUALS PROFILING — DEMAND TRENDS (YoY / QoQ)
-// =========================================================
-function initDemandTrends() {
-  const yoyLabels = ['FY22','FY23','FY24','FY25','FY26 YTD'];
-  const yoyDemand = [985000,1048000,1108000,1179000,1257000];
-  const yoyPct    = [null,6.4,5.7,6.4,6.6];
-
-  const qoqLabels = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
-  const qoqDemand = [284000,298000,306000,294000,315000,308000,325000,338000];
-  const qoqPct    = [null,4.9,2.7,-3.9,7.1,-2.2,5.5,4.0];
-
-  const mkTrend = (id, labels, demand, pct, lineColor) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
-    chartInstances[id] = new Chart(el, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            type: 'bar',
-            label: 'Demand',
-            data: demand,
-            backgroundColor: demand.map((_, i) =>
-              pct[i] === null ? 'rgba(144,153,190,0.45)' :
-              pct[i] >= 0    ? 'rgba(22,163,74,0.75)' :
-                               'rgba(220,38,38,0.72)'),
-            borderRadius: 4,
-            borderSkipped: false,
-            yAxisID: 'y'
-          },
-          {
-            type: 'line',
-            label: '% Change',
-            data: pct,
-            borderColor: lineColor,
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            borderDash: [5, 3],
-            pointRadius: 3,
-            pointBackgroundColor: lineColor,
-            pointBorderWidth: 0,
-            spanGaps: false,
-            tension: 0.3,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => {
-                if (ctx.dataset.label === 'Demand') {
-                  const v = ctx.raw >= 1e6 ? (ctx.raw/1e6).toFixed(2)+'M' : (ctx.raw/1e3).toFixed(0)+'K';
-                  return ' Demand: ' + v;
-                }
-                if (ctx.raw === null || ctx.raw === undefined) return ' Change: —';
-                return ' Change: ' + (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(1) + '%';
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: axisColor(), font: { size: 8.5 } }
-          },
-          y: {
-            position: 'left', min: 0,
-            grid: { color: gridColor() },
-            ticks: {
-              color: axisColor(), font: { size: 8.5 },
-              callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v
-            }
-          },
-          y1: {
-            position: 'right',
-            grid: { display: false },
-            ticks: { color: axisColor(), font: { size: 8.5 }, callback: v => v + '%' }
-          }
-        }
-      }
-    });
-  };
-
-  // Initialize with empty data — updateDemandTrends() applies the correct filtered state immediately after
-  mkTrend('dp-trend-yoy', [], [], [], '#b45309');
-  mkTrend('dp-trend-qoq', [], [], [], '#0891b2');
-}
-
-// =========================================================
-// FORECAST TREND — SR ACTUALS / FORECAST / ADJUSTED FORECAST
-// =========================================================
-function _ftUpdateKPIs(scaledActuals, scaledForecast, scaledAdj, errors, weeks, TODAY_IDX) {
-  // Right-panel stat tiles (still present in the error chart section)
-  const elMape = document.getElementById('ft-mape');
-  const elBias = document.getElementById('ft-bias');
-  const elBest = document.getElementById('ft-best-week');
-  const elWrst = document.getElementById('ft-worst-week');
-
-  // Top KPI cards
-  const elCW      = document.getElementById('ft-current-week');
-  const elCWSub   = document.getElementById('ft-current-week-sub');
-  const elASU     = document.getElementById('ft-asu-acc');
-  const elASUSub  = document.getElementById('ft-asu-acc-sub');
-  const elSR      = document.getElementById('ft-sr-acc');
-  const elSRSub   = document.getElementById('ft-sr-acc-sub');
-  const elDSP     = document.getElementById('ft-dsp-acc');
-  const elDSPSub  = document.getElementById('ft-dsp-acc-sub');
-
-  const curWeekLabel = weeks[TODAY_IDX] || 'W22';
-  if (elCW)    elCW.innerText    = curWeekLabel;
-  if (elCWSub) elCWSub.innerText = 'FY26 · Actuals through here';
-
-  if (errors.length) {
-    const absErr  = errors.map(Math.abs);
-    const mapeVal = absErr.reduce((a,b)=>a+b,0) / absErr.length;
-    const mapeStr = mapeVal.toFixed(1) + '%';
-    const rawBias = errors.reduce((a,b)=>a+b,0) / errors.length;
-    const biasStr = (rawBias >= 0 ? '+' : '') + rawBias.toFixed(1) + '%';
-    const minI    = absErr.indexOf(Math.min(...absErr));
-    const maxI    = absErr.indexOf(Math.max(...absErr));
-
-    // Right-panel stat tiles
-    if (elMape) elMape.innerText = mapeStr;
-    if (elBias) { elBias.innerText = biasStr; elBias.style.color = Math.abs(rawBias)<2?'var(--green)':rawBias>0?'var(--amber)':'var(--red)'; }
-    if (elBest) elBest.innerText = weeks[minI] || '—';
-    if (elWrst) elWrst.innerText = weeks[maxI] || '—';
-
-    // KPI card accuracy values
-    // SR accuracy derived from SR error data; ASU & Dispatch use calibrated base values
-    const fyMult  = getActiveFYMultiplier();
-    const srAcc   = Math.min(99.9, 100 - mapeVal);
-    const asuAcc  = Math.min(99.9, 95.4 + (fyMult - 1.0) * 1.8);
-    const dspAcc  = Math.min(99.9, 97.1 + (fyMult - 1.0) * 1.2);
-    const accColor = v => v >= 95 ? 'var(--green)' : v >= 90 ? 'var(--amber)' : 'var(--red)';
-    const periodSub = 'Overall · ' + (weeks[0]||'W01') + '–' + curWeekLabel;
-
-    if (elASU)    { elASU.innerText    = asuAcc.toFixed(1) + '%'; elASU.style.color = accColor(asuAcc); }
-    if (elASUSub)   elASUSub.innerText = periodSub;
-    if (elSR)     { elSR.innerText     = srAcc.toFixed(1)  + '%'; elSR.style.color  = accColor(srAcc);  }
-    if (elSRSub)    elSRSub.innerText  = periodSub;
-    if (elDSP)    { elDSP.innerText    = dspAcc.toFixed(1) + '%'; elDSP.style.color = accColor(dspAcc); }
-    if (elDSPSub)   elDSPSub.innerText = periodSub;
-  }
-}
-
-function initForecastTrendChart() {
-  const TODAY_IDX = 21;
-  const weeks = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
-  function seeded(s) { return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
-  const rA=seeded(42), rF=seeded(77), rAd=seeded(13), rP=seeded(88);
-
-  const actuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((612000-i*1700)+(rA()-0.5)*36000));
-  const lastActual = actuals[TODAY_IDX];
-  const forecast = weeks.map((_,i) => {
-    if (i<TODAY_IDX) return null;
-    const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? lastActual : Math.round((lastActual-d*1100)+(rF()-0.5)*16000);
-  });
-  const adjForecast = weeks.map((_,i) => {
-    if (i<TODAY_IDX) return null;
-    const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? lastActual : Math.round((lastActual-d*580+9000)+(rAd()-0.5)*10000);
-  });
-  const planForecast = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round(607000+(rP()-0.5)*22000));
-  // ── ASU data ── (weekly ~295K, gentle growth)
-  const rAsu1=seeded(101), rAsu2=seeded(102), rAsu3=seeded(103);
-  const asuActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((295000+i*220)+(rAsu1()-0.5)*17000));
-  const asuLast = asuActuals[TODAY_IDX];
-  const asuForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*160)+(rAsu2()-0.5)*7500);
-  });
-  const asuAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? asuLast : Math.round((asuLast+d*90+3800)+(rAsu3()-0.5)*4800);
-  });
-
-  // ── Dispatch data ── (weekly ~6200, slight decline)
-  const rDsp1=seeded(201), rDsp2=seeded(202), rDsp3=seeded(203);
-  const dspActuals = weeks.map((_,i) => i>TODAY_IDX ? null : Math.round((6200-i*14)+(rDsp1()-0.5)*580));
-  const dspLast = dspActuals[TODAY_IDX];
-  const dspForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*11)+(rDsp2()-0.5)*380);
-  });
-  const dspAdjForecast = weeks.map((_,i) => {
-    if(i<TODAY_IDX) return null; const d=i-TODAY_IDX;
-    return i===TODAY_IDX ? dspLast : Math.round((dspLast-d*7+90)+(rDsp3()-0.5)*260);
-  });
-
-  _ftMetricData = {
-    sr:       { actuals, forecast, adjForecast },
-    asu:      { actuals: asuActuals, forecast: asuForecast, adjForecast: asuAdjForecast },
-    dispatch: { actuals: dspActuals, forecast: dspForecast, adjForecast: dspAdjForecast }
-  };
-  _ftBaseData = { actuals, forecast, adjForecast, planForecast, weeks, TODAY_IDX };
-
-  const mult = getDPLOBMult() * getActiveFYMultiplier();
-  const sA  = actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF  = forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd = adjForecast.map(v=>v!=null?Math.round(v*mult):null);
-  const errWeeks = weeks.slice(0,TODAY_IDX+1);
-  const errors = errWeeks.map((_,i) => {
-    const v=actuals[i], p=planForecast[i];
-    return (v==null||p==null) ? null : +((p*mult-v*mult)/(v*mult)*100).toFixed(1);
-  }).filter(v=>v!=null);
-
-  // ── Main SR trend chart ──────────────────────────────────
-  const mainId='fa-chart-forecast-trend';
-  const mainEl=document.getElementById(mainId);
-  if (chartInstances[mainId]) { chartInstances[mainId].destroy(); delete chartInstances[mainId]; }
-
-  const vertDivider = {
-    id:'ft_divider',
-    afterDraw(chart) {
-      if (chart.canvas.id!==mainId) return;
-      const {ctx,chartArea:{top,bottom},scales:{x}}=chart; if(!x) return;
-      const px=x.getPixelForValue(TODAY_IDX);
-      ctx.save();
-      ctx.beginPath(); ctx.setLineDash([5,4]);
-      ctx.strokeStyle='rgba(58,110,240,0.4)'; ctx.lineWidth=1.5;
-      ctx.moveTo(px,top); ctx.lineTo(px,bottom); ctx.stroke();
-      ctx.setLineDash([]);
-      const lbl='▶ Current Week'; ctx.font='500 9px "Plus Jakarta Sans",sans-serif';
-      const tw=ctx.measureText(lbl).width;
-      ctx.fillStyle='rgba(58,110,240,0.1)';
-      ctx.beginPath(); ctx.roundRect(px+5,top+4,tw+10,16,4); ctx.fill();
-      ctx.fillStyle='rgba(58,110,240,0.85)'; ctx.fillText(lbl,px+10,top+15);
-      ctx.restore();
-    }
-  };
-
-  const aopVal = getAOPTargetValue(); // always the raw FY target, no LOB scaling
-  const sAOP   = weeks.map(() => aopVal);
-
-  if (mainEl) chartInstances[mainId] = new Chart(mainEl, {
-    type:'line', plugins:[vertDivider],
-    data:{ labels:weeks, datasets:[
-      { label:'Actuals',           data:sA,   borderColor:'#3a6ef0', backgroundColor:'rgba(58,110,240,0.07)', borderWidth:2,   fill:true,  tension:0.35, pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Forecast',          data:sF,   borderColor:'#16a34a', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[8,4],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'Adjusted Forecast', data:sAd,  borderColor:'#d97706', backgroundColor:'transparent',           borderWidth:2.5, borderDash:[3,3],  tension:0.4,  pointRadius:0, pointHoverRadius:5, spanGaps:false },
-      { label:'AOP Target',        data:sAOP, borderColor:'#6366f1', backgroundColor:'transparent',           borderWidth:2,   borderDash:[10,4], tension:0,    pointRadius:0, pointHoverRadius:3, spanGaps:true  }
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#fff',borderColor:'#dde2f4',borderWidth:1,
-          titleColor:'#5a6280',bodyColor:'#0d1020',padding:10,
-          callbacks:{
-            title:ctx=>'FY26 · '+ctx[0].label,
-            label:ctx=>ctx.raw==null?null:' '+ctx.dataset.label+': '+ctx.raw.toLocaleString('en-IN'),
-            afterBody:ctx=>{
-              const a=ctx.find(c=>c.dataset.label==='Actuals'), f=ctx.find(c=>c.dataset.label==='Forecast');
-              if(a&&f&&a.raw!=null&&f.raw!=null){
-                const d=((f.raw-a.raw)/a.raw*100).toFixed(1);
-                return[' ─────────────',' Fcst vs Actual: '+(d>=0?'+':'')+d+'%'];
-              }
-              return[];
-            }
-          }
-        }
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{color:axisColor(),font:{size:9},maxTicksLimit:14,callback(v,i){return i%4===0?weeks[i]?weeks[i]:''?'':''?'':weeks[i]:''}}},
-        y:{grid:{color:gridColor()},min:0,ticks:{color:axisColor(),font:{size:9},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v}}
-      }
-    }
-  });
-
-  initLOBWeeklyChart();
-  _ftUpdateKPIs(sA, sF, sAd, errors, errWeeks, TODAY_IDX);
-}
-
-function updateForecastTrendChart() {
-  if (!_ftBaseData) return;
-  const {actuals,forecast,adjForecast,planForecast,weeks,TODAY_IDX}=_ftBaseData;
-  const hideAll = shouldHideAll();
-  const mult = hideAll ? 0 : getDPLOBMult()*getActiveFYMultiplier();
-
-  // Use current metric data
-  const md = _ftMetricData[_ftMetric] || { actuals, forecast, adjForecast };
-  const sA =hideAll ? weeks.map(()=>null) : md.actuals.map(v=>v!=null?Math.round(v*mult):null);
-  const sF =hideAll ? weeks.map(()=>null) : md.forecast.map(v=>v!=null?Math.round(v*mult):null);
-  const sAd=hideAll ? weeks.map(()=>null) : md.adjForecast.map(v=>v!=null?Math.round(v*mult):null);
-
-  // Errors always from SR data for stat tiles (unchanged)
-  const errWeeks=weeks.slice(0,TODAY_IDX+1);
-  const errors=hideAll ? [] : errWeeks.map((_,i)=>{
-    const v=actuals[i],p=planForecast[i];
-    return (v==null||p==null)?null:+((p*mult-v*mult)/(v*mult)*100).toFixed(1);
-  }).filter(v=>v!=null);
-
-  // AOP always visible — metric-aware target, no filter gating
-  const aopVal = getAOPTargetValue();
-  const mc=chartInstances['fa-chart-forecast-trend'];
-  if(mc){
-    mc.data.datasets[0].data=sA;
-    mc.data.datasets[1].data=sF;
-    mc.data.datasets[2].data=sAd;
-    mc.data.datasets[3].data=weeks.map(()=>aopVal);
-    mc.options.scales.y.ticks.callback = (FT_METRIC_CONF[_ftMetric]||FT_METRIC_CONF.sr).yFmt;
-    mc.update('none');
-  }
-  _ftUpdateKPIs(sA,sF,sAd,errors,errWeeks,TODAY_IDX);
-}
-
-// =========================================================
-// SR / ASU / DISPATCH METRIC SWITCHER
-// =========================================================
-function switchChartMetric(metric, btnEl) {
-  _ftMetric = metric;
-  document.querySelectorAll('.ft-metric-btn').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  const conf = FT_METRIC_CONF[metric] || FT_METRIC_CONF.sr;
-  const titleEl = document.getElementById('ft-chart-left-title');
-  const subEl   = document.getElementById('ft-chart-left-sub');
-  if (titleEl) titleEl.innerHTML = conf.title;
-  if (subEl)   subEl.innerHTML   = conf.sub;
-  updateForecastTrendChart();
-}
-
-// =========================================================
-// FISCAL WEEK × LOB CHART — STATIC (no filter dependency)
-// =========================================================
-const LOB_NAMES   = ['PowerEdge','APEX','VXRAIL','POWERFLEX','AVAMAR'];
-const LOB_COLORS  = { PowerEdge:'#3a6ef0', APEX:'#16a34a', VXRAIL:'#d97706', POWERFLEX:'#7c3aed', AVAMAR:'#0891b2' };
-const FW_LABELS   = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
-
-const LOB_WEEKLY_DATA = (() => {
-  function seeded(s) { return () => { s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
-  const N = 52;
-  const bases = { PowerEdge:{sr:2700,asuX:14,dspX:0.44}, APEX:{sr:1100,asuX:18,dspX:0.38},
-                  VXRAIL:{sr:780,asuX:12,dspX:0.50}, POWERFLEX:{sr:440,asuX:10,dspX:0.34}, AVAMAR:{sr:290,asuX:8,dspX:0.42} };
-  const seeds = { PowerEdge:11, APEX:22, VXRAIL:33, POWERFLEX:44, AVAMAR:55 };
-  const result = { sr:{}, asu:{}, dispatch:{} };
-
-  LOB_NAMES.forEach(lob => {
-    const r = seeded(seeds[lob]);
-    const b = bases[lob];
-    const sr = Array.from({length:N}, (_, i) => {
-      const seasonal = 1 + 0.22 * Math.sin((i - 8) / N * 2 * Math.PI);
-      return Math.max(50, Math.round(b.sr * seasonal + (r() - 0.5) * b.sr * 0.28));
-    });
-    result.sr[lob]       = sr;
-    result.asu[lob]      = sr.map(v => Math.round(v * b.asuX * (0.88 + r() * 0.24)));
-    result.dispatch[lob] = sr.map(v => Math.round(v * b.dspX * (0.88 + r() * 0.24)));
-  });
-  return result;
-})();
-
-let _lobMetric = 'sr';
-
-function initLOBWeeklyChart() {
-  const el = document.getElementById('fa-chart-lob-weekly');
-  if (!el) return;
-  if (chartInstances['fa-chart-lob-weekly']) {
-    chartInstances['fa-chart-lob-weekly'].destroy();
-    delete chartInstances['fa-chart-lob-weekly'];
-  }
-  chartInstances['fa-chart-lob-weekly'] = new Chart(el, {
-    type: 'line',
-    data: {
-      labels: FW_LABELS,
-      datasets: LOB_NAMES.map(lob => ({
-        label: lob,
-        data: LOB_WEEKLY_DATA[_lobMetric][lob],
-        borderColor: LOB_COLORS[lob],
-        backgroundColor: 'transparent',
-        borderWidth: 1.6,
-        tension: 0.3,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-        spanGaps: true
-      }))
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#fff', borderColor: '#dde2f4', borderWidth: 1,
-          titleColor: '#5a6280', bodyColor: '#0d1020', padding: 8,
-          callbacks: {
-            title: ctx => 'FW · ' + ctx[0].label,
-            label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw.toLocaleString('en-IN')
-          }
-        }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{color:axisColor(), font:{size:8.5}, maxTicksLimit:13,
-               callback(v,i){ return i%4===0 ? FW_LABELS[i] : ''; }} },
-        y: { grid:{color:gridColor()}, min:0, ticks:{color:axisColor(), font:{size:8.5},
-               callback: v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v} }
-      }
-    }
-  });
-}
-
-function switchLOBMetric(metric, btnEl) {
-  _lobMetric = metric;
-  document.querySelectorAll('.lob-metric-btn').forEach(b => b.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  const c = chartInstances['fa-chart-lob-weekly'];
-  if (!c) return;
-  LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[metric][lob]; });
-  c.update('none');
-}
-
-function updateLOBWeeklyChart() {
-  const c = chartInstances['fa-chart-lob-weekly'];
-  if (!c) return;
-  const f = getActiveFilters();
-  const weekEmpty = f.week !== undefined && f.week.length === 0;
-  if (weekEmpty) {
-    c.data.labels = [];
-    c.data.datasets.forEach(ds => { ds.data = []; });
-  } else {
-    c.data.labels = FW_LABELS;
-    LOB_NAMES.forEach((lob, i) => { c.data.datasets[i].data = LOB_WEEKLY_DATA[_lobMetric][lob]; });
-  }
-  c.update('none');
-}
-
-function toggleCVTooltip(e) {
-  e.stopPropagation();
-  const box = document.getElementById('cv-tooltip-box');
-  if (!box) return;
-  const isVisible = box.style.display !== 'none';
-  box.style.display = isVisible ? 'none' : 'block';
-  if (!isVisible) {
-    // Close on next outside click
-    const close = ev => { if (!box.contains(ev.target)) { box.style.display='none'; document.removeEventListener('click', close); } };
-    setTimeout(() => document.addEventListener('click', close), 0);
-  }
+    applyAllFilteredCharts();
+  }, 30);
 }
 
 // =========================================================
@@ -2443,7 +1784,7 @@ const DP_OVERALL_BASE = [
   { subregion: 'Japan',         region: 'APJ',  fs: 140, care: 110, ms:  55 },
 ];
 const FA_PARTNER_BASE = [
-  { name: 'Dell', mdr: 1200, color: '#4c7ef8' },
+  { name: 'ATC', mdr: 1200, color: '#4c7ef8' },
   { name: 'OSP',  mdr: 850,  color: '#22d472' }
 ];
 
@@ -2454,7 +1795,7 @@ const DP_OVERALL_REGION_BASE = {
   APJ:  { forecast: 2500, actuals: 2376 },
 };
 
-// QoQ base: ISG Forecast & Actuals (summed across regions)
+// QoQ base: TET Forecast & Actuals (summed across regions)
 const DP_OVERALL_QOQ_BASE = {
   forecast: [8400, 8900, 9200, 8700],
   actuals:  [7990, 8468, 8740, 8295],
@@ -2472,7 +1813,7 @@ const AP_ASU_TREND_BASE = {
   forecast: [1.27, 1.29, 1.32, 1.34, 1.36, 1.38, 1.40, 1.42, 1.44, 1.45, 1.47, 1.48],
 };
 const AP_NEW_CONTRACTS_BASE = [5820, 6050, 6280, 5940, 6180, 6402, 6100, 6480, 6220, 6390, 6560, 6510];
-const AP_APOS_BASE = {
+const AP_Renewals_BASE = {
   opportunity: [23200, 23600, 24100, 23800, 24200, 24500, 23900, 24300, 24600, 24800, 25100, 24900],
   renewed:     [19800, 20280, 20730, 20420, 20810, 21920, 20570, 20960, 21280, 21420, 21680, 21540],
   rate:        [85.3, 85.9, 86.0, 85.8, 86.0, 89.5, 86.1, 86.2, 86.5, 86.4, 86.4, 86.5],
@@ -2525,8 +1866,8 @@ const TREND_DATA_52 = {
   'dp-care-actuals': _makeTrend(1025, 102, 2),
   'care-cf-fct':     _makeTrend( 950,  95, 1),
   'care-cf-act':     _makeTrend( 900,  90, 1),
-  'care-apos-fct':   _makeTrend( 420,  42, 3),
-  'care-apos-act':   _makeTrend( 399,  40, 3),
+  'care-renew-fct':   _makeTrend( 420,  42, 3),
+  'care-renew-act':   _makeTrend( 399,  40, 3),
   'care-sr-fct':     _makeTrend( 680,  68, 2),
   'care-sr-act':     _makeTrend( 646,  65, 2),
   'care-dsp-fct':    _makeTrend( 520,  52, 4),
@@ -2640,6 +1981,49 @@ function updateFAPartnerChart() {
   chart.update();
 }
 
+function updateDPOverallRegionChart() {
+  const chart = chartInstances['dp-chart-overall-region'];
+  if (!chart) return;
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const allR    = ['AMER','EMEA','APJ'];
+  const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll();
+  chart.data.labels = hideAll ? [] : regions;
+  chart.data.datasets[0].data = hideAll ? [] : regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].forecast * mult));
+  chart.data.datasets[1].data = hideAll ? [] : regions.map(x => Math.round(DP_OVERALL_REGION_BASE[x].actuals  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateDPOverallQoQChart() {
+  const chart = chartInstances['dp-chart-overall-qoq'];
+  if (!chart) return;
+  const mult = getActiveFYMultiplier();
+  const allQ = ['Q1','Q2','Q3','Q4'];
+  const selQ = getSelectedQuarters();
+  const hideAll = shouldHideAll() || selQ.length === 0;
+  chart.data.labels = hideAll ? [] : selQ;
+  chart.data.datasets[0].data = hideAll ? [] : selQ.map(q => Math.round(DP_OVERALL_QOQ_BASE.forecast[allQ.indexOf(q)] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : selQ.map(q => Math.round(DP_OVERALL_QOQ_BASE.actuals[allQ.indexOf(q)]  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateDPOverallMoMChart() {
+  const chart = chartInstances['dp-chart-overall-mom'];
+  if (!chart) return;
+  const mult     = getActiveFYMultiplier();
+  const momLabels = ['M1','M2','M3','M4','M5','M6'];
+  const idx      = getSelectedFiscalMonthIndices().filter(i => i < 6);
+  const hideAll  = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => momLabels[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(DP_OVERALL_MOM_BASE.forecast[i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(DP_OVERALL_MOM_BASE.actuals[i]  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
 function updateFAOverviewChart() {
   const chart = chartInstances['fa-chart-overview'];
   if (!chart) return;
@@ -2653,177 +2037,142 @@ function updateFAOverviewChart() {
   chart.update();
 }
 
-// =========================================================
-// ACTUALS PROFILING — FILTER STATE & PER-PRODUCT-GROUP DATA
-// =========================================================
-let _dpBaseData   = null;
-let _ftBaseData   = null;
-let _ftMetricData = {};
-let _ftMetric     = 'sr';
+function updateDPOverallWoWChart() {
+  const chart = chartInstances['dp-chart-overall-wow'];
+  if (!chart) return;
+  const mult = getActiveFYMultiplier();
+  const idx  = getSelectedWeekIndices();
+  const wIdx = idx.slice(0, 9);
+  const hideAll = shouldHideAll() || wIdx.length === 0;
+  chart.data.labels = hideAll ? [] : wIdx.map(i => `W${i + 1}`);
+  chart.data.datasets[0].data = hideAll ? [] : wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-forecast'][i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : wIdx.map(i => Math.round(TREND_DATA_52['dp-ov-actuals'][i]  * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
 
-// Per-metric AOP weekly targets per FY
-const AOP_METRIC_TARGETS = {
-  sr:       { FY25: 540000, FY26: 590000, FY27: 638000 },
-  asu:      { FY25: 268000, FY26: 298000, FY27: 325000 },
-  dispatch: { FY25: 5600,   FY26: 6100,   FY27: 6650   }
-};
 
-// Per-metric chart display config (title, subtitle, y-axis format)
-const FT_METRIC_CONF = {
-  sr: {
-    title: 'Weekly SR — FY26 Actuals &amp; Forecast',
-    sub:   'Service Requests per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
-  },
-  asu: {
-    title: 'Weekly ASU — FY26 Actuals &amp; Forecast',
-    sub:   'Attached Service Units per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v
-  },
-  dispatch: {
-    title: 'Weekly Dispatch — FY26 Actuals &amp; Forecast',
-    sub:   'Dispatch volumes per week &nbsp;·&nbsp; W01–W52 &nbsp;·&nbsp; responds to FY &amp; Product Group filters',
-    yFmt:  v => v>=1e3?(v/1e3).toFixed(1)+'K':v
+function updateAPAsuTrendChart() {
+  const chart = chartInstances['ap-asu-trend'];
+  if (!chart) return;
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => parseFloat((AP_ASU_TREND_BASE.actuals[i]  * mult).toFixed(2)));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => parseFloat((AP_ASU_TREND_BASE.forecast[i] * mult).toFixed(2)));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateAPNewContractsChart() {
+  const chart = chartInstances['ap-new-contracts'];
+  if (!chart) return;
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_NEW_CONTRACTS_BASE[i] * mult));
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateAPRenewRenewalChart() {
+  const chart = chartInstances['ap-renew-renewal'];
+  if (!chart) return;
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  chart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_Renewals_BASE.opportunity[i] * mult));
+  chart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_Renewals_BASE.renewed[i]     * mult));
+  chart.data.datasets[2].data = hideAll ? [] : idx.map(i => AP_Renewals_BASE.rate[i]);
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateAPDeclineChart() {
+  const chart = chartInstances['ap-decline'];
+  if (!chart) return;
+  const mult    = getActiveFYMultiplier();
+  const idx     = getSelectedFiscalMonthIndices();
+  const hideAll = shouldHideAll() || idx.length === 0;
+  chart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+  const data = hideAll ? [] : idx.map(i => Math.round(AP_DECLINE_BASE[i] * mult));
+  chart.data.datasets[0].data = data;
+  chart.data.datasets[0].backgroundColor = data.map(v => v > 3000 ? '#dc2626' : '#f87171');
+  chart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+  chart.update();
+}
+
+function updateAPDspCharts() {
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const idx     = getSelectedFiscalMonthIndices();
+  const allR    = ['AMER','EMEA','APJ'];
+  const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll() || idx.length === 0;
+  const hideReg = shouldHideAll();
+  const DSP_REGION = { AMER:{f:9800,a:9540}, EMEA:{f:7200,a:7060}, APJ:{f:6100,a:5980} };
+  const tChart = chartInstances['ap-dsp-trend'];
+  if (tChart) {
+    tChart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+    tChart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_DSP_TREND_BASE.forecast[i] * mult));
+    tChart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_DSP_TREND_BASE.actuals[i]  * mult));
+    tChart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+    tChart.update();
   }
-};
-
-// AOP — per current metric, per active FY, always visible
-function getAOPTargetValue() {
-  const targets = AOP_METRIC_TARGETS[_ftMetric] || AOP_METRIC_TARGETS.sr;
-  const f   = getActiveFilters();
-  const fys = f.fy;
-  if (!fys || fys.length === 0) return targets.FY26;
-  const avg = fys.reduce((s, fy) => s + (targets[fy] || targets.FY26), 0) / fys.length;
-  return Math.round(avg);
-}
-
-const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
-
-// ISG + ESG + HES annual totals and quarterly sums per product group
-const DP_TREND_PG = {
-  ISG: {
-    yoy: [591000,629000,665000,707000,754000],
-    qoq: [170400,178800,183600,176400,189000,184800,195000,202800]
-  },
-  ESG: {
-    yoy: [246000,262000,277000,295000,314000],
-    qoq: [71000,74500,76500,73500,78750,77000,81250,84500]
-  },
-  HES: {
-    yoy: [148000,157000,166000,177000,189000],
-    qoq: [42600,44700,45900,44100,47250,46200,48750,50700]
+  const rChart = chartInstances['ap-dsp-region'];
+  if (rChart) {
+    rChart.data.labels = hideReg ? [] : regions;
+    rChart.data.datasets[0].data = hideReg ? [] : regions.map(x => Math.round(DSP_REGION[x].f * mult));
+    rChart.data.datasets[1].data = hideReg ? [] : regions.map(x => Math.round(DSP_REGION[x].a * mult));
+    rChart.data.datasets.forEach(ds => { ds.hidden = hideReg; });
+    rChart.update();
   }
-};
-
-// Metadata for filter-aware clipping
-const YOY_FULL_LABELS = ['FY22','FY23','FY24','FY25','FY26 YTD'];
-const YOY_FY_TAG      = [null,   null,   null,  'FY25','FY26'];  // null = historical baseline
-
-const QOQ_FULL_LABELS = ['Q3 FY24','Q4 FY24','Q1 FY25','Q2 FY25','Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26'];
-const QOQ_FY_TAG      = ['FY24','FY24','FY25','FY25','FY25','FY25','FY26','FY26'];
-const QOQ_Q_TAG       = ['Q3',  'Q4',  'Q1',  'Q2',  'Q3',  'Q4',  'Q1',  'Q2'];
-
-function getDPLOBMult() {
-  const f = getActiveFilters();
-  if (!f.lob || f.lob.length === 0) return 1.0;
-  return f.lob.reduce((s, pg) => s + (DP_LOB_SHARE[pg] || 0), 0);
 }
 
-function updateDPQuadrantCharts() {
-  if (!_dpBaseData) return;
-  const mult = getDPLOBMult() * getActiveFYMultiplier();
-  ['consistent','erratic','intermittent','lumpy'].forEach(key => {
-    const c = chartInstances['dp-chart-' + key];
-    if (!c) return;
-    c.data.datasets[0].data = _dpBaseData[key].map(v => +(v * mult).toFixed(0));
-    c.update('none');
-  });
+function updateAPSrCharts() {
+  const mult    = getActiveFYMultiplier();
+  const r       = getActiveFilters().region;
+  const idx     = getSelectedFiscalMonthIndices();
+  const allR    = ['AMER','EMEA','APJ'];
+  const regions = r === undefined ? allR : allR.filter(x => r.includes(x));
+  const hideAll = shouldHideAll() || idx.length === 0;
+  const hideReg = shouldHideAll();
+  const SR_REGION = { AMER:{f:18200,a:17650}, EMEA:{f:13400,a:13020}, APJ:{f:11200,a:10870} };
+  const tChart = chartInstances['ap-sr-trend'];
+  if (tChart) {
+    tChart.data.labels = hideAll ? [] : idx.map(i => AP_MONTHS[i]);
+    tChart.data.datasets[0].data = hideAll ? [] : idx.map(i => Math.round(AP_SR_TREND_BASE.forecast[i] * mult));
+    tChart.data.datasets[1].data = hideAll ? [] : idx.map(i => Math.round(AP_SR_TREND_BASE.actuals[i]  * mult));
+    tChart.data.datasets.forEach(ds => { ds.hidden = hideAll; });
+    tChart.update();
+  }
+  const rChart = chartInstances['ap-sr-region'];
+  if (rChart) {
+    rChart.data.labels = hideReg ? [] : regions;
+    rChart.data.datasets[0].data = hideReg ? [] : regions.map(x => Math.round(SR_REGION[x].f * mult));
+    rChart.data.datasets[1].data = hideReg ? [] : regions.map(x => Math.round(SR_REGION[x].a * mult));
+    rChart.data.datasets.forEach(ds => { ds.hidden = hideReg; });
+    rChart.update();
+  }
 }
-
-function updateDemandTrends() {
-  const f       = getActiveFilters();
-  const fyMult  = getActiveFYMultiplier();
-  const selPGs  = (!f.lob     || f.lob.length     === 0) ? ['ISG','ESG','HES'] : f.lob;
-  const selFYs  = f.fy;      // undefined = no checkbox group; [] = all unchecked; ['FY26'] = specific
-  const selQs   = f.quarter; // undefined = no checkbox group; [] = all unchecked; ['Q1'] = specific
-
-  // Helper — apply a clipped slice to a chart
-  const applySlice = (chartKey, fullLabels, visIdx, fullSumD) => {
-    const c = chartInstances['dp-trend-' + chartKey];
-    if (!c) return;
-    if (visIdx.length === 0) {
-      c.data.labels = []; c.data.datasets[0].data = []; c.data.datasets[1].data = [];
-      c.update('none'); return;
-    }
-    const visLabels = visIdx.map(i => fullLabels[i]);
-    const visData   = visIdx.map(i => +(fullSumD[i] * fyMult).toFixed(0));
-    const visPct    = visData.map((v, j) =>
-      j === 0 ? null : +((v - visData[j-1]) / visData[j-1] * 100).toFixed(1));
-    c.data.labels = visLabels;
-    c.data.datasets[0].data = visData;
-    c.data.datasets[0].backgroundColor = visData.map((_, j) =>
-      visPct[j] === null ? 'rgba(144,153,190,0.45)' :
-      visPct[j] >= 0     ? 'rgba(22,163,74,0.75)' : 'rgba(220,38,38,0.72)');
-    c.data.datasets[1].data = visPct;
-    c.update('none');
-  };
-
-  // Pre-compute full PG sums (unscaled — fyMult applied inside applySlice)
-  const yoySumD = new Array(YOY_FULL_LABELS.length).fill(0);
-  const qoqSumD = new Array(QOQ_FULL_LABELS.length).fill(0);
-  selPGs.forEach(pg => {
-    if (!DP_TREND_PG[pg]) return;
-    DP_TREND_PG[pg].yoy.forEach((v, i) => { yoySumD[i] += v; });
-    DP_TREND_PG[pg].qoq.forEach((v, i) => { qoqSumD[i] += v; });
-  });
-
-  const noFYFilter = !selFYs || selFYs.length === 0;
-  const allFYs     = !selFYs || selFYs.length === 3; // all 3 options ticked = show historical context too
-
-  // ── YoY: filter by FY; quarter doesn't apply to annual data ──────────────
-  const yoyIdx = noFYFilter
-    ? [] // no FY selected → nothing
-    : YOY_FY_TAG.map((tag, i) => {
-        if (tag === null) return allFYs ? i : -1;  // historical (FY22-24) only when all FYs on
-        return selFYs.includes(tag) ? i : -1;
-      }).filter(i => i >= 0);
-  applySlice('yoy', YOY_FULL_LABELS, yoyIdx, yoySumD);
-
-  // ── QoQ: filter by FY AND Quarter ────────────────────────────────────────
-  const noQFilter = !selQs || selQs.length === 0;
-  const qoqIdx = (noFYFilter || noQFilter)
-    ? []
-    : QOQ_FY_TAG.map((fy, i) => {
-        const fyOk = fy === 'FY24'
-          ? allFYs                       // FY24 historical only when all FYs selected
-          : selFYs.includes(fy);
-        const qOk  = selQs.includes(QOQ_Q_TAG[i]);
-        return (fyOk && qOk) ? i : -1;
-      }).filter(i => i >= 0);
-  applySlice('qoq', QOQ_FULL_LABELS, qoqIdx, qoqSumD);
-}
-
-function resetPageFilters() {
-  document.querySelectorAll('#filter-container input[data-group="fy"]').forEach(cb => {
-    cb.checked = (cb.value === 'FY26');
-  });
-  document.querySelectorAll('#filter-container input[data-group="quarter"]').forEach(cb => {
-    cb.checked = (cb.value === 'Q1');
-  });
-  document.querySelectorAll('#filter-container input[data-group="lob"]').forEach(cb => {
-    cb.checked = (cb.value === 'All');
-  });
-  // Close any open filter dropdowns visually
-  document.querySelectorAll('.filter-dropdown-content.open').forEach(el => el.classList.remove('open'));
-  updateFilterChips();
-}
-const resetDPFilters = resetPageFilters; // backward-compat alias
 
 function applyAllFilteredCharts() {
-  updateDPQuadrantCharts();
-  updateDemandTrends();
-  updateForecastTrendChart();
-  updateLOBWeeklyChart();
+  updateFARegionChart();
+  updateFAPartnerChart();
+  updateDPOverallRegionChart();
+  updateDPOverallQoQChart();
+  updateDPOverallMoMChart();
+  updateDPOverallWoWChart();
+  updateAPAsuTrendChart();
+  updateAPNewContractsChart();
+  updateAPRenewRenewalChart();
+  updateAPDeclineChart();
+  updateAPDspCharts();
+  updateAPSrCharts();
+  updateFAOverviewChart();
 }
 
 // =========================================================
@@ -2935,7 +2284,7 @@ function filterRawTable() { renderRawTable(); }
 // =========================================================
 function exportCSV() {
   const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
-  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','Product Group','Status'];
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
   const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
   const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2946,12 +2295,12 @@ function exportCSV() {
 
 function exportExcel() {
   const data = filteredRawData.length ? filteredRawData : getFilteredRawData();
-  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','Product Group','Status'];
+  const headers = ['#','Region','Sub-Region','Partner','Location','Queue','Bus Reporting','FY','Quarter','Month','Week','Weekly SR Actuals','Weekly Field ASU','Weekly Tech ASU','Forecast Demand SR','LOB','Status'];
   const rows = data.map((r,i) => [i+1,r.region,r.subregion,r.partner,r.location,r.queue,r.br,r.fy,r.quarter,r.month,r.week,r.sr,r.fasu,r.tasu,r.fdsr,r.lob,r.status]);
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ISG BPA Raw Data');
+  XLSX.utils.book_append_sheet(wb, ws, 'TET BPA Raw Data');
   XLSX.writeFile(wb, 'isg_bpa_raw_data.xlsx');
 }
 
@@ -3018,7 +2367,7 @@ const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.1
 
 const WI_SLIDERS = [
   { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
-  { key:'renewal',  label:'APOS Renewal Rate',     min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
+  { key:'renewal',  label:'Renewal Rate',     min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
 ];
 
 const WI_SAVED_SCENARIOS_DEFAULT = [
@@ -3048,9 +2397,9 @@ function wiCompute(st) {
   const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15));
   const renewedUnits   = st.unitsOverride ? (parseInt(st.unitsOverride)||WI_BASE.renewedUnits) : Math.round(WI_BASE.renewalOppQty * rRate);
   const newContracts   = Math.round(WI_BASE.newContracts * gMult);
-  const aposRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
+  const renewRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
   const newContractsVal= Math.round(newContracts * 2754);    // $2754 per unit
-  return { whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, aposRenewals, newContractsVal,
+  return { whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, renewRenewals, newContractsVal,
            asuDelta: whatifASU - WI_BASE.asu, srDelta: whatifSR - WI_BASE.sr, dispDelta: whatifDisp - WI_BASE.disp,
            growthPct: (whatifASU / WI_BASE.asu - 1) * 100 };
 }
@@ -3164,7 +2513,7 @@ function wiRenderPipeline() {
   const fc = wiCompute(wiState);
   const nodes = [
     { label:'NEW CONTRACTS',    val:'$'+wiN(fc.newContractsVal), icon:'ti-file-plus',    grad:'linear-gradient(135deg,#3b6fd4,#5b8ff9)' },
-    { label:'APOS RENEWALS',    val:'$'+wiN(fc.aposRenewals),   icon:'ti-refresh',       grad:'linear-gradient(135deg,#2d52e0,#4c7ef8)' },
+    { label:'Renewals RENEWALS',    val:'$'+wiN(fc.renewRenewals),   icon:'ti-refresh',       grad:'linear-gradient(135deg,#2d52e0,#4c7ef8)' },
     { label:'ASU FORECAST',     val:wiN(fc.whatifASU),           icon:'ti-chart-arrows',  grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
     { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),            icon:'ti-headset',       grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
     { label:'DISPATCHES',       val:wiN(fc.whatifDisp),          icon:'ti-truck',         grad:'linear-gradient(135deg,#1c4ed8,#3b82f6)' },
@@ -3407,27 +2756,6 @@ function wiInit() {
 }
 
 // =========================================================
-
-// =========================================================
-// INFO POPOVERS
-// =========================================================
-function toggleInfo(id) {
-  const popover = document.getElementById(id);
-  const btn     = document.getElementById('btn-' + id);
-  const isOpen  = popover.classList.contains('open');
-  document.querySelectorAll('.tab-info-popover.open').forEach(p => p.classList.remove('open'));
-  document.querySelectorAll('.tab-info-btn.active').forEach(b => b.classList.remove('active'));
-  if (!isOpen) {
-    popover.classList.add('open');
-    btn.classList.add('active');
-  }
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.tab-info-btn') && !e.target.closest('.tab-info-popover')) {
-    document.querySelectorAll('.tab-info-popover.open').forEach(p => p.classList.remove('open'));
-    document.querySelectorAll('.tab-info-btn.active').forEach(b => b.classList.remove('active'));
-  }
-});
 
 function setRefreshStamp() {
   const now = new Date();

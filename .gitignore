@@ -3,6 +3,22 @@ lovable ai format/
 New Mockup Designs/Visuals/
 
 # Local Claude Code tooling state — never publish worktrees or local settings.
-# .claude/BTC_Lovable/ is intentionally NOT ignored — it is a real, deployed product.
+# (Forecast Copilot now lives at repo-root forecast_copilot/ — outside .claude/.)
 .claude/worktrees/
 .claude/settings.local.json
+
+# Compliance: client-specific prototype/legacy files — keep locally, never deploy.
+dell_workflow.html
+animated_UI.html
+info_BPA.html
+Week.html
+yte.html
+data.html
+CLAUDE_.html
+claude_2.html
+GEMINI.html
+Mansur.html
+simulation-overview-platform.html
+executive_forecast_operational_dashboard.html
+enterprise_whatif_forecasting_platform.html
+remove.md

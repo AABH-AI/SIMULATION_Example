@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Final Forecast — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#d97706; --chart4:#7c3aed; --chart5:#db2777; --chart3:#0284c7; --chart6:#64748b;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1320px;}
+  .page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+  .ff-cmp-label{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;}
+  .ff-cmp-label input{accent-color:#0d9488;cursor:pointer;}
+  .head-actions{display:flex;gap:8px;flex-shrink:0;}
+  .btn{padding:9px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text-1);transition:all .12s;}
+  .btn:hover{border-color:var(--teal);}
+  .btn.primary{background:linear-gradient(135deg,#0d9488,#0891b2);border-color:transparent;color:#04211d;}
+  .btn.done{background:rgba(22,163,74,0.12);border-color:var(--green);color:var(--green);cursor:default;}
+  .btn.done:hover{border-color:var(--green);}
+  .btn:disabled{opacity:0.7;cursor:not-allowed;}
+
+  /* Filter rail — sits directly right of the nav */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+  .filter-reset:hover{color:var(--teal);}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value.open{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px;}
+  .primary-grid .filter-item{margin-bottom:0;}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px;}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums;}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0;}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg);}
+  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;}
+  .secondary-grid.open{max-height:220px;opacity:1;margin-top:12px;}
+  .secondary-grid .filter-item{margin-bottom:0;}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .status-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+  .status-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;}
+  .status-dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  .status-dot.off{background:var(--red);}
+  .status-name{font-size:12px;font-weight:600;color:var(--text-2);}
+  .status-val{font-size:13px;font-weight:700;color:var(--green);}
+  .status-val.off{color:var(--red);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:10px;}
+  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:10px;flex-wrap:wrap;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:10px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  .risk-low{color:var(--green);font-weight:700;} .risk-medium{color:var(--amber);font-weight:700;} .risk-high{color:var(--red);font-weight:700;}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">AI Planning Suite</span></div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>ASU Simulation</a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
+      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>BTC Distribution</a>
+      <a class="nav-item active" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <div class="filter-rail-head-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </div>
+      <button type="button" class="filter-reset" id="filter-reset-btn">Reset</button>
+    </div>
+    <div class="filter-rail-sub">Planning slice selectors</div>
+
+    <div class="primary-grid">
+      <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service" style="grid-column:span 2"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+    </div>
+
+    <div class="filter-rail-divider"></div>
+
+    <button type="button" class="more-toggle" id="more-filters-toggle">
+      <span class="more-toggle-label">More filters <span class="more-toggle-count">5</span></span>
+      <svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="secondary-grid" id="secondary-filters">
+      <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div>
+        <div class="page-title">Final Forecast</div>
+        <div class="page-sub">Review, approve and submit the consolidated forecast for <strong id="ff-year-label">next year</strong>.</div>
+        <label class="ff-cmp-label">
+          <input type="checkbox" id="ff-compare-toggle">
+          Compare with previous year (<span id="ff-prev-year-label">—</span>)
+        </label>
+      </div>
+      <div class="head-actions">
+        <button class="btn" id="btn-approve-scenario">Approve Scenario</button>
+        <button class="btn" id="btn-approve-btc">Approve BTC</button>
+        <button class="btn primary" id="btn-submit">Submit Forecast</button>
+      </div>
+    </div>
+
+    <div class="status-row" id="status-row"></div>
+    <div id="publish-status"></div>
+
+    <div class="panel">
+      <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
+      <div class="panel-sub" id="ff-panel-sub">Weekly SR-equivalent series across the fiscal year</div>
+      <div class="chart-legend">
+        <span><span class="dot" style="background:var(--chart1)"></span>Original</span>
+        <span><span class="dot" style="background:var(--chart2)"></span>Scenario</span>
+        <span><span class="dot" style="background:var(--chart4)"></span>BTC</span>
+        <span><span class="dot" style="background:var(--chart5)"></span>Final</span>
+        <span><span class="dot" style="background:var(--chart3)"></span>Target</span>
+        <span id="ff-legend-prev" style="display:none"><span class="dot" style="background:var(--chart6)"></span>Prev. Year Final</span>
+      </div>
+      <svg id="ff-chart" viewBox="0 0 900 190" width="100%" height="190"></svg>
+      <div id="ff-axis" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Submission Summary</div>
+      <div class="panel-sub">ASU is shown at end-of-quarter level; SR and Dispatch are quarter totals</div>
+      <table class="data-tbl">
+        <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th><th>BTC %</th><th>Confidence</th><th>Risk</th></tr></thead>
+        <tbody id="summary-body"></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Published Forecasts</div>
+      <div class="panel-sub">Timestamped workbooks written to the output folder, newest first. Publishing never overwrites — each submit is a new file.</div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>File</th><th>Published</th><th>Size</th></tr></thead>
+          <tbody id="outputs-body"></tbody>
+        </table>
+      </div>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js"></script>
+  <script>
+
+/* ---- Full fiscal year aggregation ----
+ * The page defaults to the year AFTER the currently selected quarter's year
+ * (e.g. filters.quarter = '2025-Q2' -> "next year" = 2026), with an optional
+ * overlay of the year before that ("previous year" = the selected quarter's
+ * own year) for comparison. Each quarter is computed with the existing
+ * per-quarter engine (fcComputeFor, unchanged) and the 4 quarters are
+ * concatenated into one 52-week view -- no changes to fc_engine.js needed. */
+function fcComputeQuarter(quarterStr) {
+  const plan = fcSnapshotPlan();
+  plan.filters = { ...plan.filters, quarter: quarterStr };
+  return fcComputeFor(plan);
+}
+function fcComputeYear(year) {
+  const quarters = [1, 2, 3, 4].map(q => year + '-Q' + q);
+  const qResults = quarters.map(q => fcComputeQuarter(q));
+  const weeks = [], dsForecast = [], scenarioSR = [], btcForecast = [];
+  let targetSum = 0, finalSR = 0, finalDsp = 0, dspTotal = 0;
+  qResults.forEach(r => {
+    weeks.push(...r.weekly.weeks);
+    dsForecast.push(...r.weekly.dsForecast);
+    scenarioSR.push(...r.adj.srAdj);
+    btcForecast.push(...r.weekly.btcForecast);
+    targetSum += r.btcRec.target;
+    finalSR += r.final.sr; finalDsp += r.final.dsp; dspTotal += r.series.dispatchRatio;
+  });
+  const avgConfidence = Math.round(qResults.reduce((s, r) => s + (r.selectedDetail ? r.selectedDetail.confidence : 60), 0) / 4);
+  const risks = qResults.map(r => r.selectedDetail ? r.selectedDetail.risk : 'High');
+  const worstRisk = risks.includes('High') ? 'High' : risks.includes('Medium') ? 'Medium' : 'Low';
+  const avgBtcPct = qResults.reduce((s, r) => s + r.selectedBTCPct, 0) / 4;
+  return {
+    year, quarters, qResults, weeks, dsForecast, scenarioSR, btcForecast,
+    target: targetSum, targetPerWeek: targetSum / weeks.length,
+    final: { sr: finalSR, dsp: finalDsp, btcPct: avgBtcPct },
+    dispatchRatio: dspTotal / 4, confidence: avgConfidence, risk: worstRisk,
+    status: {
+      meetsAOP: finalSR >= targetSum * 0.98,
+      meetsModernization: qResults.every(r => r.status.meetsModernization),
+      meetsTriad: qResults.every(r => r.status.meetsTriad),
+      readyForSubmission: qResults.every(r => r.status.readyForSubmission)
+    }
+  };
+}
+function fcSelectedYear() { return +fcState.filters.quarter.split('-Q')[0]; }
+function fcNextYear() { return fcSelectedYear() + 1; }
+
+/* ---- Final Forecast page-specific rendering ---- */
+function fcRenderFinal() {
+  const nextYear = fcNextYear(), prevYear = fcSelectedYear();
+  const y = fcComputeYear(nextYear);
+  document.getElementById('ff-year-label').textContent = 'FY' + nextYear;
+  document.getElementById('ff-prev-year-label').textContent = 'FY' + prevYear;
+  document.getElementById('ff-panel-sub').textContent = 'Weekly SR-equivalent series across FY' + nextYear
+    + (document.getElementById('ff-compare-toggle').checked ? ' (compared with FY' + prevYear + ')' : '');
+
+  const statuses = [
+    { name: 'Meets AOP Target', ok: y.status.meetsAOP },
+    { name: 'Meets Modernization Target', ok: y.status.meetsModernization },
+    { name: 'Meets Triad Commitment', ok: y.status.meetsTriad },
+    { name: 'Ready For Submission', ok: y.status.readyForSubmission }
+  ];
+  document.getElementById('status-row').innerHTML = statuses.map(s => `
+    <div class="status-card"><span class="status-dot${s.ok?'':' off'}"></span><div><div class="status-name">${s.name}</div><div class="status-val${s.ok?'':' off'}">${s.ok?'Achieved':'Not Met'}</div></div></div>
+  `).join('');
+
+  const wkLabels = y.weeks.map(w => 'W' + w.split('-W')[1]);
+  const series = [
+    { data: y.dsForecast, color: '#0d9488', name: 'Original' },
+    { data: y.scenarioSR, color: '#d97706', name: 'Scenario' },
+    { data: y.btcForecast, color: '#7c3aed', name: 'BTC' },
+    { data: y.btcForecast, color: '#db2777', name: 'Final' },
+    { data: new Array(y.weeks.length).fill(y.targetPerWeek), color: '#0284c7', dashed: true, name: 'Target' }
+  ];
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  document.getElementById('ff-legend-prev').style.display = comparing ? '' : 'none';
+  if (comparing) {
+    const py = fcComputeYear(prevYear);
+    series.push({ data: py.btcForecast, color: '#64748b', dashed: true, name: 'Prev. Year Final' });
+  }
+  fcDrawLineSeries('ff-chart', series, { w: 900, h: 190, labels: wkLabels });
+
+  function riskClass(risk) { return risk === 'Low' ? 'risk-low' : risk === 'Medium' ? 'risk-medium' : 'risk-high'; }
+  const btcPct = y.final.btcPct;
+  const asuTarget = Math.round(y.target / FC_SR_RATIO);
+  const dspTarget = Math.round(y.target * y.dispatchRatio);
+  const rows = [
+    { metric: 'ASU', forecast: y.final.sr / FC_SR_RATIO, target: asuTarget },
+    { metric: 'SR', forecast: y.final.sr, target: y.target },
+    { metric: 'Dispatch', forecast: y.final.dsp, target: dspTarget }
+  ];
+  document.getElementById('summary-body').innerHTML = rows.map(row => {
+    const gap = row.target - row.forecast;
+    return `<tr><td><strong>${row.metric}</strong></td><td>${fcN(row.forecast)}</td><td>${fcN(row.target)}</td><td>${gap>=0?'+':''}${fcN(gap)}</td><td>${fcPct(btcPct,2)}</td><td>${y.confidence}%</td><td class="${riskClass(y.risk)}">${y.risk}</td></tr>`;
+  }).join('');
+  fcApplySubmitUI();
+}
+document.getElementById('ff-compare-toggle').onchange = fcRenderFinal;
+
+/* ---- Approvals (Scenario / BTC): review toggles, reset on each page load ---- */
+const APPROVE_BTNS = [
+  { id: 'btn-approve-scenario', key: 'scenario', base: 'Approve Scenario', done: 'Scenario Approved' },
+  { id: 'btn-approve-btc',      key: 'btc',       base: 'Approve BTC',      done: 'BTC Approved' }
+];
+function fcApplyApproveUI() {
+  APPROVE_BTNS.forEach(cfg => {
+    const btn = document.getElementById(cfg.id);
+    const on = !!fcState.approvals[cfg.key];
+    btn.disabled = false;
+    btn.classList.toggle('done', on);
+    btn.textContent = on ? (cfg.done + ' ✓') : cfg.base;
+    btn.title = on ? 'Approved — click to undo' : '';
+  });
+}
+APPROVE_BTNS.forEach(cfg => { document.getElementById(cfg.id).onclick = () => {
+  fcState.approvals[cfg.key] = !fcState.approvals[cfg.key];
+  fcSaveState(fcState);
+  fcApplyApproveUI();
+}; });
+
+/* ---- Submit = publish a timestamped .xlsx to output/ (Phase 5) ----
+ * After publishing, Submit disables itself until the plan changes (fingerprint),
+ * so the same plan can't be double-published; any edit re-enables it. Publishing
+ * never deletes or overwrites — each submit is a new file. */
+function fcInjectPublishCSS() {
+  if (document.getElementById('fc-publish-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-publish-css';
+  st.textContent = `
+  #publish-status{margin:2px 0 6px;font-size:12.5px;min-height:18px}
+  #publish-status .ok{color:#0f766e;font-weight:600}
+  #publish-status .warn{color:#b45309;font-weight:600}
+  #outputs-body .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px}
+  #outputs-body .empty{color:var(--text-3);text-align:center;padding:14px}`;
+  document.head.appendChild(st);
+}
+function fcSetPublishStatus(msg, cls) {
+  document.getElementById('publish-status').innerHTML = msg ? `<span class="${cls || ''}">${msg}</span>` : '';
+}
+function fcPlanFingerprint() {
+  const f = fcState.filters;
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  return JSON.stringify([fcNextYear(), comparing, f.region, f.lob, f.business, f.service, f.coreupsell, f.wotype, f.fqm, f.gcfa,
+    fcState.ncOverride, fcState.aposOverride, fcState.btcStrategy, fcState.manualBTC, fcState.distMode, fcState.weekOverrides]);
+}
+function fcApplySubmitUI() {
+  const btn = document.getElementById('btn-submit');
+  const sc = fcActiveScenario();
+  const pub = sc && sc.published;
+  const published = !!(pub && pub.fingerprint === fcPlanFingerprint());
+  btn.disabled = published;
+  btn.classList.toggle('done', published);
+  btn.classList.toggle('primary', !published);
+  btn.textContent = published ? 'Published ✓' : 'Submit Forecast';
+  btn.title = published
+    ? ('Published — edit the plan to publish a new version' + (pub.filename ? ' (' + pub.filename + ')' : ''))
+    : 'Publish a timestamped forecast to the output folder';
+}
+function fcBuildPublishPayload() {
+  const nextYear = fcNextYear(), prevYear = fcSelectedYear();
+  const y = fcComputeYear(nextYear), f = fcState.filters;
+  const comparing = document.getElementById('ff-compare-toggle').checked;
+  const btcPct = y.final.btcPct;
+  const asuFc = Math.round(y.final.sr / FC_SR_RATIO), asuTarget = Math.round(y.target / FC_SR_RATIO);
+  const dspTarget = Math.round(y.target * y.dispatchRatio);
+  const sc = fcActiveScenario();
+  const lab = fcDataMode === 'live' ? { lob: 'Product', business: 'Warranty Type' } : { lob: 'Global LOB', business: 'Product Business' };
+  const payload = {
+    scenario: sc ? sc.name : 'forecast',
+    dataMode: fcDataMode,
+    slice: {
+      'Fiscal Year': 'FY' + nextYear, 'Region': f.region, [lab.lob]: f.lob, [lab.business]: f.business,
+      'Service Type': f.service, 'Core/Upsell': f.coreupsell, 'WO Type': f.wotype, 'FQM Flag': f.fqm, 'GCFA Type': f.gcfa
+    },
+    assumptions: {
+      'NC Override %': fcState.ncOverride, 'APOS Override %': fcState.aposOverride,
+      'BTC Strategy': fcBtcLabel(fcState.btcStrategy), 'BTC %': +btcPct.toFixed(2),
+      'Distribution Mode': fcState.distMode, 'Confidence %': y.confidence, 'Risk': y.risk
+    },
+    summary: [
+      { metric: 'ASU', forecast: asuFc, target: asuTarget, gap: asuTarget - asuFc, btcPct: +btcPct.toFixed(2) },
+      { metric: 'SR', forecast: y.final.sr, target: y.target, gap: y.target - y.final.sr, btcPct: +btcPct.toFixed(2) },
+      { metric: 'Dispatch', forecast: y.final.dsp, target: dspTarget, gap: dspTarget - y.final.dsp, btcPct: +btcPct.toFixed(2) }
+    ],
+    weekly: y.weeks.map((w, i) => ({ week: w, ds: y.dsForecast[i], btc: y.btcForecast[i], edited: false })),
+    ledger: fcScenarioLedger(),
+    fingerprint: fcPlanFingerprint()
+  };
+  if (comparing) {
+    const py = fcComputeYear(prevYear);
+    payload.compare = { previousYear: 'FY' + prevYear, previousYearFinalSR: py.final.sr, previousYearFinalDsp: py.final.dsp };
+  }
+  return payload;
+}
+function fcDownloadJSON(payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'forecast_' + (payload.scenario || 'plan').replace(/[^A-Za-z0-9]+/g, '-').toLowerCase() + '.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function fcSubmit() {
+  const btn = document.getElementById('btn-submit');
+  if (btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Publishing…';
+  const payload = fcBuildPublishPayload();
+  try {
+    const res = await fetch('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (!res.ok) throw new Error('server ' + res.status);
+    const data = await res.json();
+    const sc = fcActiveScenario();
+    if (sc) { sc.published = { fingerprint: payload.fingerprint, filename: data.filename, at: data.publishedAt }; fcSaveState(fcState); }
+    fcApplySubmitUI();
+    fcSetPublishStatus('Published ' + data.filename + ' to output/ — input workbook untouched.', 'ok');
+    fcLoadOutputs();
+  } catch (e) {
+    fcDownloadJSON(payload);
+    fcApplySubmitUI();
+    fcSetPublishStatus('Local server not running — downloaded a JSON copy instead. Run "python serve.py" to publish an Excel to output/.', 'warn');
+  }
+}
+document.getElementById('btn-submit').onclick = fcSubmit;
+
+async function fcLoadOutputs() {
+  const body = document.getElementById('outputs-body');
+  try {
+    const res = await fetch('/api/outputs');
+    if (!res.ok) throw new Error('server ' + res.status);
+    const list = (await res.json()).outputs || [];
+    body.innerHTML = list.length
+      ? list.map(o => `<tr><td class="mono">${o.filename}</td><td>${o.modified}</td><td>${(o.bytes / 1024).toFixed(1)} KB</td></tr>`).join('')
+      : '<tr><td colspan="3" class="empty">No forecasts published yet.</td></tr>';
+  } catch (e) {
+    body.innerHTML = '<tr><td colspan="3" class="empty">Start the local server (python serve.py) to publish and see history.</td></tr>';
+  }
+}
+
+fcInjectPublishCSS();
+fcWireFilters(fcRenderFinal);
+// Approvals are per-review: reset on every page load. (Submit state is driven by
+// the published fingerprint, not this flag.)
+fcState.approvals = { scenario: false, btc: false, submitted: false };
+fcSaveState(fcState);
+fcApplyApproveUI();
+fcRenderFinal();     // also calls fcApplySubmitUI()
+fcLoadOutputs();
+  </script>
+</body>
+</html>

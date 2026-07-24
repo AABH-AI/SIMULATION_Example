@@ -1,4 +1,4 @@
-# Design System — ISG BPA
+# Design System — TET BPA
 > Indigo-Black design language (light theme in BPA_FORCASTING_MOCK.HTML). Last updated: 2026-06-22
 
 ---
@@ -37,7 +37,7 @@
 /* isDark = false hardcoded — no dark mode toggle */
 ```
 
-### IBP_Forcasting.html (Dark/Light toggleable)
+### AST_Forcasting.html (Dark/Light toggleable)
 ```css
 :root {  /* dark default */
   --bg: #07090f;  --surface: #0d1018;  --card: #111521;  --card-hi: #161c2c;
@@ -221,9 +221,9 @@ chart.update('none');  // 'none' = instant, no animation
 ## Product Group Colors (data.html LOB column)
 | Group | Hex |
 |---|---|
-| ISG | `#3a6ef0` |
-| ESG | `#16a34a` |
-| HES | `#7c3aed` |
+| TET | `#3a6ef0` |
+| TES | `#16a34a` |
+| THS | `#7c3aed` |
 
 ## Animated Counter Pattern
 For hero scores where a single number is the key insight (e.g. data health %). Count up from 0 using `requestAnimationFrame` with quadratic ease-in-out. One moment per page — nothing else animates.

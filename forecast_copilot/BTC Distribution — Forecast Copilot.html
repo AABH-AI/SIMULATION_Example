@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Distribution — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#d97706; --chart3:#0284c7;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1320px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  /* Filter rail — sits directly right of the nav */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+  .filter-reset:hover{color:var(--teal);}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value.open{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px;}
+  .primary-grid .filter-item{margin-bottom:0;}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px;}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums;}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0;}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg);}
+  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;}
+  .secondary-grid.open{max-height:220px;opacity:1;margin-top:12px;}
+  .secondary-grid .filter-item{margin-bottom:0;}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .toggle-group{display:flex;gap:6px;margin-bottom:18px;}
+  .toggle-btn{padding:8px 15px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .toggle-btn.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .toggle-btn:hover:not(.active){border-color:var(--text-3);color:var(--text-1);}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:12px;}
+
+  .empty-note{background:var(--card-hi);border:1px solid var(--amber);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:var(--text-2);}
+  .empty-note a{color:var(--teal);text-decoration:none;font-weight:700;}
+
+  .donut-wrap{display:flex;align-items:center;gap:24px;}
+  .donut{width:140px;height:140px;border-radius:50%;flex-shrink:0;}
+  .donut-legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;}
+  .donut-legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;}
+  .donut-legend .lval{color:var(--text-2);font-size:11px;margin-left:16px;}
+
+  .hbar-row{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-size:12px;}
+  .hbar-label{width:110px;flex-shrink:0;color:var(--text-2);}
+  .hbar-track{flex:1;background:var(--card-hi);border-radius:4px;height:16px;overflow:hidden;}
+  .hbar-fill{height:100%;background:linear-gradient(90deg,#0d9488,#0891b2);border-radius:4px;}
+  .hbar-val{width:52px;text-align:right;color:var(--text-1);font-weight:600;transition:color .15s ease;}
+  .hbar-row .hbar-fill{transition:filter .15s ease,width .32s ease;}
+  .hbar-row:hover .hbar-fill{filter:brightness(1.18);}
+  .hbar-row:hover .hbar-val{color:var(--teal);}
+  .hbar-row:hover .hbar-label{color:var(--text-1);}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  .tw{max-height:340px;overflow-y:auto;}
+  .pos{color:var(--green);} .neg{color:var(--red);}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">AI Planning Suite</span></div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>ASU Simulation</a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>AI BTC Advisor</a>
+      <a class="nav-item active" href="BTC Distribution — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>BTC Distribution</a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <div class="filter-rail-head-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </div>
+      <button type="button" class="filter-reset" id="filter-reset-btn">Reset</button>
+    </div>
+    <div class="filter-rail-sub">Planning slice selectors</div>
+
+    <div class="primary-grid">
+      <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service" style="grid-column:span 2"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+    </div>
+
+    <div class="filter-rail-divider"></div>
+
+    <button type="button" class="more-toggle" id="more-filters-toggle">
+      <span class="more-toggle-label">More filters <span class="more-toggle-count">5</span></span>
+      <svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="secondary-grid" id="secondary-filters">
+      <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div class="page-title">BTC Distribution</div>
+      <div class="page-sub">Automatic weekly distribution of the selected BTC across regions, LOBs, businesses and services.</div>
+    </div>
+
+    <div id="empty-note" class="empty-note" style="display:none;">No BTC value selected yet. Choose a recommendation on <a href="AI BTC Advisor — Forecast Copilot.html">AI BTC Advisor</a> first — this page shows the Equal Distribution baseline (0% BTC) until then.</div>
+
+    <div class="toggle-group" id="dist-toggle">
+      <button class="toggle-btn" data-mode="equal">Equal Distribution</button>
+      <button class="toggle-btn" data-mode="historical">Historical Distribution</button>
+      <button class="toggle-btn" data-mode="ai">AI Recommended</button>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">BTC Distribution by Region</div>
+        <div class="donut-wrap">
+          <div class="donut" id="donut-region"></div>
+          <div class="donut-legend" id="legend-region"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">BTC Distribution by Product Business</div>
+        <div class="donut-wrap">
+          <div class="donut" id="donut-business"></div>
+          <div class="donut-legend" id="legend-business"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">BTC Distribution by LOB</div>
+      <div id="hbars-lob"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">BTC Distribution by Service Type</div>
+      <div id="hbars-service"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">BTC Distribution by Fiscal Week</div>
+      <div class="panel-sub">DS Forecast (base) vs BTC Forecast (after distribution)</div>
+      <svg id="fwbars" viewBox="0 0 700 150" width="100%" height="150"></svg>
+      <div id="fw-axis" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Weekly Forecast Table</div>
+      <div class="panel-sub">Type a new number in the <b>BTC Forecast</b> column to override a week. Edits are flagged, resettable, and recorded in the Change Ledger below.</div>
+      <div id="edit-status" style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-size:12px;color:var(--text-2);">
+        <span id="edit-count"></span>
+        <button id="reset-all" class="fc-mini-btn" style="display:none;">Reset all edits</button>
+      </div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th>WoW Change</th><th></th></tr></thead>
+          <tbody id="weekly-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Change Ledger</div>
+      <div class="panel-sub">Timestamped record of every weekly edit in the active scenario — newest first.</div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>When</th><th>Action</th><th>Week</th><th>From</th><th>To</th></tr></thead>
+          <tbody id="ledger-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Opportunity Table</div>
+      <div class="panel-sub">Regions with the largest gap between DS Forecast and BTC Forecast — highest reallocation opportunity first</div>
+      <table class="data-tbl">
+        <thead><tr><th>Dimension</th><th>Opportunity Score</th><th>Recommended Uplift %</th><th>Reason</th></tr></thead>
+        <tbody id="opp-body"></tbody>
+      </table>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js"></script>
+  <script>
+
+/* ---- BTC Distribution page-specific rendering ---- */
+function distributeByFactor(factorMap, total) {
+  const keys = Object.keys(factorMap);
+  const vals = keys.map(k => typeof factorMap[k]==='object' ? factorMap[k].volume : factorMap[k]);
+  const sum = vals.reduce((a,b)=>a+b,0);
+  return keys.map((k,i) => ({ key:k, value: Math.round(total * vals[i]/sum) }));
+}
+const DONUT_COLORS = ['#0d9488','#d97706','#0284c7','#7c3aed','#db2777','#059669','#ea580c','#0369a1'];
+function renderDonut(donutId, legendId, shares) {
+  const total = shares.reduce((s,x)=>s+x.value,0) || 1;
+  let acc = 0;
+  const stops = shares.map((s,i) => {
+    const start = (acc/total*100); acc += s.value; const end = (acc/total*100);
+    return `${DONUT_COLORS[i%DONUT_COLORS.length]} ${start.toFixed(1)}% ${end.toFixed(1)}%`;
+  }).join(', ');
+  document.getElementById(donutId).style.background = `conic-gradient(${stops})`;
+  document.getElementById(legendId).innerHTML = shares.map((s,i) =>
+    `<div><span class="dot" style="background:${DONUT_COLORS[i%DONUT_COLORS.length]}"></span>${s.key}<span class="lval">${fcN(s.value)}</span></div>`
+  ).join('');
+}
+function renderHBars(containerId, shares) {
+  const max = Math.max(...shares.map(s=>s.value)) || 1;
+  document.getElementById(containerId).innerHTML = shares.map(s => `
+    <div class="hbar-row"><span class="hbar-label">${s.key}</span><div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(s.value/max*100)}%"></div></div><span class="hbar-val">${fcN(s.value)}</span></div>
+  `).join('');
+}
+
+function fcFmtTs(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return ts || '—'; } }
+function fcInjectEditCSS() {
+  if (document.getElementById('fc-edit-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-edit-css';
+  st.textContent = `
+  .wk-input{width:104px;padding:3px 7px;border:1px solid #cfd9ea;border-radius:6px;font:inherit;text-align:right;background:#fff;color:var(--text-1);font-variant-numeric:tabular-nums}
+  .wk-input:focus{outline:none;border-color:#0d9488;box-shadow:0 0 0 2px rgba(13,148,136,.18)}
+  .wk-input.edited{border-color:#0d9488;background:#e7f8f3;font-weight:700;color:#0f766e}
+  .wk-reset{border:none;background:transparent;color:#0d9488;cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;border-radius:6px}
+  .wk-reset:hover{background:#e7f8f3;color:#0b7f74}
+  .fc-mini-btn{border:1px solid #cfd9ea;background:#fff;border-radius:7px;padding:5px 11px;font:600 11.5px Inter,sans-serif;color:#0f766e;cursor:pointer}
+  .fc-mini-btn:hover{background:#e7f8f3;border-color:#99e3d5}
+  .led-empty{color:var(--text-3);text-align:center;padding:16px}`;
+  document.head.appendChild(st);
+}
+
+function fcRenderDistribution() {
+  fcInjectEditCSS();
+  const r = fcCompute();
+  document.getElementById('empty-note').style.display = fcState.btcStrategy ? 'none' : 'block';
+
+  const totalBTCVolume = fcSum(r.weekly.btcForecast);
+  renderDonut('donut-region', 'legend-region', distributeByFactor(FC_REGION_FACTOR, totalBTCVolume));
+  renderDonut('donut-business', 'legend-business', distributeByFactor(FC_BUSINESS_FACTOR, totalBTCVolume));
+  renderHBars('hbars-lob', distributeByFactor(FC_LOB_FACTOR, totalBTCVolume));
+  renderHBars('hbars-service', distributeByFactor(FC_SERVICE_FACTOR, totalBTCVolume));
+
+  fcDrawGroupedBars('fwbars', r.weekly.weeks.map(w=>w.split('-W')[1]),
+    [{label:'DS Forecast',color:'rgba(13,148,136,0.45)',values:r.weekly.dsForecast},
+     {label:'BTC Forecast',color:'#0d9488',values:r.weekly.btcForecast}], {w:700,h:150});
+
+  document.getElementById('weekly-body').innerHTML = r.weekly.weeks.map((w,i) => {
+    const variance = r.weekly.variance[i];
+    const wow = r.weekly.wowChange[i];
+    const edited = r.weekly.edited[i];
+    const val = r.weekly.btcForecast[i];
+    return `<tr>
+      <td>${w}</td>
+      <td>${fcN(r.weekly.dsForecast[i])}</td>
+      <td><input type="text" inputmode="numeric" class="wk-input${edited?' edited':''}" data-week="${w}" value="${val.toLocaleString('en-IN')}" aria-label="BTC Forecast for ${w}"></td>
+      <td class="${variance>=0?'pos':'neg'}">${variance>=0?'+':''}${fcN(variance)}</td>
+      <td class="${wow==null?'':(wow>=0?'pos':'neg')}">${wow==null?'—':(wow>=0?'+':'')+wow+'%'}</td>
+      <td>${edited?`<button class="wk-reset" data-week="${w}" title="Reset to computed value">↺</button>`:''}</td>
+    </tr>`;
+  }).join('');
+
+  // Wire the editable BTC Forecast cells + per-week reset buttons.
+  document.querySelectorAll('#weekly-body .wk-input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const wk = e.target.dataset.week;
+      const raw = e.target.value.replace(/[^0-9.-]/g,'');
+      if (raw === '') fcClearWeekOverride(wk);
+      else { const v = Math.round(parseFloat(raw)); if (!isNaN(v)) fcSetWeekOverride(wk, v); }
+      fcRenderDistribution();
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+  });
+  document.querySelectorAll('#weekly-body .wk-reset').forEach(btn => {
+    btn.addEventListener('click', () => { fcClearWeekOverride(btn.dataset.week); fcRenderDistribution(); });
+  });
+
+  // Edit status + reset-all visibility.
+  const nEdits = Object.keys(fcState.weekOverrides || {}).length;
+  document.getElementById('edit-count').textContent = nEdits ? `${nEdits} week${nEdits>1?'s':''} manually edited — final forecast now sums the weekly plan.` : 'No manual edits — weekly plan is auto-distributed.';
+  document.getElementById('reset-all').style.display = nEdits ? 'inline-block' : 'none';
+
+  // Change ledger (newest first).
+  const led = fcScenarioLedger().slice().reverse();
+  document.getElementById('ledger-body').innerHTML = led.length
+    ? led.map(e => `<tr>
+        <td>${fcFmtTs(e.ts)}</td>
+        <td>${e.action}</td>
+        <td>${e.week}</td>
+        <td>${e.from==null?'—':fcN(e.from)}</td>
+        <td>${e.to==null?'—':fcN(e.to)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="led-empty">No edits yet — override a week above to start the audit trail.</td></tr>';
+
+  // Opportunity table: rank regions by their share of the total variance (uplift), largest first
+  const regionShares = distributeByFactor(FC_REGION_FACTOR, fcSum(r.weekly.variance));
+  const sortedOpp = regionShares.slice().sort((a,b) => b.value - a.value);
+  const reasons = ['High dispatch density + low remote resolution', 'Strong AI chatbot deflection opportunity', 'Self-heal coverage gap'];
+  document.getElementById('opp-body').innerHTML = sortedOpp.map((s,i) => {
+    const score = Math.max(40, 95 - i*12);
+    const upliftPct = totalBTCVolume ? +(s.value / totalBTCVolume * r.selectedBTCPct).toFixed(1) : 0;
+    return `<tr><td>${s.key} · ${r.filters.lob}</td><td>${score}</td><td>${upliftPct}%</td><td>${reasons[i%reasons.length]}</td></tr>`;
+  }).join('');
+}
+
+fcWireFilters(fcRenderDistribution);
+
+document.querySelectorAll('#dist-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    fcState.distMode = b.dataset.mode;
+    fcSaveState(fcState);
+    document.querySelectorAll('#dist-toggle .toggle-btn').forEach(x => x.classList.toggle('active', x===b));
+    fcRenderDistribution();
+  };
+});
+document.querySelectorAll('#dist-toggle .toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === fcState.distMode));
+
+document.getElementById('reset-all').onclick = () => { fcClearAllWeekOverrides(); fcRenderDistribution(); };
+
+fcRenderDistribution();
+  </script>
+</body>
+</html>

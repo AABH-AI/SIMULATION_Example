@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#0284c7;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1280px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  /* Right-hand filter rail */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+  .filter-reset:hover{color:var(--teal);}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value.open{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px;}
+  .primary-grid .filter-item{margin-bottom:0;}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px;}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums;}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0;}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg);}
+  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;}
+  .secondary-grid.open{max-height:220px;opacity:1;margin-top:12px;}
+  .secondary-grid .filter-item{margin-bottom:0;}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+  .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .kpi-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+  .kpi-value{font-size:24px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;margin-bottom:5px;}
+  .kpi-sub{font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:4px;}
+  .up{color:var(--green);} .down{color:var(--red);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:8px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;color:var(--text-3);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  .gap-pos{color:var(--red);font-weight:700;}
+  .gap-neg{color:var(--green);font-weight:700;}
+
+  .list-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .list-row:last-child{border-bottom:none;}
+  .list-name{color:var(--text-1);font-weight:600;}
+  .list-meta{color:var(--text-3);font-size:11.5px;}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:100px;}
+  .badge-ok{background:rgba(22,163,74,0.12);color:var(--green);}
+  .badge-warn{background:rgba(217,119,6,0.12);color:var(--amber);}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Forecast Copilot</span>
+        <span class="brand-sub">AI Planning Suite</span>
+      </div>
+    </div>
+
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item active" href="Dashboard — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>
+        ASU Simulation
+      </a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        Historical
+      </a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        AI BTC Advisor
+      </a>
+      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>
+        BTC Distribution
+      </a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>
+        Final Forecast
+      </a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <div class="filter-rail-head-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </div>
+      <button type="button" class="filter-reset" id="filter-reset-btn">Reset</button>
+    </div>
+    <div class="filter-rail-sub">Planning slice selectors</div>
+
+    <div class="primary-grid">
+      <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="service" style="grid-column:span 2"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+    </div>
+
+    <div class="filter-rail-divider"></div>
+
+    <button type="button" class="more-toggle" id="more-filters-toggle">
+      <span class="more-toggle-label">More filters <span class="more-toggle-count">5</span></span>
+      <svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="secondary-grid" id="secondary-filters">
+      <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+      <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    </div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Overview of BTC forecast performance for the selected planning slice</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">New Contracts Forecast</div><div class="kpi-value" id="kpi-nc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">APOS Forecast</div><div class="kpi-value" id="kpi-apos">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">ASU Forecast</div><div class="kpi-value" id="kpi-asu">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">SR Forecast</div><div class="kpi-value" id="kpi-sr">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Dispatch Forecast</div><div class="kpi-value" id="kpi-dsp">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Historical BTC</div><div class="kpi-value" id="kpi-btc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value" id="kpi-acc">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">AOP Achievement %</div><div class="kpi-value" id="kpi-aop">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Modernization Achievement %</div><div class="kpi-value" id="kpi-mod">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Forecast vs Target</div>
+      <div class="panel-sub">Current-quarter forecast against the AOP-derived target for the selected slice</div>
+      <table class="data-tbl">
+        <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th></tr></thead>
+        <tbody id="fvt-body"></tbody>
+      </table>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-title">ASU Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-asu-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-title">SR Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-sr-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Dispatch Trend</div>
+        <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+        <svg id="chart-dsp-trend" viewBox="0 0 360 150" width="100%" height="150"></svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">Historical BTC Trend</div>
+        <div class="panel-sub">Last 12 fiscal quarters</div>
+        <svg id="chart-hist-btc" viewBox="0 0 640 170" width="100%" height="170"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Forecast vs Target</div>
+        <div class="panel-sub">SR &amp; Dispatch, current quarter</div>
+        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Target</span></div>
+        <svg id="chart-fvt" viewBox="0 0 640 170" width="100%" height="170"></svg>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Recent Workspace Activity</div>
+      <div class="panel-sub">Latest updates across your forecast workflow</div>
+      <div class="list-row">
+        <div><div class="list-name">ASU Simulation recalculated</div><div class="list-meta" id="act-1">—</div></div>
+        <span class="badge badge-ok">Completed</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">Historical variance check</div><div class="list-meta" id="act-2">—</div></div>
+        <span class="badge badge-ok">Completed</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">BTC Distribution review</div><div class="list-meta" id="act-3">—</div></div>
+        <span class="badge badge-warn" id="act-3-badge">Needs Review</span>
+      </div>
+      <div class="list-row">
+        <div><div class="list-name">Final Forecast draft</div><div class="list-meta" id="act-4">—</div></div>
+        <span class="badge badge-warn" id="act-4-badge">In Progress</span>
+      </div>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js"></script>
+  <script>
+
+/* ---- Dashboard-specific rendering ---- */
+function fcRenderDashboard() {
+  const r = fcCompute();
+
+  document.getElementById('kpi-nc').textContent = fcN(r.originalTotals.nc);
+  document.getElementById('kpi-apos').textContent = fcN(r.originalTotals.apos);
+  document.getElementById('kpi-asu').textContent = fcN(r.originalTotals.asu);
+  document.getElementById('kpi-sr').textContent = fcN(r.originalTotals.sr);
+  document.getElementById('kpi-dsp').textContent = fcN(r.originalTotals.dsp);
+  document.getElementById('kpi-btc').textContent = fcPct(r.hist.btc[r.hist.btc.length-1]);
+  document.getElementById('kpi-acc').textContent = r.hist.accuracy[r.hist.accuracy.length-1] + '%';
+  document.getElementById('kpi-aop').textContent = r.hist.aop[r.hist.aop.length-1] + '%';
+  document.getElementById('kpi-mod').textContent = r.hist.modern[r.hist.modern.length-1] + '%';
+
+  const srTarget = Math.round(r.originalTotals.sr * (r.hist.aopTargetPct/100) * 1.02);
+  const dspTarget = Math.round(r.originalTotals.dsp * (r.hist.aopTargetPct/100) * 1.02);
+  const srGap = srTarget - r.originalTotals.sr, dspGap = dspTarget - r.originalTotals.dsp;
+  document.getElementById('fvt-body').innerHTML = `
+    <tr><td>SR</td><td>${fcN(r.originalTotals.sr)}</td><td>${fcN(srTarget)}</td><td class="${srGap>=0?'gap-pos':'gap-neg'}">${srGap>=0?'+':''}${fcN(srGap)}</td></tr>
+    <tr><td>Dispatch</td><td>${fcN(r.originalTotals.dsp)}</td><td>${fcN(dspTarget)}</td><td class="${dspGap>=0?'gap-pos':'gap-neg'}">${dspGap>=0?'+':''}${fcN(dspGap)}</td></tr>`;
+
+  const wk = r.series.weeks.map(w => 'W' + w.split('-W')[1]);
+  fcDrawLineSeries('chart-asu-trend', [{data:r.series.asuBase, color:'#0d9488', name:'ASU'}], {w:360,h:150,labels:wk});
+  fcDrawLineSeries('chart-sr-trend', [{data:r.series.srBase, color:'#0d9488', name:'SR'}], {w:360,h:150,labels:wk});
+  fcDrawLineSeries('chart-dsp-trend', [{data:r.series.dspBase, color:'#0d9488', name:'Dispatch'}], {w:360,h:150,labels:wk});
+  fcDrawLineSeries('chart-hist-btc', [{data:r.hist.btc, color:'#0d9488', name:'BTC'}], {labels:r.hist.quarters, fmt:v=>(+v.toFixed(1))+'%'});
+  fcDrawGroupedBars('chart-fvt', ['SR','Dispatch'],
+    [{label:'Forecast',color:'#0d9488',values:[r.originalTotals.sr, r.originalTotals.dsp]},
+     {label:'Target',color:'#0284c7',values:[srTarget, dspTarget]}]);
+
+  document.getElementById('act-1').textContent = `NC Override ${fcState.ncOverride}% · APOS Override ${fcState.aposOverride}%`;
+  document.getElementById('act-2').textContent = `${r.filters.quarter} · Accuracy ${r.hist.accuracy[r.hist.accuracy.length-1]}%`;
+  const btcChosen = !!fcState.btcStrategy;
+  document.getElementById('act-3').textContent = btcChosen ? `BTC selected: ${fcPct(r.selectedBTCPct,2)} (${fcState.btcStrategy})` : `${r.filters.region} — no BTC selected yet`;
+  document.getElementById('act-3-badge').textContent = btcChosen ? 'Completed' : 'Needs Review';
+  document.getElementById('act-3-badge').className = 'badge ' + (btcChosen ? 'badge-ok' : 'badge-warn');
+  document.getElementById('act-4').textContent = fcState.approvals.submitted ? 'Submitted for approval' : 'Awaiting advisor sign-off';
+  document.getElementById('act-4-badge').textContent = fcState.approvals.submitted ? 'Completed' : 'In Progress';
+  document.getElementById('act-4-badge').className = 'badge ' + (fcState.approvals.submitted ? 'badge-ok' : 'badge-warn');
+}
+
+fcWireFilters(fcRenderDashboard);
+fcRenderDashboard();
+  </script>
+</body>
+</html>
