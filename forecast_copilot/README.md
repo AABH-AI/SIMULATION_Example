@@ -18,11 +18,11 @@ Separate product from the ISG BPA dashboards (`../BPA_FORCASTING_MOCK.HTML` etc.
 |---|---|
 | `fc_engine.js` | **Shared engine — single source of truth.** Loaded by all 6 pages. Edit here once. |
 | `Dashboard — Forecast Copilot.html` | Entry point. 9 KPI cards, Forecast vs Target table, ASU/SR/Dispatch trends, Historical BTC trend, activity list |
-| `ASU Simulation — Forecast Copilot.html` | Manual Simulation (NC/APOS sliders) + Recommendation Mode (Accept / Modify / Reject) |
+| `ASU Simulation — Forecast Copilot.html` | Manual Simulation (NC/APOS sliders) + Recommendation Mode (Accept / Modify / Reject); one chart with an ASU/SR/Dispatch toggle showing a single forecast graph at a time (branch `review-hn-new`) |
 | `Historical Performance — Forecast Copilot.html` | 12-quarter BTC / Accuracy / AOP / Modernization trends (0–100% axes), Forecast vs Actual |
 | `AI BTC Advisor — Forecast Copilot.html` | 3-strategy BTC comparison table (click-to-select), 6 confidence-driver sliders, manual BTC override |
 | `BTC Distribution — Forecast Copilot.html` | Region/Business donuts, LOB/Service h-bars, weekly DS-vs-BTC bars, Weekly Forecast Table, Opportunity Table |
-| `Final Forecast — Forecast Copilot.html` | Original/Scenario/BTC/Final/Target chart, Submission Summary, status cards, Approve/Submit |
+| `Final Forecast — Forecast Copilot.html` | Defaults to the next fiscal year (52-week aggregate across its 4 quarters) instead of a single quarter, with a "Compare with previous year" toggle overlaying the prior year's Final line; Submission Summary, status cards, Approve/Submit (branch `review-hn-new`) |
 | `Dispatches_Dummy.xlsx`, `dell_isg,esg_fy24-26.xlsx` | Reference data files — **not wired into the app** (all in-app data is mock/seeded) |
 
 Navigation order (left sidebar): Dashboard → ASU Simulation → Historical → AI BTC Advisor → BTC Distribution → Final Forecast.
@@ -213,7 +213,7 @@ so because the engine is multiplicative, all-`All` equals the total over the ful
 
 After any engine edit, load each page in a browser and confirm: 0 console errors, engine loaded
 (`typeof fcCompute === 'function'`), and charts render. Expected chart counts:
-Dashboard 5 · ASU Simulation 3 · Historical 4 · AI BTC Advisor 0 · BTC Distribution 1 · Final Forecast 1.
+Dashboard 5 · ASU Simulation 1 (metric-toggled, was 3 as of `review-hn-new`) · Historical 4 · AI BTC Advisor 0 · BTC Distribution 1 · Final Forecast 1.
 
 ---
 

@@ -223,11 +223,11 @@ A **separate, standalone product** from the ISG BPA suite — an "AI Planning Su
 | File | Purpose |
 |---|---|
 | `Dashboard` | 9 KPI cards, Forecast vs Target table, 5 trend charts |
-| `ASU Simulation` | Manual Simulation (NC/APOS override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject) |
+| `ASU Simulation` | Manual Simulation (NC/APOS override sliders, real ASU-conversion formula) + Recommendation Mode (Accept/Modify/Reject); single chart with an ASU/SR/Dispatch toggle (branch `review-hn-new`) |
 | `Historical Performance` | 12-quarter BTC/accuracy/AOP/Modernization trends, Forecast vs Actual |
 | `AI BTC Advisor` | Real 3-strategy BTC Recommendation Engine (Historical Best Fit / Balanced / Closest to AOP) + Manual override |
 | `BTC Distribution` | Automatic Weekly Distribution (Equal/Historical/AI Recommended modes), Weekly Forecast Table, region/LOB/business/service breakdowns |
-| `Final Forecast` | Original/Scenario/BTC/Final forecast chart, Submission Summary, status checks, Approve/Submit buttons |
+| `Final Forecast` | Defaults to a full next-fiscal-year view (52-week aggregate) with a Compare-with-previous-year toggle; Submission Summary, status checks, Approve/Submit buttons (branch `review-hn-new`) |
 
 ### What changed in this rebuild
 The previous version (built by an earlier session, never merged to master) had a **fully cosmetic filter and interaction layer** across all 6 pages — every dropdown only changed a button's label text, 3-way toggles only swapped an `.active` CSS class, and almost every number on every page was a static value baked into the HTML at authoring time. Confirmed via full audit before starting: zero `localStorage`/`sessionStorage` usage anywhere, no filter click handler touched any chart/KPI/table, and the one working slider pair (ASU Simulation) applied a single crude multiplier uniformly across ASU/SR/Dispatch rather than the distinct formula the page's own subtitle described.
