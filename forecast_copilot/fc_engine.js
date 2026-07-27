@@ -533,7 +533,9 @@ function fcCompute() {
     status: { meetsAOP, meetsModernization, meetsTriad, readyForSubmission, modernAchievement } };
 }
 
+let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
 function fcWireFilters(onChange) {
+  fcActiveRender = onChange;
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
     const key = item.dataset.filter;
     if (fcDataMode === 'live' && FC_LIVE_LABEL[key]) {
@@ -564,6 +566,97 @@ function fcWireFilters(onChange) {
     };
   });
   document.addEventListener('click', () => document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open')));
+}
+
+/* ---- Filter rail: Reset + primary/secondary collapse (ported from master's UI, injected) ----
+ * Restructures the flat filter list into a compact 2-column primary grid plus a
+ * collapsible "More filters" secondary grid, and adds a Reset link. Done by DOM
+ * injection so no per-page markup changes are needed. */
+const FC_PRIMARY_FILTERS = ['quarter', 'region', 'lob', 'business', 'service'];
+const FC_SECONDARY_FILTERS = ['week', 'coreupsell', 'wotype', 'fqm', 'gcfa'];
+
+function fcRefreshFilterButtons() {
+  document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
+    const key = item.dataset.filter, btn = item.querySelector('.filter-value');
+    if (btn && btn.firstChild) btn.firstChild.textContent = fcState.filters[key];
+    item.querySelectorAll('.filter-option').forEach(o => o.classList.toggle('selected', o.textContent === fcState.filters[key]));
+  });
+}
+function fcResetFilters() {
+  Object.keys(fcState.filters).forEach(key => {
+    const opts = FILTER_OPTIONS[key] || [];
+    if (fcDataMode === 'live') {
+      if (opts.indexOf('All') >= 0) fcState.filters[key] = 'All';   // categorical -> All; quarter/week keep current
+    } else if (key in FC_DEFAULT_STATE.filters) {
+      fcState.filters[key] = FC_DEFAULT_STATE.filters[key];
+    }
+  });
+  fcSaveState(fcState);
+  fcRefreshFilterButtons();
+  if (typeof fcActiveRender === 'function') fcActiveRender();
+}
+
+function fcInjectFilterRailCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-filterrail-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-filterrail-css';
+  st.textContent = `
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1)}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+  .filter-reset:hover{color:var(--teal)}
+  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px}
+  .primary-grid .filter-item,.secondary-grid .filter-item{margin-bottom:0}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2)}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg)}
+  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease,opacity .18s ease,margin-top .22s ease}
+  .secondary-grid.open{max-height:260px;opacity:1;margin-top:12px}`;
+  document.head.appendChild(st);
+}
+
+function fcWireFilterRailUI() {
+  if (typeof document === 'undefined') return;
+  const rail = document.querySelector('.filter-rail');
+  if (!rail || rail.dataset.fcRailWired) return;
+  fcInjectFilterRailCSS();
+
+  // Head: wrap title + add a Reset link.
+  const head = rail.querySelector('.filter-rail-head');
+  if (head && !head.querySelector('.filter-reset')) {
+    if (!head.querySelector('.filter-rail-head-title')) {
+      const title = document.createElement('div'); title.className = 'filter-rail-head-title';
+      while (head.firstChild) title.appendChild(head.firstChild);
+      head.appendChild(title);
+    }
+    const reset = document.createElement('button');
+    reset.type = 'button'; reset.className = 'filter-reset'; reset.id = 'filter-reset-btn'; reset.textContent = 'Reset';
+    reset.onclick = (e) => { e.stopPropagation(); fcResetFilters(); };
+    head.appendChild(reset);
+  }
+
+  // Split the flat filter items into primary grid + collapsible secondary grid.
+  const items = {};
+  rail.querySelectorAll('.filter-item[data-filter]').forEach(it => { items[it.dataset.filter] = it; });
+  const pg = document.createElement('div'); pg.className = 'primary-grid';
+  FC_PRIMARY_FILTERS.forEach(k => { if (items[k]) { if (k === 'service') items[k].style.gridColumn = 'span 2'; pg.appendChild(items[k]); } });
+  const divider = document.createElement('div'); divider.className = 'filter-rail-divider';
+  const secKeys = FC_SECONDARY_FILTERS.filter(k => items[k]);
+  const moreBtn = document.createElement('button');
+  moreBtn.type = 'button'; moreBtn.className = 'more-toggle'; moreBtn.id = 'more-filters-toggle';
+  moreBtn.innerHTML = '<span class="more-toggle-label">More filters <span class="more-toggle-count">' + secKeys.length +
+    '</span></span><svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const sg = document.createElement('div'); sg.className = 'secondary-grid'; sg.id = 'secondary-filters';
+  secKeys.forEach(k => sg.appendChild(items[k]));
+  moreBtn.onclick = (e) => { e.stopPropagation(); const open = sg.classList.toggle('open'); moreBtn.classList.toggle('open', open); };
+
+  // Place below the scenario bar / sub, above the (now-empty) old item positions.
+  const anchor = document.getElementById('fc-scenario-bar') || rail.querySelector('.filter-rail-sub') || head;
+  anchor.after(pg, divider, moreBtn, sg);
+  rail.dataset.fcRailWired = '1';
 }
 
 function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString()+'K':Math.round(v).toString(); }
@@ -777,8 +870,9 @@ function fcInjectScenarioCSS() {
   .fc-scn-actions button.fc-scn-cmp:hover{background:#0b7f74}
   .fc-scn-presets{margin-top:9px;padding-top:9px;border-top:1px dashed #d7e0ef}
   .fc-scn-presets .fc-scn-plabel{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a94ad;margin-bottom:5px}
-  .fc-scn-presets .fc-scn-chips{display:flex;gap:5px}
-  .fc-scn-presets button{flex:1;padding:5px 6px;border:1px solid #cfd9ea;border-radius:999px;background:#fff;font:600 10.5px Inter,sans-serif;color:#37415a;cursor:pointer}
+  .fc-scn-presets .fc-scn-chips{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .fc-scn-presets button{padding:5px 6px;border:1px solid #cfd9ea;border-radius:7px;background:#fff;font:600 10.5px Inter,sans-serif;color:#37415a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fc-scn-presets button:last-child{grid-column:1 / -1}
   .fc-scn-presets button:hover{background:#e7f8f3;border-color:#99e3d5;color:#0f766e}
   .fc-cmp-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:10000;display:flex;align-items:center;justify-content:center}
   .fc-cmp-overlay[hidden]{display:none}
@@ -892,6 +986,6 @@ function fcRenderCompare() {
 /* ==== END SHARED ENGINE ==== */
 fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
-function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); }
+function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcBoot);
 else fcBoot();
