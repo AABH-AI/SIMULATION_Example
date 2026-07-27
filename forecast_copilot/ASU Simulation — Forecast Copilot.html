@@ -54,11 +54,8 @@
     border-right:1px solid var(--border); height:100vh; overflow-y:auto;
     padding:22px 18px;
   }
-  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
-  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
-  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
-  .filter-reset:hover{color:var(--teal);}
+  .filter-rail-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
   .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
   .filter-rail .filter-item{margin-bottom:13px;}
   .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
@@ -72,19 +69,7 @@
     text-align:left;
   }
   .filter-value:hover{border-color:var(--teal);}
-  .filter-value.open{border-color:var(--teal);}
   .filter-value .caret{font-size:9px;color:var(--text-3);}
-  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px;}
-  .primary-grid .filter-item{margin-bottom:0;}
-  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px;}
-  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);}
-  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;}
-  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums;}
-  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0;}
-  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg);}
-  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;}
-  .secondary-grid.open{max-height:220px;opacity:1;margin-top:12px;}
-  .secondary-grid .filter-item{margin-bottom:0;}
   .filter-dropdown{
     display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
     overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
@@ -155,35 +140,21 @@
 
   <aside class="filter-rail">
     <div class="filter-rail-head">
-      <div class="filter-rail-head-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        Filters
-      </div>
-      <button type="button" class="filter-reset" id="filter-reset-btn">Reset</button>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filters
     </div>
     <div class="filter-rail-sub">Planning slice selectors</div>
 
-    <div class="primary-grid">
-      <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="service" style="grid-column:span 2"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
-    </div>
-
-    <div class="filter-rail-divider"></div>
-
-    <button type="button" class="more-toggle" id="more-filters-toggle">
-      <span class="more-toggle-label">More filters <span class="more-toggle-count">5</span></span>
-      <svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-    </button>
-    <div class="secondary-grid" id="secondary-filters">
-      <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
-      <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
-    </div>
+    <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
   </aside>
 
   <main class="main">
@@ -240,15 +211,22 @@
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-title" id="asu-metric-title">DS ASU vs Adjusted ASU</div>
-      <div class="toggle-group" id="asu-metric-toggle">
-        <button class="toggle-btn active" data-metric="asu">ASU</button>
-        <button class="toggle-btn" data-metric="sr">SR</button>
-        <button class="toggle-btn" data-metric="dsp">Dispatch</button>
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-title">DS ASU vs Adjusted ASU</div>
+        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+        <svg id="chart-asu" viewBox="0 0 640 170" width="100%" height="170"></svg>
       </div>
-      <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
-      <svg id="chart-metric" viewBox="0 0 640 170" width="100%" height="170"></svg>
+      <div class="panel">
+        <div class="panel-title">DS SR vs Adjusted SR</div>
+        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+        <svg id="chart-sr" viewBox="0 0 640 170" width="100%" height="170"></svg>
+      </div>
+      <div class="panel">
+        <div class="panel-title">DS Dispatch vs Adjusted Dispatch</div>
+        <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+        <svg id="chart-dsp" viewBox="0 0 640 170" width="100%" height="170"></svg>
+      </div>
     </div>
    </div>
   </main>
@@ -257,24 +235,13 @@
   <script>
 
 /* ---- ASU Simulation page-specific rendering ---- */
-// Metric switcher: one chart, ASU/SR/Dispatch toggle buttons show one forecast graph at a time.
-const ASU_METRIC_CONF = {
-  asu: { title: 'DS ASU vs Adjusted ASU', base: 'asuBase', adj: 'asuAdj' },
-  sr:  { title: 'DS SR vs Adjusted SR', base: 'srBase', adj: 'srAdj' },
-  dsp: { title: 'DS Dispatch vs Adjusted Dispatch', base: 'dspBase', adj: 'dspAdj' }
-};
-let _asuMetric = 'asu';
-
 function fcRenderASU() {
   const r = fcCompute();
 
   const wk = r.series.weeks.map(w => 'W' + w.split('-W')[1]);
-  const conf = ASU_METRIC_CONF[_asuMetric];
-  document.getElementById('asu-metric-title').textContent = conf.title;
-  fcDrawLineSeries('chart-metric', [
-    { data: r.series[conf.base], color: '#0d9488', name: 'Base' },
-    { data: r.adj[conf.adj], color: '#d97706', name: 'Scenario' }
-  ], { labels: wk });
+  fcDrawLineSeries('chart-asu', [{data:r.series.asuBase,color:'#0d9488',name:'Base'},{data:r.adj.asuAdj,color:'#d97706',name:'Scenario'}], {labels:wk});
+  fcDrawLineSeries('chart-sr',  [{data:r.series.srBase, color:'#0d9488',name:'Base'},{data:r.adj.srAdj,  color:'#d97706',name:'Scenario'}], {labels:wk});
+  fcDrawLineSeries('chart-dsp', [{data:r.series.dspBase,color:'#0d9488',name:'Base'},{data:r.adj.dspAdj, color:'#d97706',name:'Scenario'}], {labels:wk});
 
   function ovvCard(label, orig, adj) {
     const variance = adj - orig;
@@ -301,16 +268,6 @@ function fcRenderRecommendation() {
 }
 
 fcWireFilters(() => { fcRenderASU(); if (fcState.simMode === 'recommend') fcRenderRecommendation(); });
-
-// ASU / SR / Dispatch metric toggle — shows a single chart for the selected metric
-document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(b => {
-  b.onclick = () => {
-    document.querySelectorAll('#asu-metric-toggle .toggle-btn').forEach(x => x.classList.remove('active'));
-    b.classList.add('active');
-    _asuMetric = b.dataset.metric;
-    fcRenderASU();
-  };
-});
 
 // Sliders
 document.getElementById('nc-override').value = fcState.ncOverride;

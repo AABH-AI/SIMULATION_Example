@@ -183,7 +183,8 @@ const FC_LIVE_FIELD = {
   wotype: 'woType', fqm: 'fqmFlag', gcfa: 'gcfaType'
 };
 // Relabel the filter rail in live mode where the seeded label no longer fits.
-const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type' };
+const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type', quarter: 'Fiscal Qrtr' };
+const FC_SIM_LABEL  = { business: 'Business Unit', quarter: 'Fiscal Qrtr' };
 // Derived Dispatch/SR ratio per real Service Type (no real dispatch column exists).
 const FC_LIVE_DISPATCH_RATIO = { 'All': 0.50, 'Labour Only': 0.68, 'Parts + Labour': 0.56, 'Parts Only': 0.33 };
 
@@ -533,71 +534,186 @@ function fcCompute() {
     status: { meetsAOP, meetsModernization, meetsTriad, readyForSubmission, modernAchievement } };
 }
 
-let _fcOnFilterChange = null;
-const _fcFilterRefreshers = [];
+// Size a filter dropdown to span the full filter-rail width with symmetric gaps
+// (measured on open, so it's exact regardless of grid column or zoom).
+// Open a filter dropdown as a FIXED overlay (so the rail's overflow can't clip it),
+// spanning the rail width with symmetric gaps, flipped above/below to whichever side
+// has room, and height-capped to fit (long lists like Fiscal Week scroll inside).
+// All measurements are getBoundingClientRect (visual px); style values are CSS px, so
+// divide by the app zoom z.
+function fcFitDropdownToRail(dd, item) {
+  const rail = item.closest('.filter-rail'); if (!rail || !dd) return;
+  const z = (typeof fcGetZoom === 'function') ? fcGetZoom() : 1;
+  const rs = getComputedStyle(rail);
+  const rr = rail.getBoundingClientRect();
+  const br = (item.querySelector('.filter-value') || item).getBoundingClientRect();
+  const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0) * z;
+  const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0) * z;
+  const gap = 4 * z;
 
+  dd.style.position = 'fixed';
+  dd.style.zIndex = '9999';
+  dd.style.right = 'auto';
+  dd.style.bottom = 'auto';
+  dd.style.left = (innerLeft / z) + 'px';
+  dd.style.width = ((innerRight - innerLeft) / z) + 'px';
+
+  dd.style.maxHeight = (300) + 'px';                            // allow natural (capped) height to measure
+  const natH = dd.getBoundingClientRect().height;               // visual
+  const below = Math.max(0, rr.bottom - br.bottom - gap), above = Math.max(0, br.top - rr.top - gap);
+  const openBelow = (below >= natH) || (below >= above);        // down if it fits, else the roomier side
+  const avail = openBelow ? below : above;
+  const h = Math.min(natH, avail);
+  dd.style.maxHeight = (h / z) + 'px';                          // fit within the rail; long lists scroll
+  const topV = openBelow ? (br.bottom + gap) : (br.top - h - gap);
+  dd.style.top = (Math.max(rr.top + gap, topV) / z) + 'px';
+}
+
+let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
 function fcWireFilters(onChange) {
-  _fcOnFilterChange = onChange;
-  _fcFilterRefreshers.length = 0;
+  fcActiveRender = onChange;
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
     const key = item.dataset.filter;
-    if (fcDataMode === 'live' && FC_LIVE_LABEL[key]) {
+    const labOverride = (fcDataMode === 'live' ? FC_LIVE_LABEL : FC_SIM_LABEL)[key];
+    if (labOverride) {
       const lab = item.querySelector('.filter-label');
-      if (lab) lab.textContent = FC_LIVE_LABEL[key];
+      if (lab) lab.textContent = labOverride;
     }
     const btn = item.querySelector('.filter-value');
+    btn.firstChild.textContent = fcState.filters[key];
     const dd = document.createElement('div'); dd.className = 'filter-dropdown';
-    function refresh() {
-      btn.firstChild.textContent = fcState.filters[key];
-      dd.querySelectorAll('.filter-option').forEach(o => o.classList.toggle('selected', o.textContent === fcState.filters[key]));
-    }
     FILTER_OPTIONS[key].forEach(opt => {
       const o = document.createElement('div');
       o.className = 'filter-option' + (fcState.filters[key] === opt ? ' selected' : '');
       o.textContent = opt;
       o.onclick = (e) => {
         e.stopPropagation();
-        dd.classList.remove('open'); btn.classList.remove('open');
-        fcSetFilter(key, opt); refresh(); onChange();
+        btn.firstChild.textContent = opt;
+        dd.querySelectorAll('.filter-option').forEach(x => x.classList.remove('selected'));
+        o.classList.add('selected'); dd.classList.remove('open');
+        fcSetFilter(key, opt); onChange();
       };
       dd.appendChild(o);
     });
-    refresh();
     item.appendChild(dd);
     btn.onclick = (e) => {
       e.stopPropagation();
       document.querySelectorAll('.filter-dropdown.open').forEach(x => { if (x!==dd) x.classList.remove('open'); });
-      document.querySelectorAll('.filter-value.open').forEach(x => { if (x!==btn) x.classList.remove('open'); });
+      const opening = !dd.classList.contains('open');
       dd.classList.toggle('open');
-      btn.classList.toggle('open');
+      if (opening) fcFitDropdownToRail(dd, item);
     };
-    _fcFilterRefreshers.push(refresh);
   });
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open'));
-    document.querySelectorAll('.filter-value.open').forEach(x => x.classList.remove('open'));
-  });
+  document.addEventListener('click', () => document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open')));
 }
 
-/* ---- Filter rail UI: Reset button + "More filters" collapse (both optional per page) ---- */
-function fcResetFilters() {
-  fcState.filters = { ...FC_DEFAULT_STATE.filters };
-  fcSaveState(fcState);
-  _fcFilterRefreshers.forEach(fn => fn());
-  if (_fcOnFilterChange) _fcOnFilterChange();
+/* ---- Filter rail: Reset + primary/secondary collapse (ported from master's UI, injected) ----
+ * Restructures the flat filter list into a compact 2-column primary grid plus a
+ * collapsible "More filters" secondary grid, and adds a Reset link. Done by DOM
+ * injection so no per-page markup changes are needed. */
+const FC_PRIMARY_FILTERS = ['quarter', 'region', 'lob', 'business', 'service'];
+const FC_SECONDARY_FILTERS = ['week', 'coreupsell', 'wotype', 'fqm', 'gcfa'];
+
+function fcRefreshFilterButtons() {
+  document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
+    const key = item.dataset.filter, btn = item.querySelector('.filter-value');
+    if (btn && btn.firstChild) btn.firstChild.textContent = fcState.filters[key];
+    item.querySelectorAll('.filter-option').forEach(o => o.classList.toggle('selected', o.textContent === fcState.filters[key]));
+  });
 }
+function fcResetFilters() {
+  Object.keys(fcState.filters).forEach(key => {
+    const opts = FILTER_OPTIONS[key] || [];
+    if (fcDataMode === 'live') {
+      if (opts.indexOf('All') >= 0) fcState.filters[key] = 'All';   // categorical -> All; quarter/week keep current
+    } else if (key in FC_DEFAULT_STATE.filters) {
+      fcState.filters[key] = FC_DEFAULT_STATE.filters[key];
+    }
+  });
+  fcSaveState(fcState);
+  fcRefreshFilterButtons();
+  if (typeof fcActiveRender === 'function') fcActiveRender();
+}
+
+function fcInjectFilterRailCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-filterrail-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-filterrail-css';
+  st.textContent = `
+  .filter-rail-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1)}
+  .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0}
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+  .filter-reset:hover{color:var(--teal)}
+  .primary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;margin-bottom:4px}
+  .primary-grid .filter-item,.secondary-grid .filter-item{margin-bottom:0;min-width:0}
+  .primary-grid .filter-value,.secondary-grid .filter-value{min-width:0;overflow:hidden;white-space:nowrap}
+  .primary-grid .filter-value .caret,.secondary-grid .filter-value .caret{flex-shrink:0}
+  .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px}
+  .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2)}
+  .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700}
+  .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums}
+  .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0}
+  .more-toggle.open .more-toggle-chevron{transform:rotate(180deg)}
+  .secondary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease,opacity .18s ease,margin-top .22s ease}
+  .secondary-grid.open{max-height:260px;opacity:1;margin-top:12px}
+  /* remove all dropdown-arrow carets (some showed, some didn't — drop them all) */
+  .filter-rail .filter-value .caret{display:none}
+  /* dropdown opens as a fixed overlay (never clipped by the rail) with a clear boundary */
+  .filter-rail .filter-dropdown{border:1px solid var(--border-hi,#b4bde8);border-radius:9px;background:var(--card,#fff);box-shadow:0 14px 34px rgba(15,23,42,.24);overflow-y:auto}
+  .filter-rail .filter-dropdown .filter-option{white-space:normal}`;
+  document.head.appendChild(st);
+}
+
 function fcWireFilterRailUI() {
-  const moreBtn = document.getElementById('more-filters-toggle');
-  const moreGrid = document.getElementById('secondary-filters');
-  if (moreBtn && moreGrid) {
-    moreBtn.onclick = (e) => {
-      e.stopPropagation();
-      const open = moreGrid.classList.toggle('open');
-      moreBtn.classList.toggle('open', open);
-    };
+  if (typeof document === 'undefined') return;
+  const rail = document.querySelector('.filter-rail');
+  if (!rail || rail.dataset.fcRailWired) return;
+  fcInjectFilterRailCSS();
+
+  // Head: wrap title + add a Reset link.
+  const head = rail.querySelector('.filter-rail-head');
+  if (head && !head.querySelector('.filter-reset')) {
+    if (!head.querySelector('.filter-rail-head-title')) {
+      const title = document.createElement('div'); title.className = 'filter-rail-head-title';
+      while (head.firstChild) title.appendChild(head.firstChild);
+      head.appendChild(title);
+    }
+    const reset = document.createElement('button');
+    reset.type = 'button'; reset.className = 'filter-reset'; reset.id = 'filter-reset-btn'; reset.textContent = 'Reset';
+    reset.onclick = (e) => { e.stopPropagation(); fcResetFilters(); };
+    head.appendChild(reset);
   }
-  const resetBtn = document.getElementById('filter-reset-btn');
-  if (resetBtn) resetBtn.onclick = (e) => { e.stopPropagation(); fcResetFilters(); };
+
+  // Split the flat filter items into primary grid + collapsible secondary grid.
+  const items = {};
+  rail.querySelectorAll('.filter-item[data-filter]').forEach(it => { items[it.dataset.filter] = it; });
+  // Append items to a 2-col grid, tagging each with its column so its dropdown can
+  // span the full rail width (service spans both columns and stays full-width).
+  const addCols = (grid, keys) => {
+    let col = 1;
+    keys.forEach(k => {
+      const it = items[k]; if (!it) return;
+      if (k === 'service') { it.style.gridColumn = 'span 2'; it.classList.add('fc-col-full'); col = 1; }
+      else { it.classList.add(col === 1 ? 'fc-col-1' : 'fc-col-2'); col = col === 1 ? 2 : 1; }
+      grid.appendChild(it);
+    });
+  };
+  const pg = document.createElement('div'); pg.className = 'primary-grid';
+  addCols(pg, FC_PRIMARY_FILTERS);
+  const divider = document.createElement('div'); divider.className = 'filter-rail-divider';
+  const secKeys = FC_SECONDARY_FILTERS.filter(k => items[k]);
+  const moreBtn = document.createElement('button');
+  moreBtn.type = 'button'; moreBtn.className = 'more-toggle'; moreBtn.id = 'more-filters-toggle';
+  moreBtn.innerHTML = '<span class="more-toggle-label">More filters <span class="more-toggle-count">' + secKeys.length +
+    '</span></span><svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const sg = document.createElement('div'); sg.className = 'secondary-grid'; sg.id = 'secondary-filters';
+  addCols(sg, FC_SECONDARY_FILTERS);
+  moreBtn.onclick = (e) => { e.stopPropagation(); const open = sg.classList.toggle('open'); moreBtn.classList.toggle('open', open); };
+
+  // Place below the scenario bar / sub, above the (now-empty) old item positions.
+  const anchor = document.getElementById('fc-scenario-bar') || rail.querySelector('.filter-rail-sub') || head;
+  anchor.after(pg, divider, moreBtn, sg);
+  rail.dataset.fcRailWired = '1';
 }
 
 function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString()+'K':Math.round(v).toString(); }
@@ -811,8 +927,9 @@ function fcInjectScenarioCSS() {
   .fc-scn-actions button.fc-scn-cmp:hover{background:#0b7f74}
   .fc-scn-presets{margin-top:9px;padding-top:9px;border-top:1px dashed #d7e0ef}
   .fc-scn-presets .fc-scn-plabel{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a94ad;margin-bottom:5px}
-  .fc-scn-presets .fc-scn-chips{display:flex;gap:5px}
-  .fc-scn-presets button{flex:1;padding:5px 6px;border:1px solid #cfd9ea;border-radius:999px;background:#fff;font:600 10.5px Inter,sans-serif;color:#37415a;cursor:pointer}
+  .fc-scn-presets .fc-scn-chips{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .fc-scn-presets button{padding:5px 6px;border:1px solid #cfd9ea;border-radius:7px;background:#fff;font:600 10.5px Inter,sans-serif;color:#37415a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fc-scn-presets button:last-child{grid-column:1 / -1}
   .fc-scn-presets button:hover{background:#e7f8f3;border-color:#99e3d5;color:#0f766e}
   .fc-cmp-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:10000;display:flex;align-items:center;justify-content:center}
   .fc-cmp-overlay[hidden]{display:none}
@@ -863,6 +980,7 @@ function fcRenderScenarioBar() {
 
 function fcInjectScenarioUI() {
   if (typeof document === 'undefined') return;
+  if (fcIsDashboard()) return;   // Dashboard keeps its filters but not the scenario switcher
   fcInjectScenarioCSS();
   const rail = document.querySelector('.filter-rail');
   if (rail && !document.getElementById('fc-scenario-bar')) {
@@ -923,9 +1041,96 @@ function fcRenderCompare() {
   body.innerHTML = html;
 }
 
+/* ---- UI chrome: compact rail (2), Workspace collapse (3), no scenario bar on Dashboard (6),
+ *      cross-page zoom (5) ----
+ * A web page can't read or set the BROWSER's own zoom, and multi-page sites opened
+ * from file:// don't share it. So the app keeps its own persisted zoom, driven
+ * INVISIBLY by the usual Ctrl +/- / Ctrl-scroll gesture (no on-screen control), and
+ * re-applied on every page load — so a zoom set on one page shows on all of them. */
+const FC_NAV_KEY = 'fc_nav_collapsed', FC_ZOOM_KEY = 'fc_zoom';
+const FC_ZOOM_MIN = 0.5, FC_ZOOM_MAX = 2, FC_ZOOM_STEP = 0.1;
+function fcIsDashboard() { return typeof document !== 'undefined' && /^Dashboard\b/.test((document.title || '').trim()); }
+function fcGetZoom() { const z = parseFloat(localStorage.getItem(FC_ZOOM_KEY)); return isNaN(z) ? 1 : Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, z)); }
+function fcApplyZoom(z) {
+  z = Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, Math.round(z * 100) / 100));
+  try { localStorage.setItem(FC_ZOOM_KEY, String(z)); } catch (e) {}
+  if (document.documentElement) {
+    document.documentElement.style.zoom = z;                                    // persisted -> re-applied on every page
+    document.documentElement.style.setProperty('--fc-vh-scale', String(1 / z)); // keep 100vh panels window-height under zoom
+  }
+  return z;
+}
+function fcNudgeZoom(d) { fcApplyZoom(fcGetZoom() + d); }
+
+function fcInjectChromeCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-chrome-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-chrome-css';
+  st.textContent = `
+  /* (2) tighter, narrower filter rail with equal L/R gaps: the divider line moves
+     off the rail (onto .main) so the rail is pure symmetric padding, no border. */
+  .filter-rail{width:238px;padding:16px 15px;border-right:none}
+  .main{border-left:1px solid var(--border)}
+  .filter-value{padding:5px 8px;font-size:11.5px}
+  /* labels stay on a single line (rail widened above so they fit) → uniform
+     row height keeps the filters aligned */
+  .filter-rail .filter-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .filter-rail-sub{margin:3px 0 12px}
+  /* (3) collapsible Workspace */
+  body.fc-nav-collapsed .sidebar{display:none}
+  /* (5) keep 100vh panels window-height under the app zoom (vh ignores CSS zoom) */
+  html,body,.sidebar,.filter-rail,.main{height:calc(100vh * var(--fc-vh-scale, 1))}
+  /* top-bar Workspace toggle */
+  .topbar{gap:8px}
+  .fc-cbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text-2);font:600 12px/1 inherit;cursor:pointer}
+  .fc-cbtn:hover{border-color:var(--teal);color:var(--text-1)}
+  .fc-cbtn.on{border-color:var(--teal);color:var(--teal)}
+  .fc-cbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}`;
+  document.head.appendChild(st);
+}
+function fcToggleNav() {
+  const on = !document.body.classList.contains('fc-nav-collapsed');
+  document.body.classList.toggle('fc-nav-collapsed', on);
+  try { localStorage.setItem(FC_NAV_KEY, on ? '1' : '0'); } catch (e) {}
+  const b = document.getElementById('fc-nav-toggle'); if (b) b.classList.toggle('on', on);
+}
+var FC_ICON_MENU = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
+
+function fcInjectChrome() {
+  if (typeof document === 'undefined') return;
+  fcInjectChromeCSS();
+  if (localStorage.getItem(FC_NAV_KEY) === '1') document.body.classList.add('fc-nav-collapsed');  // (3) persisted
+  fcApplyZoom(fcGetZoom());                                                                        // (5) persisted, applied on load
+
+  const topbar = document.querySelector('.topbar');
+  if (topbar && !document.getElementById('fc-nav-toggle')) {
+    const nav = document.createElement('button'); nav.id = 'fc-nav-toggle'; nav.type = 'button';
+    nav.className = 'fc-cbtn' + (document.body.classList.contains('fc-nav-collapsed') ? ' on' : '');
+    nav.title = 'Show / hide the Workspace panel'; nav.innerHTML = FC_ICON_MENU + '<span>Workspace</span>';
+    nav.style.marginRight = 'auto';   // pin left; keep the theme toggle on the right
+    nav.onclick = fcToggleNav;
+    topbar.insertBefore(nav, topbar.firstChild);
+  }
+
+  // (5) drive the persisted app zoom from the usual gesture, invisibly (no control tab)
+  if (!window.__fcZoomKeys) {
+    window.__fcZoomKeys = true;
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); fcNudgeZoom(FC_ZOOM_STEP); }
+      else if (e.key === '-' || e.key === '_') { e.preventDefault(); fcNudgeZoom(-FC_ZOOM_STEP); }
+      else if (e.key === '0') { e.preventDefault(); fcApplyZoom(1); }
+    });
+    document.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      fcNudgeZoom(e.deltaY < 0 ? FC_ZOOM_STEP : -FC_ZOOM_STEP);
+    }, { passive: false });
+  }
+}
+
 /* ==== END SHARED ENGINE ==== */
 fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
-function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); }
+function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); fcInjectChrome(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcBoot);
 else fcBoot();
