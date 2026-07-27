@@ -537,13 +537,14 @@ function fcCompute() {
 // (measured on open, so it's exact regardless of grid column or zoom).
 function fcFitDropdownToRail(dd, item) {
   const rail = item.closest('.filter-rail'); if (!rail || !dd) return;
+  const z = (typeof fcGetZoom === 'function') ? fcGetZoom() : 1;   // app zoom -> getBoundingClientRect is visual px
   const rs = getComputedStyle(rail);
   const rr = rail.getBoundingClientRect(), ir = item.getBoundingClientRect();
-  const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0);
-  const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0);
-  dd.style.left = (innerLeft - ir.left) + 'px';
+  const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0) * z;
+  const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0) * z;
+  dd.style.left = ((innerLeft - ir.left) / z) + 'px';
   dd.style.right = 'auto';
-  dd.style.width = (innerRight - innerLeft) + 'px';
+  dd.style.width = ((innerRight - innerLeft) / z) + 'px';
 }
 
 let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
@@ -1012,12 +1013,26 @@ function fcRenderCompare() {
   body.innerHTML = html;
 }
 
-/* ---- UI chrome: compact rail (2), Workspace collapse (3), no scenario bar on Dashboard (6) ----
- * Note: page zoom is left to the BROWSER's native zoom, which the browser already
- * persists per-origin (so it's shared across all pages of the site). A web page
- * can't set browser zoom, so there is deliberately no in-app zoom control here. */
-const FC_NAV_KEY = 'fc_nav_collapsed';
+/* ---- UI chrome: compact rail (2), Workspace collapse (3), no scenario bar on Dashboard (6),
+ *      cross-page zoom (5) ----
+ * A web page can't read or set the BROWSER's own zoom, and multi-page sites opened
+ * from file:// don't share it. So the app keeps its own persisted zoom, driven
+ * INVISIBLY by the usual Ctrl +/- / Ctrl-scroll gesture (no on-screen control), and
+ * re-applied on every page load — so a zoom set on one page shows on all of them. */
+const FC_NAV_KEY = 'fc_nav_collapsed', FC_ZOOM_KEY = 'fc_zoom';
+const FC_ZOOM_MIN = 0.5, FC_ZOOM_MAX = 2, FC_ZOOM_STEP = 0.1;
 function fcIsDashboard() { return typeof document !== 'undefined' && /^Dashboard\b/.test((document.title || '').trim()); }
+function fcGetZoom() { const z = parseFloat(localStorage.getItem(FC_ZOOM_KEY)); return isNaN(z) ? 1 : Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, z)); }
+function fcApplyZoom(z) {
+  z = Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, Math.round(z * 100) / 100));
+  try { localStorage.setItem(FC_ZOOM_KEY, String(z)); } catch (e) {}
+  if (document.documentElement) {
+    document.documentElement.style.zoom = z;                                    // persisted -> re-applied on every page
+    document.documentElement.style.setProperty('--fc-vh-scale', String(1 / z)); // keep 100vh panels window-height under zoom
+  }
+  return z;
+}
+function fcNudgeZoom(d) { fcApplyZoom(fcGetZoom() + d); }
 
 function fcInjectChromeCSS() {
   if (typeof document === 'undefined' || document.getElementById('fc-chrome-css')) return;
@@ -1031,6 +1046,8 @@ function fcInjectChromeCSS() {
   .filter-rail-sub{margin:3px 0 12px}
   /* (3) collapsible Workspace */
   body.fc-nav-collapsed .sidebar{display:none}
+  /* (5) keep 100vh panels window-height under the app zoom (vh ignores CSS zoom) */
+  html,body,.sidebar,.filter-rail,.main{height:calc(100vh * var(--fc-vh-scale, 1))}
   /* top-bar Workspace toggle */
   .topbar{gap:8px}
   .fc-cbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text-2);font:600 12px/1 inherit;cursor:pointer}
@@ -1051,6 +1068,7 @@ function fcInjectChrome() {
   if (typeof document === 'undefined') return;
   fcInjectChromeCSS();
   if (localStorage.getItem(FC_NAV_KEY) === '1') document.body.classList.add('fc-nav-collapsed');  // (3) persisted
+  fcApplyZoom(fcGetZoom());                                                                        // (5) persisted, applied on load
 
   const topbar = document.querySelector('.topbar');
   if (topbar && !document.getElementById('fc-nav-toggle')) {
@@ -1060,6 +1078,22 @@ function fcInjectChrome() {
     nav.style.marginRight = 'auto';   // pin left; keep the theme toggle on the right
     nav.onclick = fcToggleNav;
     topbar.insertBefore(nav, topbar.firstChild);
+  }
+
+  // (5) drive the persisted app zoom from the usual gesture, invisibly (no control tab)
+  if (!window.__fcZoomKeys) {
+    window.__fcZoomKeys = true;
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); fcNudgeZoom(FC_ZOOM_STEP); }
+      else if (e.key === '-' || e.key === '_') { e.preventDefault(); fcNudgeZoom(-FC_ZOOM_STEP); }
+      else if (e.key === '0') { e.preventDefault(); fcApplyZoom(1); }
+    });
+    document.addEventListener('wheel', (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      fcNudgeZoom(e.deltaY < 0 ? FC_ZOOM_STEP : -FC_ZOOM_STEP);
+    }, { passive: false });
   }
 }
 
