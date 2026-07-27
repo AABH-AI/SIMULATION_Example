@@ -7,6 +7,12 @@ New Mockup Designs/Visuals/
 .claude/worktrees/
 .claude/settings.local.json
 
+# graphify skill output — generated locally, never commit.
+graphify-out/
+
+# graphify skill output — generated locally, never commit.
+graphify-out/
+
 # Compliance: client-specific prototype/legacy files — keep locally, never deploy.
 dell_workflow.html
 animated_UI.html

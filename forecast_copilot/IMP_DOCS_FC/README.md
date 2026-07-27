@@ -1,7 +1,7 @@
 # Forecast Copilot — AI Planning Suite
 
 > Folder-local documentation for the `forecast_copilot/` product.
-> This is a **copy** kept inside the folder; the canonical project docs in `../IMP_DOCS/` are left as-is.
+> This is a **copy** kept inside the folder; the canonical project docs in `../../IMP_DOCS/` are left as-is.
 > New here? Start with `HANDOFF.md` (quick-start), then this file for detail.
 > Last updated: 2026-07-27 (Phases 0–6 complete; filter-rail UI polish).
 
@@ -14,7 +14,7 @@ they switch to **Live** mode: reading the real input workbook and publishing tim
 forecasts to `output/`. No `pip install`, no build step, no cloud. See "Data source: Live vs
 Simulated" and "Local server & read path" below.
 
-Separate product from the ISG BPA dashboards (`../BPA_FORCASTING_MOCK.HTML` etc.) — no shared code with them.
+Separate product from the ISG BPA dashboards (`../../BPA_FORCASTING_MOCK.HTML` etc.) — no shared code with them.
 
 ---
 
