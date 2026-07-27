@@ -993,8 +993,10 @@ function fcInjectChromeCSS() {
   if (typeof document === 'undefined' || document.getElementById('fc-chrome-css')) return;
   const st = document.createElement('style'); st.id = 'fc-chrome-css';
   st.textContent = `
-  /* (2) tighter, narrower filter rail */
-  .filter-rail{width:210px;padding:16px 13px}
+  /* (2) tighter, narrower filter rail with equal L/R gaps: the divider line moves
+     off the rail (onto .main) so the rail is pure symmetric padding, no border. */
+  .filter-rail{width:210px;padding:16px 15px;border-right:none}
+  .main{border-left:1px solid var(--border)}
   .filter-value{padding:5px 8px;font-size:11.5px}
   .filter-rail-sub{margin:3px 0 12px}
   /* (3) collapsible Workspace */
