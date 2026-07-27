@@ -923,6 +923,7 @@ function fcRenderScenarioBar() {
 
 function fcInjectScenarioUI() {
   if (typeof document === 'undefined') return;
+  if (fcIsDashboard()) return;   // Dashboard keeps its filters but not the scenario switcher
   fcInjectScenarioCSS();
   const rail = document.querySelector('.filter-rail');
   if (rail && !document.getElementById('fc-scenario-bar')) {
@@ -998,8 +999,6 @@ function fcInjectChromeCSS() {
   .filter-rail-sub{margin:3px 0 12px}
   /* (3) collapsible Workspace */
   body.fc-nav-collapsed .sidebar{display:none}
-  /* (6) no filter rail on the Dashboard */
-  body.fc-no-rail .filter-rail{display:none}
   /* top-bar controls */
   /* (5) keep 100vh panels fitting the window under CSS zoom (vh ignores zoom, so divide it out) */
   html,body,.sidebar,.filter-rail,.main{height:calc(100vh * var(--fc-vh-scale, 1))}
@@ -1036,7 +1035,6 @@ var FC_ICON_MENU = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M3 
 function fcInjectChrome() {
   if (typeof document === 'undefined') return;
   fcInjectChromeCSS();
-  if (fcIsDashboard()) document.body.classList.add('fc-no-rail');                                 // (6)
   if (localStorage.getItem(FC_NAV_KEY) === '1') document.body.classList.add('fc-nav-collapsed');  // (3) persisted
   fcApplyZoom(fcGetZoom());                                                                        // (5) persisted
 
