@@ -983,9 +983,99 @@ function fcRenderCompare() {
   body.innerHTML = html;
 }
 
+/* ---- UI chrome: compact rail (2), Workspace collapse (3), cross-page zoom (5), no-rail on Dashboard (6) ---- */
+const FC_NAV_KEY = 'fc_nav_collapsed', FC_ZOOM_KEY = 'fc_zoom';
+const FC_ZOOM_MIN = 0.7, FC_ZOOM_MAX = 1.5, FC_ZOOM_STEP = 0.1;
+function fcIsDashboard() { return typeof document !== 'undefined' && /^Dashboard\b/.test((document.title || '').trim()); }
+
+function fcInjectChromeCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-chrome-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-chrome-css';
+  st.textContent = `
+  /* (2) tighter, narrower filter rail */
+  .filter-rail{width:210px;padding:16px 13px}
+  .filter-value{padding:5px 8px;font-size:11.5px}
+  .filter-rail-sub{margin:3px 0 12px}
+  /* (3) collapsible Workspace */
+  body.fc-nav-collapsed .sidebar{display:none}
+  /* (6) no filter rail on the Dashboard */
+  body.fc-no-rail .filter-rail{display:none}
+  /* top-bar controls */
+  /* (5) keep 100vh panels fitting the window under CSS zoom (vh ignores zoom, so divide it out) */
+  html,body,.sidebar,.filter-rail,.main{height:calc(100vh * var(--fc-vh-scale, 1))}
+  .topbar{gap:8px}
+  .fc-cbtn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text-2);font:600 12px/1 inherit;cursor:pointer}
+  .fc-cbtn:hover{border-color:var(--teal);color:var(--text-1)}
+  .fc-cbtn.on{border-color:var(--teal);color:var(--teal)}
+  .fc-cbtn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .fc-zoom{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:8px;overflow:hidden;height:32px;background:var(--card)}
+  .fc-zoom button{width:28px;height:100%;border:none;background:transparent;color:var(--text-2);font:700 15px/1 inherit;cursor:pointer}
+  .fc-zoom button:hover{background:var(--card-hi);color:var(--text-1)}
+  .fc-zoom .fc-zoom-val{min-width:46px;text-align:center;font:600 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--text-1);border-left:1px solid var(--border);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer}`;
+  document.head.appendChild(st);
+}
+function fcGetZoom() { const z = parseFloat(localStorage.getItem(FC_ZOOM_KEY)); return isNaN(z) ? 1 : Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, z)); }
+function fcApplyZoom(z) {
+  z = Math.min(FC_ZOOM_MAX, Math.max(FC_ZOOM_MIN, Math.round(z * 100) / 100));
+  try { localStorage.setItem(FC_ZOOM_KEY, String(z)); } catch (e) {}
+  if (document.documentElement) {
+    document.documentElement.style.zoom = z;                                   // persisted -> carries across pages
+    document.documentElement.style.setProperty('--fc-vh-scale', String(1 / z)); // keep 100vh panels window-height under zoom
+  }
+  const v = document.getElementById('fc-zoom-val'); if (v) v.textContent = Math.round(z * 100) + '%';
+}
+function fcNudgeZoom(d) { fcApplyZoom(fcGetZoom() + d); }
+function fcToggleNav() {
+  const on = !document.body.classList.contains('fc-nav-collapsed');
+  document.body.classList.toggle('fc-nav-collapsed', on);
+  try { localStorage.setItem(FC_NAV_KEY, on ? '1' : '0'); } catch (e) {}
+  const b = document.getElementById('fc-nav-toggle'); if (b) b.classList.toggle('on', on);
+}
+var FC_ICON_MENU = '<svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
+
+function fcInjectChrome() {
+  if (typeof document === 'undefined') return;
+  fcInjectChromeCSS();
+  if (fcIsDashboard()) document.body.classList.add('fc-no-rail');                                 // (6)
+  if (localStorage.getItem(FC_NAV_KEY) === '1') document.body.classList.add('fc-nav-collapsed');  // (3) persisted
+  fcApplyZoom(fcGetZoom());                                                                        // (5) persisted
+
+  const topbar = document.querySelector('.topbar');
+  if (topbar && !document.getElementById('fc-nav-toggle')) {
+    const nav = document.createElement('button'); nav.id = 'fc-nav-toggle'; nav.type = 'button';
+    nav.className = 'fc-cbtn' + (document.body.classList.contains('fc-nav-collapsed') ? ' on' : '');
+    nav.title = 'Show / hide the Workspace panel'; nav.innerHTML = FC_ICON_MENU + '<span>Workspace</span>';
+    nav.style.marginRight = 'auto';   // pin left; push zoom/theme to the right
+    nav.onclick = fcToggleNav;
+    topbar.insertBefore(nav, topbar.firstChild);
+
+    const theme = topbar.querySelector('.theme-toggle');
+    const zoom = document.createElement('div'); zoom.className = 'fc-zoom';
+    zoom.innerHTML = '<button type="button" id="fc-zoom-out" title="Zoom out (Ctrl -)">−</button>' +
+      '<span class="fc-zoom-val" id="fc-zoom-val" title="Reset zoom (Ctrl 0)">100%</span>' +
+      '<button type="button" id="fc-zoom-in" title="Zoom in (Ctrl +)">+</button>';
+    if (theme) topbar.insertBefore(zoom, theme); else topbar.appendChild(zoom);
+    zoom.querySelector('#fc-zoom-out').onclick = () => fcNudgeZoom(-FC_ZOOM_STEP);
+    zoom.querySelector('#fc-zoom-in').onclick = () => fcNudgeZoom(FC_ZOOM_STEP);
+    zoom.querySelector('#fc-zoom-val').onclick = () => fcApplyZoom(1);
+    fcApplyZoom(fcGetZoom());   // sync label now that it exists
+  }
+
+  // (5) capture Ctrl +/-/0 so keyboard zoom drives the persisted app zoom (carries across pages)
+  if (!window.__fcZoomKeys) {
+    window.__fcZoomKeys = true;
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); fcNudgeZoom(FC_ZOOM_STEP); }
+      else if (e.key === '-' || e.key === '_') { e.preventDefault(); fcNudgeZoom(-FC_ZOOM_STEP); }
+      else if (e.key === '0') { e.preventDefault(); fcApplyZoom(1); }
+    });
+  }
+}
+
 /* ==== END SHARED ENGINE ==== */
 fcInitData();        // decide live vs simulated before any page render (synchronous)
 fcSyncThemeBtn();
-function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); }
+function fcBoot() { fcInjectBadge(); fcInjectScenarioUI(); fcWireFilterRailUI(); fcInjectChrome(); }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fcBoot);
 else fcBoot();
