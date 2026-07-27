@@ -535,27 +535,37 @@ function fcCompute() {
 
 // Size a filter dropdown to span the full filter-rail width with symmetric gaps
 // (measured on open, so it's exact regardless of grid column or zoom).
+// Open a filter dropdown as a FIXED overlay (so the rail's overflow can't clip it),
+// spanning the rail width with symmetric gaps, flipped above/below to whichever side
+// has room, and height-capped to fit (long lists like Fiscal Week scroll inside).
+// All measurements are getBoundingClientRect (visual px); style values are CSS px, so
+// divide by the app zoom z.
 function fcFitDropdownToRail(dd, item) {
   const rail = item.closest('.filter-rail'); if (!rail || !dd) return;
-  const z = (typeof fcGetZoom === 'function') ? fcGetZoom() : 1;   // app zoom -> getBoundingClientRect is visual px
+  const z = (typeof fcGetZoom === 'function') ? fcGetZoom() : 1;
   const rs = getComputedStyle(rail);
-  const rr = rail.getBoundingClientRect(), ir = item.getBoundingClientRect();
+  const rr = rail.getBoundingClientRect();
+  const br = (item.querySelector('.filter-value') || item).getBoundingClientRect();
   const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0) * z;
   const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0) * z;
-  // horizontal: span the full rail width with symmetric gaps
-  dd.style.left = ((innerLeft - ir.left) / z) + 'px';
+  const gap = 4 * z;
+
+  dd.style.position = 'fixed';
+  dd.style.zIndex = '9999';
   dd.style.right = 'auto';
+  dd.style.bottom = 'auto';
+  dd.style.left = (innerLeft / z) + 'px';
   dd.style.width = ((innerRight - innerLeft) / z) + 'px';
-  // vertical: flip open UPWARD when there isn't room below within the rail (so
-  // bottom filters like WO Type / FQM Flag / GCFA Type aren't cut off)
-  const br = (item.querySelector('.filter-value') || item).getBoundingClientRect();
-  const ddH = dd.getBoundingClientRect().height;           // measured after width is set
-  const spaceBelow = rr.bottom - br.bottom, spaceAbove = br.top - rr.top;
-  if (spaceBelow < ddH + 6 && spaceAbove > spaceBelow) {
-    dd.style.top = 'auto'; dd.style.bottom = 'calc(100% + 4px)';
-  } else {
-    dd.style.top = 'calc(100% + 4px)'; dd.style.bottom = 'auto';
-  }
+
+  dd.style.maxHeight = (300) + 'px';                            // allow natural (capped) height to measure
+  const natH = dd.getBoundingClientRect().height;               // visual
+  const below = Math.max(0, rr.bottom - br.bottom - gap), above = Math.max(0, br.top - rr.top - gap);
+  const openBelow = (below >= natH) || (below >= above);        // down if it fits, else the roomier side
+  const avail = openBelow ? below : above;
+  const h = Math.min(natH, avail);
+  dd.style.maxHeight = (h / z) + 'px';                          // fit within the rail; long lists scroll
+  const topV = openBelow ? (br.bottom + gap) : (br.top - h - gap);
+  dd.style.top = (Math.max(rr.top + gap, topV) / z) + 'px';
 }
 
 let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
@@ -643,7 +653,12 @@ function fcInjectFilterRailCSS() {
   .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0}
   .more-toggle.open .more-toggle-chevron{transform:rotate(180deg)}
   .secondary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease,opacity .18s ease,margin-top .22s ease}
-  .secondary-grid.open{max-height:260px;opacity:1;margin-top:12px}`;
+  .secondary-grid.open{max-height:260px;opacity:1;margin-top:12px}
+  /* remove all dropdown-arrow carets (some showed, some didn't — drop them all) */
+  .filter-rail .filter-value .caret{display:none}
+  /* dropdown opens as a fixed overlay (never clipped by the rail) with a clear boundary */
+  .filter-rail .filter-dropdown{border:1px solid var(--border-hi,#b4bde8);border-radius:9px;background:var(--card,#fff);box-shadow:0 14px 34px rgba(15,23,42,.24);overflow-y:auto}
+  .filter-rail .filter-dropdown .filter-option{white-space:normal}`;
   document.head.appendChild(st);
 }
 
