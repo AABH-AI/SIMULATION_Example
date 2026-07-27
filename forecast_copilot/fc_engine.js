@@ -533,6 +533,20 @@ function fcCompute() {
     status: { meetsAOP, meetsModernization, meetsTriad, readyForSubmission, modernAchievement } };
 }
 
+// Size a filter dropdown to span the full filter-rail width with symmetric gaps
+// (measured on open, so it's exact regardless of grid column or zoom).
+function fcFitDropdownToRail(dd, item) {
+  const rail = item.closest('.filter-rail'); if (!rail || !dd) return;
+  const z = (typeof fcGetZoom === 'function') ? fcGetZoom() : 1;
+  const rs = getComputedStyle(rail);
+  const rr = rail.getBoundingClientRect(), ir = item.getBoundingClientRect();
+  const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0) * z;   // getBoundingClientRect is visual px under zoom
+  const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0) * z;
+  dd.style.left = ((innerLeft - ir.left) / z) + 'px';                  // convert visual delta -> CSS px
+  dd.style.right = 'auto';
+  dd.style.width = ((innerRight - innerLeft) / z) + 'px';
+}
+
 let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
 function fcWireFilters(onChange) {
   fcActiveRender = onChange;
@@ -562,7 +576,9 @@ function fcWireFilters(onChange) {
     btn.onclick = (e) => {
       e.stopPropagation();
       document.querySelectorAll('.filter-dropdown.open').forEach(x => { if (x!==dd) x.classList.remove('open'); });
+      const opening = !dd.classList.contains('open');
       dd.classList.toggle('open');
+      if (opening) fcFitDropdownToRail(dd, item);
     };
   });
   document.addEventListener('click', () => document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open')));
@@ -605,15 +621,17 @@ function fcInjectFilterRailCSS() {
   .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0}
   .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
   .filter-reset:hover{color:var(--teal)}
-  .primary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;margin-bottom:4px}
-  .primary-grid .filter-item,.secondary-grid .filter-item{margin-bottom:0}
+  .primary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;margin-bottom:4px}
+  .primary-grid .filter-item,.secondary-grid .filter-item{margin-bottom:0;min-width:0}
+  .primary-grid .filter-value,.secondary-grid .filter-value{min-width:0;overflow:hidden;white-space:nowrap}
+  .primary-grid .filter-value .caret,.secondary-grid .filter-value .caret{flex-shrink:0}
   .filter-rail-divider{height:1px;background:var(--border);margin:14px 0 12px}
   .more-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2)}
   .more-toggle-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700}
   .more-toggle-count{font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;font-variant-numeric:tabular-nums}
   .more-toggle-chevron{width:13px;height:13px;stroke:var(--text-3);transition:transform .18s ease;flex-shrink:0}
   .more-toggle.open .more-toggle-chevron{transform:rotate(180deg)}
-  .secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease,opacity .18s ease,margin-top .22s ease}
+  .secondary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease,opacity .18s ease,margin-top .22s ease}
   .secondary-grid.open{max-height:260px;opacity:1;margin-top:12px}`;
   document.head.appendChild(st);
 }
@@ -641,8 +659,19 @@ function fcWireFilterRailUI() {
   // Split the flat filter items into primary grid + collapsible secondary grid.
   const items = {};
   rail.querySelectorAll('.filter-item[data-filter]').forEach(it => { items[it.dataset.filter] = it; });
+  // Append items to a 2-col grid, tagging each with its column so its dropdown can
+  // span the full rail width (service spans both columns and stays full-width).
+  const addCols = (grid, keys) => {
+    let col = 1;
+    keys.forEach(k => {
+      const it = items[k]; if (!it) return;
+      if (k === 'service') { it.style.gridColumn = 'span 2'; it.classList.add('fc-col-full'); col = 1; }
+      else { it.classList.add(col === 1 ? 'fc-col-1' : 'fc-col-2'); col = col === 1 ? 2 : 1; }
+      grid.appendChild(it);
+    });
+  };
   const pg = document.createElement('div'); pg.className = 'primary-grid';
-  FC_PRIMARY_FILTERS.forEach(k => { if (items[k]) { if (k === 'service') items[k].style.gridColumn = 'span 2'; pg.appendChild(items[k]); } });
+  addCols(pg, FC_PRIMARY_FILTERS);
   const divider = document.createElement('div'); divider.className = 'filter-rail-divider';
   const secKeys = FC_SECONDARY_FILTERS.filter(k => items[k]);
   const moreBtn = document.createElement('button');
@@ -650,7 +679,7 @@ function fcWireFilterRailUI() {
   moreBtn.innerHTML = '<span class="more-toggle-label">More filters <span class="more-toggle-count">' + secKeys.length +
     '</span></span><svg class="more-toggle-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
   const sg = document.createElement('div'); sg.className = 'secondary-grid'; sg.id = 'secondary-filters';
-  secKeys.forEach(k => sg.appendChild(items[k]));
+  addCols(sg, FC_SECONDARY_FILTERS);
   moreBtn.onclick = (e) => { e.stopPropagation(); const open = sg.classList.toggle('open'); moreBtn.classList.toggle('open', open); };
 
   // Place below the scenario bar / sub, above the (now-empty) old item positions.
