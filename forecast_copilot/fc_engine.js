@@ -542,9 +542,20 @@ function fcFitDropdownToRail(dd, item) {
   const rr = rail.getBoundingClientRect(), ir = item.getBoundingClientRect();
   const innerLeft = rr.left + (parseFloat(rs.paddingLeft) || 0) * z;
   const innerRight = rr.right - (parseFloat(rs.paddingRight) || 0) * z;
+  // horizontal: span the full rail width with symmetric gaps
   dd.style.left = ((innerLeft - ir.left) / z) + 'px';
   dd.style.right = 'auto';
   dd.style.width = ((innerRight - innerLeft) / z) + 'px';
+  // vertical: flip open UPWARD when there isn't room below within the rail (so
+  // bottom filters like WO Type / FQM Flag / GCFA Type aren't cut off)
+  const br = (item.querySelector('.filter-value') || item).getBoundingClientRect();
+  const ddH = dd.getBoundingClientRect().height;           // measured after width is set
+  const spaceBelow = rr.bottom - br.bottom, spaceAbove = br.top - rr.top;
+  if (spaceBelow < ddH + 6 && spaceAbove > spaceBelow) {
+    dd.style.top = 'auto'; dd.style.bottom = 'calc(100% + 4px)';
+  } else {
+    dd.style.top = 'calc(100% + 4px)'; dd.style.bottom = 'auto';
+  }
 }
 
 let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
