@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -65,6 +66,131 @@
     /* ── VIEWS ─────────────────────────────────────────────── */
     #home-view      { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
     #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+
+    /* ── FORECAST COPILOT STYLES ── */
+    :root {
+      --teal: #0d9488;
+      --teal-dim: rgba(13,148,136,0.10);
+      --chart1: #0d9488;
+      --chart2: #d97706;
+      --chart3: #0284c7;
+      --chart4: #7c3aed;
+      --chart5: #db2777;
+      --chart6: #64748b;
+    }
+    .fc-layout { display: flex; gap: 16px; align-items: flex-start; }
+    .filter-rail { width: 244px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 14px; }
+    .filter-rail .filter-item { margin-bottom: 11px; }
+    .filter-rail .filter-dropdown { left: 0; right: 0; min-width: 0; }
+    .filter-rail .filter-option { white-space: normal; }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .filter-label { font-size: 9.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .filter-value {
+      font: inherit; font-size: 12px; font-weight: 600; color: var(--text-1);
+      background: var(--card-hi); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 9px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      text-align: left; width: 100%;
+    }
+    .filter-value:hover, .filter-value.open { border-color: var(--teal); }
+    .filter-value .caret { font-size: 9px; color: var(--text-3); }
+    .filter-dropdown {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 160px; max-height: 240px;
+      overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.16); z-index: 100; padding: 4px;
+    }
+    .filter-dropdown.open { display: block; }
+    .filter-option { padding: 6px 9px; border-radius: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
+    .filter-option:hover { background: var(--card-hi); color: var(--text-1); }
+    .filter-option.selected { color: var(--teal); font-weight: 700; }
+
+    .toggle-group { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toggle-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .12s; }
+    .toggle-btn.active { background: var(--teal-dim); color: var(--teal); border-color: var(--teal); }
+    .toggle-btn:hover:not(.active) { border-color: var(--text-3); color: var(--text-1); }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+    .panel-title { font-size: 14px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; }
+    .panel-sub { font-size: 11.5px; color: var(--text-2); margin-bottom: 12px; }
+
+    .slider-row { margin-bottom: 14px; }
+    .slider-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+    .slider-head .val { color: var(--teal); font-weight: 700; }
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px; background: var(--card-hi); accent-color: #0d9488; cursor: pointer; }
+
+    .calc-box { background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .calc-label { font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+    .calc-value { font-size: 22px; font-weight: 800; color: var(--teal); }
+
+    .override-row { display: flex; align-items: center; gap: 10px; }
+    .override-row input[type=text] { width: 90px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; color: var(--text-1); font-size: 13px; text-align: right; }
+    .override-row button { padding: 7px 14px; border-radius: 7px; border: 1px solid var(--teal); background: transparent; color: var(--teal); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .override-row button:hover { background: var(--teal-dim); }
+
+    .ovv-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
+    .ovv-card { background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .ovv-label { font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+    .ovv-line { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+    .ovv-line .k { color: var(--text-2); }
+    .ovv-line .v { font-weight: 700; color: var(--text-1); }
+    .ovv-line .v.pos { color: var(--green); } .ovv-line .v.neg { color: var(--red); }
+
+    .rec-box { background: var(--card-hi); border: 1px solid var(--teal); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+    .rec-title { font-size: 12.5px; font-weight: 700; color: var(--teal); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .rec-rationale { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-bottom: 12px; }
+    .rec-values { display: flex; gap: 20px; margin-bottom: 14px; }
+    .rec-values .item { font-size: 13px; }
+    .rec-values .item .lbl { color: var(--text-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
+    .rec-values .item .num { color: var(--text-1); font-weight: 700; font-size: 16px; }
+    .rec-actions { display: flex; gap: 8px; }
+    .rec-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-1); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .12s; }
+    .rec-btn.accept { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .rec-btn.accept:hover { opacity: .88; }
+    .rec-btn:not(.accept):hover { border-color: var(--text-3); }
+
+    .range-meter { margin-top: 10px; }
+    .range-track { position: relative; height: 8px; border-radius: 4px; background: var(--card-hi); border: 1px solid var(--border); }
+    .range-band { position: absolute; top: -1px; bottom: -1px; background: var(--teal); border-radius: 4px; min-width: 6px; }
+    .range-scale { display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 600; color: var(--text-3); margin-top: 5px; }
+
+    .quarter-list { display: flex; gap: 10px; }
+    .quarter-item { flex: 1; background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; position: relative; }
+    .quarter-item.top { border-color: var(--teal); }
+    .quarter-item .star { position: absolute; top: 6px; right: 8px; color: var(--teal); font-size: 11px; }
+    .quarter-name { font-size: 12px; font-weight: 700; color: var(--text-1); }
+    .quarter-aop { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .status-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+    .status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .status-dot.off { background: var(--red); }
+    .status-name { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+    .status-val { font-size: 12.5px; font-weight: 700; color: var(--green); }
+    .status-val.off { color: var(--red); }
+
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut { width: 130px; height: 130px; border-radius: 50%; flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+    .donut-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .donut-legend .lval { color: var(--text-2); font-size: 10.5px; margin-left: 12px; }
+
+    .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+    .hbar-label { width: 110px; flex-shrink: 0; color: var(--text-2); }
+    .hbar-track { flex: 1; background: var(--card-hi); border-radius: 4px; height: 16px; overflow: hidden; }
+    .hbar-fill { height: 100%; background: linear-gradient(90deg,#0d9488,#0891b2); border-radius: 4px; transition: width 0.3s ease; }
+    .hbar-val { width: 52px; text-align: right; color: var(--text-1); font-weight: 600; }
+
+    .risk-low { color: var(--green); font-weight: 700; }
+    .risk-medium { color: var(--amber); font-weight: 700; }
+    .risk-high { color: var(--red); font-weight: 700; }
+    .chart-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-2); margin-bottom: 8px; flex-wrap: wrap; }
+    .chart-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    table.data-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.data-tbl th { text-align: left; padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+    table.data-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text-1); }
+    table.data-tbl tr:last-child td { border-bottom: none; }
+    table.data-tbl tr.best td { background: rgba(13,148,136,0.06); }
+    .tw { max-height: 320px; overflow-y: auto; }
 
     /* ── HOME: TOP STATUS BAR ──────────────────────────────── */
     .home-status-bar {
@@ -772,12 +898,12 @@
 
       <div class="tile" onclick="openDashboard('whatif')">
         <div class="tile-head">
-          <div class="tile-icon" style="background:rgba(157,120,240,0.1);border-color:rgba(157,120,240,0.2);color:var(--purple);"><i class="ti ti-adjustments-horizontal"></i></div>
+          <div class="tile-icon" style="background:rgba(13,148,136,0.1);border-color:rgba(13,148,136,0.2);color:var(--teal);"><i class="ti ti-sparkles"></i></div>
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
-        <div class="tile-title">What-If Simulation</div>
-        <div class="tile-desc">Slider-driven scenario explorer — model renewal rates, contract growth, and dispatch conversion to forecast ASU, SR, and revenue outcomes.</div>
-        <div class="tile-stat">New Contract Growth &nbsp;·&nbsp; <span style="color:var(--purple);">APOS Renewal</span></div>
+        <div class="tile-title">Forecast Copilot</div>
+        <div class="tile-desc">AI-powered planning suite — Bend-The-Curve (BTC) recommendations, ASU/SR/Dispatch simulation, historical performance, and scenario management.</div>
+        <div class="tile-stat">AI BTC Engine &nbsp;·&nbsp; <span style="color:var(--teal);">6 Workspaces</span></div>
       </div>
 
       <a href="bend_the_curve.html" class="tile" style="text-decoration:none;">
@@ -1122,197 +1248,431 @@
           <div class="kpi-row">
             <div class="kpi-card"><div class="kpi-label">Total Alerts</div><div class="kpi-value kpi-dynamic" style="color:var(--red)" id="da-total">12</div></div>
             <div class="kpi-card"><div class="kpi-label">High Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--red)">5</div></div>
-            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--amber)">4</div></div>
-            <div class="kpi-card"><div class="kpi-label">Low Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">3</div></div>
-          </div>
-          <div class="visual-card" style="min-height:auto;">
-            <div class="visual-title">Alerts Log</div>
-            <div class="severity-filter">
-              <button class="sev-btn all active" onclick="filterAlerts('all',this)">All</button>
-              <button class="sev-btn high" onclick="filterAlerts('High',this)">High</button>
-              <button class="sev-btn medium" onclick="filterAlerts('Medium',this)">Medium</button>
-              <button class="sev-btn low" onclick="filterAlerts('Low',this)">Low</button>
-            </div>
-            <div class="table-wrap" style="max-height:380px;">
-              <table class="data-table" id="alerts-table">
-                <thead><tr>
-                  <th onclick="sortTable('alerts-table','sev')">Severity <span class="sort-icon"></span></th>
-                  <th>Alert Description</th>
-                  <th onclick="sortTable('alerts-table','date')">Trigger Date <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('alerts-table','region')">Region <span class="sort-icon"></span></th>
-                  <th>Sub-Region</th>
-                </tr></thead>
-                <tbody id="alerts-body"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ══ MODULE: WHAT-IF SIMULATION ══ -->
+            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kp      <!-- ══ MODULE: FORECAST COPILOT (WHAT-IF SIMULATION) ══ -->
       <div id="module-whatif" class="module-section">
+        <div class="fc-layout" style="display:flex;gap:16px;align-items:flex-start;">
 
-        <!-- ── PAGE 1: SIMULATION CONTROLS ── -->
-        <div id="wi-page-sim" class="page-section active">
-
-          <!-- Forecast Copilot promo card -->
-          <a href="forecast_copilot/Dashboard — Forecast Copilot.html" style="text-decoration:none;display:block;margin-bottom:16px;">
-            <div class="visual-card" style="min-height:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;border-color:rgba(13,148,136,0.35);background:linear-gradient(90deg,rgba(13,148,136,0.06),transparent);cursor:pointer;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-                </div>
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--text-1);">Try the new Forecast Copilot AI Planning Suite</div>
-                  <div style="font-size:11px;color:var(--text-2);margin-top:2px;">Manual + AI-recommended BTC planning · ASU/SR/Dispatch toggle · next-year forecast view</div>
-                </div>
+          <!-- Forecast Copilot Filter Rail -->
+          <aside class="filter-rail" style="width:244px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 14px;height:auto;">
+            <div class="filter-rail-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div class="filter-rail-head-title" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);">
+                <i class="ti ti-adjustments-horizontal" style="color:var(--teal);"></i> Filters
               </div>
-              <span style="font-size:11.5px;font-weight:700;color:#0d9488;white-space:nowrap;">Open →</span>
+              <button type="button" class="filter-reset" id="filter-reset-btn" style="font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;">Reset</button>
             </div>
-          </a>
+            <div class="filter-rail-sub" style="font-size:10.5px;color:var(--text-3);margin:3px 0 14px;">Planning slice selectors</div>
 
-          <!-- 6 KPI cards 3×2 -->
-          <div id="wi-kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
+            <div id="fc-scenario-bar"></div>
 
-          <!-- Horizontal Forecast Propagation Pipeline -->
-          <div class="visual-card" style="min-height:auto;margin-bottom:16px;">
-            <div class="visual-title">
-              <div>
-                <div>Forecast Propagation</div>
-                <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Live downstream impact across the forecasting pipeline</div>
-              </div>
-              <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;">Auto-flowing</span>
+            <div class="primary-grid" style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px;">
+              <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">PowerEdge<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">ESG<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour ESG<span class="caret">▾</span></button></div>
             </div>
-            <div id="wi-pipeline" style="display:flex;align-items:stretch;overflow-x:auto;padding:2px 0;gap:0;"></div>
-          </div>
 
-          <!-- Main 2-column: left=charts, right=inputs+impact -->
-          <div style="display:grid;grid-template-columns:1fr 350px;gap:16px;align-items:start;">
+            <div class="filter-rail-divider" style="height:1px;background:var(--border);margin:14px 0 12px;"></div>
 
-            <!-- LEFT: Charts + Base Table -->
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <button type="button" class="more-toggle" id="more-filters-toggle" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);">
+              <span class="more-toggle-label" style="display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;">More filters <span class="more-toggle-count" style="font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;">5</span></span>
+              <i class="ti ti-chevron-down more-toggle-chevron" style="font-size:13px;transition:transform .18s ease;"></i>
+            </button>
+            <div class="secondary-grid" id="secondary-filters" style="display:grid;grid-template-columns:1fr;gap:10px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;">
+              <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+            </div>
+          </aside>
 
-              <!-- ASU Trend — area band fill between base and what-if -->
-              <div class="visual-card">
-                <div class="visual-title">
-                  <div>
-                    <div>ASU Trend</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs What-If projection</div>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
-                      <span style="display:inline-block;width:14px;height:2px;background:#9ca3af;border-radius:2px;"></span>Base
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
-                      <span style="display:inline-block;width:14px;height:2px;background:var(--accent);border-radius:2px;"></span>What-If
-                    </div>
-                  </div>
-                </div>
-                <div style="flex:1;min-height:220px;"><canvas id="wi-chart-asu"></canvas></div>
+          <!-- Main Content Pages -->
+          <div style="flex:1;min-width:0;">
+
+            <!-- PAGE 1: DASHBOARD -->
+            <div id="fc-page-dashboard" class="page-section active">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">Dashboard</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Overview of BTC forecast performance for the selected planning slice</div>
               </div>
 
-              <!-- SR + Dispatch side by side -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="visual-card">
-                  <div class="visual-title">
-                    <div>
-                      <div>Service Request Forecast</div>
-                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Monthly volume in thousands</div>
-                    </div>
-                  </div>
-                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-sr"></canvas></div>
+              <div class="kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+                <div class="kpi-card"><div class="kpi-label">New Contracts Forecast</div><div class="kpi-value" id="kpi-nc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">APOS Forecast</div><div class="kpi-value" id="kpi-apos">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">ASU Forecast</div><div class="kpi-value" id="kpi-asu">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">SR Forecast</div><div class="kpi-value" id="kpi-sr">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Dispatch Forecast</div><div class="kpi-value" id="kpi-dsp">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Historical BTC</div><div class="kpi-value" id="kpi-btc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value" id="kpi-acc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">AOP Achievement %</div><div class="kpi-value" id="kpi-aop">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Modernization Achievement %</div><div class="kpi-value" id="kpi-mod">—</div></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Forecast vs Target</div>
+                <div class="panel-sub">Current-quarter forecast against the AOP-derived target for the selected slice</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th></tr></thead>
+                  <tbody id="fvt-body"></tbody>
+                </table>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">ASU Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-asu-trend" style="height:150px;width:100%;"></div>
                 </div>
-                <div class="visual-card">
-                  <div class="visual-title">
-                    <div>
-                      <div>Dispatch Forecast</div>
-                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Field dispatches projected (K)</div>
-                    </div>
-                  </div>
-                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-dp"></canvas></div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">SR Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-sr-trend" style="height:150px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Dispatch Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-dsp-trend" style="height:150px;width:100%;"></div>
                 </div>
               </div>
 
-              <!-- Base Input table -->
-              <div class="visual-card" style="min-height:auto;">
-                <div class="visual-title">
-                  <div>
-                    <div>Base Input</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Current period baseline measures</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Historical BTC Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-hist-btc" style="height:170px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Forecast vs Target</div>
+                  <div class="panel-sub">SR &amp; Dispatch, current quarter</div>
+                  <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Target</span></div>
+                  <div id="chart-fvt" style="height:170px;width:100%;"></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Recent Workspace Activity</div>
+                <div class="panel-sub">Latest updates across your forecast workflow</div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">ASU Simulation recalculated</div><div style="font-size:11.5px;color:var(--text-3);" id="act-1">—</div></div>
+                  <span class="badge badge-ok" style="background:rgba(22,163,74,0.12);color:var(--green);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Completed</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">Historical variance check</div><div style="font-size:11.5px;color:var(--text-3);" id="act-2">—</div></div>
+                  <span class="badge badge-ok" style="background:rgba(22,163,74,0.12);color:var(--green);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Completed</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">BTC Distribution review</div><div style="font-size:11.5px;color:var(--text-3);" id="act-3">—</div></div>
+                  <span class="badge badge-warn" id="act-3-badge" style="background:rgba(217,119,6,0.12);color:var(--amber);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Needs Review</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+                  <div><div style="font-weight:600;color:var(--text-1);">Final Forecast draft</div><div style="font-size:11.5px;color:var(--text-3);" id="act-4">—</div></div>
+                  <span class="badge badge-warn" id="act-4-badge" style="background:rgba(217,119,6,0.12);color:var(--amber);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">In Progress</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAGE 2: ASU SIMULATION -->
+            <div id="fc-page-asu-sim" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">ASU What-If Simulation</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Adjust New Contract and APOS drivers to project ASU, SR and Dispatch impact in real time.</div>
+              </div>
+
+              <div class="toggle-group" id="sim-mode-toggle">
+                <button class="toggle-btn active" data-mode="manual">Manual Simulation</button>
+                <button class="toggle-btn" data-mode="recommend">Recommendation Mode</button>
+              </div>
+
+              <div id="manual-panel">
+                <div class="panel">
+                  <div class="panel-title">New Contracts &amp; APOS Overrides</div>
+                  <div class="panel-sub">ASU = Prior ASU − Expirations + (APOS × Renewal Rate × APOS Modifier) + (New Contracts × NC Modifier)</div>
+                  <div class="slider-row">
+                    <div class="slider-head"><span>New Contract Override</span><span class="val" id="nc-val">10%</span></div>
+                    <input type="range" id="nc-override" min="0" max="100" value="10">
+                  </div>
+                  <div class="slider-row">
+                    <div class="slider-head"><span>APOS Override</span><span class="val" id="apos-val">5%</span></div>
+                    <input type="range" id="apos-override" min="0" max="100" value="5">
                   </div>
                 </div>
-                <div class="table-wrap">
-                  <table class="data-table">
-                    <thead><tr>
-                      <th>Measure</th>
-                      <th style="text-align:right;">Base Value</th>
-                    </tr></thead>
-                    <tbody>
-                      <tr><td>Renewal Opportunity Quantity</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">284,500 units</td></tr>
-                      <tr><td>Base Renewal Rate</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">85.3%</td></tr>
-                      <tr><td>Renewed Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">242,678</td></tr>
-                      <tr><td>Expired Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">41,822</td></tr>
-                      <tr><td>New Contracts Forecast</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">73,140 units</td></tr>
-                      <tr><td>Base ASU Contribution</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--accent);">$612.4M</td></tr>
-                    </tbody>
+
+                <div class="panel">
+                  <div class="panel-title">Original vs Adjusted Forecast</div>
+                  <div class="panel-sub">Current-quarter totals (13 fiscal weeks)</div>
+                  <div class="ovv-row" id="ovv-row"></div>
+                </div>
+              </div>
+
+              <div id="recommend-panel" style="display:none;">
+                <div class="rec-box">
+                  <div class="rec-title">🧠 AI Recommendation</div>
+                  <div class="rec-rationale" id="rec-rationale">—</div>
+                  <div class="rec-values">
+                    <div class="item"><span class="lbl">New Contract Override</span><span class="num" id="rec-nc">—</span></div>
+                    <div class="item"><span class="lbl">APOS Override</span><span class="num" id="rec-apos">—</span></div>
+                  </div>
+                  <div class="rec-actions">
+                    <button class="rec-btn accept" id="rec-accept">Accept Recommendation</button>
+                    <button class="rec-btn" id="rec-modify">Modify Recommendation</button>
+                    <button class="rec-btn" id="rec-reject">Reject</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title" id="asu-metric-title">DS ASU vs Adjusted ASU</div>
+                <div class="toggle-group" id="asu-metric-toggle">
+                  <button class="toggle-btn active" data-metric="asu">ASU</button>
+                  <button class="toggle-btn" data-metric="sr">SR</button>
+                  <button class="toggle-btn" data-metric="dsp">Dispatch</button>
+                </div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+                <div id="chart-metric" style="height:170px;width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- PAGE 3: HISTORICAL PERFORMANCE -->
+            <div id="fc-page-historical" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">Historical Performance</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">12 quarters of forecast accuracy, AOP achievement and BTC patterns for the selected slice.</div>
+              </div>
+
+              <div class="kpi-row" style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:16px;">
+                <div class="kpi-card">
+                  <div class="kpi-label">Best Historical BTC Range</div>
+                  <div class="kpi-value" id="kpi-btc-range" style="font-size:22px;font-weight:800;">—</div>
+                  <div class="range-meter">
+                    <div class="range-track"><div class="range-band" id="btc-range-band"></div></div>
+                    <div class="range-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+                  </div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Most Successful Planning Periods</div>
+                  <div class="quarter-list" id="quarter-list"></div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Historical BTC Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-hist-btc-pg" style="height:150px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Forecast Accuracy Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-accuracy" style="height:150px;width:100%;"></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Forecast vs Actual</div>
+                <div class="panel-sub">Quarterly SR-equivalent forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span></div>
+                <div id="fva" style="height:210px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">AOP &amp; Modernization Achievement</div>
+                <div class="panel-sub">Last 12 fiscal quarters, against their respective targets</div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart4)"></span>AOP %</span><span><span class="dot" style="background:var(--chart5)"></span>Modernization %</span></div>
+                <div id="chart-aop-modern" style="height:150px;width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- PAGE 4: AI BTC ADVISOR -->
+            <div id="fc-page-btc-advisor" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">AI BTC Advisor</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Recommend, compare and select the BTC value to bend the curve toward your AOP target.</div>
+              </div>
+
+              <div class="toggle-group" id="strategy-toggle">
+                <button class="toggle-btn" data-strategy="historicalBestFit">Historical Best Fit</button>
+                <button class="toggle-btn" data-strategy="balanced">Balanced</button>
+                <button class="toggle-btn" data-strategy="closestToAOP">Closest to AOP</button>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">AI Confidence Signals</div>
+                  <div class="panel-sub">These levers feed the recommendation engine's confidence in the selected strategy.</div>
+                  <div class="slider-row"><div class="slider-head"><span>Modernization %</span><span class="val" id="v-mod">65%</span></div><input type="range" class="btc-slider" id="s-mod" min="0" max="100" value="65"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Triad Commitment %</span><span class="val" id="v-triad">70%</span></div><input type="range" class="btc-slider" id="s-triad" min="0" max="100" value="70"></div>
+                  <div class="slider-row"><div class="slider-head"><span>AI Chatbot %</span><span class="val" id="v-chat">40%</span></div><input type="range" class="btc-slider" id="s-chat" min="0" max="100" value="40"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Remote Resolution %</span><span class="val" id="v-remote">55%</span></div><input type="range" class="btc-slider" id="s-remote" min="0" max="100" value="55"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Self Heal %</span><span class="val" id="v-heal">30%</span></div><input type="range" class="btc-slider" id="s-heal" min="0" max="100" value="30"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Quality Improvement %</span><span class="val" id="v-qual">50%</span></div><input type="range" class="btc-slider" id="s-qual" min="0" max="100" value="50"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Selected BTC</div>
+                  <div class="panel-sub" id="selected-sub">Choose a recommendation above, or enter a manual override.</div>
+                  <div class="calc-box"><span class="calc-label">Selected BTC</span><span class="calc-value" id="calc-btc">—</span></div>
+                  <div class="panel-title" style="font-size:12.5px;margin-bottom:8px;">Manual BTC Override</div>
+                  <div class="override-row">
+                    <input type="text" id="manual-override" placeholder="e.g. 6.50" inputmode="decimal">
+                    <span style="color:var(--text-2)">%</span>
+                    <button id="btn-use-manual">Use Manual</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Comparison</div>
+                <div class="panel-sub">Historical Best Fit and Closest-to-AOP are boundary strategies; Balanced sits between them. Click a row to select it.</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted SR</th><th>Adjusted Dispatch</th><th>Gap To Target</th><th>Confidence</th><th>Risk</th></tr></thead>
+                  <tbody id="cmp-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- PAGE 5: BTC DISTRIBUTION -->
+            <div id="fc-page-btc-dist" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">BTC Distribution</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Automatic weekly distribution of the selected BTC across regions, LOBs, businesses and services.</div>
+              </div>
+
+              <div id="empty-note" class="empty-note" style="display:none;background:var(--card-hi);border:1px solid var(--amber);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:var(--text-2);">No BTC value selected yet. Choose a recommendation on AI BTC Advisor first — this page shows the Equal Distribution baseline (0% BTC) until then.</div>
+
+              <div class="toggle-group" id="dist-toggle">
+                <button class="toggle-btn" data-mode="equal">Equal Distribution</button>
+                <button class="toggle-btn" data-mode="historical">Historical Distribution</button>
+                <button class="toggle-btn" data-mode="ai">AI Recommended</button>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">BTC Distribution by Region</div>
+                  <div class="donut-wrap">
+                    <div class="donut" id="donut-region"></div>
+                    <div class="donut-legend" id="legend-region"></div>
+                  </div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">BTC Distribution by Product Business</div>
+                  <div class="donut-wrap">
+                    <div class="donut" id="donut-business"></div>
+                    <div class="donut-legend" id="legend-business"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by LOB</div>
+                <div id="hbars-lob"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by Service Type</div>
+                <div id="hbars-service"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by Fiscal Week</div>
+                <div class="panel-sub">DS Forecast (base) vs BTC Forecast (after distribution)</div>
+                <div id="fwbars" style="height:150px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Weekly Forecast Table</div>
+                <div class="panel-sub">Type a new number in the <b>BTC Forecast</b> column to override a week. Edits are flagged, resettable, and recorded in the Change Ledger below.</div>
+                <div id="edit-status" style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-size:12px;color:var(--text-2);">
+                  <span id="edit-count"></span>
+                  <button id="reset-all" class="fc-mini-btn" style="display:none;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:4px 10px;font-size:11.5px;color:var(--teal);cursor:pointer;">Reset all edits</button>
+                </div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th>WoW Change</th><th></th></tr></thead>
+                    <tbody id="weekly-body"></tbody>
                   </table>
                 </div>
               </div>
-            </div><!-- /left -->
 
-            <!-- RIGHT: Inputs + Impact card -->
-            <div style="display:flex;flex-direction:column;gap:14px;">
-
-              <!-- What-If Inputs -->
-              <div class="visual-card" style="min-height:auto;">
-                <div class="visual-title">
-                  <div>
-                    <div>What-If Inputs</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Adjust assumptions to model scenarios</div>
-                  </div>
-                  <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">Live</span>
-                </div>
-                <div id="wi-sliders-area"></div>
-              </div>
-
-              <!-- Scenario Impact — deep blue card -->
-              <div style="border-radius:12px;padding:22px;background:linear-gradient(135deg,#2d52e0 0%,#1a3ab8 100%);border:1px solid rgba(76,126,248,0.35);">
-                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                  <i class="ti ti-sparkles"></i> Scenario Impact
-                </div>
-                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.2;">Projected uplift<br>vs baseline</div>
-                <div id="wi-impact-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-                <button onclick="wiSaveScenario()" style="width:100%;padding:11px;border-radius:8px;background:#fff;color:#1a3ab8;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.01em;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Save Scenario</button>
-              </div>
-
-            </div><!-- /right -->
-          </div><!-- /main 2-col -->
-        </div><!-- /wi-page-sim -->
-
-        <!-- ── PAGE 2: SCENARIO PLAYGROUND ── -->
-        <div id="wi-page-scenarios" class="page-section">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div style="width:22px;height:22px;background:var(--blue-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-brain" style="font-size:12px;color:var(--accent);"></i></div>
-                  <span>AI Forecast Insights</span>
+              <div class="panel">
+                <div class="panel-title">Change Ledger</div>
+                <div class="panel-sub">Timestamped record of every weekly edit in the active scenario — newest first.</div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>When</th><th>Action</th><th>Week</th><th>From</th><th>To</th></tr></thead>
+                    <tbody id="ledger-body"></tbody>
+                  </table>
                 </div>
               </div>
-              <div id="wi-ai-insights" style="font-size:12px;color:var(--text-2);line-height:1.7;"></div>
+
+              <div class="panel">
+                <div class="panel-title">Opportunity Table</div>
+                <div class="panel-sub">Regions with the largest gap between DS Forecast and BTC Forecast — highest reallocation opportunity first</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Dimension</th><th>Opportunity Score</th><th>Recommended Uplift %</th><th>Reason</th></tr></thead>
+                  <tbody id="opp-body"></tbody>
+                </table>
+              </div>
             </div>
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">
-                <span>Saved Scenarios</span>
-                <button onclick="wiSaveScenario()" class="btn-sm"><i class="ti ti-plus"></i> Save Current</button>
-              </div>
-              <div id="wi-scenario-list"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- ── PAGE 3: PUBLISH CENTER ── -->
-        <div id="wi-page-publish" class="page-section">
+            <!-- PAGE 6: FINAL FORECAST -->
+            <div id="fc-page-final" class="page-section">
+              <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:20px;">
+                <div>
+                  <div class="page-title" style="font-size:22px;font-weight:800;">Final Forecast</div>
+                  <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Review, approve and submit the consolidated forecast for <strong id="ff-year-label">next year</strong>.</div>
+                  <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                    <input type="checkbox" id="ff-compare-toggle" style="accent-color:var(--teal);cursor:pointer;">
+                    Compare with previous year (<span id="ff-prev-year-label">—</span>)
+                  </label>
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                  <button class="btn" id="btn-approve-scenario" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-1);">Approve Scenario</button>
+                  <button class="btn" id="btn-approve-btc" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-1);">Approve BTC</button>
+                  <button class="btn primary" id="btn-submit" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#0d9488,#0891b2);border-color:transparent;color:#fff;">Submit Forecast</button>
+                </div>
+              </div>
+
+              <div class="status-row" id="status-row"></div>
+              <div id="publish-status" style="margin:2px 0 10px;font-size:12px;"></div>
+
+              <div class="panel">
+                <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
+                <div class="panel-sub" id="ff-panel-sub">Weekly SR-equivalent series across the fiscal year</div>
+                <div class="chart-legend">
+                  <span><span class="dot" style="background:var(--chart1)"></span>Original</span>
+                  <span><span class="dot" style="background:var(--chart2)"></span>Scenario</span>
+                  <span><span class="dot" style="background:var(--chart4)"></span>BTC</span>
+                  <span><span class="dot" style="background:var(--chart5)"></span>Final</span>
+                  <span><span class="dot" style="background:var(--chart3)"></span>Target</span>
+                  <span id="ff-legend-prev" style="display:none"><span class="dot" style="background:var(--chart6)"></span>Prev. Year Final</span>
+                </div>
+                <div id="ff-chart" style="height:190px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Submission Summary</div>
+                <div class="panel-sub">ASU is shown at end-of-quarter level; SR and Dispatch are quarter totals</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th><th>BTC %</th><th>Confidence</th><th>Risk</th></tr></thead>
+                  <tbody id="summary-body"></tbody>
+                </table>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Published Forecasts</div>
+                <div class="panel-sub">Timestamped workbooks written to the output folder, newest first. Publishing never overwrites — each submit is a new file.</div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>File</th><th>Published</th><th>Size</th></tr></thead>
+                    <tbody id="outputs-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /Main Content Pages -->
+        </div><!-- /.fc-layout -->
+      </div><!-- /module-whatif -->>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div class="visual-card" style="min-height:auto;">
               <div class="visual-title">Forecast Publish Center</div>
@@ -1543,10 +1903,13 @@ const modules = {
     { id: 'fa-page-forecast-trend', label: 'Forecast Trend' }
   ]},
   'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
-  'whatif': { title: 'What-If Simulation', pages: [
-    { id: 'wi-page-sim',       label: 'Simulation Controls' },
-    { id: 'wi-page-scenarios', label: 'Scenario Playground' },
-    { id: 'wi-page-publish',   label: 'Forecast Publish' }
+  'whatif': { title: 'Forecast Copilot', pages: [
+    { id: 'fc-page-dashboard',   label: 'Dashboard' },
+    { id: 'fc-page-asu-sim',     label: 'ASU Simulation' },
+    { id: 'fc-page-historical',  label: 'Historical Performance' },
+    { id: 'fc-page-btc-advisor', label: 'AI BTC Advisor' },
+    { id: 'fc-page-btc-dist',    label: 'BTC Distribution' },
+    { id: 'fc-page-final',       label: 'Final Forecast' }
   ]}
 };
 
@@ -1586,7 +1949,7 @@ function openDashboard(moduleId) {
     if (!document.getElementById('right-panel').classList.contains('collapsed')) {
       document.getElementById('right-panel').classList.add('collapsed');
     }
-    setTimeout(wiInit, 80);
+    setTimeout(fcBootModule, 80);
   } else { setTimeout(initCharts, 80); }
 }
 
@@ -1615,9 +1978,12 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'da-page-log') renderAlerts('all');
   if (pageId === 'fa-page-actuals')        generateActualsTable();
   if (pageId === 'fa-page-partner')        generatePartnerTable();
-  if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
-  if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
-  if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
+  if (pageId === 'fc-page-dashboard')   { setTimeout(fcRenderDashboard, 60); }
+  if (pageId === 'fc-page-asu-sim')     { setTimeout(() => { fcRenderASU(); if (fcState.simMode === 'recommend') fcRenderRecommendation(); }, 60); }
+  if (pageId === 'fc-page-historical')  { setTimeout(fcRenderHistorical, 60); }
+  if (pageId === 'fc-page-btc-advisor') { setTimeout(fcRenderAdvisor, 60); }
+  if (pageId === 'fc-page-btc-dist')    { setTimeout(fcRenderDistribution, 60); }
+  if (pageId === 'fc-page-final')       { setTimeout(fcRenderFinal, 60); }
   if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
     updateDPQuadrantCharts();
     updateDemandTrends();
