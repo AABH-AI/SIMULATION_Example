@@ -183,7 +183,8 @@ const FC_LIVE_FIELD = {
   wotype: 'woType', fqm: 'fqmFlag', gcfa: 'gcfaType'
 };
 // Relabel the filter rail in live mode where the seeded label no longer fits.
-const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type' };
+const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type', quarter: 'Fiscal Qrtr' };
+const FC_SIM_LABEL  = { business: 'Business Unit', quarter: 'Fiscal Qrtr' };
 // Derived Dispatch/SR ratio per real Service Type (no real dispatch column exists).
 const FC_LIVE_DISPATCH_RATIO = { 'All': 0.50, 'Labour Only': 0.68, 'Parts + Labour': 0.56, 'Parts Only': 0.33 };
 
@@ -573,9 +574,10 @@ function fcWireFilters(onChange) {
   fcActiveRender = onChange;
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
     const key = item.dataset.filter;
-    if (fcDataMode === 'live' && FC_LIVE_LABEL[key]) {
+    const labOverride = (fcDataMode === 'live' ? FC_LIVE_LABEL : FC_SIM_LABEL)[key];
+    if (labOverride) {
       const lab = item.querySelector('.filter-label');
-      if (lab) lab.textContent = FC_LIVE_LABEL[key];
+      if (lab) lab.textContent = labOverride;
     }
     const btn = item.querySelector('.filter-value');
     btn.firstChild.textContent = fcState.filters[key];
@@ -1066,9 +1068,12 @@ function fcInjectChromeCSS() {
   st.textContent = `
   /* (2) tighter, narrower filter rail with equal L/R gaps: the divider line moves
      off the rail (onto .main) so the rail is pure symmetric padding, no border. */
-  .filter-rail{width:210px;padding:16px 15px;border-right:none}
+  .filter-rail{width:238px;padding:16px 15px;border-right:none}
   .main{border-left:1px solid var(--border)}
   .filter-value{padding:5px 8px;font-size:11.5px}
+  /* labels stay on a single line (rail widened above so they fit) → uniform
+     row height keeps the filters aligned */
+  .filter-rail .filter-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .filter-rail-sub{margin:3px 0 12px}
   /* (3) collapsible Workspace */
   body.fc-nav-collapsed .sidebar{display:none}
