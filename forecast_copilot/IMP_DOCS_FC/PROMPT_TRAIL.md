@@ -2,8 +2,10 @@
 > Chronological log of every major request and what was built/fixed. Update after each session.
 > Last updated: 2026-07-27 (filter-rail UI polish)
 
-> **NOTE — this is a folder-local copy inside `forecast_copilot/`.** It adds the Session 27 entry for the
-> shared-engine refactor. The canonical `../IMP_DOCS/PROMPT_TRAIL.md` is intentionally left unchanged.
+> **NOTE — relocated to `forecast_copilot/IMP_DOCS_FC/` on 2026-07-27.** Full history is retained here
+> (nothing trimmed): Sessions 1–23 are inherited **main-suite (TET BPA, formerly "ISG BPA")** dashboard
+> history; the **Forecast Copilot product begins at Session 24** (see the divider below). The canonical
+> `../../IMP_DOCS/PROMPT_TRAIL.md` is intentionally left unchanged.
 
 ---
 
@@ -353,6 +355,21 @@
 **Git note**: pushes for this session went through the main checkout path directly (`D:\...\simulations`) rather than the worktree, because a prior push had cached the wrong GitHub account (`Arnav1771` instead of `AABH-AI`) in Windows Credential Manager — cleared via `cmdkey /delete`, re-authenticated as `AABH-AI`.
 
 
+
+---
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!--  ▲  ABOVE: TET BPA main-suite history (Sessions 1–23) — inherited context   -->
+<!--  ▼  BELOW: FORECAST COPILOT product — this folder's subject                 -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+
+> ## ▼ Forecast Copilot starts here (Session 24)
+> **The shift:** Sessions 1–23 above are the main-suite (TET BPA) dashboard history this trail
+> inherited when it was copied. Everything from **Session 24** onward is the **Forecast Copilot**
+> product — the cross-page rebuild, light theme, the shared `fc_engine.js` engine, Phases 0–6
+> (server + real data + scenarios + weekly editing + publish), and the filter-rail UI polish.
+> These docs were relocated from `forecast_copilot/` into `forecast_copilot/IMP_DOCS_FC/` on
+> 2026-07-27, keeping the full record above rather than trimming it.
 
 ---
 

@@ -6,3 +6,6 @@ New Mockup Designs/Visuals/
 # (Forecast Copilot now lives at repo-root forecast_copilot/ — outside .claude/.)
 .claude/worktrees/
 .claude/settings.local.json
+
+# graphify skill output — generated locally, never commit.
+graphify-out/
