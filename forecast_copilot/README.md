@@ -3,7 +3,7 @@
 > Folder-local documentation for the `forecast_copilot/` product.
 > This is a **copy** kept inside the folder; the canonical project docs in `../IMP_DOCS/` are left as-is.
 > New here? Start with `HANDOFF.md` (quick-start), then this file for detail.
-> Last updated: 2026-07-23 (Phases 0–6 complete).
+> Last updated: 2026-07-27 (Phases 0–6 complete; filter-rail UI polish).
 
 A 6-page suite for **BTC (Bend-the-Curve) forecast planning**, built around an **input → edit →
 publish** loop. Light theme (Inter font, teal `#0d9488` accent), charts via Highcharts 11.4.8.
@@ -56,9 +56,12 @@ Clicking the badge reloads to re-check (e.g. after starting the server).
   which removes the `AMERICAS`/`Americas`, `PowerEdge`/`Poweredge` reconciliation
   problem — the rail shows exactly what's in the workbook. Two filters are
   remapped/relabelled because the seeded model doesn't match the sheet: **Global
-  LOB → Product** (the real `Product` column), and **Product Business → Warranty
+  LOB → Product** (the real `Product` column), and the `business` filter → **Warranty
   Type** (the sheet has no ESG/ISG/HES column but does have Warranty Type). A
   stored/seeded filter value that isn't a real option is snapped to `All`.
+  Label rename (both modes): **Fiscal Quarter → Fiscal Qrtr**. The `business`
+  filter reads **Business Unit** in Simulated mode (options ESG/ISG/HES) and
+  **Warranty Type** in Live mode — see `FC_SIM_LABEL` / `FC_LIVE_LABEL`.
 - **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
   quarter + slice, rows are aggregated into the quarter's 13 canonical weeks. The
   Service Dataset is dense on **Product × Region × week** (see *Input data* below),
@@ -84,7 +87,8 @@ live fields — so **the active scenario *is* the live working state**, and ever
 `fcState.filters` etc. unchanged. `fcSaveState()` mirrors live edits back into the active scenario
 automatically, so edits stick to it. All in `localStorage`; no backend (publishing one to Excel is Phase 5).
 
-A **scenario bar** is injected at the top of the filter rail (same injection pattern as the badge):
+A **scenario bar** is injected at the top of the filter rail (same injection pattern as the badge) on
+the five editing pages — **not the Dashboard**, which keeps its filters but is a read-only overview:
 a dropdown to switch, **New / Duplicate / Rename / Delete**, a **Compare** button, and three
 **preset** chips — **Baseline / Aggressive / Conservative** — that apply a fixed recipe of levers to
 the current slice (deterministic, no LLM). Switching a scenario or applying a preset reloads the page
@@ -184,11 +188,11 @@ Right-hand rail on every page. 10 filters, all wired through `fcWireFilters` →
 
 | Filter | `data-filter` | Options |
 |---|---|---|
-| Fiscal Quarter | `quarter` | `YYYY-Qn` (no "All" — parsed by `fcWeeksForQuarter`) |
+| Fiscal Qrtr | `quarter` | `YYYY-Qn` (no "All" — parsed by `fcWeeksForQuarter`) |
 | Fiscal Week | `week` | `YYYY-Wnn` (no "All") |
 | Region | `region` | **All**, AMERICAS, EMEA, APJ |
 | Global LOB | `lob` | **All**, PowerEdge, PowerStore, PowerScale, PowerFlex, VxRail, Avamar, Networking, Insignia |
-| Product Business | `business` | **All**, ESG, ISG, HES |
+| Business Unit *(Live: Warranty Type)* | `business` | **All**, ESG, ISG, HES |
 | Service Type | `service` | **All**, Parts Only / Parts + Labour / Labour Only × ESG/ISG |
 | Core / Upsell | `coreupsell` | All, Core, Upsell |
 | WO Type | `wotype` | All, Break Fix, Part/s dispatch |

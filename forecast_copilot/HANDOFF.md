@@ -3,7 +3,7 @@
 > Quick-start for a new session or teammate. This is the folder-local handoff for the
 > **`forecast_copilot/`** product. Full detail is in `README.md`; the plan is in
 > `BUILD_PLAN.md`; the chronological build log is in `PROMPT_TRAIL.md`.
-> Last updated: 2026-07-23 (Phases 0–6 complete).
+> Last updated: 2026-07-27 (Phases 0–6 complete; filter-rail UI polish — see PROMPT_TRAIL).
 
 ---
 
