@@ -11,18 +11,19 @@ const FILTER_OPTIONS = {
   quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
   week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
   region: ['All','AMERICAS','EMEA','APJ'],
-  lob: ['All','PowerEdge','PowerStore','PowerScale','PowerFlex','VxRail','Avamar','Networking','Insignia'],
-  business: ['All','ESG','ISG','HES'],
-  service: ['All','Parts Only ESG','Parts Only ISG','Parts + Labour ESG','Parts + Labour ISG','Labour Only ESG','Labour Only ISG'],
+  lob: ['All','Server Line A','Storage Array A','Storage Array C','Storage Array D','Hyperconverged A','Data Protection A','Networking A','Networking B'],
+  business: ['All','Unit A','Unit B'],
+  warranty: ['All','Basic','Premium','Premium Flex','Premium Plus'],
+  service: ['All','Parts Only (Unit A)','Parts Only (Unit B)','Parts + Labour (Unit A)','Parts + Labour (Unit B)','Labour Only (Unit A)','Labour Only (Unit B)'],
   coreupsell: ['All','Core','Upsell'],
   wotype: ['All','Break Fix','Part/s dispatch'],
   fqm: ['All','1','0'],
   gcfa: ['All','GCFA','non-GCFA','Unknown']
 };
 
-const FC_STATE_KEY = 'fc_state_v1';
+const FC_STATE_KEY = 'fc_state_v2';   // v2: de-branded generic filter values (old v1 held Dell names — discarded on upgrade)
 const FC_DEFAULT_STATE = {
-  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'PowerEdge', business: 'ESG', service: 'Parts + Labour ESG', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
+  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Server Line A', business: 'Unit A', warranty: 'All', service: 'Parts + Labour (Unit A)', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
   ncOverride: 10, aposOverride: 5, simMode: 'manual',
   btcStrategy: null, manualBTC: null, distMode: 'equal',
   weekOverrides: {},
@@ -175,15 +176,15 @@ var fcDataset = null;           // raw /api/dataset payload
 var fcLiveRows = null;          // cached row array for slice aggregation
 
 // Engine filter key -> real dataset field. Keys absent here are seeded-only.
-// 'business' has no real column, so in live mode it is repurposed to the real
-// (and useful) Warranty Type dimension; 'lob' maps to the Product column.
+// 'business' maps to the real Business Unit column (Unit A / Unit B); 'lob' maps
+// to the Product column.
 const FC_LIVE_FIELD = {
   quarter: 'fiscalQuarter', week: 'fiscalWeek', region: 'region', lob: 'product',
-  business: 'warrantyType', service: 'serviceType', coreupsell: 'coreUpsell',
+  business: 'businessUnit', warranty: 'warrantyType', service: 'serviceType', coreupsell: 'coreUpsell',
   wotype: 'woType', fqm: 'fqmFlag', gcfa: 'gcfaType'
 };
 // Relabel the filter rail in live mode where the seeded label no longer fits.
-const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type', quarter: 'Fiscal Qrtr' };
+const FC_LIVE_LABEL = { lob: 'Product', business: 'Business Unit', quarter: 'Fiscal Qrtr' };
 const FC_SIM_LABEL  = { business: 'Business Unit', quarter: 'Fiscal Qrtr' };
 // Derived Dispatch/SR ratio per real Service Type (no real dispatch column exists).
 const FC_LIVE_DISPATCH_RATIO = { 'All': 0.50, 'Labour Only': 0.68, 'Parts + Labour': 0.56, 'Parts Only': 0.33 };
@@ -222,7 +223,8 @@ function fcApplyLiveFilterOptions() {
   FILTER_OPTIONS.week       = fcDistinctFromRows('fiscalWeek');
   FILTER_OPTIONS.region     = withAll('region');
   FILTER_OPTIONS.lob        = withAll('product');
-  FILTER_OPTIONS.business    = withAll('warrantyType');
+  FILTER_OPTIONS.business    = withAll('businessUnit');
+  FILTER_OPTIONS.warranty   = withAll('warrantyType');
   FILTER_OPTIONS.service    = withAll('serviceType');
   FILTER_OPTIONS.coreupsell = withAll('coreUpsell');
   FILTER_OPTIONS.wotype     = withAll('woType');
@@ -304,16 +306,17 @@ function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h 
 function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
 
 const FC_REGION_FACTOR   = { All: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
-const FC_LOB_FACTOR       = { All: 6.25, PowerEdge: 1.20, PowerStore: 0.90, PowerScale: 0.80, PowerFlex: 0.85, VxRail: 1.00, Avamar: 0.50, Networking: 0.60, Insignia: 0.40 };
-const FC_BUSINESS_FACTOR  = { All: 2.90, ESG: 1.00, ISG: 1.30, HES: 0.60 };
+const FC_LOB_FACTOR       = { All: 6.25, 'Server Line A': 1.20, 'Storage Array A': 0.90, 'Storage Array C': 0.80, 'Storage Array D': 0.85, 'Hyperconverged A': 1.00, 'Data Protection A': 0.50, 'Networking A': 0.60, 'Networking B': 0.40 };
+const FC_BUSINESS_FACTOR  = { All: 2.30, 'Unit A': 1.84, 'Unit B': 0.46 };   /* Unit A ~80% share, Unit B ~20%; All = sum of parts */
+const FC_WARRANTY_FACTOR  = { All: 1.00, 'Basic': 0.30, 'Premium': 0.40, 'Premium Flex': 0.10, 'Premium Plus': 0.20 };  /* segmentation shares — All = 1.0 leaves totals unchanged */
 const FC_SERVICE_FACTOR   = {
-  'All':                { volume: 5.05, dispatchRatio: 0.50 },
-  'Parts Only ESG':     { volume: 1.00, dispatchRatio: 0.32 },
-  'Parts Only ISG':     { volume: 1.05, dispatchRatio: 0.35 },
-  'Parts + Labour ESG': { volume: 0.90, dispatchRatio: 0.55 },
-  'Parts + Labour ISG': { volume: 0.95, dispatchRatio: 0.58 },
-  'Labour Only ESG':    { volume: 0.55, dispatchRatio: 0.68 },
-  'Labour Only ISG':    { volume: 0.60, dispatchRatio: 0.70 }
+  'All':                    { volume: 5.05, dispatchRatio: 0.50 },
+  'Parts Only (Unit A)':    { volume: 1.00, dispatchRatio: 0.32 },
+  'Parts Only (Unit B)':    { volume: 1.05, dispatchRatio: 0.35 },
+  'Parts + Labour (Unit A)':{ volume: 0.90, dispatchRatio: 0.55 },
+  'Parts + Labour (Unit B)':{ volume: 0.95, dispatchRatio: 0.58 },
+  'Labour Only (Unit A)':   { volume: 0.55, dispatchRatio: 0.68 },
+  'Labour Only (Unit B)':   { volume: 0.60, dispatchRatio: 0.70 }
 };
 /* Segmentation share factors — All = 1.0 (whole dataset); each value is its share, so the parts sum to the whole */
 const FC_COREUPSELL_FACTOR = { 'All': 1.00, 'Core': 0.60, 'Upsell': 0.40 };
@@ -324,12 +327,13 @@ const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_APOS_WEEKLY = 2150
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
 
 function fcCombinedFactor(filters) {
-  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG'];
+  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only (Unit A)'];
   return (FC_REGION_FACTOR[filters.region]||1) * (FC_LOB_FACTOR[filters.lob]||1) * (FC_BUSINESS_FACTOR[filters.business]||1) * svc.volume
+    * (FC_WARRANTY_FACTOR[filters.warranty]||1)
     * (FC_COREUPSELL_FACTOR[filters.coreupsell]||1) * (FC_WOTYPE_FACTOR[filters.wotype]||1)
     * (FC_FQM_FACTOR[filters.fqm]||1) * (FC_GCFA_FACTOR[filters.gcfa]||1);
 }
-function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only ESG']).dispatchRatio; }
+function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only (Unit A)']).dispatchRatio; }
 
 function fcWeeksForQuarter(quarter) {
   const [y, qStr] = quarter.split('-Q'); const q = +qStr;
@@ -889,7 +893,7 @@ function fcInjectBadge() {
   el.id = 'fc-data-badge';
   el.setAttribute('role', 'status');
   el.title = live
-    ? 'Live data: ASU & Warranty Expirations read from the input workbook (dell_isg,esg_fy24-26.xlsx). SR/Dispatch are derived; New Contracts, APOS and BTC are modeled. Click to re-check.'
+    ? 'Live data: ASU & Warranty Expirations read from the input workbook (forecast_fy26.xlsx). SR/Dispatch are derived; New Contracts, APOS and BTC are modeled. Click to re-check.'
     : 'Simulated data: no local server detected, so figures are seeded/generated. Run "python serve.py" and click to switch to live data.';
   el.style.cssText = [
     'position:fixed', 'left:14px', 'bottom:14px', 'z-index:9999',

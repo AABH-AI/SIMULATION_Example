@@ -29,7 +29,7 @@ Separate product from the ISG BPA dashboards (`../../BPA_FORCASTING_MOCK.HTML` e
 | `AI BTC Advisor — Forecast Copilot.html` | 3-strategy BTC comparison table (click-to-select), 6 confidence-driver sliders, manual BTC override |
 | `BTC Distribution — Forecast Copilot.html` | Region/Business donuts, LOB/Service h-bars, weekly DS-vs-BTC bars, Weekly Forecast Table, Opportunity Table |
 | `Final Forecast — Forecast Copilot.html` | Original/Scenario/BTC/Final/Target chart, Submission Summary, status cards, Approve/Submit |
-| `Dispatches_Dummy.xlsx`, `dell_isg,esg_fy24-26.xlsx` | Reference data files — **not wired into the app** (all in-app data is mock/seeded) |
+| `Dispatches_Dummy.xlsx`, `forecast_fy26.xlsx` | Reference data files — **not wired into the app** (all in-app data is mock/seeded) |
 
 Navigation order (left sidebar): Dashboard → ASU Simulation → Historical → AI BTC Advisor → BTC Distribution → Final Forecast.
 
@@ -54,14 +54,15 @@ Clicking the badge reloads to re-check (e.g. after starting the server).
 **In Live mode:**
 - **Filter options are derived from the data's distinct values** (not hardcoded),
   which removes the `AMERICAS`/`Americas`, `PowerEdge`/`Poweredge` reconciliation
-  problem — the rail shows exactly what's in the workbook. Two filters are
-  remapped/relabelled because the seeded model doesn't match the sheet: **Global
-  LOB → Product** (the real `Product` column), and the `business` filter → **Warranty
-  Type** (the sheet has no ESG/ISG/HES column but does have Warranty Type). A
+  problem — the rail shows exactly what's in the workbook. One filter is
+  relabelled because the seeded model uses a different name: **Global LOB →
+  Product** (the real `Product` column). The `business` filter reads the real
+  **Business Unit** column (options **Unit A / Unit B**) in both modes. A
   stored/seeded filter value that isn't a real option is snapped to `All`.
-  Label rename (both modes): **Fiscal Quarter → Fiscal Qrtr**. The `business`
-  filter reads **Business Unit** in Simulated mode (options ESG/ISG/HES) and
-  **Warranty Type** in Live mode — see `FC_SIM_LABEL` / `FC_LIVE_LABEL`.
+  Label rename (both modes): **Fiscal Quarter → Fiscal Qrtr**, **Global LOB →
+  Product** (live) — see `FC_SIM_LABEL` / `FC_LIVE_LABEL` / `FC_LIVE_FIELD`.
+  **Business Unit** (`business`→`businessUnit`) and **Warranty Type**
+  (`warranty`→`warrantyType`) are separate filters, each backed by its own column.
 - **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
   quarter + slice, rows are aggregated into the quarter's 13 canonical weeks. The
   Service Dataset is dense on **Product × Region × week** (see *Input data* below),
@@ -184,16 +185,17 @@ already applied when the next page loads.
 
 ## Filters
 
-Right-hand rail on every page. 10 filters, all wired through `fcWireFilters` → `fcSetFilter` → re-render.
+Right-hand rail on every page. 11 filters, all wired through `fcWireFilters` → `fcSetFilter` → re-render.
 
 | Filter | `data-filter` | Options |
 |---|---|---|
 | Fiscal Qrtr | `quarter` | `YYYY-Qn` (no "All" — parsed by `fcWeeksForQuarter`) |
 | Fiscal Week | `week` | `YYYY-Wnn` (no "All") |
 | Region | `region` | **All**, AMERICAS, EMEA, APJ |
-| Global LOB | `lob` | **All**, PowerEdge, PowerStore, PowerScale, PowerFlex, VxRail, Avamar, Networking, Insignia |
-| Business Unit *(Live: Warranty Type)* | `business` | **All**, ESG, ISG, HES |
-| Service Type | `service` | **All**, Parts Only / Parts + Labour / Labour Only × ESG/ISG |
+| Global LOB *(Live: Product)* | `lob` | **All** + generic product lines (Server Line A–C, Storage Array A–K, Data Protection A/B, Networking A/B, Hyperconverged A) |
+| Business Unit | `business` | **All**, Unit A, Unit B |
+| Warranty Type | `warranty` | **All**, Basic, Premium, Premium Flex, Premium Plus |
+| Service Type | `service` | **All**, Parts Only / Parts + Labour / Labour Only (Simulated suffixes `(Unit A)`/`(Unit B)`) |
 | Core / Upsell | `coreupsell` | All, Core, Upsell |
 | WO Type | `wotype` | All, Break Fix, Part/s dispatch |
 | FQM Flag | `fqm` | All, 1, 0 |
@@ -231,7 +233,7 @@ Dashboard 5 · ASU Simulation 3 · Historical 4 · AI BTC Advisor 0 · BTC Distr
 
 `serve.py` is a **zero-dependency** local server (Python 3 standard library only — no `pip install`,
 no network). It serves the static suite over `http://` *and* exposes a small JSON API over the
-**read-only** input workbook (`input/dell_isg,esg_fy24-26.xlsx`, sheet **Service Dataset**).
+**read-only** input workbook (`input/forecast_fy26.xlsx`, sheet **Service Dataset**).
 
 ```bash
 cd forecast_copilot
@@ -295,11 +297,12 @@ The expected pivot was ground-truthed with an independent regex parse of the wor
 
 Two workbooks in `input/`, both **modeled/dummy demo data**:
 
-- **`dell_isg,esg_fy24-26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
+- **`forecast_fy26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
   **8,892 rows** = 19 products × 3 regions × 156 weeks (52 × 3 fiscal years), one row per Product ×
-  Region × week. Columns: FY, Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type, ASU,
-  Warranty Expirations, Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. Whole-business
-  single-week installed base is ~5M units; grand ASU ~812.66M.
+  Region × week. **14 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type,
+  **Business Unit** (Unit A ~80% / Unit B ~20% per Product), ASU, Warranty Expirations, Core/Upsell,
+  W/O Type, FQM Flag, GCFA Type, Service Type. Whole-business single-week installed base is ~5M
+  units; grand ASU ~812.66M.
 - **`fy24-26_info.xlsx` — reference/info only, not read by the app.** Holds the Dell 10-K-derived
   sheets (FY26 Official, Product Estimates, Product x Quarter, Warranty Assumptions) plus an
   **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per product = ASU

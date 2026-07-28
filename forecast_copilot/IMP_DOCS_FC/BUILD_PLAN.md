@@ -51,7 +51,7 @@ One line: **immutable input → named scenarios edited in the dashboard → publ
 
 ## Data reality
 
-Input = `dell_isg,esg_fy24-26.xlsx`, sheet **`Service Dataset`** — 2,965 rows × 13 cols:
+Input = `forecast_fy26.xlsx`, sheet **`Service Dataset`** — 2,965 rows × 13 cols:
 
 ```
 FY | Fiscal Quarter (2024-Q1) | Fiscal Week (2024-W01) | Product (Poweredge→PowerEdge) |

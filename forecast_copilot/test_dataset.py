@@ -46,14 +46,14 @@ PIVOT = {
                                  (2964, 178170511, 1029704, 2074)),
     "FY26 & EMEA":              (lambda r: r["fy"] == "FY26" and r["region"] == "EMEA",
                                  (988, 88724249, 521768, 696)),
-    "Product=Poweredge":        (lambda r: r["product"] == "Poweredge",
+    "Product=Server Line A":    (lambda r: r["product"] == "Server Line A",
                                  (468, 645613425, 3727308, 351)),
     "Quarter=2026-Q1":          (lambda r: r["fiscalQuarter"] == "2026-Q1",
                                  (741, 76586300, 479440, 525)),
     "Week=2024-W01":            (lambda r: r["fiscalWeek"] == "2024-W01",
                                  (57, 3676019, 23338, 42)),
-    "FY26 & Poweredge & Americas": (
-                                 lambda r: r["fy"] == "FY26" and r["product"] == "Poweredge"
+    "FY26 & Server Line A & Americas": (
+                                 lambda r: r["fy"] == "FY26" and r["product"] == "Server Line A"
                                  and r["region"] == "Americas",
                                  (52, 131954700, 774696, 40)),
 }
@@ -61,6 +61,7 @@ PIVOT = {
 EXPECTED_COLUMNS = [
     ("fy", "string"), ("fiscalQuarter", "string"), ("fiscalWeek", "string"),
     ("product", "string"), ("region", "string"), ("warrantyType", "string"),
+    ("businessUnit", "string"),
     ("asu", "number"), ("warrantyExpirations", "number"), ("coreUpsell", "string"),
     ("woType", "string"), ("fqmFlag", "number"), ("gcfaType", "string"),
     ("serviceType", "string"),
@@ -136,6 +137,24 @@ class DatasetReadPathTest(unittest.TestCase):
         self.assertEqual(distinct["region"], ["APJ", "Americas", "EMEA"])
         self.assertEqual(len(distinct["product"]), 19)
         self.assertEqual(len(distinct["fiscalQuarter"]), 12)
+        self.assertEqual(distinct["businessUnit"], ["Unit A", "Unit B"])
+
+    def test_business_unit_80_20_split(self):
+        """Business Unit is ~80% Unit A / ~20% Unit B, per Product."""
+        a = sum(1 for r in self.rows if r["businessUnit"] == "Unit A")
+        b = sum(1 for r in self.rows if r["businessUnit"] == "Unit B")
+        self.assertEqual(a + b, 8892)
+        self.assertAlmostEqual(a / (a + b), 0.80, delta=0.03)   # ~80% Unit A overall
+        # per-product share also lands near 80%
+        from collections import defaultdict
+        tot, aa = defaultdict(int), defaultdict(int)
+        for r in self.rows:
+            tot[r["product"]] += 1
+            if r["businessUnit"] == "Unit A":
+                aa[r["product"]] += 1
+        for p in tot:
+            self.assertAlmostEqual(aa[p] / tot[p], 0.80, delta=0.08,
+                                   msg=f"product {p!r} Unit A share off")
 
 
 if __name__ == "__main__":

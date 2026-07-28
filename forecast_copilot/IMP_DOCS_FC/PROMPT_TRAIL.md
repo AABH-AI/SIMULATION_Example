@@ -661,3 +661,73 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - **Node (mocked 720 viewport)**: `fcFitDropdownToRail` places a top filter **down** and within the viewport, and bottom filters + the tall Fiscal Week list **up** and within the viewport (height-capped).
 - **Real browser** (served live): carets gone; every dropdown `position:fixed` with a border and its full option list; label widths measured — old "Product Business" overflowed (scroll 106 > client 100) while "Business Unit" / "Warranty Type" / "Fiscal Qrtr" all fit (100/100), no truncation; 0 console errors. (A final visual pass was limited because the preview pane collapsed to 0-height in this environment; geometry was confirmed via measurement + the Node placement check instead.)
 - Pushed to `hn-new` (`e99f410..7343d7f`); `master`/gh-pages untouched.
+
+## Session 28 — De-brand the input workbook: Dell terms → generic; rename to `forecast_fy26.xlsx`
+**Files**: new `input/forecast_fy26.xlsx` (de-branded data), new `input/name_mapping_reference.xlsx` (lookup),
+`serve.py`, `input/INPUT_SHA256.txt`, `test_dataset.py`, `test_publish.py`, `fc_engine.js`, folder-local docs.
+**Prompts**: "the input file dell_isg,esg_fy24-26 has dell specific terms — replace them all with generic terms,
+create a new reference excel file"; then "point everything to the new file" + a name-mapping reference file.
+
+**What was done**:
+- **Genericized the data** (values only; every number preserved — ΣASU 812,661,800 identical, 8,892 rows):
+  - **Product** (19) → category+tier: Poweredge→*Server Line A*, Poweredge Ai→*Server Line B (AI)*,
+    Cloud Servers→*Server Line C (Cloud)*; Powerstore/Powermax/Powerscale/Powerflex/Powervault/Compellent/
+    Equallogic/Unity/Vmax/Vnx/Xtremio → *Storage Array A–K*; Avamar/Datadomain→*Data Protection A/B*;
+    Powerswitch→*Networking A*, Legacy Networking→*Networking B (Legacy)*; Vxrail→*Hyperconverged A*.
+  - **Warranty Type**: ProSupport→*Premium*, ProSupport Flex→*Premium Flex*, ProSupport Plus→*Premium Plus* (Basic kept).
+  - **GCFA / Region / fiscal periods / Core-Upsell / W-O Type / Service Type / ASU**: left as-is (industry-generic).
+  - ISG/ESG/HES appear **nowhere** in the workbook data (verified by scanning every part) — they only lived in the
+    old filename, now dropped.
+- **New files** written with `serve.py`'s stdlib xlsx writer (no openpyxl): `forecast_fy26.xlsx` and a
+  `name_mapping_reference.xlsx` (sheet *Name Mapping*: Field · Category · Original (Dell) · Generic (new)).
+- **Pointed everything at the new file**: `serve.py` `DEFAULT_INPUT`; re-pinned `INPUT_SHA256.txt`
+  (`203422b8…`); updated `test_dataset.py` (Poweredge→Server Line A predicates) and `test_publish.py`
+  (audit filename); Live-mode badge tooltip in `fc_engine.js`; and the filename in README/HANDOFF/BUILD_PLAN.
+- **De-branded the UI too** (the Live-only data swap left Dell names in Simulated mode + cached state):
+  - `fc_engine.js` Simulated-mode `FILTER_OPTIONS` + `FC_DEFAULT_STATE` + factor maps (`FC_LOB_FACTOR`,
+    `FC_BUSINESS_FACTOR`, `FC_SERVICE_FACTOR`) re-keyed: LOB PowerEdge/PowerStore/…/Insignia →
+    Server Line A / Storage Array A,C,D / Hyperconverged A / Data Protection A / Networking A,B;
+    **business ESG/ISG/HES → Unit A/B/C** (this is where ISG/ESG/HES actually lived — the app's
+    `business` filter, not the data); service `… ESG/ISG` suffixes → `… (Unit A/B)`.
+  - Static filter-button placeholders + "Product Business"→"Business Unit" label updated in all 6 HTML pages.
+  - **Bumped `FC_STATE_KEY` `fc_state_v1`→`fc_state_v2`** so browsers holding old Dell-named filter state
+    (and old scenarios) discard it and load clean generic defaults.
+- **Tests**: `python -m unittest` → **14/14 pass**.
+- **Browser-verified (Live, served on `forecast_fy26.xlsx`)**: Product dropdown shows Server Line/Storage
+  Array/… only; Warranty Type = Basic/Premium/Premium Flex/Premium Plus; 0 Dell terms in any rail.
+
+**Note**: user deleted the superseded `input/dell_isg,esg_fy24-26.xlsx` (my `git rm` was permission-blocked).
+Only a single internal code comment in `fc_engine.js` still names the old Dell terms (explains the live
+value-snapping) — not user-visible.
+
+### Follow-up — real Business Unit column; drop Unit C/HES
+**Prompt**: "remove hes/unit c. add a column to the excel file. Business Unit: Unit A, Unit B. Unit A for
+~80% values of each Global LOB."
+**What was done**:
+- **New `Business Unit` column** added to `forecast_fy26.xlsx` (now **14 columns**, 8,892 rows). Values
+  **Unit A / Unit B**, assigned deterministically (`crc32(product|region|week) % 100 < 80`) → **~80% Unit A /
+  ~20% Unit B per Product** (overall 80.4% A). Numbers (ASU/Exp/FQM) unchanged.
+- **`business` filter is now a real data dimension**: `serve.py` `FIELD_SCHEMA` gains
+  `("Business Unit","businessUnit","string")`; `fc_engine.js` `FC_LIVE_FIELD.business` → `businessUnit`,
+  `FC_LIVE_LABEL.business` → "Business Unit", `fcApplyLiveFilterOptions` reads `businessUnit`. The old
+  Live-mode "business → Warranty Type" hijack is gone (Warranty Type stays a data column, just not filtered).
+- **Unit C / HES removed everywhere**: Simulated `FILTER_OPTIONS.business` → `['All','Unit A','Unit B']`;
+  `FC_BUSINESS_FACTOR` → `{All:2.30,'Unit A':1.84,'Unit B':0.46}` (Unit A now the ~80% majority; All = sum).
+- Re-pinned `INPUT_SHA256.txt` (`18c0c9f7…`); `test_dataset.py` gains the 14th column + an 80/20-split
+  assertion (per-product share within ±8%). **15/15 tests pass.**
+- Docs (README filter table, Live-mode section, input-columns list) updated.
+- **Browser-verified (Live)**: Business Unit filter shows All/Unit A/Unit B (no Unit C); selecting Unit B
+  drops ASU 3.98M→1.96M, confirming the column drives the slice end-to-end.
+
+### Fix — keep Warranty Type as its own filter (regression from the BU change)
+Wiring `business`→Business Unit had silently dropped Warranty Type from the rail (it had been the Live-mode
+tenant of the `business` slot). That was never requested. Added a **dedicated `warranty` filter** instead of
+reusing a slot:
+- `fc_engine.js`: new `FILTER_OPTIONS.warranty` (Basic/Premium/Premium Flex/Premium Plus),
+  `FC_DEFAULT_STATE.filters.warranty='All'`, `FC_LIVE_FIELD.warranty='warrantyType'`,
+  `fcApplyLiveFilterOptions` derives it from the data, new `FC_WARRANTY_FACTOR` (segmentation shares,
+  All=1.0 so defaults are unchanged) folded into `fcCombinedFactor`.
+- New `data-filter="warranty"` rail row inserted after Business Unit in all **6 HTML pages**.
+- Both modes now expose **Business Unit** and **Warranty Type** as independent filters (11 total).
+- **Browser-verified (Live)**: Warranty Type = All/Basic/Premium/Premium Flex/Premium Plus; selecting
+  Premium Plus moves ASU 3.98M→1.96M. 15/15 tests still pass. README filter table + count updated.

@@ -49,7 +49,7 @@ python -m unittest         # 14 tests (read path + write path), stdlib only
 | `serve.py` | Zero-dep server: static files + `GET /api/health` · `GET /api/dataset` · `GET /api/outputs` · `POST /api/publish`. Also a stdlib `.xlsx` reader **and** writer. |
 | `fc_engine.js` | **Shared engine — edit once, don't re-inline.** Data provider (live/seeded), filters, compute pipeline, scenarios, weekly overrides + ledger, charts (Highcharts), and the injected badge / scenario bar / compare modal. |
 | `*.html` (×6) | The pages. Each loads Highcharts (CDN) → `fc_engine.js` → a small page-specific inline script. |
-| `input/dell_isg,esg_fy24-26.xlsx` | **The source the app reads** — sheet `Service Dataset`, 8,892 rows (19 products × 3 regions × 156 weeks), modeled/dummy, dense + scaled. Read-only. |
+| `input/forecast_fy26.xlsx` | **The source the app reads** — sheet `Service Dataset`, 8,892 rows (19 products × 3 regions × 156 weeks), modeled/dummy, dense + scaled. Read-only. |
 | `input/fy24-26_info.xlsx` | Reference only (Dell 10-K sheets + an "ASU by Product" summary). Not read by the app. |
 | `input/INPUT_SHA256.txt` | Pinned sha256 of both input files (proves the input is never mutated). |
 | `output/` | Published forecasts land here (`.gitkeep` until the first publish). |

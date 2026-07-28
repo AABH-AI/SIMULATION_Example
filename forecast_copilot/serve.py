@@ -48,7 +48,7 @@ from xml.etree import ElementTree as ET
 # --------------------------------------------------------------------------- #
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_INPUT = os.path.join(HERE, "input", "dell_isg,esg_fy24-26.xlsx")
+DEFAULT_INPUT = os.path.join(HERE, "input", "forecast_fy26.xlsx")
 SHEET_NAME = "Service Dataset"
 OUTPUT_DIR = os.path.join(HERE, "output")
 
@@ -75,6 +75,7 @@ FIELD_SCHEMA = [
     ("Product", "product", "string"),
     ("Region", "region", "string"),
     ("Warranty Type", "warrantyType", "string"),
+    ("Business Unit", "businessUnit", "string"),
     ("ASU", "asu", "number"),
     ("Warranty Expirations", "warrantyExpirations", "number"),
     ("Core/Upsell", "coreUpsell", "string"),
