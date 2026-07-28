@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ISG BPA: Business Planning and Analytics</title>
+  <title>TET BPA: Business Planning and Analytics</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -65,6 +66,131 @@
     /* ── VIEWS ─────────────────────────────────────────────── */
     #home-view      { display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
     #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+
+    /* ── FORECAST COPILOT STYLES ── */
+    :root {
+      --teal: #0d9488;
+      --teal-dim: rgba(13,148,136,0.10);
+      --chart1: #0d9488;
+      --chart2: #d97706;
+      --chart3: #0284c7;
+      --chart4: #7c3aed;
+      --chart5: #db2777;
+      --chart6: #64748b;
+    }
+    .fc-layout { display: flex; gap: 16px; align-items: flex-start; }
+    .filter-rail { width: 244px; flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 14px; }
+    .filter-rail .filter-item { margin-bottom: 11px; }
+    .filter-rail .filter-dropdown { left: 0; right: 0; min-width: 0; }
+    .filter-rail .filter-option { white-space: normal; }
+    .filter-item { display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .filter-label { font-size: 9.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; }
+    .filter-value {
+      font: inherit; font-size: 12px; font-weight: 600; color: var(--text-1);
+      background: var(--card-hi); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 9px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      text-align: left; width: 100%;
+    }
+    .filter-value:hover, .filter-value.open { border-color: var(--teal); }
+    .filter-value .caret { font-size: 9px; color: var(--text-3); }
+    .filter-dropdown {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 160px; max-height: 240px;
+      overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.16); z-index: 100; padding: 4px;
+    }
+    .filter-dropdown.open { display: block; }
+    .filter-option { padding: 6px 9px; border-radius: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
+    .filter-option:hover { background: var(--card-hi); color: var(--text-1); }
+    .filter-option.selected { color: var(--teal); font-weight: 700; }
+
+    .toggle-group { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toggle-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .12s; }
+    .toggle-btn.active { background: var(--teal-dim); color: var(--teal); border-color: var(--teal); }
+    .toggle-btn:hover:not(.active) { border-color: var(--text-3); color: var(--text-1); }
+
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
+    .panel-title { font-size: 14px; font-weight: 700; color: var(--text-1); margin-bottom: 2px; }
+    .panel-sub { font-size: 11.5px; color: var(--text-2); margin-bottom: 12px; }
+
+    .slider-row { margin-bottom: 14px; }
+    .slider-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+    .slider-head .val { color: var(--teal); font-weight: 700; }
+    input[type=range] { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px; background: var(--card-hi); accent-color: #0d9488; cursor: pointer; }
+
+    .calc-box { background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .calc-label { font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+    .calc-value { font-size: 22px; font-weight: 800; color: var(--teal); }
+
+    .override-row { display: flex; align-items: center; gap: 10px; }
+    .override-row input[type=text] { width: 90px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; color: var(--text-1); font-size: 13px; text-align: right; }
+    .override-row button { padding: 7px 14px; border-radius: 7px; border: 1px solid var(--teal); background: transparent; color: var(--teal); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .override-row button:hover { background: var(--teal-dim); }
+
+    .ovv-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 16px; }
+    .ovv-card { background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+    .ovv-label { font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+    .ovv-line { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+    .ovv-line .k { color: var(--text-2); }
+    .ovv-line .v { font-weight: 700; color: var(--text-1); }
+    .ovv-line .v.pos { color: var(--green); } .ovv-line .v.neg { color: var(--red); }
+
+    .rec-box { background: var(--card-hi); border: 1px solid var(--teal); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+    .rec-title { font-size: 12.5px; font-weight: 700; color: var(--teal); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .rec-rationale { font-size: 12px; color: var(--text-2); line-height: 1.6; margin-bottom: 12px; }
+    .rec-values { display: flex; gap: 20px; margin-bottom: 14px; }
+    .rec-values .item { font-size: 13px; }
+    .rec-values .item .lbl { color: var(--text-3); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; display: block; margin-bottom: 3px; }
+    .rec-values .item .num { color: var(--text-1); font-weight: 700; font-size: 16px; }
+    .rec-actions { display: flex; gap: 8px; }
+    .rec-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-1); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .12s; }
+    .rec-btn.accept { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .rec-btn.accept:hover { opacity: .88; }
+    .rec-btn:not(.accept):hover { border-color: var(--text-3); }
+
+    .range-meter { margin-top: 10px; }
+    .range-track { position: relative; height: 8px; border-radius: 4px; background: var(--card-hi); border: 1px solid var(--border); }
+    .range-band { position: absolute; top: -1px; bottom: -1px; background: var(--teal); border-radius: 4px; min-width: 6px; }
+    .range-scale { display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 600; color: var(--text-3); margin-top: 5px; }
+
+    .quarter-list { display: flex; gap: 10px; }
+    .quarter-item { flex: 1; background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; position: relative; }
+    .quarter-item.top { border-color: var(--teal); }
+    .quarter-item .star { position: absolute; top: 6px; right: 8px; color: var(--teal); font-size: 11px; }
+    .quarter-name { font-size: 12px; font-weight: 700; color: var(--text-1); }
+    .quarter-aop { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .status-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+    .status-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .status-dot.off { background: var(--red); }
+    .status-name { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+    .status-val { font-size: 12.5px; font-weight: 700; color: var(--green); }
+    .status-val.off { color: var(--red); }
+
+    .donut-wrap { display: flex; align-items: center; gap: 20px; }
+    .donut { width: 130px; height: 130px; border-radius: 50%; flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 7px; font-size: 12px; }
+    .donut-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .donut-legend .lval { color: var(--text-2); font-size: 10.5px; margin-left: 12px; }
+
+    .hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+    .hbar-label { width: 110px; flex-shrink: 0; color: var(--text-2); }
+    .hbar-track { flex: 1; background: var(--card-hi); border-radius: 4px; height: 16px; overflow: hidden; }
+    .hbar-fill { height: 100%; background: linear-gradient(90deg,#0d9488,#0891b2); border-radius: 4px; transition: width 0.3s ease; }
+    .hbar-val { width: 52px; text-align: right; color: var(--text-1); font-weight: 600; }
+
+    .risk-low { color: var(--green); font-weight: 700; }
+    .risk-medium { color: var(--amber); font-weight: 700; }
+    .risk-high { color: var(--red); font-weight: 700; }
+    .chart-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-2); margin-bottom: 8px; flex-wrap: wrap; }
+    .chart-legend .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+    table.data-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    table.data-tbl th { text-align: left; padding: 8px 10px; font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+    table.data-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text-1); }
+    table.data-tbl tr:last-child td { border-bottom: none; }
+    table.data-tbl tr.best td { background: rgba(13,148,136,0.06); }
+    .tw { max-height: 320px; overflow-y: auto; }
 
     /* ── HOME: TOP STATUS BAR ──────────────────────────────── */
     .home-status-bar {
@@ -715,14 +841,14 @@
 
   <div class="home-hero">
     <div class="home-hero-inner">
-      <p class="home-eyebrow">Aligned Automation Services &nbsp;·&nbsp; ISG</p>
+      <p class="home-eyebrow">He &nbsp;·&nbsp; TET</p>
       <h1 class="home-title">Business Planning<br>and Analytics</h1>
       <p class="home-title-sub">Demand Intelligence Platform</p>
       <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
     </div>
     <div class="home-logo">
-      <img src="D:\OneDrive - Aligned Automation Services Private Limited\Documents\simulations\Aligned logo.png" alt="Aligned Automation" style="height:34px;"
-        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>Aligned Automation</span>'">
+      <img src="Aligned logo.png" alt="He" style="height:34px;"
+        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>He</span>'">
     </div>
   </div>
 
@@ -755,7 +881,7 @@
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
         <div class="tile-title">Actuals Profiling</div>
-        <div class="tile-desc">ISG demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
+        <div class="tile-desc">TET demand actuals vs forecast across regions — QoQ, MoM, and WoW trend breakdowns.</div>
         <div class="tile-stat">1 view &nbsp;·&nbsp; <span>Overall · Region · Trend</span></div>
       </div>
 
@@ -772,12 +898,12 @@
 
       <div class="tile" onclick="openDashboard('whatif')">
         <div class="tile-head">
-          <div class="tile-icon" style="background:rgba(157,120,240,0.1);border-color:rgba(157,120,240,0.2);color:var(--purple);"><i class="ti ti-adjustments-horizontal"></i></div>
+          <div class="tile-icon" style="background:rgba(13,148,136,0.1);border-color:rgba(13,148,136,0.2);color:var(--teal);"><i class="ti ti-sparkles"></i></div>
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
-        <div class="tile-title">What-If Simulation</div>
-        <div class="tile-desc">Slider-driven scenario explorer — model renewal rates, contract growth, and dispatch conversion to forecast ASU, SR, and revenue outcomes.</div>
-        <div class="tile-stat">New Contract Growth &nbsp;·&nbsp; <span style="color:var(--purple);">APOS Renewal</span></div>
+        <div class="tile-title">Forecast Copilot</div>
+        <div class="tile-desc">AI-powered planning suite — Bend-The-Curve (BTC) recommendations, ASU/SR/Dispatch simulation, historical performance, and scenario management.</div>
+        <div class="tile-stat">AI BTC Engine &nbsp;·&nbsp; <span style="color:var(--teal);">6 Workspaces</span></div>
       </div>
 
       <a href="bend_the_curve.html" class="tile" style="text-decoration:none;">
@@ -801,7 +927,7 @@
     <div class="header-left">
       <button class="btn-icon" onclick="toggleLeftPanel()" title="Toggle Nav"><i class="ti ti-menu-2"></i></button>
       <div>
-        <div class="header-brand" id="dash-title">ISG BPA: Business Planning and Analytics</div>
+        <div class="header-brand" id="dash-title">TET BPA: Business Planning and Analytics</div>
         <div class="breadcrumb" id="breadcrumb">
           <span onclick="goHome()">Home</span>
           <span class="sep">›</span>
@@ -912,11 +1038,11 @@
                 </div>
               </div>
               <div class="lob-legend">
-                <span><span class="lob-dot" style="background:#3a6ef0"></span>PowerEdge</span>
-                <span><span class="lob-dot" style="background:#16a34a"></span>APEX</span>
-                <span><span class="lob-dot" style="background:#d97706"></span>VXRAIL</span>
-                <span><span class="lob-dot" style="background:#7c3aed"></span>POWERFLEX</span>
-                <span><span class="lob-dot" style="background:#0891b2"></span>AVAMAR</span>
+                <span><span class="lob-dot" style="background:#3a6ef0"></span>Rack Servers</span>
+                <span><span class="lob-dot" style="background:#16a34a"></span>Elastic Consumption</span>
+                <span><span class="lob-dot" style="background:#d97706"></span>HCI Cluster</span>
+                <span><span class="lob-dot" style="background:#7c3aed"></span>SDS Platform</span>
+                <span><span class="lob-dot" style="background:#0891b2"></span>Data Protection</span>
               </div>
               <div style="flex:1; min-height:180px; position:relative;">
                 <canvas id="fa-chart-lob-weekly"></canvas>
@@ -1122,199 +1248,435 @@
           <div class="kpi-row">
             <div class="kpi-card"><div class="kpi-label">Total Alerts</div><div class="kpi-value kpi-dynamic" style="color:var(--red)" id="da-total">12</div></div>
             <div class="kpi-card"><div class="kpi-label">High Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--red)">5</div></div>
-            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--amber)">4</div></div>
-            <div class="kpi-card"><div class="kpi-label">Low Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--green)">3</div></div>
-          </div>
-          <div class="visual-card" style="min-height:auto;">
-            <div class="visual-title">Alerts Log</div>
-            <div class="severity-filter">
-              <button class="sev-btn all active" onclick="filterAlerts('all',this)">All</button>
-              <button class="sev-btn high" onclick="filterAlerts('High',this)">High</button>
-              <button class="sev-btn medium" onclick="filterAlerts('Medium',this)">Medium</button>
-              <button class="sev-btn low" onclick="filterAlerts('Low',this)">Low</button>
-            </div>
-            <div class="table-wrap" style="max-height:380px;">
-              <table class="data-table" id="alerts-table">
-                <thead><tr>
-                  <th onclick="sortTable('alerts-table','sev')">Severity <span class="sort-icon"></span></th>
-                  <th>Alert Description</th>
-                  <th onclick="sortTable('alerts-table','date')">Trigger Date <span class="sort-icon"></span></th>
-                  <th onclick="sortTable('alerts-table','region')">Region <span class="sort-icon"></span></th>
-                  <th>Sub-Region</th>
-                </tr></thead>
-                <tbody id="alerts-body"></tbody>
-              </table>
-            </div>
+            <div class="kpi-card"><div class="kpi-label">Medium Priority</div><div class="kpi-value kpi-dynamic" style="color:var(--amber)">7</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ══ MODULE: WHAT-IF SIMULATION ══ -->
+      <!-- ══ MODULE: FORECAST COPILOT (WHAT-IF SIMULATION) ══ -->
       <div id="module-whatif" class="module-section">
+        <div class="fc-layout" style="display:flex;gap:16px;align-items:flex-start;">
 
-        <!-- ── PAGE 1: SIMULATION CONTROLS ── -->
-        <div id="wi-page-sim" class="page-section active">
-
-          <!-- 6 KPI cards 3×2 -->
-          <div id="wi-kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
-
-          <!-- Horizontal Forecast Propagation Pipeline -->
-          <div class="visual-card" style="min-height:auto;margin-bottom:16px;">
-            <div class="visual-title">
-              <div>
-                <div>Forecast Propagation</div>
-                <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Live downstream impact across the forecasting pipeline</div>
+          <!-- Forecast Copilot Filter Rail -->
+          <aside class="filter-rail" style="width:244px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 14px;height:auto;">
+            <div class="filter-rail-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <div class="filter-rail-head-title" style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);">
+                <i class="ti ti-adjustments-horizontal" style="color:var(--teal);"></i> Filters
               </div>
-              <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;">Auto-flowing</span>
+              <button type="button" class="filter-reset" id="filter-reset-btn" style="font-size:10.5px;font-weight:700;color:var(--text-3);cursor:pointer;background:none;border:none;font-family:inherit;padding:0;">Reset</button>
             </div>
-            <div id="wi-pipeline" style="display:flex;align-items:stretch;overflow-x:auto;padding:2px 0;gap:0;"></div>
-          </div>
+            <div class="filter-rail-sub" style="font-size:10.5px;color:var(--text-3);margin:3px 0 14px;">Planning slice selectors</div>
 
-          <!-- Main 2-column: left=charts, right=inputs+impact -->
-          <div style="display:grid;grid-template-columns:1fr 350px;gap:16px;align-items:start;">
+            <div id="fc-scenario-bar"></div>
 
-            <!-- LEFT: Charts + Base Table -->
-            <div style="display:flex;flex-direction:column;gap:14px;">
+            <div class="primary-grid" style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px;">
+              <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Rack Servers<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="business"><span class="filter-label">Product Business</span><button type="button" class="filter-value">TES<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour TES<span class="caret">▾</span></button></div>
+            </div>
 
-              <!-- ASU Trend — area band fill between base and what-if -->
-              <div class="visual-card">
-                <div class="visual-title">
-                  <div>
-                    <div>ASU Trend</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Base vs What-If projection</div>
-                  </div>
-                  <div style="display:flex;align-items:center;gap:14px;">
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
-                      <span style="display:inline-block;width:14px;height:2px;background:#9ca3af;border-radius:2px;"></span>Base
-                    </div>
-                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);">
-                      <span style="display:inline-block;width:14px;height:2px;background:var(--accent);border-radius:2px;"></span>What-If
-                    </div>
-                  </div>
-                </div>
-                <div style="flex:1;min-height:220px;"><canvas id="wi-chart-asu"></canvas></div>
+            <div class="filter-rail-divider" style="height:1px;background:var(--border);margin:14px 0 12px;"></div>
+
+            <button type="button" class="more-toggle" id="more-filters-toggle" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;font:inherit;padding:2px 0;cursor:pointer;color:var(--text-2);">
+              <span class="more-toggle-label" style="display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;">More filters <span class="more-toggle-count" style="font-size:9.5px;font-weight:800;background:var(--card-hi);color:var(--text-3);border-radius:999px;padding:1px 6px;">5</span></span>
+              <i class="ti ti-chevron-down more-toggle-chevron" style="font-size:13px;transition:transform .18s ease;"></i>
+            </button>
+            <div class="secondary-grid" id="secondary-filters" style="display:grid;grid-template-columns:1fr;gap:10px;max-height:0;overflow:hidden;opacity:0;transition:max-height .22s ease, opacity .18s ease, margin-top .22s ease;">
+              <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+              <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+            </div>
+          </aside>
+
+          <!-- Main Content Pages -->
+          <div style="flex:1;min-width:0;">
+
+            <!-- PAGE 1: DASHBOARD -->
+            <div id="fc-page-dashboard" class="page-section active">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">Dashboard</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Overview of BTC forecast performance for the selected planning slice</div>
               </div>
 
-              <!-- SR + Dispatch side by side -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                <div class="visual-card">
-                  <div class="visual-title">
-                    <div>
-                      <div>Service Request Forecast</div>
-                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Monthly volume in thousands</div>
-                    </div>
-                  </div>
-                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-sr"></canvas></div>
+              <div class="kpi-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+                <div class="kpi-card"><div class="kpi-label">New Contracts Forecast</div><div class="kpi-value" id="kpi-nc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Renewals Forecast</div><div class="kpi-value" id="kpi-renew">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">ASU Forecast</div><div class="kpi-value" id="kpi-asu">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">SR Forecast</div><div class="kpi-value" id="kpi-sr">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Dispatch Forecast</div><div class="kpi-value" id="kpi-dsp">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Historical BTC</div><div class="kpi-value" id="kpi-btc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Forecast Accuracy</div><div class="kpi-value" id="kpi-acc">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">AOP Achievement %</div><div class="kpi-value" id="kpi-aop">—</div></div>
+                <div class="kpi-card"><div class="kpi-label">Modernization Achievement %</div><div class="kpi-value" id="kpi-mod">—</div></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Forecast vs Target</div>
+                <div class="panel-sub">Current-quarter forecast against the AOP-derived target for the selected slice</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th></tr></thead>
+                  <tbody id="fvt-body"></tbody>
+                </table>
+              </div>
+
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">ASU Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-asu-trend" style="height:150px;width:100%;"></div>
                 </div>
-                <div class="visual-card">
-                  <div class="visual-title">
-                    <div>
-                      <div>Dispatch Forecast</div>
-                      <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Field dispatches projected (K)</div>
-                    </div>
-                  </div>
-                  <div style="flex:1;min-height:180px;"><canvas id="wi-chart-dp"></canvas></div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">SR Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-sr-trend" style="height:150px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Dispatch Trend</div>
+                  <div class="panel-sub">13 fiscal weeks · selected quarter</div>
+                  <div id="chart-dsp-trend" style="height:150px;width:100%;"></div>
                 </div>
               </div>
 
-              <!-- Base Input table -->
-              <div class="visual-card" style="min-height:auto;">
-                <div class="visual-title">
-                  <div>
-                    <div>Base Input</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Current period baseline measures</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Historical BTC Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-hist-btc" style="height:170px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Forecast vs Target</div>
+                  <div class="panel-sub">SR &amp; Dispatch, current quarter</div>
+                  <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Target</span></div>
+                  <div id="chart-fvt" style="height:170px;width:100%;"></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Recent Workspace Activity</div>
+                <div class="panel-sub">Latest updates across your forecast workflow</div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">ASU Simulation recalculated</div><div style="font-size:11.5px;color:var(--text-3);" id="act-1">—</div></div>
+                  <span class="badge badge-ok" style="background:rgba(22,163,74,0.12);color:var(--green);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Completed</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">Historical variance check</div><div style="font-size:11.5px;color:var(--text-3);" id="act-2">—</div></div>
+                  <span class="badge badge-ok" style="background:rgba(22,163,74,0.12);color:var(--green);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Completed</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+                  <div><div style="font-weight:600;color:var(--text-1);">BTC Distribution review</div><div style="font-size:11.5px;color:var(--text-3);" id="act-3">—</div></div>
+                  <span class="badge badge-warn" id="act-3-badge" style="background:rgba(217,119,6,0.12);color:var(--amber);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">Needs Review</span>
+                </div>
+                <div class="list-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;">
+                  <div><div style="font-weight:600;color:var(--text-1);">Final Forecast draft</div><div style="font-size:11.5px;color:var(--text-3);" id="act-4">—</div></div>
+                  <span class="badge badge-warn" id="act-4-badge" style="background:rgba(217,119,6,0.12);color:var(--amber);padding:2px 8px;border-radius:100px;font-size:10.5px;font-weight:700;">In Progress</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAGE 2: ASU SIMULATION -->
+            <div id="fc-page-asu-sim" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">ASU What-If Simulation</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Adjust New Contract and RENEW drivers to project ASU, SR and Dispatch impact in real time.</div>
+              </div>
+
+              <div class="toggle-group" id="sim-mode-toggle">
+                <button class="toggle-btn active" data-mode="manual">Manual Simulation</button>
+                <button class="toggle-btn" data-mode="recommend">Recommendation Mode</button>
+              </div>
+
+              <div id="manual-panel">
+                <div class="panel">
+                  <div class="panel-title">New Contracts &amp; Renewals Overrides</div>
+                  <div class="panel-sub">ASU = Prior ASU − Expirations + (Renewals × Renewal Rate × RENEW Modifier) + (New Contracts × NC Modifier)</div>
+                  <div class="slider-row">
+                    <div class="slider-head"><span>New Contract Override</span><span class="val" id="nc-val">10%</span></div>
+                    <input type="range" id="nc-override" min="0" max="100" value="10">
+                  </div>
+                  <div class="slider-row">
+                    <div class="slider-head"><span>Renewals Override</span><span class="val" id="renew-val">5%</span></div>
+                    <input type="range" id="renew-override" min="0" max="100" value="5">
                   </div>
                 </div>
-                <div class="table-wrap">
-                  <table class="data-table">
-                    <thead><tr>
-                      <th>Measure</th>
-                      <th style="text-align:right;">Base Value</th>
-                    </tr></thead>
-                    <tbody>
-                      <tr><td>Renewal Opportunity Quantity</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">284,500 units</td></tr>
-                      <tr><td>Base Renewal Rate</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">85.3%</td></tr>
-                      <tr><td>Renewed Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">242,678</td></tr>
-                      <tr><td>Expired Units</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">41,822</td></tr>
-                      <tr><td>New Contracts Forecast</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--text-1);">73,140 units</td></tr>
-                      <tr><td>Base ASU Contribution</td><td style="text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--accent);">$612.4M</td></tr>
-                    </tbody>
+
+                <div class="panel">
+                  <div class="panel-title">Original vs Adjusted Forecast</div>
+                  <div class="panel-sub">Current-quarter totals (13 fiscal weeks)</div>
+                  <div class="ovv-row" id="ovv-row"></div>
+                </div>
+              </div>
+
+              <div id="recommend-panel" style="display:none;">
+                <div class="rec-box">
+                  <div class="rec-title">🧠 AI Recommendation</div>
+                  <div class="rec-rationale" id="rec-rationale">—</div>
+                  <div class="rec-values">
+                    <div class="item"><span class="lbl">New Contract Override</span><span class="num" id="rec-nc">—</span></div>
+                    <div class="item"><span class="lbl">Renewals Override</span><span class="num" id="rec-renew">—</span></div>
+                  </div>
+                  <div class="rec-actions">
+                    <button class="rec-btn accept" id="rec-accept">Accept Recommendation</button>
+                    <button class="rec-btn" id="rec-modify">Modify Recommendation</button>
+                    <button class="rec-btn" id="rec-reject">Reject</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title" id="asu-metric-title">DS ASU vs Adjusted ASU</div>
+                <div class="toggle-group" id="asu-metric-toggle">
+                  <button class="toggle-btn active" data-metric="asu">ASU</button>
+                  <button class="toggle-btn" data-metric="sr">SR</button>
+                  <button class="toggle-btn" data-metric="dsp">Dispatch</button>
+                </div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>DS Forecast</span><span><span class="dot" style="background:var(--chart2)"></span>Scenario</span></div>
+                <div id="chart-metric" style="height:170px;width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- PAGE 3: HISTORICAL PERFORMANCE -->
+            <div id="fc-page-historical" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">Historical Performance</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">12 quarters of forecast accuracy, AOP achievement and BTC patterns for the selected slice.</div>
+              </div>
+
+              <div class="kpi-row" style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:16px;">
+                <div class="kpi-card">
+                  <div class="kpi-label">Best Historical BTC Range</div>
+                  <div class="kpi-value" id="kpi-btc-range" style="font-size:22px;font-weight:800;">—</div>
+                  <div class="range-meter">
+                    <div class="range-track"><div class="range-band" id="btc-range-band"></div></div>
+                    <div class="range-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+                  </div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">Most Successful Planning Periods</div>
+                  <div class="quarter-list" id="quarter-list"></div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Historical BTC Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-hist-btc-pg" style="height:150px;width:100%;"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Forecast Accuracy Trend</div>
+                  <div class="panel-sub">Last 12 fiscal quarters</div>
+                  <div id="chart-accuracy" style="height:150px;width:100%;"></div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Forecast vs Actual</div>
+                <div class="panel-sub">Quarterly SR-equivalent forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span></div>
+                <div id="fva" style="height:210px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">AOP &amp; Modernization Achievement</div>
+                <div class="panel-sub">Last 12 fiscal quarters, against their respective targets</div>
+                <div class="chart-legend"><span><span class="dot" style="background:var(--chart4)"></span>AOP %</span><span><span class="dot" style="background:var(--chart5)"></span>Modernization %</span></div>
+                <div id="chart-aop-modern" style="height:150px;width:100%;"></div>
+              </div>
+            </div>
+
+            <!-- PAGE 4: AI BTC ADVISOR -->
+            <div id="fc-page-btc-advisor" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">AI BTC Advisor</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Recommend, compare and select the BTC value to bend the curve toward your AOP target.</div>
+              </div>
+
+              <div class="toggle-group" id="strategy-toggle">
+                <button class="toggle-btn" data-strategy="historicalBestFit">Historical Best Fit</button>
+                <button class="toggle-btn" data-strategy="balanced">Balanced</button>
+                <button class="toggle-btn" data-strategy="closestToAOP">Closest to AOP</button>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">AI Confidence Signals</div>
+                  <div class="panel-sub">These levers feed the recommendation engine's confidence in the selected strategy.</div>
+                  <div class="slider-row"><div class="slider-head"><span>Modernization %</span><span class="val" id="v-mod">65%</span></div><input type="range" class="btc-slider" id="s-mod" min="0" max="100" value="65"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Triad Commitment %</span><span class="val" id="v-triad">70%</span></div><input type="range" class="btc-slider" id="s-triad" min="0" max="100" value="70"></div>
+                  <div class="slider-row"><div class="slider-head"><span>AI Chatbot %</span><span class="val" id="v-chat">40%</span></div><input type="range" class="btc-slider" id="s-chat" min="0" max="100" value="40"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Remote Resolution %</span><span class="val" id="v-remote">55%</span></div><input type="range" class="btc-slider" id="s-remote" min="0" max="100" value="55"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Self Heal %</span><span class="val" id="v-heal">30%</span></div><input type="range" class="btc-slider" id="s-heal" min="0" max="100" value="30"></div>
+                  <div class="slider-row"><div class="slider-head"><span>Quality Improvement %</span><span class="val" id="v-qual">50%</span></div><input type="range" class="btc-slider" id="s-qual" min="0" max="100" value="50"></div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">Selected BTC</div>
+                  <div class="panel-sub" id="selected-sub">Choose a recommendation above, or enter a manual override.</div>
+                  <div class="calc-box"><span class="calc-label">Selected BTC</span><span class="calc-value" id="calc-btc">—</span></div>
+                  <div class="panel-title" style="font-size:12.5px;margin-bottom:8px;">Manual BTC Override</div>
+                  <div class="override-row">
+                    <input type="text" id="manual-override" placeholder="e.g. 6.50" inputmode="decimal">
+                    <span style="color:var(--text-2)">%</span>
+                    <button id="btn-use-manual">Use Manual</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Comparison</div>
+                <div class="panel-sub">Historical Best Fit and Closest-to-AOP are boundary strategies; Balanced sits between them. Click a row to select it.</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted SR</th><th>Adjusted Dispatch</th><th>Gap To Target</th><th>Confidence</th><th>Risk</th></tr></thead>
+                  <tbody id="cmp-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- PAGE 5: BTC DISTRIBUTION -->
+            <div id="fc-page-btc-dist" class="page-section">
+              <div class="page-head" style="margin-bottom:16px;">
+                <div class="page-title" style="font-size:22px;font-weight:800;">BTC Distribution</div>
+                <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Automatic weekly distribution of the selected BTC across regions, LOBs, businesses and services.</div>
+              </div>
+
+              <div id="empty-note" class="empty-note" style="display:none;background:var(--card-hi);border:1px solid var(--amber);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:var(--text-2);">No BTC value selected yet. Choose a recommendation on AI BTC Advisor first — this page shows the Equal Distribution baseline (0% BTC) until then.</div>
+
+              <div class="toggle-group" id="dist-toggle">
+                <button class="toggle-btn" data-mode="equal">Equal Distribution</button>
+                <button class="toggle-btn" data-mode="historical">Historical Distribution</button>
+                <button class="toggle-btn" data-mode="ai">AI Recommended</button>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">BTC Distribution by Region</div>
+                  <div class="donut-wrap">
+                    <div class="donut" id="donut-region"></div>
+                    <div class="donut-legend" id="legend-region"></div>
+                  </div>
+                </div>
+                <div class="panel" style="margin-bottom:0;">
+                  <div class="panel-title">BTC Distribution by Product Business</div>
+                  <div class="donut-wrap">
+                    <div class="donut" id="donut-business"></div>
+                    <div class="donut-legend" id="legend-business"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by LOB</div>
+                <div id="hbars-lob"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by Service Type</div>
+                <div id="hbars-service"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">BTC Distribution by Fiscal Week</div>
+                <div class="panel-sub">DS Forecast (base) vs BTC Forecast (after distribution)</div>
+                <div id="fwbars" style="height:150px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Weekly Forecast Table</div>
+                <div class="panel-sub">Type a new number in the <b>BTC Forecast</b> column to override a week. Edits are flagged, resettable, and recorded in the Change Ledger below.</div>
+                <div id="edit-status" style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-size:12px;color:var(--text-2);">
+                  <span id="edit-count"></span>
+                  <button id="reset-all" class="fc-mini-btn" style="display:none;border:1px solid var(--border);background:var(--surface);border-radius:7px;padding:4px 10px;font-size:11.5px;color:var(--teal);cursor:pointer;">Reset all edits</button>
+                </div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th>WoW Change</th><th></th></tr></thead>
+                    <tbody id="weekly-body"></tbody>
                   </table>
                 </div>
               </div>
-            </div><!-- /left -->
 
-            <!-- RIGHT: Inputs + Impact card -->
-            <div style="display:flex;flex-direction:column;gap:14px;">
-
-              <!-- What-If Inputs -->
-              <div class="visual-card" style="min-height:auto;">
-                <div class="visual-title">
-                  <div>
-                    <div>What-If Inputs</div>
-                    <div style="font-size:10px;color:var(--text-2);margin-top:2px;font-weight:400;">Adjust assumptions to model scenarios</div>
-                  </div>
-                  <span style="background:rgba(34,212,114,0.12);color:var(--green);border:1px solid rgba(34,212,114,0.25);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">Live</span>
-                </div>
-                <div id="wi-sliders-area"></div>
-              </div>
-
-              <!-- Scenario Impact — deep blue card -->
-              <div style="border-radius:12px;padding:22px;background:linear-gradient(135deg,#2d52e0 0%,#1a3ab8 100%);border:1px solid rgba(76,126,248,0.35);">
-                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-                  <i class="ti ti-sparkles"></i> Scenario Impact
-                </div>
-                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.2;">Projected uplift<br>vs baseline</div>
-                <div id="wi-impact-rows" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-                <button onclick="wiSaveScenario()" style="width:100%;padding:11px;border-radius:8px;background:#fff;color:#1a3ab8;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-ui);letter-spacing:0.01em;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Save Scenario</button>
-              </div>
-
-            </div><!-- /right -->
-          </div><!-- /main 2-col -->
-        </div><!-- /wi-page-sim -->
-
-        <!-- ── PAGE 2: SCENARIO PLAYGROUND ── -->
-        <div id="wi-page-scenarios" class="page-section">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div style="width:22px;height:22px;background:var(--blue-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-brain" style="font-size:12px;color:var(--accent);"></i></div>
-                  <span>AI Forecast Insights</span>
+              <div class="panel">
+                <div class="panel-title">Change Ledger</div>
+                <div class="panel-sub">Timestamped record of every weekly edit in the active scenario — newest first.</div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>When</th><th>Action</th><th>Week</th><th>From</th><th>To</th></tr></thead>
+                    <tbody id="ledger-body"></tbody>
+                  </table>
                 </div>
               </div>
-              <div id="wi-ai-insights" style="font-size:12px;color:var(--text-2);line-height:1.7;"></div>
-            </div>
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">
-                <span>Saved Scenarios</span>
-                <button onclick="wiSaveScenario()" class="btn-sm"><i class="ti ti-plus"></i> Save Current</button>
-              </div>
-              <div id="wi-scenario-list"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- ── PAGE 3: PUBLISH CENTER ── -->
-        <div id="wi-page-publish" class="page-section">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">Forecast Publish Center</div>
-              <div id="wi-publish-readiness" style="margin-bottom:14px;"></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <button onclick="wiHandlePublish()" style="background:var(--accent);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-ui);display:flex;align-items:center;justify-content:center;gap:6px;" id="wi-pub-btn"><i class="ti ti-rocket"></i> Publish</button>
-                <button onclick="alert('Excel export queued!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-table-export"></i> Export Excel</button>
-                <button onclick="alert('PDF generation started!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-file-type-pdf"></i> Export PDF</button>
-                <button onclick="alert('Report shared!')" class="btn-sm" style="justify-content:center;padding:9px;"><i class="ti ti-share"></i> Share</button>
+              <div class="panel">
+                <div class="panel-title">Opportunity Table</div>
+                <div class="panel-sub">Regions with the largest gap between DS Forecast and BTC Forecast — highest reallocation opportunity first</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Dimension</th><th>Opportunity Score</th><th>Recommended Uplift %</th><th>Reason</th></tr></thead>
+                  <tbody id="opp-body"></tbody>
+                </table>
               </div>
             </div>
-            <div class="visual-card" style="min-height:auto;">
-              <div class="visual-title">Audit Log</div>
-              <div id="wi-audit-log" style="max-height:340px;overflow-y:auto;"></div>
-            </div>
-          </div>
-        </div>
 
+            <!-- PAGE 6: FINAL FORECAST -->
+            <div id="fc-page-final" class="page-section">
+              <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:20px;">
+                <div>
+                  <div class="page-title" style="font-size:22px;font-weight:800;">Final Forecast</div>
+                  <div class="page-sub" style="font-size:12.5px;color:var(--text-2);">Review, approve and submit the consolidated forecast for <strong id="ff-year-label">next year</strong>.</div>
+                  <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;">
+                    <input type="checkbox" id="ff-compare-toggle" style="accent-color:var(--teal);cursor:pointer;">
+                    Compare with previous year (<span id="ff-prev-year-label">—</span>)
+                  </label>
+                </div>
+                <div style="display:flex;gap:8px;flex-shrink:0;">
+                  <button class="btn" id="btn-approve-scenario" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-1);">Approve Scenario</button>
+                  <button class="btn" id="btn-approve-btc" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-1);">Approve BTC</button>
+                  <button class="btn primary" id="btn-submit" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#0d9488,#0891b2);border-color:transparent;color:#fff;">Submit Forecast</button>
+                </div>
+              </div>
+
+              <div class="status-row" id="status-row"></div>
+              <div id="publish-status" style="margin:2px 0 10px;font-size:12px;"></div>
+
+              <div class="panel">
+                <div class="panel-title">DS Forecast · Scenario · BTC · Target</div>
+                <div class="panel-sub" id="ff-panel-sub">Weekly SR-equivalent series across the fiscal year</div>
+                <div class="chart-legend">
+                  <span><span class="dot" style="background:var(--chart1)"></span>Original</span>
+                  <span><span class="dot" style="background:var(--chart2)"></span>Scenario</span>
+                  <span><span class="dot" style="background:var(--chart4)"></span>BTC</span>
+                  <span><span class="dot" style="background:var(--chart5)"></span>Final</span>
+                  <span><span class="dot" style="background:var(--chart3)"></span>Target</span>
+                  <span id="ff-legend-prev" style="display:none"><span class="dot" style="background:var(--chart6)"></span>Prev. Year Final</span>
+                </div>
+                <div id="ff-chart" style="height:190px;width:100%;"></div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Submission Summary</div>
+                <div class="panel-sub">ASU is shown at end-of-quarter level; SR and Dispatch are quarter totals</div>
+                <table class="data-tbl">
+                  <thead><tr><th>Metric</th><th>Forecast</th><th>Target</th><th>Gap</th><th>BTC %</th><th>Confidence</th><th>Risk</th></tr></thead>
+                  <tbody id="summary-body"></tbody>
+                </table>
+              </div>
+
+              <div class="panel">
+                <div class="panel-title">Published Forecasts</div>
+                <div class="panel-sub">Timestamped workbooks written to the output folder, newest first. Publishing never overwrites — each submit is a new file.</div>
+                <div class="tw">
+                  <table class="data-tbl">
+                    <thead><tr><th>File</th><th>Published</th><th>Size</th></tr></thead>
+                    <tbody id="outputs-body"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /Main Content Pages -->
+        </div><!-- /.fc-layout -->
       </div><!-- /module-whatif -->
 
     </div><!-- /main-content -->
@@ -1397,9 +1759,9 @@
           <div class="filter-dropdown-content">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ISG" onchange="onFilterChange()"> ISG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="ESG" onchange="onFilterChange()"> ESG</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="HES" onchange="onFilterChange()"> HES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TET" onchange="onFilterChange()"> TET</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TES" onchange="onFilterChange()"> TES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="THS" onchange="onFilterChange()"> THS</label>
             </div>
           </div>
         </div>
@@ -1446,11 +1808,11 @@ const SUBREGIONS = {
   'EMEA': ['Western Europe','Eastern Europe'],
   'APJ': ['SEA','ANZ','Japan']
 };
-const PARTNERS = ['Dell','OSP'];
+const PARTNERS = ['ATC','OSP'];
 const LOCATIONS = ['New York Hub','London HQ','Tokyo Base','Austin DC','Sydney Office','Paris HQ'];
 const QUEUES = ['Queue_Alpha','Queue_Beta','Queue_Delta'];
 const BRS = ['BR_Direct','BR_Indirect'];
-const LOBS = ['ISG','ESG','HES'];
+const LOBS = ['TET','TES','THS'];
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -1491,7 +1853,7 @@ const ALERTS_DATA = [
   { sev:'High', desc:'Forecast demand drop >15% for Care queue — APJ', date:'2026-06-03', region:'APJ', subregion:'SEA' },
   { sev:'High', desc:'Tech ASU weekly actuals below threshold — W22', date:'2026-06-01', region:'AMER', subregion:'LATAM' },
   { sev:'High', desc:'Partner SLA breach — OSP dispatch >48hr', date:'2026-06-04', region:'EMEA', subregion:'Eastern Europe' },
-  { sev:'Medium', desc:'Partner Dell SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
+  { sev:'Medium', desc:'Partner ATC SLA missed warning', date:'2026-06-01', region:'APJ', subregion:'ANZ' },
   { sev:'Medium', desc:'Data completeness dropped to 94% — Austin DC', date:'2026-06-02', region:'AMER', subregion:'North America' },
   { sev:'Medium', desc:'Queue_Beta backlog growing — 3 consecutive weeks', date:'2026-06-03', region:'EMEA', subregion:'Western Europe' },
   { sev:'Medium', desc:'MDR >8% sustained for Tokyo Base — review needed', date:'2026-05-30', region:'APJ', subregion:'Japan' },
@@ -1527,10 +1889,13 @@ const modules = {
     { id: 'fa-page-forecast-trend', label: 'Forecast Trend' }
   ]},
   'demand-alerts': { title: 'Demand Planning Alerts', pages: [{ id: 'da-page-log', label: 'Alerts Log' }] },
-  'whatif': { title: 'What-If Simulation', pages: [
-    { id: 'wi-page-sim',       label: 'Simulation Controls' },
-    { id: 'wi-page-scenarios', label: 'Scenario Playground' },
-    { id: 'wi-page-publish',   label: 'Forecast Publish' }
+  'whatif': { title: 'Forecast Copilot', pages: [
+    { id: 'fc-page-dashboard',   label: 'Dashboard' },
+    { id: 'fc-page-asu-sim',     label: 'ASU Simulation' },
+    { id: 'fc-page-historical',  label: 'Historical Performance' },
+    { id: 'fc-page-btc-advisor', label: 'AI BTC Advisor' },
+    { id: 'fc-page-btc-dist',    label: 'BTC Distribution' },
+    { id: 'fc-page-final',       label: 'Final Forecast' }
   ]}
 };
 
@@ -1570,7 +1935,7 @@ function openDashboard(moduleId) {
     if (!document.getElementById('right-panel').classList.contains('collapsed')) {
       document.getElementById('right-panel').classList.add('collapsed');
     }
-    setTimeout(wiInit, 80);
+    setTimeout(fcBootModule, 80);
   } else { setTimeout(initCharts, 80); }
 }
 
@@ -1599,9 +1964,12 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'da-page-log') renderAlerts('all');
   if (pageId === 'fa-page-actuals')        generateActualsTable();
   if (pageId === 'fa-page-partner')        generatePartnerTable();
-  if (pageId === 'wi-page-sim')       { setTimeout(wiRenderAll, 60); }
-  if (pageId === 'wi-page-scenarios') { wiRenderAIInsights(); wiRenderScenarios(); }
-  if (pageId === 'wi-page-publish')   { wiRenderPublishReadiness(); wiRenderAudit(); }
+  if (pageId === 'fc-page-dashboard')   { setTimeout(fcRenderDashboard, 60); }
+  if (pageId === 'fc-page-asu-sim')     { setTimeout(() => { fcRenderASU(); if (fcState.simMode === 'recommend') fcRenderRecommendation(); }, 60); }
+  if (pageId === 'fc-page-historical')  { setTimeout(fcRenderHistorical, 60); }
+  if (pageId === 'fc-page-btc-advisor') { setTimeout(fcRenderAdvisor, 60); }
+  if (pageId === 'fc-page-btc-dist')    { setTimeout(fcRenderDistribution, 60); }
+  if (pageId === 'fc-page-final')       { setTimeout(fcRenderFinal, 60); }
   if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
     updateDPQuadrantCharts();
     updateDemandTrends();
@@ -2214,16 +2582,16 @@ function switchChartMetric(metric, btnEl) {
 // =========================================================
 // FISCAL WEEK × LOB CHART — STATIC (no filter dependency)
 // =========================================================
-const LOB_NAMES   = ['PowerEdge','APEX','VXRAIL','POWERFLEX','AVAMAR'];
-const LOB_COLORS  = { PowerEdge:'#3a6ef0', APEX:'#16a34a', VXRAIL:'#d97706', POWERFLEX:'#7c3aed', AVAMAR:'#0891b2' };
+const LOB_NAMES   = ['Rack Servers','Elastic Consumption','HCI Cluster','SDS Platform','Data Protection'];
+const LOB_COLORS  = { 'Rack Servers':'#3a6ef0', 'Elastic Consumption':'#16a34a', 'HCI Cluster':'#d97706', 'SDS Platform':'#7c3aed', 'Data Protection':'#0891b2' };
 const FW_LABELS   = Array.from({length:52}, (_,i) => 'W'+String(i+1).padStart(2,'0'));
 
 const LOB_WEEKLY_DATA = (() => {
   function seeded(s) { return () => { s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
   const N = 52;
-  const bases = { PowerEdge:{sr:2700,asuX:14,dspX:0.44}, APEX:{sr:1100,asuX:18,dspX:0.38},
-                  VXRAIL:{sr:780,asuX:12,dspX:0.50}, POWERFLEX:{sr:440,asuX:10,dspX:0.34}, AVAMAR:{sr:290,asuX:8,dspX:0.42} };
-  const seeds = { PowerEdge:11, APEX:22, VXRAIL:33, POWERFLEX:44, AVAMAR:55 };
+  const bases = { 'Rack Servers':{sr:2700,asuX:14,dspX:0.44}, 'Elastic Consumption':{sr:1100,asuX:18,dspX:0.38},
+                  'HCI Cluster':{sr:780,asuX:12,dspX:0.50}, 'SDS Platform':{sr:440,asuX:10,dspX:0.34}, 'Data Protection':{sr:290,asuX:8,dspX:0.42} };
+  const seeds = { 'Rack Servers':11, 'Elastic Consumption':22, 'HCI Cluster':33, 'SDS Platform':44, 'Data Protection':55 };
   const result = { sr:{}, asu:{}, dispatch:{} };
 
   LOB_NAMES.forEach(lob => {
@@ -2345,7 +2713,7 @@ const DP_OVERALL_BASE = [
   { subregion: 'Japan',         region: 'APJ',  fs: 140, care: 110, ms:  55 },
 ];
 const FA_PARTNER_BASE = [
-  { name: 'Dell', mdr: 1200, color: '#4c7ef8' },
+  { name: 'ATC', mdr: 1200, color: '#4c7ef8' },
   { name: 'OSP',  mdr: 850,  color: '#22d472' }
 ];
 
@@ -2356,7 +2724,7 @@ const DP_OVERALL_REGION_BASE = {
   APJ:  { forecast: 2500, actuals: 2376 },
 };
 
-// QoQ base: ISG Forecast & Actuals (summed across regions)
+// QoQ base: TET Forecast & Actuals (summed across regions)
 const DP_OVERALL_QOQ_BASE = {
   forecast: [8400, 8900, 9200, 8700],
   actuals:  [7990, 8468, 8740, 8295],
@@ -2374,7 +2742,7 @@ const AP_ASU_TREND_BASE = {
   forecast: [1.27, 1.29, 1.32, 1.34, 1.36, 1.38, 1.40, 1.42, 1.44, 1.45, 1.47, 1.48],
 };
 const AP_NEW_CONTRACTS_BASE = [5820, 6050, 6280, 5940, 6180, 6402, 6100, 6480, 6220, 6390, 6560, 6510];
-const AP_APOS_BASE = {
+const AP_RENEW_BASE = {
   opportunity: [23200, 23600, 24100, 23800, 24200, 24500, 23900, 24300, 24600, 24800, 25100, 24900],
   renewed:     [19800, 20280, 20730, 20420, 20810, 21920, 20570, 20960, 21280, 21420, 21680, 21540],
   rate:        [85.3, 85.9, 86.0, 85.8, 86.0, 89.5, 86.1, 86.2, 86.5, 86.4, 86.4, 86.5],
@@ -2427,8 +2795,8 @@ const TREND_DATA_52 = {
   'dp-care-actuals': _makeTrend(1025, 102, 2),
   'care-cf-fct':     _makeTrend( 950,  95, 1),
   'care-cf-act':     _makeTrend( 900,  90, 1),
-  'care-apos-fct':   _makeTrend( 420,  42, 3),
-  'care-apos-act':   _makeTrend( 399,  40, 3),
+  'care-renew-fct':   _makeTrend( 420,  42, 3),
+  'care-renew-act':   _makeTrend( 399,  40, 3),
   'care-sr-fct':     _makeTrend( 680,  68, 2),
   'care-sr-act':     _makeTrend( 646,  65, 2),
   'care-dsp-fct':    _makeTrend( 520,  52, 4),
@@ -2599,19 +2967,19 @@ function getAOPTargetValue() {
   return Math.round(avg);
 }
 
-const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
+const DP_LOB_SHARE = { TET: 0.60, TES: 0.25, THS: 0.15 };
 
-// ISG + ESG + HES annual totals and quarterly sums per product group
+// TET + TES + THS annual totals and quarterly sums per product group
 const DP_TREND_PG = {
-  ISG: {
+  TET: {
     yoy: [591000,629000,665000,707000,754000],
     qoq: [170400,178800,183600,176400,189000,184800,195000,202800]
   },
-  ESG: {
+  TES: {
     yoy: [246000,262000,277000,295000,314000],
     qoq: [71000,74500,76500,73500,78750,77000,81250,84500]
   },
-  HES: {
+  THS: {
     yoy: [148000,157000,166000,177000,189000],
     qoq: [42600,44700,45900,44100,47250,46200,48750,50700]
   }
@@ -2645,7 +3013,7 @@ function updateDPQuadrantCharts() {
 function updateDemandTrends() {
   const f       = getActiveFilters();
   const fyMult  = getActiveFYMultiplier();
-  const selPGs  = (!f.lob     || f.lob.length     === 0) ? ['ISG','ESG','HES'] : f.lob;
+  const selPGs  = (!f.lob     || f.lob.length     === 0) ? ['TET','TES','THS'] : f.lob;
   const selFYs  = f.fy;      // undefined = no checkbox group; [] = all unchecked; ['FY26'] = specific
   const selQs   = f.quarter; // undefined = no checkbox group; [] = all unchecked; ['Q1'] = specific
 
@@ -2853,7 +3221,7 @@ function exportExcel() {
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
   ws['!cols'] = headers.map(h => ({ wch: Math.max(h.length + 2, 12) }));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ISG BPA Raw Data');
+  XLSX.utils.book_append_sheet(wb, ws, 'TET BPA Raw Data');
   XLSX.writeFile(wb, 'isg_bpa_raw_data.xlsx');
 }
 
@@ -2896,417 +3264,790 @@ function sortTable(tableId, col) { /* placeholder */ }
 // REFRESH STAMP
 // =========================================================
 // =========================================================
-// WHAT-IF SIMULATION MODULE
+// FORECAST COPILOT ENGINE (fc_engine v1 — embedded)
 // =========================================================
-// Monthly axis — Feb → Jan (fiscal year)
-const WI_MONTHS = ['Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan'];
 
-// Base data matching Lovable screenshots
-const WI_BASE = {
-  asu:              1350000,
-  sr:               587000,
-  disp:             233700,
-  renewalOppQty:    284500,
-  baseRenewalRate:  85.3,
-  renewedUnits:     242678,
-  newContracts:     73140,
-  asuContrib:       612.4e6,
+/* ==== FORECAST COPILOT SHARED ENGINE ==== */
+const FILTER_OPTIONS = {
+  quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
+  week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
+  region: ['All','AMERICAS','EMEA','APJ'],
+  lob: ['All','Rack Servers','Mid-Range Storage','Scale-Out Storage','SDS Platform','HCI Appliance','Data Protection','Networking','Entry Products'],
+  business: ['All','TES','TET','THS'],
+  service: ['All','Parts Only TES','Parts Only TET','Parts + Labour TES','Parts + Labour TET','Labour Only TES','Labour Only TET'],
+  coreupsell: ['All','Core','Upsell'],
+  wotype: ['All','Break Fix','Part/s dispatch'],
+  fqm: ['All','1','0'],
+  gcfa: ['All','GCFA','non-GCFA','Unknown']
 };
-
-// Monthly seasonality indices (Feb → Jan), normalised so average=1
-const WI_ASU_SHAPE  = [0.756,0.793,0.831,0.815,0.800,0.808,0.816,0.920,1.020,1.095,1.148,1.125];
-const WI_SR_SHAPE   = [0.970,1.020,0.985,0.880,0.815,0.780,0.815,0.969,1.055,1.122,1.156,1.190];
-const WI_DISP_SHAPE = [0.850,0.910,0.870,0.800,0.755,0.755,0.800,0.950,1.055,1.105,1.155,1.200];
-
-const WI_SLIDERS = [
-  { key:'growth',   label:'New Contracts Growth',  min:-20, max:50,  step:1,   val:8,    fmt: v => (v>=0?'+':'')+v+'%' },
-  { key:'renewal',  label:'APOS Renewal Rate',     min:70,  max:100, step:0.5, val:89.5, fmt: v => v.toFixed(1)+'%' },
-];
-
-const WI_SAVED_SCENARIOS_DEFAULT = [
-  { id:'conservative', label:'Conservative',     renewal:78,   growth:-5,  color:'#6b758f' },
-  { id:'expected',     label:'Expected',          renewal:89.5, growth:8,  color:'#9d78f0' },
-  { id:'aggressive',   label:'Aggressive',        renewal:94,   growth:28, color:'#22d472' },
-  { id:'executive',    label:'Executive Stretch', renewal:97,   growth:38, color:'#4c7ef8' },
-  { id:'worst',        label:'Worst Case',        renewal:72,   growth:-18,color:'#f06060' },
-];
-
-let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
-let wiSavedScenarios = WI_SAVED_SCENARIOS_DEFAULT.map(s => ({...s}));
-let wiAuditLog = [];
-let wiCharts = {};
-
-function wiN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3)+'K':Math.round(v).toString(); }
-function wiNK(v) { return (v/1e3).toFixed(1); } // for chart labels in K
-function wiD(v) { return (v>=0?'+':'')+wiN(v); }
-
-function wiCompute(st) {
-  const rRate  = st.renewal / 100;
-  const baseR  = WI_BASE.baseRenewalRate / 100;
-  const gMult  = 1 + (st.growth / 100);
-  const asuMult = 1 + (st.growth/100)*0.8 + (rRate/baseR - 1)*0.25;
-  const whatifASU  = Math.round(WI_BASE.asu  * asuMult);
-  const whatifSR   = Math.round(WI_BASE.sr   * (1 + (st.growth/100)*0.7 + (rRate/baseR-1)*0.2));
-  const whatifDisp = Math.round(WI_BASE.disp * (1 + (st.growth/100)*0.6 + (rRate/baseR-1)*0.15));
-  const renewedUnits   = st.unitsOverride ? (parseInt(st.unitsOverride)||WI_BASE.renewedUnits) : Math.round(WI_BASE.renewalOppQty * rRate);
-  const newContracts   = Math.round(WI_BASE.newContracts * gMult);
-  const aposRenewals   = Math.round(renewedUnits * 2840);    // $2840 per unit
-  const newContractsVal= Math.round(newContracts * 2754);    // $2754 per unit
-  return { whatifASU, whatifSR, whatifDisp, renewedUnits, newContracts, aposRenewals, newContractsVal,
-           asuDelta: whatifASU - WI_BASE.asu, srDelta: whatifSR - WI_BASE.sr, dispDelta: whatifDisp - WI_BASE.disp,
-           growthPct: (whatifASU / WI_BASE.asu - 1) * 100 };
+const FC_STATE_KEY = 'fc_state_v3';
+const FC_DEFAULT_STATE = {
+  filters: { quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Rack Servers', business: 'TES', service: 'Parts + Labour TES', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
+  ncOverride: 10, renewOverride: 5, simMode: 'manual',
+  btcStrategy: null, manualBTC: null, distMode: 'equal',
+  weekOverrides: {},
+  approvals: { scenario: false, btc: false, submitted: false },
+  scenarios: [], activeScenarioId: null
+};
+function fcLoadState() {
+  let state;
+  try {
+    const raw = localStorage.getItem(FC_STATE_KEY);
+    if (!raw) state = JSON.parse(JSON.stringify(FC_DEFAULT_STATE));
+    else {
+      const parsed = JSON.parse(raw);
+      state = { ...JSON.parse(JSON.stringify(FC_DEFAULT_STATE)), ...parsed,
+        filters: { ...FC_DEFAULT_STATE.filters, ...(parsed.filters||{}) },
+        approvals: { ...FC_DEFAULT_STATE.approvals, ...(parsed.approvals||{}) },
+        weekOverrides: { ...(parsed.weekOverrides||{}) } };
+    }
+  } catch(e) { state = JSON.parse(JSON.stringify(FC_DEFAULT_STATE)); }
+  return fcEnsureScenarios(state);
 }
-
-function wiRenderKPIs() {
-  const fc = wiCompute(wiState);
-  const pos = v => v >= 0 ? 'var(--green)' : 'var(--red)';
-  const kpis = [
-    { label:'BASE ASU',         val:wiN(WI_BASE.asu),             sub:'+3.2% YoY',          subColor:'var(--green)', icon:'ti-chart-bar' },
-    { label:'WHAT-IF ASU',      val:wiN(fc.whatifASU),            sub:`+${fc.growthPct.toFixed(1)}% lift`, subColor:'var(--green)', icon:'ti-chart-arrows' },
-    { label:'ASU DELTA',        val:wiD(fc.asuDelta),             sub:'vs baseline',        subColor:pos(fc.asuDelta), icon:'ti-plus-minus' },
-    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),             sub:wiD(fc.srDelta),      subColor:pos(fc.srDelta),  icon:'ti-headset' },
-    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),           sub:wiD(fc.dispDelta),    subColor:pos(fc.dispDelta),icon:'ti-truck' },
-    { label:'FORECAST GROWTH',  val:fc.growthPct.toFixed(1)+'%', sub:'blended uplift',     subColor:'var(--green)', icon:'ti-trending-up' },
-  ];
-  document.getElementById('wi-kpi-row').innerHTML = kpis.map(k => `
-    <div class="kpi-card" style="--kpi-color:var(--text-1);">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
-        <div class="kpi-label">${k.label}</div>
-        <i class="ti ${k.icon}" style="font-size:14px;color:var(--text-3);"></i>
-      </div>
-      <div class="kpi-value" style="font-size:22px;color:var(--text-1);">${k.val}</div>
-      <div class="kpi-sub" style="color:${k.subColor};margin-top:6px;">
-        <i class="ti ti-arrow-up-right" style="font-size:11px;"></i> ${k.sub}
-      </div>
-    </div>`).join('');
+function fcSaveState(state) {
+  try { fcSyncActiveScenario(); } catch(e) {}
+  localStorage.setItem(FC_STATE_KEY, JSON.stringify(state));
 }
-
-function wiRenderSliders() {
-  const sliderHTML = WI_SLIDERS.map(s => `
-    <div style="margin-bottom:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-        <label style="font-size:13px;font-weight:600;color:var(--text-1);">${s.label}</label>
-        <span id="wi-val-${s.key}" style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--accent);">${s.fmt(wiState[s.key])}</span>
-      </div>
-      <input type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${wiState[s.key]}"
-        style="width:100%;accent-color:var(--accent);height:4px;"
-        oninput="wiSliderMoved('${s.key}',parseFloat(this.value))">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px;font-family:var(--font-mono);">
-        <span>${s.fmt(s.min)}</span><span>${s.fmt(s.max)}</span>
-      </div>
-    </div>`).join('');
-
-  const displayVal = wiState.unitsOverride ? Number(wiState.unitsOverride).toLocaleString('en-IN') : '';
-  const textInputHTML = `
-    <div style="margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:600;color:var(--text-1);margin-bottom:8px;">Renewed Units Override</div>
-      <input type="text" id="wi-units-input" value="${displayVal}"
-        placeholder="e.g. 2,50,000"
-        inputmode="numeric"
-        style="width:100%;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text-1);font-size:13px;font-family:var(--font-mono);outline:none;letter-spacing:0.02em;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
-        oninput="wiUnitsInput(this)">
-      <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to use calculated value</div>
-    </div>`;
-
-  document.getElementById('wi-sliders-area').innerHTML = sliderHTML + textInputHTML;
-}
-
-function wiSliderMoved(key, val) {
-  wiState[key] = val;
-  const s = WI_SLIDERS.find(x => x.key === key);
-  document.getElementById('wi-val-' + key).textContent = s.fmt(val);
-  // Targeted updates — fast, no full re-render
-  wiRenderKPIs();
-  wiRenderImpact();
-  wiRenderPipeline();
-  wiRenderCharts(); // smart: updates existing chart data in-place
-  wiAddAudit('Slider', `${s.label} → ${s.fmt(val)}`);
-}
-
-function wiUnitsInput(el) {
-  // Strip everything except digits
-  const digits = el.value.replace(/[^0-9]/g, '');
-  if (!digits) {
-    wiState.unitsOverride = '';
-    el.value = '';
-    wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
-    return;
+const FC_PLAN_KEYS = ['filters','ncOverride','renewOverride','simMode','btcStrategy','manualBTC','distMode','weekOverrides','approvals'];
+const FC_PRESETS = {
+  Baseline:     { ncOverride:10, renewOverride:5,  simMode:'manual', btcStrategy:null,                manualBTC:null, distMode:'equal' },
+  Aggressive:   { ncOverride:30, renewOverride:20, simMode:'manual', btcStrategy:'historicalBestFit', manualBTC:null, distMode:'ai' },
+  Conservative: { ncOverride:0,  renewOverride:0,  simMode:'manual', btcStrategy:'closestToAOP',       manualBTC:null, distMode:'historical' }
+};
+function fcGenId() { return 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fcDeep(v) { return (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v; }
+function fcSnapshotPlanFrom(obj) { const p = {}; FC_PLAN_KEYS.forEach(k => { p[k] = fcDeep(obj[k]); }); return p; }
+function fcSnapshotPlan() { return fcSnapshotPlanFrom(fcState); }
+function fcEnsureScenarios(state) {
+  if (!Array.isArray(state.scenarios) || state.scenarios.length === 0) {
+    const sc = { id: fcGenId(), name: 'Baseline', plan: fcSnapshotPlanFrom(state) };
+    state.scenarios = [sc]; state.activeScenarioId = sc.id;
+  } else if (!state.scenarios.find(s => s.id === state.activeScenarioId)) {
+    state.activeScenarioId = state.scenarios[0].id;
   }
-  const n = parseInt(digits, 10);
-  // Format with Indian number system: 5,00,000
-  const formatted = n.toLocaleString('en-IN');
-  // Preserve cursor at end after reformat
-  el.value = formatted;
-  wiState.unitsOverride = n;
-  wiRenderKPIs(); wiRenderImpact(); wiRenderPipeline(); wiRenderCharts();
-  wiAddAudit('Override', `Renewed Units → ${formatted}`);
+  return state;
+}
+function fcActiveScenario() { return (fcState.scenarios || []).find(s => s.id === fcState.activeScenarioId) || null; }
+function fcSyncActiveScenario() { const s = fcActiveScenario(); if (s) s.plan = fcSnapshotPlan(); }
+function fcApplyPlan(plan) { FC_PLAN_KEYS.forEach(k => { if (k in plan) fcState[k] = fcDeep(plan[k]); }); }
+function fcComputeFor(plan) {
+  const backup = fcSnapshotPlan(); fcApplyPlan(plan);
+  let r; try { r = fcCompute(); } finally { fcApplyPlan(backup); } return r;
+}
+function fcSwitchScenario(id) {
+  const s = (fcState.scenarios || []).find(x => x.id === id); if (!s) return;
+  fcSyncActiveScenario(); fcState.activeScenarioId = id; fcApplyPlan(s.plan); fcSaveState(fcState);
+  fcRefreshAllPages();
+}
+function fcSaveAsScenario(name) {
+  const sc = { id: fcGenId(), name: name || ('Scenario ' + ((fcState.scenarios || []).length + 1)), plan: fcSnapshotPlan() };
+  fcState.scenarios.push(sc); fcState.activeScenarioId = sc.id; fcSaveState(fcState); return sc;
+}
+function fcDuplicateScenario(id) {
+  const src = (fcState.scenarios || []).find(x => x.id === id) || fcActiveScenario(); if (!src) return null;
+  fcSyncActiveScenario();
+  const sc = { id: fcGenId(), name: src.name + ' copy', plan: fcDeep(src.plan) };
+  fcState.scenarios.push(sc); fcState.activeScenarioId = sc.id; fcSaveState(fcState); return sc;
+}
+function fcRenameScenario(id, name) {
+  const s = (fcState.scenarios || []).find(x => x.id === id); if (s && name) { s.name = name; fcSaveState(fcState); }
+}
+function fcDeleteScenario(id) {
+  const list = fcState.scenarios || []; if (list.length <= 1) return false;
+  const idx = list.findIndex(x => x.id === id); if (idx < 0) return false;
+  const wasActive = fcState.activeScenarioId === id; list.splice(idx, 1);
+  if (wasActive) { fcState.activeScenarioId = list[0].id; fcApplyPlan(list[0].plan); }
+  fcSaveState(fcState); return wasActive;
+}
+function fcApplyPreset(name) {
+  const preset = FC_PRESETS[name]; if (!preset) return;
+  const plan = fcSnapshotPlan(); Object.assign(plan, preset);
+  plan.approvals = { scenario: false, btc: false, submitted: false };
+  let sc = (fcState.scenarios || []).find(s => s.name === name);
+  if (sc) sc.plan = plan; else { sc = { id: fcGenId(), name, plan }; fcState.scenarios.push(sc); }
+  fcState.activeScenarioId = sc.id; fcApplyPlan(plan); fcSaveState(fcState); fcRefreshAllPages();
+}
+function fcNowISO() { try { return new Date().toISOString(); } catch (e) { return ''; } }
+function fcScenarioLedger() { const s = fcActiveScenario(); if (!s) return []; if (!s.ledger) s.ledger = []; return s.ledger; }
+function fcLogEdit(entry) { const s = fcActiveScenario(); if (!s) return; if (!s.ledger) s.ledger = []; s.ledger.push({ ts: fcNowISO(), ...entry }); }
+function fcSetWeekOverride(week, value) {
+  if (!fcState.weekOverrides) fcState.weekOverrides = {};
+  const prev = fcState.weekOverrides[week]; fcState.weekOverrides[week] = value;
+  fcLogEdit({ action: 'set', field: 'btcForecast', week, from: (prev == null ? null : prev), to: value }); fcSaveState(fcState);
+}
+function fcClearWeekOverride(week) {
+  if (fcState.weekOverrides && week in fcState.weekOverrides) {
+    const prev = fcState.weekOverrides[week]; delete fcState.weekOverrides[week];
+    fcLogEdit({ action: 'reset', field: 'btcForecast', week, from: prev, to: null }); fcSaveState(fcState);
+  }
+}
+function fcClearAllWeekOverrides() {
+  const keys = Object.keys(fcState.weekOverrides || {}); if (!keys.length) return;
+  fcState.weekOverrides = {};
+  fcLogEdit({ action: 'reset-all', field: 'btcForecast', week: '*', count: keys.length, from: null, to: null }); fcSaveState(fcState);
+}
+let fcState = fcLoadState();
+function fcSetFilter(key, value) { fcState.filters[key] = value; fcSaveState(fcState); }
+
+var fcDataMode = 'simulated'; var fcDataset = null; var fcLiveRows = null;
+const FC_LIVE_FIELD = { quarter: 'fiscalQuarter', week: 'fiscalWeek', region: 'region', lob: 'product', business: 'warrantyType', service: 'serviceType', coreupsell: 'coreUpsell', wotype: 'woType', fqm: 'fqmFlag', gcfa: 'gcfaType' };
+const FC_LIVE_LABEL = { lob: 'Product', business: 'Warranty Type' };
+const FC_LIVE_DISPATCH_RATIO = { 'All': 0.50, 'Labour Only': 0.68, 'Parts + Labour': 0.56, 'Parts Only': 0.33 };
+function fcInitData() {
+  try {
+    const xhr = new XMLHttpRequest(); xhr.open('GET', '/api/dataset', false); xhr.send(null);
+    if (xhr.status >= 200 && xhr.status < 300 && xhr.responseText) {
+      const d = JSON.parse(xhr.responseText);
+      if (d && Array.isArray(d.rows) && d.rows.length) { fcDataset = d; fcLiveRows = d.rows; fcDataMode = 'live'; }
+    }
+  } catch (e) {}
 }
 
-function wiRenderImpact() {
-  const fc = wiCompute(wiState);
-  const rows = [
-    { icon:'ti-trending-up', label:'ASU increase',     val:wiD(fc.asuDelta),  pos:fc.asuDelta>=0 },
-    { icon:'ti-headset',     label:'Service Requests',  val:wiD(fc.srDelta),   pos:fc.srDelta>=0 },
-    { icon:'ti-truck',       label:'Dispatches',        val:wiD(fc.dispDelta), pos:fc.dispDelta>=0 },
-  ];
-  document.getElementById('wi-impact-rows').innerHTML = rows.map(r => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,0.12);border-radius:8px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:28px;height:28px;background:rgba(255,255,255,0.15);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <i class="ti ${r.icon}" style="color:#fff;font-size:13px;"></i>
-        </div>
-        <span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:500;">${r.label}</span>
-      </div>
-      <span style="color:#fff;font-family:var(--font-mono);font-size:15px;font-weight:700;">${r.val}</span>
-    </div>`).join('');
+function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function fcHash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) % 2147483647; } return h || 1; }
+function fcSeedFor(filters, salt) { return fcHash([filters.region, filters.lob, filters.business, filters.service, filters.quarter, salt||''].join('|')); }
+const FC_REGION_FACTOR   = { All: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
+const FC_LOB_FACTOR       = { 'All': 6.25, 'Rack Servers': 1.20, 'Mid-Range Storage': 0.90, 'Scale-Out Storage': 0.80, 'SDS Platform': 0.85, 'HCI Appliance': 1.00, 'Data Protection': 0.50, 'Networking': 0.60, 'Entry Products': 0.40 };
+const FC_BUSINESS_FACTOR  = { All: 2.90, TES: 1.00, TET: 1.30, THS: 0.60 };
+const FC_SERVICE_FACTOR   = { 'All':{ volume:5.05, dispatchRatio:0.50 },'Parts Only TES':{ volume:1.00, dispatchRatio:0.32 },'Parts Only TET':{ volume:1.05, dispatchRatio:0.35 },'Parts + Labour TES':{ volume:0.90, dispatchRatio:0.55 },'Parts + Labour TET':{ volume:0.95, dispatchRatio:0.58 },'Labour Only TES':{ volume:0.55, dispatchRatio:0.68 },'Labour Only TET':{ volume:0.60, dispatchRatio:0.70 } };
+const FC_COREUPSELL_FACTOR = { 'All': 1.00, 'Core': 0.60, 'Upsell': 0.40 };
+const FC_WOTYPE_FACTOR     = { 'All': 1.00, 'Break Fix': 0.60, 'Part/s dispatch': 0.40 };
+const FC_FQM_FACTOR        = { 'All': 1.00, '1': 0.60, '0': 0.40 };
+const FC_GCFA_FACTOR       = { 'All': 1.00, 'GCFA': 0.20, 'non-GCFA': 0.75, 'Unknown': 0.05 };
+const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_RENEW_WEEKLY = 21500;
+const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
+function fcCombinedFactor(filters) {
+  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES'];
+  return (FC_REGION_FACTOR[filters.region]||1)*(FC_LOB_FACTOR[filters.lob]||1)*(FC_BUSINESS_FACTOR[filters.business]||1)*svc.volume*(FC_COREUPSELL_FACTOR[filters.coreupsell]||1)*(FC_WOTYPE_FACTOR[filters.wotype]||1)*(FC_FQM_FACTOR[filters.fqm]||1)*(FC_GCFA_FACTOR[filters.gcfa]||1);
 }
-
-function wiRenderPipeline() {
-  const fc = wiCompute(wiState);
-  const nodes = [
-    { label:'NEW CONTRACTS',    val:'$'+wiN(fc.newContractsVal), icon:'ti-file-plus',    grad:'linear-gradient(135deg,#3b6fd4,#5b8ff9)' },
-    { label:'APOS RENEWALS',    val:'$'+wiN(fc.aposRenewals),   icon:'ti-refresh',       grad:'linear-gradient(135deg,#2d52e0,#4c7ef8)' },
-    { label:'ASU FORECAST',     val:wiN(fc.whatifASU),           icon:'ti-chart-arrows',  grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
-    { label:'SERVICE REQUESTS', val:wiN(fc.whatifSR),            icon:'ti-headset',       grad:'linear-gradient(135deg,#0f9488,#14b8a6)' },
-    { label:'DISPATCHES',       val:wiN(fc.whatifDisp),          icon:'ti-truck',         grad:'linear-gradient(135deg,#1c4ed8,#3b82f6)' },
-  ];
-  const chevron = `<div style="display:flex;align-items:center;flex-shrink:0;padding:0 6px;"><i class="ti ti-chevron-right" style="font-size:18px;color:var(--text-3);"></i></div>`;
-  document.getElementById('wi-pipeline').innerHTML = nodes.map((n, i) => `
-    ${i > 0 ? chevron : ''}
-    <div style="flex:1;min-width:140px;border-radius:12px;padding:14px 16px;background:${n.grad};position:relative;overflow:hidden;">
-      <div style="position:absolute;top:10px;right:12px;opacity:0.25;">
-        <i class="ti ${n.icon}" style="font-size:28px;color:#fff;"></i>
-      </div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.7);margin-bottom:8px;text-transform:uppercase;">${n.label}</div>
-      <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:#fff;">${n.val}</div>
-    </div>`).join('');
+function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only TES']).dispatchRatio; }
+function fcWeeksForQuarter(quarter) {
+  const [y, qStr] = quarter.split('-Q'); const q = +qStr;
+  const startWeek = (q - 1) * 13 + 1; const weeks = [];
+  for (let i = 0; i < 13; i++) weeks.push(y + '-W' + String(startWeek + i).padStart(2, '0'));
+  return weeks;
 }
-
-function _wiChartData() {
-  const fc = wiCompute(wiState);
-  const ratio   = fc.whatifASU  / WI_BASE.asu;
-  const srRatio = fc.whatifSR   / WI_BASE.sr;
-  const dpRatio = fc.whatifDisp / WI_BASE.disp;
-  return {
-    asuBase: WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12)),
-    asuAdj:  WI_ASU_SHAPE.map(s  => Math.round(WI_BASE.asu  * s  / 12 * ratio)),
-    srBase:  WI_SR_SHAPE.map(s   => Math.round(WI_BASE.sr   * s  / 12 / 1e3)),
-    srAdj:   WI_SR_SHAPE.map(s   => parseFloat((WI_BASE.sr  * s  / 12 / 1e3 * srRatio).toFixed(1))),
-    dpBase:  WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3)),
-    dpAdj:   WI_DISP_SHAPE.map(s => Math.round(WI_BASE.disp * s  / 12 / 1e3 * dpRatio)),
+function fcGenerateWeeklySeries(filters) {
+  const factor = fcCombinedFactor(filters);
+  const dispatchRatio = fcDispatchRatio(filters);
+  const rngNC = seeded(fcSeedFor(filters, 'nc')); const rngRENEW = seeded(fcSeedFor(filters, 'renew'));
+  const newContracts = [], renew = [];
+  for (let w = 0; w < 13; w++) {
+    const seasonal = 1 + 0.08 * Math.sin((w / 13) * Math.PI * 2); const trend = 1 + w * 0.004;
+    newContracts.push(Math.round(FC_BASE_NC_WEEKLY * factor * seasonal * trend * (0.94 + rngNC() * 0.12)));
+    renew.push(Math.round(FC_BASE_RENEW_WEEKLY * factor * seasonal * trend * (0.94 + rngRENEW() * 0.12)));
+  }
+  const rollASU = (ncFactor, renewFactor) => {
+    const asu = []; let prior = FC_BASE_ASU * factor;
+    for (let w = 0; w < 13; w++) {
+      const exp = prior * FC_EXPIRATION_RATE; const renewals = renew[w] * FC_BASE_RENEWAL_RATE * renewFactor;
+      const additions = newContracts[w] * ncFactor; prior = prior - exp + renewals + additions; asu.push(Math.round(prior));
+    }
+    return asu;
   };
+  const asuBase = rollASU(1, 1);
+  const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
+  const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
+  const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE));
+  return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, renew, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
+}
+function fcSensitivity() { return { nc: 0.6, renew: 0.4 }; }
+function fcApplyOverrides(series, ncOverridePct, renewOverridePct) {
+  const sens = fcSensitivity();
+  const ncFactor = 1 + ((ncOverridePct - 10) / 100) * sens.nc;
+  const renewFactor = 1 + ((renewOverridePct - 5) / 100) * sens.renew;
+  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, renewFactor));
+  const srAdj = asuAdj.map(v => Math.round(v * FC_SR_RATIO));
+  const dspAdj = srAdj.map(v => Math.round(v * series.dispatchRatio));
+  return { asuAdj, srAdj, dspAdj, ncFactor, renewFactor };
+}
+function fcSum(arr) { return arr.reduce((a,b) => a+b, 0); }
+function fcAvg(arr) { return arr.length ? fcSum(arr)/arr.length : 0; }
+function fcPriorQuarters(quarter, n) {
+  let [y, qStr] = quarter.split('-Q'); y = +y; let q = +qStr; const out = [];
+  for (let i = 0; i < n; i++) { q -= 1; if (q < 1) { q = 4; y -= 1; } out.unshift(y + '-Q' + q); } return out;
+}
+function fcGenerateHistory(filters) {
+  const quarters = fcPriorQuarters(filters.quarter, 12);
+  const rngBTC = seeded(fcSeedFor(filters, 'hist-btc')); const rngAcc = seeded(fcSeedFor(filters, 'hist-acc'));
+  const rngAop = seeded(fcSeedFor(filters, 'hist-aop')); const rngMod = seeded(fcSeedFor(filters, 'hist-mod'));
+  const btc = [], accuracy = [], aop = [], modern = [];
+  for (let i = 0; i < 12; i++) {
+    const drift = i * 0.12;
+    btc.push(+(3.2 + drift + rngBTC() * 3.2).toFixed(1));
+    accuracy.push(Math.round(86 + drift * 0.6 + rngAcc() * 9));
+    aop.push(Math.round(76 + drift * 1.4 + rngAop() * 20));
+    modern.push(Math.round(60 + drift * 1.1 + rngMod() * 15));
+  }
+  const rngT = seeded(fcSeedFor(filters, 'targets'));
+  const aopTargetPct = Math.round(92 + rngT() * 6);
+  const modernTargetPct = Math.round(70 + rngT() * 10);
+  const triadCommitmentPct = Math.round(88 + rngT() * 8);
+  return { quarters, btc, accuracy, aop, modern, aopTargetPct, modernTargetPct, triadCommitmentPct };
+}
+function fcRecommendOverrides(filters) {
+  const hist = fcGenerateHistory(filters); const avgAccuracy = fcAvg(hist.accuracy);
+  const shortfall = Math.max(0, 100 - avgAccuracy);
+  const nc = Math.max(0, Math.min(100, Math.round(10 + shortfall * 1.8)));
+  const renew = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
+  return { nc, renew, avgAccuracy: Math.round(avgAccuracy), rationale: `Based on a ${Math.round(avgAccuracy)}% average forecast accuracy over the last 12 fiscal quarters, a corrective override is recommended.` };
+}
+function fcRecommendBTC(filters, scenarioTotals) {
+  const hist = fcGenerateHistory(filters);
+  const weights = [1,1,1,2,2,2,3,3,3,4,4,5]; const wsum = weights.reduce((a,b)=>a+b,0);
+  const historicalBestFit = hist.btc.reduce((s,v,i)=>s+v*weights[i],0) / wsum;
+  const latestAccuracy = hist.accuracy[hist.accuracy.length - 1];
+  const accuracyShortfall = Math.max(0, 100 - latestAccuracy) / 100;
+  const target = scenarioTotals.srTotal * (1 + accuracyShortfall * 0.6);
+  const gap = target - scenarioTotals.srTotal;
+  const closestToAOP = Math.max(0, Math.min(25, (gap / scenarioTotals.srTotal) * 100));
+  const balanced = (historicalBestFit + closestToAOP) / 2;
+  function detail(btcPct) {
+    const srAdj = Math.round(scenarioTotals.srTotal * (1 + btcPct/100));
+    const dspAdj = Math.round(scenarioTotals.dspTotal * (1 + btcPct/100));
+    const gapToTarget = Math.round(target - srAdj);
+    const distFromHist = Math.abs(btcPct - historicalBestFit);
+    const confidence = Math.max(60, Math.min(98, Math.round(95 - distFromHist * 3)));
+    const risk = distFromHist <= 2 ? 'Low' : distFromHist <= 5 ? 'Medium' : 'High';
+    return { btcPct: +btcPct.toFixed(2), srAdj, dspAdj, gapToTarget, confidence, risk };
+  }
+  return { historicalBestFit: detail(historicalBestFit), balanced: detail(balanced), closestToAOP: detail(closestToAOP), target: Math.round(target), aopTargetPct: hist.aopTargetPct, modernTargetPct: hist.modernTargetPct, triadCommitmentPct: hist.triadCommitmentPct, hist };
+}
+function fcDistributeWeekly(series, btcPct, distMode, overrides) {
+  const n = series.weeks.length; let weights = new Array(n).fill(1);
+  if (distMode === 'historical') weights = series.weeks.map((_,i) => 0.7 + (i/(n-1)) * 0.6);
+  else if (distMode === 'ai') { const avg = fcAvg(series.srBase); weights = series.srBase.map(v => 1 + Math.max(0, (avg - v) / avg) * 0.8); }
+  const wSum = weights.reduce((a,b)=>a+b,0); const wNorm = weights.map(w => w * n / wSum);
+  const dsForecast = series.srBase.slice(); const totalUplift = fcSum(dsForecast) * (btcPct/100);
+  const shareBase = dsForecast.map((v,i) => v * wNorm[i]); const shareSum = fcSum(shareBase) || 1;
+  overrides = overrides || {};
+  const edited = series.weeks.map(w => overrides[w] != null);
+  const btcForecast = dsForecast.map((v,i) => edited[i] ? Math.round(overrides[series.weeks[i]]) : Math.round(v + totalUplift * (shareBase[i] / shareSum)));
+  const variance = btcForecast.map((v,i) => v - dsForecast[i]);
+  const wowChange = btcForecast.map((v,i) => (i === 0 || !btcForecast[i-1]) ? null : +(((v - btcForecast[i-1]) / btcForecast[i-1]) * 100).toFixed(1));
+  return { weeks: series.weeks, dsForecast, btcForecast, variance, wowChange, edited, hasOverrides: edited.some(Boolean) };
+}
+function fcCompute() {
+  const filters = fcState.filters; const series = fcGenerateWeeklySeries(filters);
+  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.renewOverride);
+  const hist = fcGenerateHistory(filters);
+  const originalTotals = { nc: fcSum(series.newContracts), renew: fcSum(series.renew), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase), expir: fcSum(series.expirations || []) };
+  const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
+  const btcRec = fcRecommendBTC(filters, { srTotal: scenarioTotals.sr, dspTotal: scenarioTotals.dsp });
+  let selectedBTCPct = 0, selectedDetail = null;
+  if (fcState.btcStrategy === 'manual' && fcState.manualBTC != null) {
+    selectedBTCPct = fcState.manualBTC;
+    const srAdj = Math.round(scenarioTotals.sr * (1 + selectedBTCPct/100));
+    const dspAdj = Math.round(scenarioTotals.dsp * (1 + selectedBTCPct/100));
+    selectedDetail = { btcPct: selectedBTCPct, srAdj, dspAdj, gapToTarget: Math.round(btcRec.target - srAdj), confidence: 70, risk: 'Medium' };
+  } else if (fcState.btcStrategy && btcRec[fcState.btcStrategy]) {
+    selectedDetail = btcRec[fcState.btcStrategy]; selectedBTCPct = selectedDetail.btcPct;
+  }
+  const weekly = fcDistributeWeekly({ weeks: series.weeks, srBase: adj.srAdj }, selectedBTCPct, fcState.distMode, fcState.weekOverrides);
+  let finalSR = selectedDetail ? selectedDetail.srAdj : scenarioTotals.sr;
+  let finalDsp = selectedDetail ? selectedDetail.dspAdj : scenarioTotals.dsp;
+  if (weekly.hasOverrides) { finalSR = fcSum(weekly.btcForecast); const ratio = scenarioTotals.sr ? (scenarioTotals.dsp / scenarioTotals.sr) : series.dispatchRatio; finalDsp = Math.round(finalSR * ratio); }
+  const finalGap = btcRec.target - finalSR; const meetsAOP = finalSR >= btcRec.target * 0.98;
+  const modernAchievement = hist.modern[hist.modern.length-1]; const meetsModernization = modernAchievement >= hist.modernTargetPct;
+  const triadMinBTC = btcRec.closestToAOP.btcPct * (hist.triadCommitmentPct / 100); const meetsTriad = selectedBTCPct >= triadMinBTC;
+  const readyForSubmission = meetsAOP && meetsModernization && !!fcState.btcStrategy;
+  return { filters, series, adj, hist, btcRec, originalTotals, scenarioTotals, selectedBTCPct, selectedDetail, weekly,
+    final: { sr: finalSR, dsp: finalDsp, gap: Math.round(finalGap), target: btcRec.target, btcPct: selectedBTCPct },
+    status: { meetsAOP, meetsModernization, meetsTriad, readyForSubmission, modernAchievement } };
 }
 
-function wiRenderCharts() {
-  const d     = _wiChartData();
-  const gridC = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
-  const tickC = isDark ? '#6b758f' : '#9099be';
-  const baseC = isDark ? '#4b5563' : '#9ca3af';
+let _fcOnFilterChange = null; const _fcFilterRefreshers = [];
+function fcWireFilters(onChange) {
+  _fcOnFilterChange = onChange; _fcFilterRefreshers.length = 0;
+  document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
+    const key = item.dataset.filter; const btn = item.querySelector('.filter-value');
+    if (!btn || item.querySelector('.filter-dropdown')) return;
+    const dd = document.createElement('div'); dd.className = 'filter-dropdown';
+    function refresh() {
+      if (btn.firstChild) btn.firstChild.textContent = fcState.filters[key];
+      dd.querySelectorAll('.filter-option').forEach(o => o.classList.toggle('selected', o.textContent === fcState.filters[key]));
+    }
+    (FILTER_OPTIONS[key] || []).forEach(opt => {
+      const o = document.createElement('div');
+      o.className = 'filter-option' + (fcState.filters[key] === opt ? ' selected' : '');
+      o.textContent = opt;
+      o.onclick = (e) => { e.stopPropagation(); dd.classList.remove('open'); btn.classList.remove('open'); fcSetFilter(key, opt); refresh(); onChange(); };
+      dd.appendChild(o);
+    });
+    refresh(); item.appendChild(dd);
+    btn.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.filter-dropdown.open').forEach(x => { if (x!==dd) x.classList.remove('open'); }); document.querySelectorAll('.filter-value.open').forEach(x => { if (x!==btn) x.classList.remove('open'); }); dd.classList.toggle('open'); btn.classList.toggle('open'); };
+    _fcFilterRefreshers.push(refresh);
+  });
+  document.addEventListener('click', () => { document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open')); document.querySelectorAll('.filter-value.open').forEach(x => x.classList.remove('open')); });
+}
+function fcResetFilters() { fcState.filters = { ...FC_DEFAULT_STATE.filters }; fcSaveState(fcState); _fcFilterRefreshers.forEach(fn => fn()); if (_fcOnFilterChange) _fcOnFilterChange(); }
+function fcWireFilterRailUI() {
+  const moreBtn = document.getElementById('more-filters-toggle'); const moreGrid = document.getElementById('secondary-filters');
+  if (moreBtn && moreGrid) { moreBtn.onclick = (e) => { e.stopPropagation(); const open = moreGrid.classList.toggle('open'); moreBtn.classList.toggle('open', open); if (open) { moreGrid.style.maxHeight = moreGrid.scrollHeight + 'px'; moreGrid.style.opacity = '1'; moreGrid.style.marginTop = '10px'; } else { moreGrid.style.maxHeight = '0'; moreGrid.style.opacity = '0'; moreGrid.style.marginTop = '0'; } }; }
+  const resetBtn = document.getElementById('filter-reset-btn'); if (resetBtn) resetBtn.onclick = (e) => { e.stopPropagation(); fcResetFilters(); };
+}
+function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString('en-IN')+'K':Math.round(v).toLocaleString('en-IN'); }
+function fcPct(v, d) { return v.toFixed(d==null?1:d)+'%'; }
 
-  // ── Smart update: if charts already exist, only update the What-If dataset ──
-  if (wiCharts['wi-chart-asu'] && wiCharts['wi-chart-sr'] && wiCharts['wi-chart-dp']) {
-    wiCharts['wi-chart-asu'].data.datasets[1].data = d.asuAdj;
-    wiCharts['wi-chart-asu'].update('none');
-    wiCharts['wi-chart-sr'].data.datasets[1].data = d.srAdj;
-    wiCharts['wi-chart-sr'].update('none');
-    wiCharts['wi-chart-dp'].data.datasets[1].data = d.dpAdj;
-    wiCharts['wi-chart-dp'].update('none');
-    return;
+/* ---- Highcharts helpers ---- */
+const fcHCharts = {};
+if (typeof Highcharts !== 'undefined') Highcharts.setOptions({ chart: { style: { fontFamily: "'Plus Jakarta Sans',-apple-system,sans-serif" } }, lang: { thousandsSep: ',' } });
+function fcHCTooltip() {
+  return { shared: true, backgroundColor: '#0f172a', borderColor: '#0f172a', borderRadius: 8, padding: 10, style: { color: '#f1f5f9', fontSize: '11.5px' },
+    formatter: function () { let s = '<span style="font-size:10px;color:#94a3b8;font-weight:700">' + this.x + '</span>'; (this.points||[]).forEach(p => { s += '<br/><span style="color:' + p.color + '">●</span> ' + p.series.name + ': <b>' + fcN(p.y) + '</b>'; }); return s; } };
+}
+function fcHCAxes(labels) {
+  return { xAxis: { categories: labels, lineColor: '#dde5f2', tickLength: 0, labels: { style: { color: '#8a94ad', fontSize: '9.5px' }, rotation: labels.length > 6 ? -35 : 0 } }, yAxis: { title: { text: null }, min: 0, gridLineColor: '#e8edf7', labels: { style: { color: '#8a94ad', fontSize: '10px' }, formatter: function () { return fcN(this.value); } } } };
+}
+function fcDraw(id, type, labels, seriesArr, h) {
+  const el = document.getElementById(id); if (!el || typeof Highcharts === 'undefined') return;
+  if (fcHCharts[id]) { try { fcHCharts[id].destroy(); } catch(e) {} delete fcHCharts[id]; }
+  el.style.height = (h || 150) + 'px';
+  const ax = fcHCAxes(labels);
+  fcHCharts[id] = Highcharts.chart(el, { chart: { type, backgroundColor: 'transparent', spacing: [10,8,4,4], animation: { duration: 300 } }, title: { text: null }, credits: { enabled: false }, legend: { enabled: false }, xAxis: ax.xAxis, yAxis: ax.yAxis, tooltip: fcHCTooltip(), plotOptions: { line: { lineWidth: 2.2, marker: { enabled: false }, states: { hover: { lineWidthPlus: 0.5 } } }, column: { borderRadius: 3, borderWidth: 0, groupPadding: 0.14, pointPadding: 0.06 } }, series: seriesArr.map(s => ({ name: s.name, data: s.data.slice(), color: s.color })) });
+}
+
+/* ---- Scenario CSS / UI ---- */
+function fcInjectScenarioCSS() {
+  if (document.getElementById('fc-scenario-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-scenario-css';
+  st.textContent = `#fc-scenario-bar{margin:0 0 16px;padding:12px;border:1px solid #d7e0ef;border-radius:12px;background:#f4f8fe;font-family:inherit}#fc-scenario-bar .fc-scn-hd{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#0f766e;margin-bottom:7px}#fc-scn-select{width:100%;padding:7px 8px;border:1px solid #cfd9ea;border-radius:8px;background:#fff;font:600 12.5px inherit;color:#0d1020}.fc-scn-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.fc-scn-actions button{flex:1 1 auto;padding:5px 8px;border:1px solid #cfd9ea;border-radius:7px;background:#fff;font:600 11px inherit;color:#37415a;cursor:pointer}.fc-scn-actions button:hover{background:#eef3fb;border-color:#b4c2dd}.fc-scn-presets{margin-top:9px;padding-top:9px;border-top:1px dashed #d7e0ef}.fc-scn-presets .fc-scn-plabel{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a94ad;margin-bottom:5px}.fc-scn-presets .fc-scn-chips{display:flex;gap:5px}.fc-scn-presets button{flex:1;padding:5px 6px;border:1px solid #cfd9ea;border-radius:999px;background:#fff;font:600 10.5px inherit;color:#37415a;cursor:pointer}.fc-scn-presets button:hover{background:#e7f8f3;border-color:#99e3d5;color:#0f766e}`;
+  document.head.appendChild(st);
+}
+function fcEsc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fcBtcLabel(k) { return { historicalBestFit:'Historical Best Fit', balanced:'Balanced', closestToAOP:'Closest to AOP', manual:'Manual' }[k] || '—'; }
+function fcRenderScenarioBar() {
+  const bar = document.getElementById('fc-scenario-bar'); if (!bar) return;
+  const list = fcState.scenarios || []; const active = fcState.activeScenarioId;
+  bar.innerHTML = '<div class="fc-scn-hd">Scenario</div>' +
+    '<select id="fc-scn-select">' + list.map(s => `<option value="${s.id}" ${s.id===active?'selected':''}>${fcEsc(s.name)}</option>`).join('') + '</select>' +
+    '<div class="fc-scn-actions"><button data-act="new">New</button><button data-act="dup">Duplicate</button><button data-act="rename">Rename</button><button data-act="del">Delete</button></div>' +
+    '<div class="fc-scn-presets"><div class="fc-scn-plabel">Presets</div><div class="fc-scn-chips">' + Object.keys(FC_PRESETS).map(p => `<button data-preset="${p}">${p}</button>`).join('') + '</div></div>';
+  bar.querySelector('#fc-scn-select').addEventListener('change', e => { fcSwitchScenario(e.target.value); });
+  bar.querySelectorAll('[data-act]').forEach(btn => btn.addEventListener('click', () => {
+    const act = btn.dataset.act, cur = fcActiveScenario();
+    if (act === 'new') { const n = prompt('Name this scenario', 'Scenario ' + ((fcState.scenarios||[]).length + 1)); if (n) { fcSaveAsScenario(n.trim()); fcRenderScenarioBar(); } }
+    else if (act === 'dup') { fcDuplicateScenario(fcState.activeScenarioId); fcRenderScenarioBar(); }
+    else if (act === 'rename') { const n = prompt('Rename scenario', cur ? cur.name : ''); if (n) { fcRenameScenario(fcState.activeScenarioId, n.trim()); fcRenderScenarioBar(); } }
+    else if (act === 'del') { if ((fcState.scenarios||[]).length <= 1) { alert('Keep at least one scenario.'); return; } if (confirm(`Delete "${cur ? cur.name : ''}"?`)) { fcDeleteScenario(fcState.activeScenarioId); fcRenderScenarioBar(); } }
+  }));
+  bar.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => fcApplyPreset(btn.dataset.preset)));
+}
+
+/* ======================================================
+   FC MODULE BOOT: called when the whatif module opens
+   ====================================================== */
+function fcBootModule() {
+  fcInitData();
+  fcInjectScenarioCSS();
+  fcWireFilters(fcRefreshCurrentPage);
+  fcWireFilterRailUI();
+  fcRenderScenarioBar();
+  setTimeout(fcRenderDashboard, 60);
+}
+function fcRefreshCurrentPage() {
+  const active = document.querySelector('#module-whatif .page-section.active');
+  if (!active) return;
+  const id = active.id;
+  if (id === 'fc-page-dashboard')   fcRenderDashboard();
+  else if (id === 'fc-page-asu-sim') fcRenderASU();
+  else if (id === 'fc-page-historical') fcRenderHistorical();
+  else if (id === 'fc-page-btc-advisor') fcRenderAdvisor();
+  else if (id === 'fc-page-btc-dist') fcRenderDistribution();
+  else if (id === 'fc-page-final') fcRenderFinal();
+}
+function fcRefreshAllPages() { fcRenderScenarioBar(); fcRefreshCurrentPage(); }
+
+/* ======================================================
+   PAGE 1: DASHBOARD
+   ====================================================== */
+function fcRenderDashboard() {
+  const r = fcCompute();
+  const N = fcN, P = fcPct;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('kpi-nc',  N(r.originalTotals.nc));
+  set('kpi-renew',N(r.originalTotals.renew));
+  set('kpi-asu', N(r.originalTotals.asu));
+  set('kpi-sr',  N(r.originalTotals.sr));
+  set('kpi-dsp', N(r.originalTotals.dsp));
+  set('kpi-btc', P(r.selectedBTCPct, 2));
+  set('kpi-acc', r.hist.accuracy[r.hist.accuracy.length-1] + '%');
+  set('kpi-aop', r.hist.aop[r.hist.aop.length-1] + '%');
+  set('kpi-mod', r.hist.modern[r.hist.modern.length-1] + '%');
+
+  // Forecast vs Target table
+  const fvtBody = document.getElementById('fvt-body');
+  if (fvtBody) {
+    const srGap = r.final.sr - r.final.target; const dspTarget = Math.round(r.final.target * r.series.dispatchRatio);
+    fvtBody.innerHTML = [
+      ['ASU (qtr-end)', N(r.originalTotals.asu), '1.47M', N(r.originalTotals.asu - 1470000)],
+      ['SR (qtr total)', N(r.originalTotals.sr), '5.87L', N(r.originalTotals.sr - 587000)],
+      ['Dispatch (qtr)', N(r.originalTotals.dsp), '2.34L', N(r.originalTotals.dsp - 234000)],
+    ].map(([m, f, t, g]) => `<tr><td>${m}</td><td style="font-weight:700">${f}</td><td>${t}</td><td style="color:${parseFloat(g)>=0?'var(--green)':'var(--red)'}">${parseFloat(g)>=0?'+':''}${g}</td></tr>`).join('');
   }
 
-  // ── First render: create charts from scratch ──
-  function mkLine(id, baseD, adjD, adjColor) {
-    const el = document.getElementById(id); if (!el) return;
-    if (wiCharts[id]) wiCharts[id].destroy();
-    wiCharts[id] = new Chart(el.getContext('2d'), {
-      type: 'line',
-      data: { labels: WI_MONTHS, datasets: [
-        { label:'Base',    data:baseD, borderColor:baseC, backgroundColor:'transparent',
-          borderWidth:1.5, pointRadius:0, pointHoverRadius:4, tension:0.45, fill:false },
-        { label:'What-If', data:adjD,  borderColor:adjColor, backgroundColor:adjColor+'18',
-          borderWidth:2.5, pointRadius:0, pointHoverRadius:5, tension:0.45, fill:'-1' },
-      ]},
-      options: {
-        responsive:true, maintainAspectRatio:false,
-        interaction:{ mode:'index', intersect:false },
-        plugins:{
-          legend:{ display:false },
-          tooltip:{
-            backgroundColor: isDark?'#111521':'#fff',
-            borderColor:     isDark?'#1d2135':'#dde2f4',
-            borderWidth:1,
-            titleColor:      isDark?'#e9ecf7':'#0d1020',
-            bodyColor:       isDark?'#6b758f':'#5a6280',
-            callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.formattedValue}` }
-          }
-        },
-        scales:{
-          x:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10},maxRotation:0}, border:{display:false} },
-          y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}},               border:{display:false} }
-        }
-      }
+  const wks = r.series.weeks;
+  fcDraw('chart-asu-trend', 'line', wks, [{ name:'ASU', data: r.series.asuBase, color:'#0d9488' }], 150);
+  fcDraw('chart-sr-trend',  'line', wks, [{ name:'SR',  data: r.series.srBase,  color:'#d97706' }], 150);
+  fcDraw('chart-dsp-trend', 'line', wks, [{ name:'Dsp', data: r.series.dspBase, color:'#0284c7' }], 150);
+  fcDraw('chart-hist-btc',  'line', r.hist.quarters, [{ name:'BTC%', data: r.hist.btc, color:'#7c3aed' }], 170);
+  fcDraw('chart-fvt', 'column', ['SR','Dispatch'], [
+    { name:'Forecast', data:[r.originalTotals.sr, r.originalTotals.dsp], color:'#0d9488' },
+    { name:'Target',   data:[587000, 234000], color:'#d97706' }
+  ], 170);
+
+  const now = new Date().toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+  set('act-1', now); set('act-2', now); set('act-3', now); set('act-4', now);
+}
+
+/* ======================================================
+   PAGE 2: ASU SIMULATION
+   ====================================================== */
+let _fcSimMetric = 'asu';
+function fcRenderASU() {
+  const r = fcCompute(); const N = fcN;
+  // Slider values
+  const ncEl = document.getElementById('nc-override'); const renewEl = document.getElementById('renew-override');
+  if (ncEl) { ncEl.value = fcState.ncOverride; }
+  if (renewEl) { renewEl.value = fcState.renewOverride; }
+  const ncValEl = document.getElementById('nc-val'); if (ncValEl) ncValEl.textContent = fcState.ncOverride + '%';
+  const renewValEl = document.getElementById('renew-val'); if (renewValEl) renewValEl.textContent = fcState.renewOverride + '%';
+
+  // Wire slider events if not wired
+  if (ncEl && !ncEl._fcWired) { ncEl._fcWired = true; ncEl.oninput = () => { fcState.ncOverride = +ncEl.value; if (ncValEl) ncValEl.textContent = ncEl.value + '%'; fcSaveState(fcState); fcRenderASU(); }; }
+  if (renewEl && !renewEl._fcWired) { renewEl._fcWired = true; renewEl.oninput = () => { fcState.renewOverride = +renewEl.value; if (renewValEl) renewValEl.textContent = renewEl.value + '%'; fcSaveState(fcState); fcRenderASU(); }; }
+
+  // Mode toggle
+  const modeToggle = document.getElementById('sim-mode-toggle');
+  if (modeToggle && !modeToggle._fcWired) {
+    modeToggle._fcWired = true;
+    modeToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.onclick = () => {
+      fcState.simMode = btn.dataset.mode; fcSaveState(fcState);
+      modeToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      document.getElementById('manual-panel').style.display = fcState.simMode === 'manual' ? '' : 'none';
+      document.getElementById('recommend-panel').style.display = fcState.simMode === 'recommend' ? '' : 'none';
+      if (fcState.simMode === 'recommend') fcRenderRecommendation();
     });
   }
+  if (modeToggle) { modeToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === fcState.simMode)); }
+  document.getElementById('manual-panel').style.display = fcState.simMode === 'manual' ? '' : 'none';
+  document.getElementById('recommend-panel').style.display = fcState.simMode === 'recommend' ? '' : 'none';
+  if (fcState.simMode === 'recommend') fcRenderRecommendation();
 
-  mkLine('wi-chart-asu', d.asuBase, d.asuAdj, '#3b82f6');
-  mkLine('wi-chart-sr',  d.srBase,  d.srAdj,  '#06b6d4');
+  // Overview cards
+  const ovvRow = document.getElementById('ovv-row');
+  if (ovvRow) {
+    const metrics = [
+      { label:'ASU', orig: N(r.originalTotals.asu), adj: N(r.scenarioTotals.asu), delta: r.scenarioTotals.asu - r.originalTotals.asu },
+      { label:'SR',  orig: N(r.originalTotals.sr),  adj: N(r.scenarioTotals.sr),  delta: r.scenarioTotals.sr - r.originalTotals.sr },
+      { label:'Dispatch', orig: N(r.originalTotals.dsp), adj: N(r.scenarioTotals.dsp), delta: r.scenarioTotals.dsp - r.originalTotals.dsp },
+    ];
+    ovvRow.innerHTML = metrics.map(m => `<div class="ovv-card"><div class="ovv-label">${m.label}</div><div class="ovv-line"><span class="k">Original</span><span class="v">${m.orig}</span></div><div class="ovv-line"><span class="k">Scenario</span><span class="v">${m.adj}</span></div><div class="ovv-line"><span class="k">Δ</span><span class="v ${m.delta>=0?'pos':'neg'}">${m.delta>=0?'+':''}${N(m.delta)}</span></div></div>`).join('');
+  }
 
-  // Dispatch — grouped bar
-  const dpEl = document.getElementById('wi-chart-dp'); if (!dpEl) return;
-  if (wiCharts['wi-chart-dp']) wiCharts['wi-chart-dp'].destroy();
-  wiCharts['wi-chart-dp'] = new Chart(dpEl.getContext('2d'), {
-    type:'bar',
-    data:{ labels:WI_MONTHS, datasets:[
-      { label:'Base',    data:d.dpBase, backgroundColor:isDark?'rgba(107,114,128,0.5)':'rgba(156,163,175,0.55)', borderRadius:2 },
-      { label:'What-If', data:d.dpAdj,  backgroundColor:'#3b82f6cc', borderRadius:2 },
-    ]},
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ grid:{display:false}, ticks:{color:tickC,font:{size:9},maxRotation:0}, border:{display:false} },
-        y:{ grid:{color:gridC,drawTicks:false}, ticks:{color:tickC,font:{size:10}}, border:{display:false} }
-      }
-    }
-  });
+  // Metric chart
+  const metricToggle = document.getElementById('asu-metric-toggle');
+  if (metricToggle && !metricToggle._fcWired) {
+    metricToggle._fcWired = true;
+    metricToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.onclick = () => {
+      _fcSimMetric = btn.dataset.metric; metricToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      const titleEl = document.getElementById('asu-metric-title'); if (titleEl) titleEl.textContent = 'DS ' + _fcSimMetric.toUpperCase() + ' vs Scenario';
+      fcDrawSimChart(r);
+    });
+  }
+  fcDrawSimChart(r);
+}
+function fcDrawSimChart(r) {
+  const wks = r.series.weeks;
+  let base, adj;
+  if (_fcSimMetric === 'sr')      { base = r.series.srBase;  adj = r.adj.srAdj; }
+  else if (_fcSimMetric === 'dsp') { base = r.series.dspBase; adj = r.adj.dspAdj; }
+  else                             { base = r.series.asuBase; adj = r.adj.asuAdj; }
+  fcDraw('chart-metric', 'line', wks, [{ name:'DS Forecast', data: base, color:'#0d9488' }, { name:'Scenario', data: adj, color:'#d97706' }], 170);
+}
+function fcRenderRecommendation() {
+  const rec = fcRecommendOverrides(fcState.filters);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('rec-rationale', rec.rationale); set('rec-nc', rec.nc + '%'); set('rec-renew', rec.renew + '%');
+  const acceptBtn = document.getElementById('rec-accept');
+  if (acceptBtn && !acceptBtn._fcWired) {
+    acceptBtn._fcWired = true;
+    acceptBtn.onclick = () => {
+      fcState.ncOverride = rec.nc; fcState.renewOverride = rec.renew; fcState.simMode = 'manual';
+      fcSaveState(fcState); fcRenderASU();
+    };
+  }
 }
 
-function wiRenderAIInsights() {
-  const fc = wiCompute(wiState);
-  const dPct = fc.growthPct.toFixed(1);
-  const regions = ['EMEA','Americas','APJ'];
-  const topRegion = regions[Math.abs(Math.round(wiState.renewal * 7)) % 3];
-  const conf = Math.min(98, Math.round(72 + wiState.renewal/9 + wiState.growth/8));
-  document.getElementById('wi-ai-insights').innerHTML = `
-    <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--blue);">
-      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Scenario Analysis</div>
-      <div style="font-size:11px;line-height:1.7;">At <strong style="color:var(--text-1)">${wiState.renewal.toFixed(1)}%</strong> renewal rate with <strong style="color:var(--text-1)">${wiState.growth>=0?'+':''}${wiState.growth}%</strong> contracts growth, ASU shifts by <strong style="color:${dPct>=0?'var(--green)':'var(--red)'};">${dPct>=0?'+':''}${dPct}%</strong> vs baseline.</div>
-    </div>
-    <div style="margin-bottom:8px;padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--purple);">
-      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Service Demand Signal</div>
-      <div style="font-size:11px;line-height:1.7;">Dispatch forecast reaches <strong style="color:var(--text-1)">${wiN(fc.whatifDisp)}</strong> units with <strong style="color:var(--text-1)">${wiN(fc.whatifSR)}</strong> service requests projected. Confidence: <strong style="color:var(--text-1)">${conf}%</strong>.</div>
-    </div>
-    <div style="padding:10px;background:var(--surface);border-radius:8px;border-left:2px solid var(--green);">
-      <div style="font-weight:700;font-size:11px;color:var(--text-1);margin-bottom:4px;">Regional Opportunity</div>
-      <div style="font-size:11px;line-height:1.7;"><strong style="color:var(--text-1)">${topRegion}</strong> shows the highest renewal uplift leverage. Targeting that region adds the most ASU delta per percentage point.</div>
-    </div>`;
+/* ======================================================
+   PAGE 3: HISTORICAL PERFORMANCE
+   ====================================================== */
+function fcRenderHistorical() {
+  const r = fcCompute(); const hist = r.hist;
+  const minBTC = Math.min(...hist.btc); const maxBTC = Math.max(...hist.btc);
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('kpi-btc-range', fcPct(minBTC, 1) + ' – ' + fcPct(maxBTC, 1));
+  const band = document.getElementById('btc-range-band');
+  if (band) { band.style.left = fcPct(minBTC/25*100, 1); band.style.width = fcPct((maxBTC-minBTC)/25*100, 1); }
+
+  // Best quarters
+  const quarterList = document.getElementById('quarter-list');
+  if (quarterList) {
+    const sorted = hist.quarters.map((q, i) => ({ q, acc: hist.accuracy[i] })).sort((a, b) => b.acc - a.acc).slice(0, 4);
+    quarterList.innerHTML = sorted.map((item, i) => `<div class="quarter-item ${i===0?'top':''}"><div class="quarter-name">${item.q}</div><div class="quarter-aop">Accuracy: ${item.acc}%</div>${i===0?'<div class="star">★</div>':''}</div>`).join('');
+  }
+
+  fcDraw('chart-hist-btc-pg', 'line',   hist.quarters, [{ name:'BTC%',     data: hist.btc,      color:'#0d9488' }], 150);
+  fcDraw('chart-accuracy',    'line',   hist.quarters, [{ name:'Accuracy%', data: hist.accuracy, color:'#d97706' }], 150);
+  fcDraw('fva',               'column', hist.quarters, [
+    { name:'Forecast', data: hist.accuracy.map((a,i) => Math.round(r.originalTotals.sr / 12 * (1 + i * 0.03))), color:'#0d9488' },
+    { name:'Actual',   data: hist.accuracy.map((a,i) => Math.round(r.originalTotals.sr / 12 * (1 + i * 0.03) * a/100)), color:'#0284c7' }
+  ], 210);
+  fcDraw('chart-aop-modern', 'line', hist.quarters, [
+    { name:'AOP%',          data: hist.aop,    color:'#7c3aed' },
+    { name:'Modernization%',data: hist.modern, color:'#db2777' }
+  ], 150);
 }
 
-function wiRenderScenarios() {
-  document.getElementById('wi-scenario-list').innerHTML = wiSavedScenarios.map(s => `
-    <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:9px;border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:border-color 0.15s;"
-      onmouseenter="this.style.borderColor='${s.color}'" onmouseleave="this.style.borderColor='var(--border)'"
-      onclick="wiLoadScenario('${s.id}')">
-      <div style="width:9px;height:9px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
-      <span style="flex:1;font-size:12px;color:var(--text-1);font-weight:600;">${s.label}</span>
-      <span style="font-size:10px;color:var(--text-2);font-family:var(--font-mono);">R:${s.renewal}% G:${s.growth>=0?'+':''}${s.growth}%</span>
-      <button onclick="wiDeleteScenario(event,'${s.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);padding:2px;"><i class="ti ti-trash" style="font-size:12px;"></i></button>
-    </div>`).join('');
-}
+/* ======================================================
+   PAGE 4: AI BTC ADVISOR
+   ====================================================== */
+function fcRenderAdvisor() {
+  const r = fcCompute();
+  // Strategy toggle
+  const stratToggle = document.getElementById('strategy-toggle');
+  if (stratToggle && !stratToggle._fcWired) {
+    stratToggle._fcWired = true;
+    stratToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.onclick = () => {
+      fcState.btcStrategy = btn.dataset.strategy; fcSaveState(fcState);
+      stratToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      fcUpdateBTCSelected(r); fcRenderCmpTable(r);
+    });
+  }
+  if (stratToggle && fcState.btcStrategy) { stratToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.strategy === fcState.btcStrategy)); }
 
-function wiLoadScenario(id) {
-  const s = wiSavedScenarios.find(x => x.id === id); if (!s) return;
-  ['renewal','growth'].forEach(k => { if (s[k]!==undefined) wiState[k]=s[k]; });
-  wiRenderSliders(); wiRenderAll();
-  wiAddAudit('Scenario', `Loaded: ${s.label}`);
-}
-
-function wiSaveScenario() {
-  const id = 'custom_' + Date.now();
-  wiSavedScenarios.push({ id, label:'Custom '+(wiSavedScenarios.length+1),
-    renewal:wiState.renewal, growth:wiState.growth, color:'#6b758f' });
-  wiRenderScenarios(); wiAddAudit('Scenario', 'Saved scenario');
-}
-
-function wiDeleteScenario(e, id) {
-  e.stopPropagation();
-  wiSavedScenarios = wiSavedScenarios.filter(s => s.id !== id);
-  wiRenderScenarios();
-}
-
-function wiRenderPublishReadiness() {
-  const conf = Math.min(99, Math.round(74 + wiState.renewal/9 + wiState.growth/12));
-  const fc = wiCompute(wiState);
-  const items = [
-    { l:'Quality Score',    v:conf+'%',             color:'var(--green)' },
-    { l:'Approval Status',  v:'Pending',             color:'var(--amber)' },
-    { l:'Final ASU',        v:wiN(fc.whatifASU),     color:'var(--blue)' },
-    { l:'Final Dispatches', v:wiN(fc.whatifDisp),    color:'var(--purple)' },
+  // Sliders
+  const sliders = [
+    { sid: 's-mod', vid: 'v-mod', key: 'mod' }, { sid: 's-triad', vid: 'v-triad', key: 'triad' },
+    { sid: 's-chat', vid: 'v-chat', key: 'chat' }, { sid: 's-remote', vid: 'v-remote', key: 'remote' },
+    { sid: 's-heal', vid: 'v-heal', key: 'heal' }, { sid: 's-qual', vid: 'v-qual', key: 'qual' }
   ];
-  document.getElementById('wi-publish-readiness').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-      ${items.map(x => `
-        <div style="padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
-          <div style="font-size:10px;color:var(--text-2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">${x.l}</div>
-          <div style="font-family:var(--font-mono);font-size:16px;font-weight:600;color:${x.color};">${x.v}</div>
-        </div>`).join('')}
-    </div>
-    <div style="background:var(--surface);border-radius:8px;padding:10px;border:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px;">
-        <span style="color:var(--text-2);">Publish Readiness</span>
-        <span style="font-family:var(--font-mono);font-weight:700;color:var(--text-1);">${conf}%</span>
-      </div>
-      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-        <div style="height:100%;width:${conf}%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:3px;transition:width 0.4s;"></div>
-      </div>
-    </div>`;
+  sliders.forEach(({ sid, vid }) => {
+    const el = document.getElementById(sid); const vel = document.getElementById(vid);
+    if (el && !el._fcWired) { el._fcWired = true; el.oninput = () => { if (vel) vel.textContent = el.value + '%'; }; }
+    if (el && vel) vel.textContent = el.value + '%';
+  });
+
+  // Manual override
+  const manualInput = document.getElementById('manual-override'); const manualBtn = document.getElementById('btn-use-manual');
+  if (manualInput && fcState.btcStrategy === 'manual' && fcState.manualBTC != null) manualInput.value = fcState.manualBTC;
+  if (manualBtn && !manualBtn._fcWired) {
+    manualBtn._fcWired = true;
+    manualBtn.onclick = () => {
+      const v = parseFloat(manualInput ? manualInput.value : ''); if (isNaN(v) || v < 0) { alert('Enter a valid BTC %'); return; }
+      fcState.btcStrategy = 'manual'; fcState.manualBTC = v; fcSaveState(fcState);
+      if (stratToggle) stratToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      fcUpdateBTCSelected(fcCompute()); fcRenderCmpTable(fcCompute());
+    };
+  }
+
+  fcUpdateBTCSelected(r); fcRenderCmpTable(r);
+}
+function fcUpdateBTCSelected(r) {
+  const calcBTC = document.getElementById('calc-btc'); const sub = document.getElementById('selected-sub');
+  if (r.selectedDetail) {
+    if (calcBTC) calcBTC.textContent = fcPct(r.selectedDetail.btcPct, 2);
+    if (sub) sub.textContent = fcBtcLabel(fcState.btcStrategy) + ' · Confidence ' + r.selectedDetail.confidence + '%';
+  } else { if (calcBTC) calcBTC.textContent = '—'; if (sub) sub.textContent = 'Choose a recommendation above, or enter a manual override.'; }
+}
+function fcRenderCmpTable(r) {
+  const tbody = document.getElementById('cmp-body'); if (!tbody) return;
+  const rows = [
+    ['Historical Best Fit', r.btcRec.historicalBestFit, 'historicalBestFit'],
+    ['Balanced',            r.btcRec.balanced,           'balanced'],
+    ['Closest to AOP',      r.btcRec.closestToAOP,       'closestToAOP'],
+  ];
+  tbody.innerHTML = rows.map(([label, d, key]) => {
+    const isActive = fcState.btcStrategy === key;
+    return `<tr style="cursor:pointer;${isActive?'background:rgba(13,148,136,0.06)':''}" onclick="(function(){fcState.btcStrategy='${key}';fcSaveState(fcState);const st=document.getElementById('strategy-toggle');if(st)st.querySelectorAll('.toggle-btn').forEach(b=>b.classList.toggle('active',b.dataset.strategy==='${key}'));fcUpdateBTCSelected(fcCompute());fcRenderCmpTable(fcCompute());})()">
+      <td style="font-weight:700">${label}</td>
+      <td style="font-family:var(--font-mono)">${fcPct(d.btcPct,2)}</td>
+      <td style="font-family:var(--font-mono)">${fcN(d.srAdj)}</td>
+      <td style="font-family:var(--font-mono)">${fcN(d.dspAdj)}</td>
+      <td style="font-family:var(--font-mono);color:${d.gapToTarget<=0?'var(--green)':'var(--red)'};">${d.gapToTarget<=0?'✓ Met':'+'+fcN(d.gapToTarget)}</td>
+      <td>${d.confidence}%</td>
+      <td class="risk-${d.risk.toLowerCase()}">${d.risk}</td></tr>`;
+  }).join('');
 }
 
-function wiHandlePublish() {
-  wiAddAudit('Publish', 'Forecast published to plan system');
-  const b = document.getElementById('wi-pub-btn');
-  b.style.background = 'var(--green)'; b.style.color = '#000';
-  b.innerHTML = '<i class="ti ti-check"></i> Published!';
-  setTimeout(() => {
-    b.style.background = 'var(--accent)'; b.style.color = '#fff';
-    b.innerHTML = '<i class="ti ti-rocket"></i> Publish';
-  }, 2500);
+/* ======================================================
+   PAGE 5: BTC DISTRIBUTION
+   ====================================================== */
+const FC_REGIONS_DIST   = { AMERICAS: 0.42, EMEA: 0.32, APJ: 0.26 };
+const FC_BUSINESS_DIST  = { TES: 0.44, TET: 0.34, THS: 0.22 };
+const FC_LOBS_DIST = [{ lob:'Rack Servers', pct:0.30 },{ lob:'Mid-Range Storage', pct:0.18 },{ lob:'HCI Appliance', pct:0.14 },{ lob:'Scale-Out Storage', pct:0.12 },{ lob:'Networking', pct:0.10 },{ lob:'SDS Platform', pct:0.09 },{ lob:'Data Protection', pct:0.07 }];
+const FC_SERVICES_DIST = [{ svc:'Parts + Labour TES', pct:0.30 },{ svc:'Parts + Labour TET', pct:0.22 },{ svc:'Parts Only TES', pct:0.20 },{ svc:'Labour Only TES', pct:0.14 },{ svc:'Parts Only TET', pct:0.09 },{ svc:'Labour Only TET', pct:0.05 }];
+const FC_DIST_COLORS = ['#0d9488','#d97706','#0284c7','#7c3aed','#db2777','#64748b','#16a34a'];
+
+function fcRenderDistribution() {
+  const r = fcCompute(); const N = fcN;
+  // Empty note
+  const emptyNote = document.getElementById('empty-note');
+  if (emptyNote) emptyNote.style.display = fcState.btcStrategy ? 'none' : '';
+
+  // Dist toggle
+  const distToggle = document.getElementById('dist-toggle');
+  if (distToggle && !distToggle._fcWired) {
+    distToggle._fcWired = true;
+    distToggle.querySelectorAll('.toggle-btn').forEach(btn => btn.onclick = () => {
+      fcState.distMode = btn.dataset.mode; fcSaveState(fcState);
+      distToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+      fcRenderDistribution();
+    });
+  }
+  if (distToggle) distToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === fcState.distMode));
+
+  // Donut charts (using Highcharts pie)
+  function drawDonut(id, legendId, data) {
+    const el = document.getElementById(id); if (!el || typeof Highcharts === 'undefined') return;
+    if (fcHCharts[id]) { try { fcHCharts[id].destroy(); } catch(e){} }
+    el.style.width = '130px'; el.style.height = '130px';
+    fcHCharts[id] = Highcharts.chart(el, { chart: { type: 'pie', backgroundColor: 'transparent', spacing: [0,0,0,0], margin: [0,0,0,0] }, title:{text:null}, credits:{enabled:false}, legend:{enabled:false}, tooltip:{formatter:function(){return '<b>'+this.point.name+'</b>: '+fcPct(this.y);}},
+      plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false } } },
+      series: [{ data: data.map((d, i) => ({ name: d.name, y: d.pct * 100, color: FC_DIST_COLORS[i] })) }] });
+    const legEl = document.getElementById(legendId);
+    if (legEl) legEl.innerHTML = data.map((d, i) => `<div style="display:flex;align-items:center;gap:6px;font-size:11px;"><span class="dot" style="background:${FC_DIST_COLORS[i]}"></span>${d.name}<span class="lval">${fcPct(d.pct)}</span></div>`).join('');
+  }
+  drawDonut('donut-region',   'legend-region',   Object.entries(FC_REGIONS_DIST).map(([k,v]) => ({ name:k, pct:v })));
+  drawDonut('donut-business', 'legend-business', Object.entries(FC_BUSINESS_DIST).map(([k,v]) => ({ name:k, pct:v })));
+
+  // Horizontal bars LOB
+  const lobDiv = document.getElementById('hbars-lob');
+  if (lobDiv) lobDiv.innerHTML = FC_LOBS_DIST.map(d => `<div class="hbar-row"><div class="hbar-label">${d.lob}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(d.pct*100).toFixed(1)}%"></div></div><div class="hbar-val">${fcPct(d.pct)}</div></div>`).join('');
+  const svcDiv = document.getElementById('hbars-service');
+  if (svcDiv) svcDiv.innerHTML = FC_SERVICES_DIST.map(d => `<div class="hbar-row"><div class="hbar-label" style="width:160px">${d.svc}</div><div class="hbar-track"><div class="hbar-fill" style="width:${(d.pct*100).toFixed(1)}%"></div></div><div class="hbar-val">${fcPct(d.pct)}</div></div>`).join('');
+
+  // Weekly bar chart
+  const weekly = r.weekly;
+  fcDraw('fwbars', 'column', weekly.weeks, [
+    { name:'DS Forecast',  data: weekly.dsForecast,  color:'#0d9488' },
+    { name:'BTC Forecast', data: weekly.btcForecast, color:'#d97706' }
+  ], 150);
+
+  // Weekly table
+  const weeklyBody = document.getElementById('weekly-body');
+  if (weeklyBody) {
+    weeklyBody.innerHTML = weekly.weeks.map((w, i) => {
+      const over = fcState.weekOverrides && fcState.weekOverrides[w] != null;
+      return `<tr ${over?'style="background:rgba(13,148,136,0.06)"':''}>
+        <td style="font-family:var(--font-mono)">${w}</td>
+        <td style="font-family:var(--font-mono)">${N(weekly.dsForecast[i])}</td>
+        <td><input type="text" value="${N(weekly.btcForecast[i])}" style="width:80px;border:1px solid ${over?'var(--teal)':'var(--border)'};border-radius:5px;padding:3px 6px;font-family:var(--font-mono);background:var(--surface);color:var(--text-1)" onchange="(function(el,w){const v=parseInt(el.value.replace(/[^0-9]/g,''));if(!isNaN(v)){fcSetWeekOverride(w,v);fcRenderDistribution();}else{el.value='${N(weekly.btcForecast[i])}'}})(this,'${w}')"></td>
+        <td style="font-family:var(--font-mono);color:${weekly.variance[i]>=0?'var(--green)':'var(--red)'}">${weekly.variance[i]>=0?'+':''}${N(weekly.variance[i])}</td>
+        <td style="font-family:var(--font-mono);color:var(--text-2)">${weekly.wowChange[i]==null?'—':(weekly.wowChange[i]>=0?'+':'')+weekly.wowChange[i]+'%'}</td>
+        <td>${over?`<button onclick="fcClearWeekOverride('${w}');fcRenderDistribution();" style="font-size:10px;border:none;background:none;color:var(--teal);cursor:pointer">↺</button>`:''}
+        </td></tr>`;
+    }).join('');
+    const editCount = Object.keys(fcState.weekOverrides||{}).length;
+    const countEl = document.getElementById('edit-count'); if (countEl) countEl.textContent = editCount > 0 ? `${editCount} week${editCount>1?'s':''} edited` : '';
+    const resetAll = document.getElementById('reset-all'); if (resetAll) { resetAll.style.display = editCount > 0 ? '' : 'none'; if (!resetAll._fcWired) { resetAll._fcWired = true; resetAll.onclick = () => { fcClearAllWeekOverrides(); fcRenderDistribution(); }; } }
+  }
+
+  // Change ledger
+  const ledgerBody = document.getElementById('ledger-body');
+  if (ledgerBody) {
+    const entries = fcScenarioLedger().slice().reverse().slice(0, 20);
+    ledgerBody.innerHTML = entries.length ? entries.map(e => `<tr><td style="font-size:11px;color:var(--text-3)">${e.ts ? new Date(e.ts).toLocaleTimeString('en-IN') : '—'}</td><td style="font-weight:700">${e.action}</td><td style="font-family:var(--font-mono)">${e.week||'—'}</td><td style="font-family:var(--font-mono)">${e.from!=null?N(e.from):'—'}</td><td style="font-family:var(--font-mono)">${e.to!=null?N(e.to):'—'}</td></tr>`).join('') : '<tr><td colspan="5" style="color:var(--text-3);font-size:12px;text-align:center;padding:12px">No edits yet</td></tr>';
+  }
+
+  // Opportunity table
+  const oppBody = document.getElementById('opp-body');
+  if (oppBody) {
+    oppBody.innerHTML = [
+      { dim:'EMEA',      score:'8.4', uplift:'4.2%', reason:'Below-average BTC absorption vs historical pattern' },
+      { dim:'APJ',       score:'7.1', uplift:'3.8%', reason:'Highest SR-per-ASU ratio in trailing quarters' },
+      { dim:'AMERICAS',  score:'5.3', uplift:'2.1%', reason:'Slight opportunity in Parts+Labour modernization' },
+    ].map(o => `<tr><td style="font-weight:700">${o.dim}</td><td>${o.score}</td><td style="color:var(--teal);font-weight:700">${o.uplift}</td><td style="font-size:11.5px;color:var(--text-2)">${o.reason}</td></tr>`).join('');
+  }
 }
 
-function wiAddAudit(action, detail) {
-  const now = new Date();
-  wiAuditLog.unshift({ action, detail, time: now.toLocaleTimeString() });
-  if (wiAuditLog.length > 50) wiAuditLog.pop();
-  wiRenderAudit();
+/* ======================================================
+   PAGE 6: FINAL FORECAST
+   ====================================================== */
+function fcRenderFinal() {
+  const r = fcCompute(); const N = fcN, P = fcPct;
+  const qtr = fcState.filters.quarter; const [yr, q] = qtr.split('-Q');
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('ff-year-label', yr); set('ff-prev-year-label', (+yr - 1).toString());
+
+  // Status cards
+  const statusRow = document.getElementById('status-row');
+  if (statusRow) {
+    const items = [
+      { name:'AOP Alignment',    val: r.status.meetsAOP ? 'Met' : 'At Risk',     ok: r.status.meetsAOP },
+      { name:'Modernization',    val: r.status.meetsModernization ? 'Met' : 'At Risk', ok: r.status.meetsModernization },
+      { name:'Triad Commitment', val: r.status.meetsTriad ? 'Met' : 'Pending',   ok: r.status.meetsTriad },
+      { name:'Submission Ready', val: r.status.readyForSubmission ? 'Yes' : 'No', ok: r.status.readyForSubmission },
+    ];
+    statusRow.innerHTML = items.map(item => `<div class="status-card"><div class="status-dot ${item.ok?'':'off'}"></div><div><div class="status-name">${item.name}</div><div class="status-val ${item.ok?'':'off'}">${item.val}</div></div></div>`).join('');
+  }
+
+  // Compare toggle
+  const cmpToggle = document.getElementById('ff-compare-toggle');
+  if (cmpToggle && !cmpToggle._fcWired) {
+    cmpToggle._fcWired = true;
+    cmpToggle.onchange = () => { const legPrev = document.getElementById('ff-legend-prev'); if (legPrev) legPrev.style.display = cmpToggle.checked ? '' : 'none'; fcDrawFinalChart(r, cmpToggle.checked); };
+  }
+
+  fcDrawFinalChart(r, cmpToggle && cmpToggle.checked);
+
+  // Submission summary
+  const summaryBody = document.getElementById('summary-body');
+  if (summaryBody) {
+    const gap = r.final.gap <= 0 ? '<span style="color:var(--green)">✓ Met</span>' : '+' + N(r.final.gap);
+    summaryBody.innerHTML = [
+      ['ASU',      N(r.originalTotals.asu), '1.47M', N(r.originalTotals.asu - 1470000), P(r.selectedBTCPct,2), r.selectedDetail ? r.selectedDetail.confidence + '%' : '—', r.selectedDetail ? r.selectedDetail.risk : '—'],
+      ['SR',       N(r.final.sr),           N(r.final.target), r.final.gap <= 0 ? '✓ Met' : '+'+N(r.final.gap), P(r.selectedBTCPct,2), r.selectedDetail ? r.selectedDetail.confidence + '%' : '—', r.selectedDetail ? r.selectedDetail.risk : '—'],
+      ['Dispatch', N(r.final.dsp),          '2.34L', '', P(r.selectedBTCPct,2), r.selectedDetail ? r.selectedDetail.confidence + '%' : '—', '—'],
+    ].map(row => `<tr>${row.map((v, i) => `<td style="${i===3&&row[i]==='✓ Met'?'color:var(--green)':''}">${v}</td>`).join('')}</tr>`).join('');
+  }
+
+  // Approval buttons
+  const approveScenBtn = document.getElementById('btn-approve-scenario');
+  const approveBTCBtn  = document.getElementById('btn-approve-btc');
+  const submitBtn      = document.getElementById('btn-submit');
+  if (approveScenBtn && !approveScenBtn._fcWired) { approveScenBtn._fcWired = true; approveScenBtn.onclick = () => { fcState.approvals.scenario = true; fcSaveState(fcState); approveScenBtn.style.background = 'var(--teal)'; approveScenBtn.style.color = '#fff'; fcRenderFinal(); }; }
+  if (approveBTCBtn  && !approveBTCBtn._fcWired)  { approveBTCBtn._fcWired = true;  approveBTCBtn.onclick  = () => { fcState.approvals.btc      = true; fcSaveState(fcState); approveBTCBtn.style.background  = 'var(--teal)'; approveBTCBtn.style.color  = '#fff'; fcRenderFinal(); }; }
+  if (submitBtn && !submitBtn._fcWired) {
+    submitBtn._fcWired = true;
+    submitBtn.onclick = () => {
+      if (!fcState.approvals.scenario || !fcState.approvals.btc) { alert('Please approve both the Scenario and BTC before submitting.'); return; }
+      fcState.approvals.submitted = true; fcSaveState(fcState);
+      const pub = document.getElementById('publish-status');
+      if (pub) { pub.innerHTML = '<span style="color:var(--green);font-weight:700;">✓ Forecast submitted at ' + new Date().toLocaleTimeString('en-IN') + '</span>'; }
+      const outBody = document.getElementById('outputs-body');
+      if (outBody) {
+        const now = new Date(); const fname = `forecast_${qtr}_submitted_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.xlsx`;
+        outBody.innerHTML = `<tr><td style="font-family:var(--font-mono);color:var(--teal)">${fname}</td><td>${now.toLocaleString('en-IN')}</td><td>~42 KB</td></tr>` + outBody.innerHTML;
+      }
+    };
+  }
+  if (approveScenBtn && fcState.approvals.scenario) { approveScenBtn.style.background = 'var(--teal)'; approveScenBtn.style.color = '#fff'; }
+  if (approveBTCBtn  && fcState.approvals.btc)      { approveBTCBtn.style.background  = 'var(--teal)'; approveBTCBtn.style.color  = '#fff'; }
+}
+function fcDrawFinalChart(r, showPrev) {
+  const wks = r.series.weeks;
+  const series = [
+    { name:'Original',   data: r.series.srBase,  color:'#0d9488' },
+    { name:'Scenario',   data: r.adj.srAdj,       color:'#d97706' },
+    { name:'BTC',        data: r.weekly.btcForecast, color:'#7c3aed' },
+    { name:'Final',      data: r.weekly.btcForecast.map(v => Math.round(v * 1.005)), color:'#db2777' },
+    { name:'Target',     data: wks.map(() => Math.round(r.final.target / 13)), color:'#0284c7' },
+  ];
+  if (showPrev) series.push({ name:'Prev Year Final', data: r.series.srBase.map(v => Math.round(v * 0.91)), color:'#64748b' });
+  fcDraw('ff-chart', 'line', wks, series, 190);
 }
 
-function wiRenderAudit() {
-  const el = document.getElementById('wi-audit-log'); if (!el) return;
-  el.innerHTML = wiAuditLog.slice(0,15).map(a => `
-    <div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
-      <div style="width:24px;height:24px;border-radius:50%;background:var(--blue-dim);border:1px solid rgba(76,126,248,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">AR</div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:11px;font-weight:600;color:var(--text-1);">${a.action}</span>
-          <span style="font-size:9px;color:var(--text-3);font-family:var(--font-mono);">${a.time}</span>
-        </div>
-        <div style="font-size:10px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.detail}</div>
-      </div>
-    </div>`).join('');
-}
-
-function wiExportCSV() {
-  alert('CSV export initiated for current scenario comparison.');
-}
-
-function wiRenderAll() {
-  wiRenderKPIs();
-  wiRenderImpact();
-  wiRenderPipeline();
-  wiRenderCharts();
-  wiRenderAIInsights();
-  wiRenderScenarios();
-  wiRenderPublishReadiness();
-  wiRenderAudit();
-}
-
-function wiInit() {
-  wiRenderSliders();
-  wiAddAudit('Session', 'What-If module loaded');
-  wiAddAudit('Filter', 'FY 2026 · Q2 · All Regions');
-  setTimeout(wiRenderAll, 80);
-}
 
 function setRefreshStamp() {
   const now = new Date();

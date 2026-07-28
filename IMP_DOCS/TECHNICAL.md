@@ -1,4 +1,4 @@
-# Technical Reference — ISG BPA
+# Technical Reference — TET BPA
 > Architecture, filter system, chart patterns, Git workflow. Last updated: 2026-06-22
 
 ---
@@ -8,7 +8,7 @@
 | File | Status | Sessions |
 |---|---|---|
 | `BPA_FORCASTING_MOCK.HTML` | **Active development** | 14–current |
-| `IBP_Forcasting.html` | Stable, not under active development | 1–13 |
+| `AST_Forcasting.html` | Stable, not under active development | 1–13 |
 
 ---
 
@@ -23,17 +23,19 @@ switchPage(pageId, ...)   // shows/hides sub-pages; calls resetPageFilters() fir
 ### Chart Stores
 ```js
 const chartInstances = {};  // all Chart.js instances (FA, DP quadrants, Demand Trends, FT)
-const wiCharts = {};        // What-If Simulation charts (managed separately)
+const fcHCharts = {};       // Forecast Copilot (whatif module) Highcharts instances
 let _dpBaseData = null;     // raw seeded data for quadrant charts (set in initDemandProfilingQuadrants)
 let _ftBaseData  = null;    // raw seeded data for SR trend charts (set in initForecastTrendChart)
 ```
 
 `initCharts()` destroys all `chartInstances` and reinitialises on every `openDashboard()`.
 
+> **2026-07-18**: the old `wiCharts`/`wiInit()`/`wiState`/`wiCompute()` What-If Simulation engine (below) was fully replaced by the `fc_*` shared engine (same one embedded in `forecast_copilot/*.html`) — see PROMPT_TRAIL Session 24 for the replacement and Session 29 for a markup bug that had silently broken the module since, plus removal of the now-fully-dead `wi*` stub functions.
+
 ### Module Init Pattern
 ```js
 // openDashboard():
-if (moduleId === 'whatif') { setTimeout(wiInit, 80); }
+if (moduleId === 'whatif') { setTimeout(fcBootModule, 80); }
 else { setTimeout(initCharts, 80); }
 // initCharts() calls: mk() × 3 (FA charts), initDemandProfilingQuadrants(),
 //                    initDemandTrends(), applyAllFilteredCharts()
@@ -50,9 +52,12 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'fa-page-actuals')       generateActualsTable();
   if (pageId === 'fa-page-partner')       generatePartnerTable();
   if (pageId === 'fa-page-forecast-trend') setTimeout(initForecastTrendChart, 80);
-  if (pageId === 'wi-page-sim')           setTimeout(wiRenderAll, 60);
-  if (pageId === 'wi-page-scenarios')     wiRenderAIInsights(); wiRenderScenarios();
-  if (pageId === 'wi-page-publish')       wiRenderPublishReadiness(); wiRenderAudit();
+  if (pageId === 'fc-page-dashboard')     setTimeout(fcRenderDashboard, 60);
+  if (pageId === 'fc-page-asu-sim')       setTimeout(fcRenderASU, 60);
+  if (pageId === 'fc-page-historical')    setTimeout(fcRenderHistorical, 60);
+  if (pageId === 'fc-page-btc-advisor')   setTimeout(fcRenderAdvisor, 60);
+  if (pageId === 'fc-page-btc-dist')      setTimeout(fcRenderDistribution, 60);
+  if (pageId === 'fc-page-final')         setTimeout(fcRenderFinal, 60);
   if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
     updateDPQuadrantCharts(); updateDemandTrends();
   }
@@ -68,7 +73,7 @@ function switchPage(pageId, linkEl, moduleId, label) {
 // Returns { group: [values] } for groups with specific selections.
 // If "(All)" is checked, the group key is ABSENT from the returned object (= all values).
 // If nothing is checked, group key is present with empty array [] (= show nothing).
-getActiveFilters()   // → e.g. { fy: ['FY26'], lob: ['ISG','ESG'] }
+getActiveFilters()   // → e.g. { fy: ['FY26'], lob: ['TET','TES'] }
 ```
 
 ### resetPageFilters()
@@ -82,16 +87,16 @@ const resetDPFilters = resetPageFilters; // backward-compat alias
 ```
 
 ### Product Group (LOB) Filter
-Display label: "Product Group". Internal `data-group`: `"lob"`. Values: All / ISG / ESG / HES.
+Display label: "Product Group". Internal `data-group`: `"lob"`. Values: All / TET / TES / THS.
 ```js
-const DP_LOB_SHARE = { ISG: 0.60, ESG: 0.25, HES: 0.15 };
+const DP_LOB_SHARE = { TET: 0.60, TES: 0.25, THS: 0.15 };
 
 function getDPLOBMult() {
   const f = getActiveFilters();
   if (!f.lob || f.lob.length === 0) return 1.0;
   return f.lob.reduce((s, pg) => s + (DP_LOB_SHARE[pg] || 0), 0);
 }
-// ISG only: 0.60, ESG only: 0.25, ISG+ESG: 0.85, all three: 1.0
+// TET only: 0.60, TES only: 0.25, TET+TES: 0.85, all three: 1.0
 ```
 
 ### applyAllFilteredCharts()
@@ -129,15 +134,15 @@ function updateDPQuadrantCharts() {
 
 ### Demand Trends Pattern
 ```js
-// Per-product-group demand arrays — ISG+ESG+HES = combined totals
+// Per-product-group demand arrays — TET+TES+THS = combined totals
 const DP_TREND_PG = {
-  ISG: { wow: [...], mom: [...], qoq: [...] },  // 60% of total
-  ESG: { wow: [...], mom: [...], qoq: [...] },  // 25%
-  HES: { wow: [...], mom: [...], qoq: [...] },  // 15%
+  TET: { wow: [...], mom: [...], qoq: [...] },  // 60% of total
+  TES: { wow: [...], mom: [...], qoq: [...] },  // 25%
+  THS: { wow: [...], mom: [...], qoq: [...] },  // 15%
 };
 
 function updateDemandTrends() {
-  const selPGs = (!f.lob || f.lob.length===0) ? ['ISG','ESG','HES'] : f.lob;
+  const selPGs = (!f.lob || f.lob.length===0) ? ['TET','TES','THS'] : f.lob;
   // sum demand arrays for selected groups, scale by FY mult, recalculate % change
   // update bar colors (green/red) + line data in-place, call c.update('none')
 }
@@ -245,7 +250,7 @@ icacls .git\objects /grant "${env:USERNAME}:(OI)(CI)F" /T
 
 ---
 
-## IBP_Forcasting.html — Architecture (legacy reference)
+## AST_Forcasting.html — Architecture (legacy reference)
 
 ### Chart Stores
 - `chartInstances` — FA, Demand Profiling, Alerts, Raw Data charts
@@ -256,7 +261,7 @@ icacls .git\objects /grant "${env:USERNAME}:(OI)(CI)F" /T
 ```js
 const WI_SLIDERS = [
   { key:'growth',  label:'New Contracts Growth', min:-20, max:50,  step:1,   val:8    },
-  { key:'renewal', label:'APOS Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
+  { key:'renewal', label:'Renewal Rate',    min:70,  max:100, step:0.5, val:89.5 },
 ];
 let wiState = { renewal:89.5, growth:8, unitsOverride:'' };
 // Default produces ~7.6% ASU lift
@@ -325,7 +330,7 @@ function exportCSV() {
   const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'isg-bpa-data.csv'; a.click();
+  a.download = 'tet-bpa-data.csv'; a.click();
 }
 // Same pattern for JSON: JSON.stringify(rawFiltered, null, 2)
 ```

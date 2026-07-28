@@ -1,13 +1,14 @@
 name: GitHub Pages Deployment
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch: {}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
       contents: read
       pages: write
@@ -19,6 +20,8 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
       - name: Upload artifact for GitHub Pages
         uses: actions/upload-pages-artifact@v5
@@ -26,4 +29,5 @@ jobs:
           path: .
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v5

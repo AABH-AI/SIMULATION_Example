@@ -7,3 +7,7 @@
 - [ ] Export Demand Trends data to CSV / Excel
 - [ ] Profiling Overview: add a scatter-plot view (Occurrence % vs CV %) to show individual SKU placement in the quadrant
 - [ ] Demand Trends: add FY YoY comparison overlay (e.g., FY26 vs FY25 side-by-side)
+
+## Content / Compliance — Backlog
+
+- [ ] Sanitize Dell wordings: `forecast_copilot/fc_engine.js`'s "Live / Simulated" data badge tooltip (`fcInjectBadge`) hardcodes the workbook filename `dell_isg,esg_fy24-26.xlsx` in its live-mode text, even though no such file ships on master (data is static/seeded only here) — genericize to something like "the input workbook" and re-check the rest of `forecast_copilot/` and other suites for similar branded filenames/wording before they're publicly deployed, matching this repo's existing "content compliance sweep" precedent.
