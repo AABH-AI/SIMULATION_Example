@@ -23,17 +23,19 @@ switchPage(pageId, ...)   // shows/hides sub-pages; calls resetPageFilters() fir
 ### Chart Stores
 ```js
 const chartInstances = {};  // all Chart.js instances (FA, DP quadrants, Demand Trends, FT)
-const wiCharts = {};        // What-If Simulation charts (managed separately)
+const fcHCharts = {};       // Forecast Copilot (whatif module) Highcharts instances
 let _dpBaseData = null;     // raw seeded data for quadrant charts (set in initDemandProfilingQuadrants)
 let _ftBaseData  = null;    // raw seeded data for SR trend charts (set in initForecastTrendChart)
 ```
 
 `initCharts()` destroys all `chartInstances` and reinitialises on every `openDashboard()`.
 
+> **2026-07-18**: the old `wiCharts`/`wiInit()`/`wiState`/`wiCompute()` What-If Simulation engine (below) was fully replaced by the `fc_*` shared engine (same one embedded in `forecast_copilot/*.html`) — see PROMPT_TRAIL Session 24 for the replacement and Session 29 for a markup bug that had silently broken the module since, plus removal of the now-fully-dead `wi*` stub functions.
+
 ### Module Init Pattern
 ```js
 // openDashboard():
-if (moduleId === 'whatif') { setTimeout(wiInit, 80); }
+if (moduleId === 'whatif') { setTimeout(fcBootModule, 80); }
 else { setTimeout(initCharts, 80); }
 // initCharts() calls: mk() × 3 (FA charts), initDemandProfilingQuadrants(),
 //                    initDemandTrends(), applyAllFilteredCharts()
@@ -50,9 +52,12 @@ function switchPage(pageId, linkEl, moduleId, label) {
   if (pageId === 'fa-page-actuals')       generateActualsTable();
   if (pageId === 'fa-page-partner')       generatePartnerTable();
   if (pageId === 'fa-page-forecast-trend') setTimeout(initForecastTrendChart, 80);
-  if (pageId === 'wi-page-sim')           setTimeout(wiRenderAll, 60);
-  if (pageId === 'wi-page-scenarios')     wiRenderAIInsights(); wiRenderScenarios();
-  if (pageId === 'wi-page-publish')       wiRenderPublishReadiness(); wiRenderAudit();
+  if (pageId === 'fc-page-dashboard')     setTimeout(fcRenderDashboard, 60);
+  if (pageId === 'fc-page-asu-sim')       setTimeout(fcRenderASU, 60);
+  if (pageId === 'fc-page-historical')    setTimeout(fcRenderHistorical, 60);
+  if (pageId === 'fc-page-btc-advisor')   setTimeout(fcRenderAdvisor, 60);
+  if (pageId === 'fc-page-btc-dist')      setTimeout(fcRenderDistribution, 60);
+  if (pageId === 'fc-page-final')         setTimeout(fcRenderFinal, 60);
   if (pageId === 'dp-page-overview' || pageId === 'dp-page-trends') {
     updateDPQuadrantCharts(); updateDemandTrends();
   }
@@ -325,7 +330,7 @@ function exportCSV() {
   const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'isg-bpa-data.csv'; a.click();
+  a.download = 'tet-bpa-data.csv'; a.click();
 }
 // Same pattern for JSON: JSON.stringify(rawFiltered, null, 2)
 ```
