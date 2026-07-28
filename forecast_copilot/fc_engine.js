@@ -8,8 +8,8 @@
 
 /* ==== FORECAST COPILOT SHARED ENGINE (fc_engine v1) ==== */
 const FILTER_OPTIONS = {
-  quarter: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
-  week: (()=>{const a=[];for(let y=2022;y<=2028;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
+  quarter: (()=>{const a=[];for(let y=2022;y<=2027;y++)for(let q=1;q<=4;q++)a.push(y+'-Q'+q);return a;})(),
+  week: (()=>{const a=[];for(let y=2022;y<=2027;y++)for(let w=1;w<=53;w++)a.push(y+'-W'+String(w).padStart(2,'0'));return a;})(),
   region: ['All','AMERICAS','EMEA','APJ'],
   lob: ['All','Server Line A','Storage Array A','Storage Array C','Storage Array D','Hyperconverged A','Data Protection A','Networking A','Networking B'],
   business: ['All','Unit A','Unit B'],

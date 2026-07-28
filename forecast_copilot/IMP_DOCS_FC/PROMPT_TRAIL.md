@@ -731,3 +731,35 @@ reusing a slot:
 - Both modes now expose **Business Unit** and **Warranty Type** as independent filters (11 total).
 - **Browser-verified (Live)**: Warranty Type = All/Basic/Premium/Premium Flex/Premium Plus; selecting
   Premium Plus moves ASU 3.98M→1.96M. 15/15 tests still pass. README filter table + count updated.
+
+## Session 29 — Rename "ASU Simulation" → "What-If Simulation"; extend data to FY22–FY26; trim FY filter
+**Files**: all 6 `*.html` (nav label), `ASU Simulation …html` (page title), `input/forecast_fy26.xlsx`,
+`input/INPUT_SHA256.txt`, `fc_engine.js`, `test_dataset.py`, README/HANDOFF.
+**Prompts**: (1) rename the left-nav item to "What-If Simulation" and drop "ASU" from the page title;
+(2) FY filter ran 2022–2028 but data was only FY24–26 — "add dummy data for 2022-23, remove 2028",
+then forecast FY27 (Task 2, ideas only).
+
+**What was done**:
+- **Nav rename**: left-sidebar label **"ASU Simulation" → "What-If Simulation"** on all 6 pages (href /
+  filename unchanged, so links still work); main page title **"ASU What-If Simulation" → "What-If
+  Simulation"**. `<title>` tag and the Dashboard activity-feed line left as-is (not requested).
+- **Back-cast FY22 + FY23** into `forecast_fy26.xlsx` (one-off dev script, reused `serve._write_xlsx`):
+  cloned the 2,964 FY24 rows twice, relabelled FY/quarter/week to 2022/2023, scaled ASU + Warranty
+  Expirations by **FY23 = FY24 × 0.78, FY22 × 0.60** with deterministic ±3% per-row jitter
+  (`crc32(product|region|week|fy)`). Every categorical column and distribution ratio preserved; FY24/25/26
+  rows untouched. Data is now **14,820 rows = 19 × 3 × 260 weeks (FY22–FY26)**, smooth growth curve
+  (ΣASU 129.5M → 168.3M → 215.6M → 270.6M → 326.4M; grand ~1.11B). Re-pinned `INPUT_SHA256.txt`
+  (`8c5651df…`).
+- **Filter trim**: `fc_engine.js` Simulated-mode `FILTER_OPTIONS.quarter`/`week` loop `2022→2028`
+  changed to **`2022→2027`** (drops 2028; keeps 2027 as the FY27 forecast target). Live mode derives
+  options from data → shows FY22–FY26 until Task 2 adds FY27.
+- **Tests**: `test_dataset.py` pivot updated via an **independent regex parse** (different code path from
+  serve's ElementTree) — new GRAND (14,820 / ΣASU 1,110,489,194 / ΣExp 6,372,280 / ΣFQM 10,380), added
+  FY22/FY23 slices, updated Region + Server Line A slices + row count + distinct fy/quarter counts; the
+  independent parse re-confirmed FY24/25/26 slices are byte-identical to the prior ground-truth. **15/15 pass.**
+
+**Note**: opening the workbook in Excel to release a file lock silently re-encoded it and renamed the sheet
+`Service Dataset → Raw_data`, breaking `load_dataset`; recovered with `git checkout -- forecast_fy26.xlsx`
+(sha matched the pin) before regenerating. Excel must not save this file.
+
+**Task 2 (FY27 forecast) — not yet built**; approaches floated to the user for a decision first.

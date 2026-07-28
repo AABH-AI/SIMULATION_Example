@@ -288,8 +288,8 @@ python -m unittest -v          # 14 tests, stdlib only (read path + write path)
 
 `test_publish.py` asserts the write path: a publish produces a valid 3-sheet `.xlsx`, a second publish
 never overwrites the first, the payload's numbers + ledger + input hash are recorded, and the input
-workbook is left untouched. `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 12 slice
-aggregates (grand total, by-FY, by-Region, and multi-dimension slices), the 8,892-row × 13-column
+workbook is left untouched. `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 14 slice
+aggregates (grand total, by-FY incl. the back-cast FY22/FY23, by-Region, and multi-dimension slices), the 14,820-row × 14-column
 schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
 The expected pivot was ground-truthed with an independent regex parse of the workbook.
 
@@ -298,11 +298,13 @@ The expected pivot was ground-truthed with an independent regex parse of the wor
 Two workbooks in `input/`, both **modeled/dummy demo data**:
 
 - **`forecast_fy26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
-  **8,892 rows** = 19 products × 3 regions × 156 weeks (52 × 3 fiscal years), one row per Product ×
-  Region × week. **14 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region, Warranty Type,
-  **Business Unit** (Unit A ~80% / Unit B ~20% per Product), ASU, Warranty Expirations, Core/Upsell,
-  W/O Type, FQM Flag, GCFA Type, Service Type. Whole-business single-week installed base is ~5M
-  units; grand ASU ~812.66M.
+  **14,820 rows** = 19 products × 3 regions × 260 weeks (52 × 5 fiscal years, **FY22–FY26**), one row
+  per Product × Region × week. **14 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region,
+  Warranty Type, **Business Unit** (Unit A ~80% / Unit B ~20% per Product), ASU, Warranty Expirations,
+  Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. FY24–FY26 are the original dense+scaled data
+  (grand ASU there ~812.66M); **FY22 and FY23 are back-cast from FY24** along the existing growth trend
+  (FY23 ≈ FY24 × 0.78, FY22 ≈ × 0.60, small deterministic per-row jitter) — same categorical mix and
+  ratios, a believable earlier installed base. Grand ASU across all 5 years ~1.11B.
 - **`fy24-26_info.xlsx` — reference/info only, not read by the app.** Holds the Dell 10-K-derived
   sheets (FY26 Official, Product Estimates, Product x Quarter, Warranty Assumptions) plus an
   **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per product = ASU
