@@ -104,7 +104,7 @@ class PublishWritePathTest(unittest.TestCase):
             flat = [c for row in _read_sheet(zf, "xl/worksheets/sheet3.xml") for c in row]
         self.assertIn(self.input_sha_before, flat)   # input provenance
         self.assertIn("set", flat)                   # the ledger action
-        self.assertIn("dell_isg,esg_fy24-26.xlsx", flat)
+        self.assertIn("forecast_fy26.xlsx", flat)
 
 
 if __name__ == "__main__":
