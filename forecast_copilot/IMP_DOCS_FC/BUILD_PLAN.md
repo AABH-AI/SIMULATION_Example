@@ -9,7 +9,7 @@
 ## Read first
 
 Folder-local docs (current): `README.md`, `HANDOFF.md`, `PROMPT_TRAIL.md`.
-`../IMP_DOCS/*` is canonical but pre-refactor. `../CLAUDE.md` is partly stale — folder-local docs win.
+`../../IMP_DOCS/*` is canonical but pre-refactor. `../../CLAUDE.md` is partly stale — folder-local docs win.
 
 ## Current state
 
@@ -51,7 +51,7 @@ One line: **immutable input → named scenarios edited in the dashboard → publ
 
 ## Data reality
 
-Input = `dell_isg,esg_fy24-26.xlsx`, sheet **`Service Dataset`** — 2,965 rows × 13 cols:
+Input = `forecast_fy26.xlsx`, sheet **`Service Dataset`** — 2,965 rows × 13 cols:
 
 ```
 FY | Fiscal Quarter (2024-Q1) | Fiscal Week (2024-W01) | Product (Poweredge→PowerEdge) |
@@ -183,7 +183,7 @@ PROJECT: Forecast Copilot (ISG BPA suite) — Aligned Automation.
 Working dir: D:\Repos\SIMULATION_Example ; product in forecast_copilot\
 BRANCH: work on hn-new (exists on remote AABH-AI/SIMULATION_Example).
 
-READ forecast_copilot/BUILD_PLAN.md IN FULL — canonical plan for the current task
+READ forecast_copilot/IMP_DOCS_FC/BUILD_PLAN.md IN FULL — canonical plan for the current task
 (input→edit→publish, "1+6+4" architecture, phased build order, data reality,
 environment, the post-demo Power BI evaluation, and git/publishing). Then skim the
 folder-local docs it points to: README.md, HANDOFF.md, PROMPT_TRAIL.md.

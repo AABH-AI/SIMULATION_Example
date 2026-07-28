@@ -22,16 +22,20 @@ import serve
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Hand-checked pivot: name -> (predicate over a record, (count, ΣASU, ΣExpirations, ΣFQM)).
-# For the DENSE + SCALED Service Dataset (8,892 rows = 19 products x 3 regions x 156
-# weeks), produced by densify_service_dataset.py with SCALE=0.10. Every ASU and
-# Expiration was uniformly scaled to 10% (so all distribution ratios are preserved
-# and grand ASU is ~812.66M, a believable installed base), then each (product,week)
-# value split across regions by a largest-remainder integer split. FQM is inherited
-# into each of the 3 region rows (ΣFQM = 3 x the original 2074 = 6222). Ground-truthed
-# via an independent inline-string regex parse of the workbook.
+# For the Service Dataset (14,820 rows = 19 products x 3 regions x 260 weeks over
+# 5 fiscal years FY22-FY26). FY24/FY25/FY26 are the original dense+scaled data
+# (grand ASU there ~812.66M); FY22 and FY23 were back-cast from FY24 along the
+# existing growth trend (FY23 = FY24 x ~0.78, FY22 x ~0.60, with small deterministic
+# per-row jitter) preserving every categorical column and distribution ratio, so the
+# FY24/25/26 slices below are unchanged from the earlier ground-truth. All numbers
+# ground-truthed via an independent inline-string regex parse of the workbook.
 PIVOT = {
     "GRAND":                    (lambda r: True,
-                                 (8892, 812661800, 4696068, 6222)),
+                                 (14820, 1110489194, 6372280, 10380)),
+    "FY=FY22":                  (lambda r: r["fy"] == "FY22",
+                                 (2964, 129512482, 729005, 2079)),
+    "FY=FY23":                  (lambda r: r["fy"] == "FY23",
+                                 (2964, 168314912, 947207, 2079)),
     "FY=FY24":                  (lambda r: r["fy"] == "FY24",
                                  (2964, 215633277, 1213576, 2079)),
     "FY=FY25":                  (lambda r: r["fy"] == "FY25",
@@ -39,21 +43,21 @@ PIVOT = {
     "FY=FY26":                  (lambda r: r["fy"] == "FY26",
                                  (2964, 326391893, 1917760, 2088)),
     "Region=Americas":          (lambda r: r["region"] == "Americas",
-                                 (2964, 413354715, 2387788, 2074)),
+                                 (4940, 564555281, 3238738, 3460)),
     "Region=EMEA":              (lambda r: r["region"] == "EMEA",
-                                 (2964, 221136574, 1278576, 2074)),
+                                 (4940, 302291830, 1735346, 3460)),
     "Region=APJ":               (lambda r: r["region"] == "APJ",
-                                 (2964, 178170511, 1029704, 2074)),
+                                 (4940, 243642083, 1398196, 3460)),
     "FY26 & EMEA":              (lambda r: r["fy"] == "FY26" and r["region"] == "EMEA",
                                  (988, 88724249, 521768, 696)),
-    "Product=Poweredge":        (lambda r: r["product"] == "Poweredge",
-                                 (468, 645613425, 3727308, 351)),
+    "Product=Server Line A":    (lambda r: r["product"] == "Server Line A",
+                                 (780, 881710277, 5054637, 591)),
     "Quarter=2026-Q1":          (lambda r: r["fiscalQuarter"] == "2026-Q1",
                                  (741, 76586300, 479440, 525)),
     "Week=2024-W01":            (lambda r: r["fiscalWeek"] == "2024-W01",
                                  (57, 3676019, 23338, 42)),
-    "FY26 & Poweredge & Americas": (
-                                 lambda r: r["fy"] == "FY26" and r["product"] == "Poweredge"
+    "FY26 & Server Line A & Americas": (
+                                 lambda r: r["fy"] == "FY26" and r["product"] == "Server Line A"
                                  and r["region"] == "Americas",
                                  (52, 131954700, 774696, 40)),
 }
@@ -61,6 +65,7 @@ PIVOT = {
 EXPECTED_COLUMNS = [
     ("fy", "string"), ("fiscalQuarter", "string"), ("fiscalWeek", "string"),
     ("product", "string"), ("region", "string"), ("warrantyType", "string"),
+    ("businessUnit", "string"),
     ("asu", "number"), ("warrantyExpirations", "number"), ("coreUpsell", "string"),
     ("woType", "string"), ("fqmFlag", "number"), ("gcfaType", "string"),
     ("serviceType", "string"),
@@ -86,8 +91,8 @@ class DatasetReadPathTest(unittest.TestCase):
 
     # --- shape -------------------------------------------------------------- #
     def test_row_count(self):
-        self.assertEqual(self.data["rowCount"], 8892)
-        self.assertEqual(len(self.rows), 8892)
+        self.assertEqual(self.data["rowCount"], 14820)
+        self.assertEqual(len(self.rows), 14820)
 
     def test_columns(self):
         got = [(c["key"], c["type"]) for c in self.data["columns"]]
@@ -119,7 +124,7 @@ class DatasetReadPathTest(unittest.TestCase):
     def test_fiscal_years_partition_grand_total(self):
         grand = _slice_aggregate(self.rows, lambda r: True)
         parts = [_slice_aggregate(self.rows, lambda r, fy=fy: r["fy"] == fy)
-                 for fy in ("FY24", "FY25", "FY26")]
+                 for fy in ("FY22", "FY23", "FY24", "FY25", "FY26")]
         for i in range(4):
             self.assertEqual(sum(p[i] for p in parts), grand[i])
 
@@ -132,10 +137,28 @@ class DatasetReadPathTest(unittest.TestCase):
 
     def test_distinct_values(self):
         distinct = self.data["summary"]["distinct"]
-        self.assertEqual(distinct["fy"], ["FY24", "FY25", "FY26"])
+        self.assertEqual(distinct["fy"], ["FY22", "FY23", "FY24", "FY25", "FY26"])
         self.assertEqual(distinct["region"], ["APJ", "Americas", "EMEA"])
         self.assertEqual(len(distinct["product"]), 19)
-        self.assertEqual(len(distinct["fiscalQuarter"]), 12)
+        self.assertEqual(len(distinct["fiscalQuarter"]), 20)
+        self.assertEqual(distinct["businessUnit"], ["Unit A", "Unit B"])
+
+    def test_business_unit_80_20_split(self):
+        """Business Unit is ~80% Unit A / ~20% Unit B, per Product."""
+        a = sum(1 for r in self.rows if r["businessUnit"] == "Unit A")
+        b = sum(1 for r in self.rows if r["businessUnit"] == "Unit B")
+        self.assertEqual(a + b, 14820)
+        self.assertAlmostEqual(a / (a + b), 0.80, delta=0.03)   # ~80% Unit A overall
+        # per-product share also lands near 80%
+        from collections import defaultdict
+        tot, aa = defaultdict(int), defaultdict(int)
+        for r in self.rows:
+            tot[r["product"]] += 1
+            if r["businessUnit"] == "Unit A":
+                aa[r["product"]] += 1
+        for p in tot:
+            self.assertAlmostEqual(aa[p] / tot[p], 0.80, delta=0.08,
+                                   msg=f"product {p!r} Unit A share off")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 ﻿# HANDOFF — TET BPA Project
 > Quick-start context for any new AI session or teammate.
-> Last updated: 2026-06-25 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
+> Last updated: 2026-07-18 | Owner: Arnav Bhargava (arnav.bhargava@alignedautomation.com)
 
 ---
 
@@ -18,9 +18,7 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 
 | File | Role |
 |---|---|
-| `BPA_FORCASTING_MOCK.HTML` | **Active development file** — rebuilt version of the dashboard (sessions 14+) |
-| `data.html` | **Standalone Data Management dashboard** — 3 tabs: Data Overview · Data Quality · Full Raw View (session 22) |
-| `Week.html` | Prototype: Forecast Trend with SR/ASU/Dispatch switcher on main chart — review before merging to BPA |
+| `BPA_FORCASTING_MOCK.HTML` | **Active development file, live as the "TET BPA — Forecasting Suite (Active)" card** — rebuilt version of the dashboard (sessions 14+); its `whatif` module now embeds the full Forecast Copilot suite (see Module Structure below) |
 | `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
 | `AST_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
 | `TET BPA — Business Planning and Analytics.html` | **Redesign of `AST_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `AST_Forcasting_v2.html` on 2026-06-25 |
@@ -30,7 +28,9 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 | `IMP_DOCS/` | This folder — always keep updated |
 | `forecast_copilot/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
-Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`
+Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`
+
+**Compliance-gitignored (kept locally, never deployed)** — see `remove.md` (local-only, gitignored) for the full inventory and mapping: `data.html`, `Week.html`, `executive_forecast_operational_dashboard.html`, `simulation-overview-platform.html`, `enterprise_whatif_forecasting_platform.html`, `dell_workflow.html`, `animated_UI.html`, `info_BPA.html`, `yte.html`, `CLAUDE_.html`, `claude_2.html`, `GEMINI.html`, `Mansur.html`
 
 ---
 
@@ -42,7 +42,7 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`, `executive_fo
 | `demand-profiling` | Actuals Profiling | **Profiling Overview** · **Demand Trends** |
 | `demand-alerts` | Demand Planning Alerts | Alerts Log |
 | `data-raw` | Data Management | Full Raw View |
-| `whatif` | What-If Simulation | Simulation Controls · Scenario Playground · Forecast Publish |
+| `whatif` | Forecast Copilot | Dashboard · ASU Simulation · Historical Performance · AI BTC Advisor · BTC Distribution · Final Forecast (fc_engine, same shared engine as `forecast_copilot/*.html`, embedded; fixed 2026-07-18 — see PROMPT_TRAIL Session 29) |
 
 ---
 
@@ -142,7 +142,7 @@ const DP_TREND_PG = { TET: { yoy:[...], qoq:[...] }, TES: {...}, THS: {...} };
 | Store | Holds | Notes |
 |---|---|---|
 | `chartInstances` | All Chart.js instances (FA, DP quadrants, Demand Trends, FT) | Destroyed + recreated on every `openDashboard()` call |
-| `wiCharts` | What-If Simulation Chart.js instances | Managed separately via `wiInit()` |
+| `fcHCharts` | Forecast Copilot Highcharts instances (the embedded `whatif` module) | Legacy `wiCharts`/`wiInit()`/`wiState` engine removed 2026-07-18 (dead code, zero live call sites) |
 | `_dpBaseData` | Raw seeded quadrant chart data arrays | Set in `initDemandProfilingQuadrants()`, used by `updateDPQuadrantCharts()` |
 | `_ftBaseData` | Raw seeded SR trend + plan forecast arrays | Set in `initForecastTrendChart()`, used by `updateForecastTrendChart()` |
 
