@@ -763,3 +763,35 @@ then forecast FY27 (Task 2, ideas only).
 (sha matched the pin) before regenerating. Excel must not save this file.
 
 **Task 2 (FY27 forecast) — not yet built**; approaches floated to the user for a decision first.
+
+---
+
+## 2026-07-29 — Forecasting methodology validated against real-world practice; BTC engine + SR ratio reworked
+
+**Prompt**: owner asked to research real WFM/BTC forecasting methodology online and validate/fix the existing formulas against it.
+
+**Research finding**: ASU/SR/Dispatch/BTC/AOP aren't industry-standard terms (confirmed via web search — they don't appear in general WFM/field-service/FP&A literature), but each maps to a real, named practice: ASU roll-forward = standard installed-base/cohort waterfall (subscription & warranty industries); SR = incidence rate (should vary by time/segment, not be a flat constant); Dispatch = truck-roll rate; BTC = the "management overlay" step in S&OP (stat forecast → consensus → overlay to close the gap to a committed target); AOP achievement = a genuine, universal FP&A KPI. The model's overall shape was already sound; the gap was that several ratios that should vary were hardcoded flat constants, and the BTC recommendation used an unexplained fixed-weight blend instead of a defensible method.
+
+**Changes to `fc_engine.js`** (all deterministic — no ML/LLM, consistent with the build plan's "no LLM in the critical path" principle):
+- **SR incidence rate** (`FC_SR_RATIO`) is no longer a single flat 18.5%. Added `fcSRRatioForWeek()` / `fcSRSeries()`: seasonal drift across the 13 weeks (sine wave, phase-shifted from the NC/APOS seasonal curve so the two aren't mechanically correlated — real equipment-failure seasonality and sales-cycle seasonality are different phenomena) × a per-service-tier `srMult` extending the *existing* `FC_SERVICE_FACTOR` table (Parts Only 0.85-0.88, Parts+Labour 1.00-1.03, Labour Only 1.18-1.22) — grounded in the same real-world logic the table's own `dispatchRatio` gradient already encodes (labour-inclusive tiers report functional failures, hence more SRs, more often). Wired into both the live-data and simulated-fallback branches of `fcGenerateWeeklySeries()`, and into `fcApplyOverrides()` (now takes a `filters` param — one call site updated).
+- **Expiration rate** (simulated-fallback only — live mode already reads real Warranty Expirations): `fcExpirationRateForWeek()` replaces the flat 3.5%/week with a mild cosine cluster peaking at week 0 and week 12 (quarter-boundary renewal-anniversary clustering, the real pattern for annual/quarterly enterprise contract terms), tapering mid-quarter.
+- **BTC recommendation engine** (`fcRecommendBTC`): replaced the arbitrary `[1,1,1,2,2,2,3,3,3,4,4,5]` recency-weight blend with `fcLinearRegression()` — an OLS trend line over the 12 historical BTC% quarters, the standard statistical-baseline forecast method. "Historical Best Fit" = the trend projected one quarter forward. Confidence is now z-score/R²-based (how many residual-std-devs a candidate % sits from the trend, scaled by how well the trend fits history) instead of an unexplained "`95 - distance*3`" formula; Risk buckets on the same z-score (<1/<2/≥2) instead of raw percentage-point thresholds. `trendFit: {rSquared, stdDevResiduals}` and a per-strategy `zScore` are now exposed in the return value (additive, non-breaking).
+
+**Bug found and fixed during verification**: the first version of the new confidence formula (`60 + R²*30 - z*10`) hit a hard floor of 60 for any z beyond a small threshold, so Balanced and Closest-to-AOP both showed **identical** 60% confidence despite meaningfully different z-scores (2.13 vs 4.26 in the default filter slice) — caught by an in-browser AI BTC Advisor check, not by the Node logic sanity pass alone. Replaced with an exponential-decay-from-ceiling formula (`ceiling = 60 + R²*35`; `confidence = 60 + (ceiling-60) * exp(-z/1.5)`) that differentiates smoothly instead of collapsing distinct z-scores to the same floor. Re-verified in Node and in-browser: default slice now shows 75% / 64% / 61% (was 73% / 60% / 60%).
+
+**Verified**: Node vm syntax + logic sweep across 3 filter combos (SR ratio genuinely varies week-to-week and by service tier — e.g. Parts Only 13.9-17.6% vs Labour Only 19.3-24.5% — confirming the segment logic is live, not decorative); real-browser pass on ASU Simulation (3 charts, slider updates), AI BTC Advisor (all 3 strategies render distinct, sane BTC%/Confidence/Risk), Dashboard (5 charts) — 0 unexpected console errors on all three.
+
+**Not touched (flagged, out of scope for this pass)**: `BPA_FORCASTING_MOCK.HTML`'s embedded `whatif` module has its own separate, pre-existing copy of the engine (doesn't load `fc_engine.js`) — it still has the old flat ratios and arbitrary BTC weights. Desync between the two Forecast Copilot surfaces; owner to decide whether to port these fixes there too.
+
+**Also this session (compliance, logged in root `remove.md`)**: found and removed `forecast_copilot/input/name_mapping_reference.xlsx` from git tracking — it contained literal "Dell"/"Poweredge"/"Vxrail"/etc. strings (a real-name → de-branded-name lookup) and was publicly downloadable from the repo. The served dataset (`forecast_fy26.xlsx`) was checked separately and is clean.
+
+---
+
+## 2026-07-30 — BTC Guide page (de-identified reference)
+
+**Prompt**: owner added a local `GUIDE.md` (an internal knowledge-transfer transcript — real names, direct quotes, real internal tool/product names) and asked for a web UI explaining BTC functionality, main parameters only, not everything.
+
+**Compliance call**: the source file is a different, higher tier of sensitive than generic branding — it names real individuals and quotes them directly, plus real Dell tool names (not committed to the repo, not even read into it; only used as background research locally). Built a new page, `BTC Guide — Forecast Copilot.html`, containing **only the de-identified conceptual/parameter knowledge**: no real names, no direct quotes, no Dell-specific tool or product names. Content: what BTC conceptually does, six key parameters (Modifier %, Ramp-In, Allocation Method, Segment Intersections, Quarterly Phasing, New-vs-Renewal split), one illustrative example (invented round numbers, not the source document's real figures) with a small Highcharts line chart, a section connecting the concepts to the suite's existing AI BTC Advisor / BTC Distribution pages, and a short "why automate this" list.
+- Added as a 7th nav item across all 6 existing pages (own icon, standard `nav-item` link).
+- Self-contained: doesn't load `fc_engine.js` (pure static reference, no filter/compute dependency), has its own minimal theme-toggle script consistent with the rest of the suite's dark-mode support.
+- Verified: JS syntax check on all 7 pages; real-browser pass — chart renders, dark-mode toggle works, nav link present and active-highlighted on all pages, cross-page navigation works, and a confidentiality scan of the rendered page for the source names/tools (Dell, Doug, Mark Mazza, Joanna, Julius, USDM, PowerEdge, VxRail, PowerScale) returned zero hits.

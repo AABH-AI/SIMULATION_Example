@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Guide — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#0284c7; --chart3:#7c3aed;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 48px;max-width:960px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:16px;}
+  .panel-title{font-size:15px;font-weight:700;color:var(--text-1);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .panel-title svg{width:17px;height:17px;stroke:var(--teal);flex-shrink:0;}
+  .panel-sub{font-size:12.5px;color:var(--text-2);margin-bottom:14px;}
+  .prose{font-size:13.5px;color:var(--text-2);line-height:1.7;}
+  .prose + .prose{margin-top:10px;}
+
+  .param-grid{display:flex;flex-direction:column;gap:14px;}
+  .param{border-left:3px solid var(--teal); padding:2px 0 2px 14px;}
+  .param-name{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:3px;}
+  .param-desc{font-size:12.5px;color:var(--text-2);line-height:1.6;}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;color:var(--text-3);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin:2px 0 10px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  ul.limits{list-style:none;display:flex;flex-direction:column;gap:9px;}
+  ul.limits li{font-size:12.5px;color:var(--text-2);line-height:1.6;padding-left:16px;position:relative;}
+  ul.limits li::before{content:'';position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:50%;background:var(--amber);}
+
+  .link-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .link-chip{font-size:12px;font-weight:600;color:var(--teal);background:var(--teal-dim);border-radius:100px;padding:6px 12px;text-decoration:none;}
+  .link-chip:hover{opacity:.85;}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text">
+        <span class="brand-name">Forecast Copilot</span>
+        <span class="brand-sub">AI Planning Suite</span>
+      </div>
+    </div>
+
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="ASU Simulation — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h4"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M17 16h4"/><path d="M19 12V3"/><path d="M19 21v-5"/><path d="M3 14h4"/><path d="M5 10V3"/><path d="M5 21v-7"/></svg>
+        What-If Simulation
+      </a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+        Historical
+      </a>
+      <a class="nav-item" href="AI BTC Advisor — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        AI BTC Advisor
+      </a>
+      <a class="nav-item" href="BTC Distribution — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10Z"/></svg>
+        BTC Distribution
+      </a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>
+        Final Forecast
+      </a>
+      <a class="nav-item active" href="BTC Guide — Forecast Copilot.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+        BTC Guide
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="guideToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+
+    <div class="page-head">
+      <div class="page-title">How Bend-The-Curve Works</div>
+      <div class="page-sub">A plain-language reference for the BTC adjustment concept and the parameters that drive it — not a full process manual, just the essentials.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        What BTC Does
+      </div>
+      <p class="prose">A statistical forecast only knows what history looks like — it has no way to see planned quality improvements, process changes, or organizational commitments that haven't happened yet. <strong>Bend-The-Curve (BTC)</strong> is the adjustment layer that reconciles the two: it takes the statistical forecast and nudges it toward a committed target, so the plan you publish reflects both what the data says <em>and</em> what the organization intends to make happen.</p>
+      <p class="prose">It's applied as a deliberate, incremental adjustment — not a hard override — so the forecast still looks like a plausible curve rather than a discontinuous jump.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>
+        Key Parameters
+      </div>
+      <div class="param-grid">
+        <div class="param">
+          <div class="param-name">Modifier %</div>
+          <div class="param-desc">The primary lever. 100% means no change — the adjusted forecast equals the raw statistical forecast. Lower percentages pull the forecast down toward the target; e.g. an 80% modifier closes roughly 20% of the gap between forecast and target.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">Ramp-In (Incremental Weeks)</div>
+          <div class="param-desc">The adjustment isn't applied as a single jump — it's spread and incremented gradually across the remaining forecast horizon, so the change accumulates over time instead of landing all at once in the first week.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">Allocation Method</div>
+          <div class="param-desc">Once an adjustment is sized at a summary level, it's allocated back down to the lowest reporting dimensions using a <em>weighted</em> split that respects each dimension's existing share of volume — not an equal split across dimensions.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">Segment Intersections</div>
+          <div class="param-desc">When a product or metric is tracked under more than one organizational hierarchy at once (e.g. two different business units, or multiple service types), the same modifier has to be entered separately for each intersection — it produces a different absolute number in each one, since each intersection starts from a different base volume.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">Quarterly Phasing</div>
+          <div class="param-desc">A second, simpler adjustment layer applied after the annual-level sizing: a straight percentage scale-up or scale-down to hit each quarter's target, specifically to avoid an unnatural "flat cut every quarter" or "cliff-drop-then-spike" shape across the year.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">New vs. Renewal Split</div>
+          <div class="param-desc">On the installed-base side, the same modifier concept is applied separately to <em>new additions</em> and to the <em>renewal / retention rate</em> — they respond to different business levers and are sized independently.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        Illustrative Example
+      </div>
+      <div class="panel-sub">Rounded, made-up numbers — for shape only, not a real forecast</div>
+      <table class="data-tbl" style="margin-bottom:16px;">
+        <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Statistical Forecast</td><td>12,400</td></tr>
+          <tr><td>Committed Target</td><td>11,000</td></tr>
+          <tr><td>Modifier</td><td>82%</td></tr>
+          <tr><td>Adjusted Forecast</td><td>11,252</td></tr>
+          <tr><td>Remaining Gap</td><td>252</td></tr>
+        </tbody>
+      </table>
+      <div class="chart-legend">
+        <span><span class="dot" style="background:var(--chart1)"></span>Statistical Forecast</span>
+        <span><span class="dot" style="background:var(--chart3)"></span>Adjusted (BTC)</span>
+        <span><span class="dot" style="background:var(--chart2)"></span>Target</span>
+      </div>
+      <div id="guide-chart" style="height:200px;width:100%;"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        How This Suite Automates It
+      </div>
+      <p class="prose">The rest of Forecast Copilot turns the manual sizing decision above into a data-driven one:</p>
+      <div class="param-grid" style="margin-top:12px;">
+        <div class="param">
+          <div class="param-name">AI BTC Advisor</div>
+          <div class="param-desc">Offers three automated strategies in place of manually picking a modifier — <em>Historical Best Fit</em> (a statistical trend projection), <em>Closest to AOP</em> (sized directly off the gap to target), and <em>Balanced</em> (a blend of the two) — each with a confidence score.</div>
+        </div>
+        <div class="param">
+          <div class="param-name">BTC Distribution</div>
+          <div class="param-desc">Automates the allocation step: once a BTC % is selected, it's distributed across regions, product lines, and service types using a weighted split, and phased across weeks — the same allocation and phasing concepts above, computed instead of hand-built.</div>
+        </div>
+      </div>
+      <div class="link-row">
+        <a class="link-chip" href="AI BTC Advisor — Forecast Copilot.html">Open AI BTC Advisor →</a>
+        <a class="link-chip" href="BTC Distribution — Forecast Copilot.html">Open BTC Distribution →</a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        Why Automating This Matters
+      </div>
+      <ul class="limits">
+        <li>A manual, spreadsheet-driven version of this process usually means adjustments are entered as flat values rather than reusable formulas.</li>
+        <li>Zero-value periods and edge-case weeks often need special-case workarounds.</li>
+        <li>Visibility into an adjustment is typically limited until it flows all the way downstream into shared reporting.</li>
+        <li>Sizing a single change across every segment intersection by hand is slow and easy to get slightly out of sync.</li>
+        <li>An end-to-end pass across every input (forecast, service requests, installed base) commonly takes a few days per cycle when done by hand.</li>
+      </ul>
+    </div>
+
+   </div>
+  </main>
+
+  <script>
+    function guideApplyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem('fc_theme', t); } catch(e) {}
+      guideSyncThemeIcon();
+      if (window.guideChart) guideRenderChart();
+    }
+    function guideToggleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      guideApplyTheme(cur === 'dark' ? 'light' : 'dark');
+    }
+    function guideSyncThemeIcon() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('theme-toggle-icon').innerHTML = dark
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    }
+    function guideRenderChart() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const axisColor = dark ? '#97a1b8' : '#94a3b8', gridColor = dark ? '#273349' : '#e8edf7';
+      const weeks = Array.from({length:8}, (_,i) => 'W' + (i+1));
+      const forecast = [12400,12430,12470,12510,12560,12600,12650,12700];
+      const target = new Array(8).fill(11000);
+      const adjusted = forecast.map((v,i) => Math.round(v - (v-11252*(v/12400)) * Math.min(1,(i+1)/6)));
+      window.guideChart = Highcharts.chart('guide-chart', {
+        chart: { type:'line', backgroundColor:'transparent', spacing:[10,8,4,4] },
+        title:{text:null}, credits:{enabled:false}, legend:{enabled:false},
+        xAxis:{ categories:weeks, lineColor:gridColor, tickLength:0, labels:{style:{color:axisColor,fontSize:'10px'}} },
+        yAxis:{ title:{text:null}, gridLineColor:gridColor, labels:{style:{color:axisColor,fontSize:'10px'}} },
+        tooltip:{ shared:true, backgroundColor:'#0f172a', borderColor:'#0f172a', borderRadius:8, style:{color:'#f1f5f9',fontSize:'11.5px'} },
+        plotOptions:{ line:{ lineWidth:2.2, marker:{enabled:false} } },
+        series:[
+          { name:'Statistical Forecast', data:forecast, color:'#0d9488' },
+          { name:'Adjusted (BTC)', data:adjusted, color:'#7c3aed' },
+          { name:'Target', data:target, color:'#0284c7', dashStyle:'ShortDash' }
+        ]
+      });
+    }
+    guideSyncThemeIcon();
+    guideRenderChart();
+  </script>
+</body>
+</html>
