@@ -503,3 +503,15 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 Built as a genuinely standalone document rather than an app screen: no sidebar/nav chrome, no dependency on forecast_copilot's fc_engine.js, its own lightweight dark-mode toggle (separate localStorage key `btc_ref_theme`), and a table-of-contents with in-page anchor links. Uses the same Highcharts CDN + Inter font as the rest of the site for visual consistency.
 
 Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (chart renders, dark mode toggles cleanly, all 4 TOC anchors scroll correctly, 0 console errors).
+
+---
+
+## Session 31 — BTC guides expanded with real workflow depth (de-identified)
+
+**Prompt**: owner asked for more informative BTC guides — Excel/formula-level detail, the multi-business-unit "4-tab" workflow, strategies — after initially asking for real names/Dell terms to be included, then explicitly confirming (after a direct risk callout) to keep it de-identified instead, given both pages are on the public repo.
+
+**What was added** (to both `BTC_Reference_Guide.html` and `forecast_copilot/BTC Guide — Forecast Copilot.html`, kept in sync): 5 new sections — **The Adjustment Formula** (a reverse-engineered power-curve ramp, explicitly labeled as one plausible implementation matching only the described qualitative shape, not a verified exact spec — the source's own formula section had no confirmed formula, only a described behavior), **Worked Example: The 4-Tab Case** (the real multi-business-unit × service-type intersection problem, generalized to "Unit A/Unit B × Parts Only/Parts + Labour"), **Publishing Workflow** (the real 6-step size → paste-as-value → mark → publish/discard → allocate → extract sequence, plus its real constraints: no zero values, values-only paste, occasional mistakes slipping through), **Quarterly Phasing** (expanded with the real "why a second, simpler pass exists" rationale), and **New vs. Renewal Adjustments** (expanded with real sequencing and the expiring-data lag complication). Illustrative example numbers were corrected to be internally consistent with the new formula (recomputed via Node — the original placeholder numbers didn't match what the formula actually produces at that modifier value).
+
+**Compliance**: no real names, direct quotes, or Dell-specific tool/product names in either page — verified via confidentiality scan (0 hits) after the expansion, same as the original versions.
+
+**Verified**: JS syntax on both files, formula output recomputed and cross-checked against the illustrative table, real-browser pass (chart renders, all new TOC anchors scroll correctly on both pages, new section text confirmed present, in-app page's 7-item nav and active state intact).
