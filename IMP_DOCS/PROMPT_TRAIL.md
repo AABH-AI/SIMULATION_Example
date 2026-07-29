@@ -491,3 +491,15 @@ A final full cross-page navigation was simulated end to end: loaded Dashboard fr
 - Separately removed ~400 lines of fully dead legacy `wi*` engine code (superseded weeks ago by the `fc_*` engine now wired to the router; confirmed zero live call sites, and it referenced undefined `WI_BASE`/`WI_ASU_SHAPE` so it could never have run anyway) and a duplicate/orphaned "Forecast Publish Center + Audit Log" markup block that had been left sitting as a sibling of `module-whatif` instead of inside it (would have rendered on every module, not just Forecast Copilot, had the file not already been broken above it).
 - Verified via Node vm syntax + div-balance checks (now perfectly balanced, was previously mismatched) and a full real-browser pass: home loads clean, all 5 module tiles open without errors, Forecast Copilot's 6 sub-pages (Dashboard, ASU Simulation, Historical Performance, AI BTC Advisor, BTC Distribution, Final Forecast) all render Highcharts and respond to slider input, Demand Alerts KPIs are now internally consistent (12 total = 5 high + 7 medium), and a forbidden-term scan across the whole single-page app returned zero hits.
 - Noted but out of scope: the Demand Planning Alerts module has no clickable home-view tile (pre-existing, unrelated gap) — flagged for a future session.
+
+---
+
+## Session 30 — Standalone BTC Reference Guide
+
+**Prompt**: owner asked for a single standalone HTML file (not inside forecast_copilot/) covering the same BTC reference material, for sharing with others outside the app.
+
+**What was done**: created `BTC_Reference_Guide.html` at the repo root — same de-identified content as the in-app "BTC Guide" page (forecast_copilot/BTC Guide — Forecast Copilot.html): what BTC does, its 6 key parameters, one illustrative example with a small Highcharts chart, and a "why automate this" list. No real names, quotes, or Dell-specific tool/product names (same compliance standard as the in-app version — the sensitive source document was never committed to the repo).
+
+Built as a genuinely standalone document rather than an app screen: no sidebar/nav chrome, no dependency on forecast_copilot's fc_engine.js, its own lightweight dark-mode toggle (separate localStorage key `btc_ref_theme`), and a table-of-contents with in-page anchor links. Uses the same Highcharts CDN + Inter font as the rest of the site for visual consistency.
+
+Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (chart renders, dark mode toggles cleanly, all 4 TOC anchors scroll correctly, 0 console errors).
