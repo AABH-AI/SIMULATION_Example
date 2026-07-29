@@ -309,14 +309,18 @@ const FC_REGION_FACTOR   = { All: 2.65, AMERICAS: 1.15, EMEA: 0.85, APJ: 0.65 };
 const FC_LOB_FACTOR       = { All: 6.25, 'Server Line A': 1.20, 'Storage Array A': 0.90, 'Storage Array C': 0.80, 'Storage Array D': 0.85, 'Hyperconverged A': 1.00, 'Data Protection A': 0.50, 'Networking A': 0.60, 'Networking B': 0.40 };
 const FC_BUSINESS_FACTOR  = { All: 2.30, 'Unit A': 1.84, 'Unit B': 0.46 };   /* Unit A ~80% share, Unit B ~20%; All = sum of parts */
 const FC_WARRANTY_FACTOR  = { All: 1.00, 'Basic': 0.30, 'Premium': 0.40, 'Premium Flex': 0.10, 'Premium Plus': 0.20 };  /* segmentation shares — All = 1.0 leaves totals unchanged */
+// srMult: incidence-rate multiplier (SRs generated per ASU), graduated the same
+// direction as dispatchRatio -- labour-inclusive tiers report functional failures
+// (not just parts wear) more often, so they generate proportionally more service
+// requests per active unit than parts-only tiers. All = 1.00 (whole-dataset blend).
 const FC_SERVICE_FACTOR   = {
-  'All':                    { volume: 5.05, dispatchRatio: 0.50 },
-  'Parts Only (Unit A)':    { volume: 1.00, dispatchRatio: 0.32 },
-  'Parts Only (Unit B)':    { volume: 1.05, dispatchRatio: 0.35 },
-  'Parts + Labour (Unit A)':{ volume: 0.90, dispatchRatio: 0.55 },
-  'Parts + Labour (Unit B)':{ volume: 0.95, dispatchRatio: 0.58 },
-  'Labour Only (Unit A)':   { volume: 0.55, dispatchRatio: 0.68 },
-  'Labour Only (Unit B)':   { volume: 0.60, dispatchRatio: 0.70 }
+  'All':                    { volume: 5.05, dispatchRatio: 0.50, srMult: 1.00 },
+  'Parts Only (Unit A)':    { volume: 1.00, dispatchRatio: 0.32, srMult: 0.85 },
+  'Parts Only (Unit B)':    { volume: 1.05, dispatchRatio: 0.35, srMult: 0.88 },
+  'Parts + Labour (Unit A)':{ volume: 0.90, dispatchRatio: 0.55, srMult: 1.00 },
+  'Parts + Labour (Unit B)':{ volume: 0.95, dispatchRatio: 0.58, srMult: 1.03 },
+  'Labour Only (Unit A)':   { volume: 0.55, dispatchRatio: 0.68, srMult: 1.18 },
+  'Labour Only (Unit B)':   { volume: 0.60, dispatchRatio: 0.70, srMult: 1.22 }
 };
 /* Segmentation share factors — All = 1.0 (whole dataset); each value is its share, so the parts sum to the whole */
 const FC_COREUPSELL_FACTOR = { 'All': 1.00, 'Core': 0.60, 'Upsell': 0.40 };
@@ -334,6 +338,28 @@ function fcCombinedFactor(filters) {
     * (FC_FQM_FACTOR[filters.fqm]||1) * (FC_GCFA_FACTOR[filters.gcfa]||1);
 }
 function fcDispatchRatio(filters) { return (FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only (Unit A)']).dispatchRatio; }
+
+// SR incidence rate is not a flat constant in practice -- it drifts across a
+// quarter (equipment-failure seasonality, decoupled in phase from the NC/APOS
+// sales-cycle seasonality above) and varies by service tier (srMult). A single
+// global ratio was the biggest gap vs. real installed-base/incidence modeling.
+const FC_SR_SEASONAL_AMPLITUDE = 0.12;
+function fcSRRatioForWeek(filters, weekIdx) {
+  const svc = FC_SERVICE_FACTOR[filters.service] || FC_SERVICE_FACTOR['Parts Only (Unit A)'];
+  const seasonal = 1 + FC_SR_SEASONAL_AMPLITUDE * Math.sin((weekIdx / 13) * Math.PI * 2 + Math.PI / 2);
+  return FC_SR_RATIO * seasonal * (svc.srMult != null ? svc.srMult : 1);
+}
+function fcSRSeries(asuArr, filters) { return asuArr.map((v, i) => Math.round(v * fcSRRatioForWeek(filters, i))); }
+
+// Expiration rate (simulated fallback only -- live mode reads real Warranty
+// Expirations per week). Real enterprise contract expirations cluster near
+// quarter-boundary renewal-anniversary weeks rather than churning at a flat
+// weekly rate; a mild clustering curve is a closer approximation than a
+// constant, while staying deterministic and simple.
+function fcExpirationRateForWeek(weekIdx) {
+  const boundaryProximity = Math.max(Math.cos((weekIdx / 12) * Math.PI), 0); // peaks w0 & w12, troughs mid-quarter
+  return FC_EXPIRATION_RATE * (1 + 0.4 * boundaryProximity);
+}
 
 function fcWeeksForQuarter(quarter) {
   const [y, qStr] = quarter.split('-Q'); const q = +qStr;
@@ -367,7 +393,7 @@ function fcGenerateWeeklySeries(filters) {
   function rollModeled(ncFactor, aposFactor, startPrior, expSeries) {
     const asu = []; let prior = startPrior;
     for (let w = 0; w < 13; w++) {
-      const expirations = expSeries ? expSeries[w] : prior * FC_EXPIRATION_RATE;
+      const expirations = expSeries ? expSeries[w] : prior * fcExpirationRateForWeek(w);
       const renewals = apos[w] * FC_BASE_RENEWAL_RATE * aposFactor;
       const additions = newContracts[w] * ncFactor;
       const cur = prior - expirations + renewals + additions;
@@ -380,7 +406,7 @@ function fcGenerateWeeklySeries(filters) {
     // Baseline = real observed ASU; SR/Dispatch derived by ratio.
     const asuBase = live.asuBase.slice();
     const expirations = live.expirations.slice();
-    const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
+    const srBase = fcSRSeries(asuBase, filters);
     const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
     // Levers apply as the modeled lift RELATIVE to default overrides, so the
     // real baseline is preserved at default sliders (ratio = 1) and moves
@@ -397,19 +423,19 @@ function fcGenerateWeeklySeries(filters) {
   // ---- seeded fallback (original behavior) ----
   const rollASU = (ncFactor, aposFactor) => rollModeled(ncFactor, aposFactor, FC_BASE_ASU * factor).map(Math.round);
   const asuBase = rollASU(1, 1);
-  const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
+  const srBase = fcSRSeries(asuBase, filters);
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
-  const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE));
+  const expirations = asuBase.map((v, w) => Math.round(v * fcExpirationRateForWeek(w)));
   return { weeks: fcWeeksForQuarter(filters.quarter), newContracts, apos, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
 }
 
 function fcSensitivity() { return { nc: 0.6, apos: 0.4 }; }
-function fcApplyOverrides(series, ncOverridePct, aposOverridePct) {
+function fcApplyOverrides(series, ncOverridePct, aposOverridePct, filters) {
   const sens = fcSensitivity();
   const ncFactor = 1 + ((ncOverridePct - 10) / 100) * sens.nc;
   const aposFactor = 1 + ((aposOverridePct - 5) / 100) * sens.apos;
   const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, aposFactor));
-  const srAdj = asuAdj.map(v => Math.round(v * FC_SR_RATIO));
+  const srAdj = fcSRSeries(asuAdj, filters || fcState.filters);
   const dspAdj = srAdj.map(v => Math.round(v * series.dispatchRatio));
   return { asuAdj, srAdj, dspAdj, ncFactor, aposFactor };
 }
@@ -454,28 +480,61 @@ function fcRecommendOverrides(filters) {
     rationale: `Based on a ${Math.round(avgAccuracy)}% average forecast accuracy over the last 12 fiscal quarters, a corrective override is recommended to compensate for historical variance.` };
 }
 
+// Ordinary least-squares trend line over y[0..n-1] vs. x=0..n-1 -- the standard
+// statistical-baseline method for a historical series (replaces an arbitrary
+// recency-weighted blend with a named, explainable projection). Returns the
+// fitted line plus R^2 (fit quality) and residual std dev, both used below to
+// ground "confidence" in how well the trend actually explains history instead
+// of an unexplained magic-number formula.
+function fcLinearRegression(ys) {
+  const n = ys.length;
+  const xs = ys.map((_, i) => i);
+  const xMean = fcAvg(xs), yMean = fcAvg(ys);
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (xs[i]-xMean)*(ys[i]-yMean); den += (xs[i]-xMean)**2; }
+  const slope = den ? num/den : 0, intercept = yMean - slope*xMean;
+  const predict = x => intercept + slope*x;
+  let ssRes = 0, ssTot = 0;
+  for (let i = 0; i < n; i++) { ssRes += (ys[i]-predict(xs[i]))**2; ssTot += (ys[i]-yMean)**2; }
+  const rSquared = ssTot ? Math.max(0, 1 - ssRes/ssTot) : 0;
+  const stdDevResiduals = Math.sqrt(ssRes / Math.max(1, n - 2));
+  return { slope, intercept, predict, rSquared, stdDevResiduals };
+}
+
 function fcRecommendBTC(filters, scenarioTotals) {
   const hist = fcGenerateHistory(filters);
-  const weights = [1,1,1,2,2,2,3,3,3,4,4,5];
-  const wsum = weights.reduce((a,b)=>a+b,0);
-  const historicalBestFit = hist.btc.reduce((s,v,i)=>s+v*weights[i],0) / wsum;
+  // Historical Best Fit = the OLS trend line projected one quarter past the
+  // observed 12, i.e. "if the trend continues" -- a standard statistical
+  // baseline forecast, not an arbitrarily-weighted average.
+  const reg = fcLinearRegression(hist.btc);
+  const historicalBestFit = Math.max(0, reg.predict(hist.btc.length));
   const latestAccuracy = hist.accuracy[hist.accuracy.length - 1];
   const accuracyShortfall = Math.max(0, 100 - latestAccuracy) / 100;
   const target = scenarioTotals.srTotal * (1 + accuracyShortfall * 0.6);
   const gap = target - scenarioTotals.srTotal;
   const closestToAOP = Math.max(0, Math.min(25, (gap / scenarioTotals.srTotal) * 100));
   const balanced = (historicalBestFit + closestToAOP) / 2;
+  // Confidence/risk are z-scores: how many residual-std-devs a candidate % sits
+  // from the trend line, scaled by how well that trend actually fits history
+  // (R^2) -- the standard "goodness of fit + distance from baseline" pairing,
+  // replacing the previous unexplained "confidence = 95 - distance*3" formula.
   function detail(btcPct) {
     const srAdj = Math.round(scenarioTotals.srTotal * (1 + btcPct/100));
     const dspAdj = Math.round(scenarioTotals.dspTotal * (1 + btcPct/100));
     const gapToTarget = Math.round(target - srAdj);
-    const distFromHist = Math.abs(btcPct - historicalBestFit);
-    const confidence = Math.max(60, Math.min(98, Math.round(95 - distFromHist * 3)));
-    const risk = distFromHist <= 2 ? 'Low' : distFromHist <= 5 ? 'Medium' : 'High';
-    return { btcPct: +btcPct.toFixed(2), srAdj, dspAdj, gapToTarget, confidence, risk };
+    const z = reg.stdDevResiduals > 0 ? Math.abs(btcPct - historicalBestFit) / reg.stdDevResiduals : 0;
+    // Confidence ceiling scales with how well the trend fits history (R^2);
+    // confidence decays smoothly from that ceiling toward the 60% floor as z
+    // grows, rather than a linear formula that collapses distinct z-scores
+    // into the same floored value (e.g. z=2.1 and z=4.3 both reading 60%).
+    const ceiling = 60 + reg.rSquared * 35;
+    const confidence = Math.max(60, Math.min(98, Math.round(60 + (ceiling - 60) * Math.exp(-z / 1.5))));
+    const risk = z < 1 ? 'Low' : z < 2 ? 'Medium' : 'High';
+    return { btcPct: +btcPct.toFixed(2), srAdj, dspAdj, gapToTarget, confidence, risk, zScore: +z.toFixed(2) };
   }
   return { historicalBestFit: detail(historicalBestFit), balanced: detail(balanced), closestToAOP: detail(closestToAOP),
-    target: Math.round(target), aopTargetPct: hist.aopTargetPct, modernTargetPct: hist.modernTargetPct, triadCommitmentPct: hist.triadCommitmentPct, hist };
+    target: Math.round(target), aopTargetPct: hist.aopTargetPct, modernTargetPct: hist.modernTargetPct, triadCommitmentPct: hist.triadCommitmentPct,
+    trendFit: { rSquared: +reg.rSquared.toFixed(2), stdDevResiduals: +reg.stdDevResiduals.toFixed(2) }, hist };
 }
 
 function fcDistributeWeekly(series, btcPct, distMode, overrides) {
@@ -504,7 +563,7 @@ function fcDistributeWeekly(series, btcPct, distMode, overrides) {
 function fcCompute() {
   const filters = fcState.filters;
   const series = fcGenerateWeeklySeries(filters);
-  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride);
+  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride, filters);
   const hist = fcGenerateHistory(filters);
   const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase), expir: fcSum(series.expirations || []) };
   const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
