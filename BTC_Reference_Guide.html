@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BTC Reference Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
 <script>(function(){try{var t=localStorage.getItem('btc_ref_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <style>
@@ -22,6 +23,7 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
   body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;}
+  code, .mono{font-family:'IBM Plex Mono',monospace;}
 
   .topbar{position:sticky;top:0;z-index:10;background:var(--bg);display:flex;justify-content:space-between;align-items:center;padding:16px 40px;border-bottom:1px solid var(--border);}
   .topbar-brand{display:flex;align-items:center;gap:10px;}
@@ -32,15 +34,15 @@
   .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
   .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
 
-  .wrap{max-width:820px;margin:0 auto;padding:40px 24px 64px;}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 24px 64px;}
   .doc-title{font-size:28px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:6px;}
   .doc-sub{font-size:14px;color:var(--text-2);margin-bottom:8px;}
   .doc-meta{font-size:11.5px;color:var(--text-3);margin-bottom:28px;}
 
   .toc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:28px;}
   .toc-title{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
-  .toc ol{list-style:none;counter-reset:toc;display:flex;flex-direction:column;gap:6px;}
-  .toc li{counter-increment:toc;font-size:13px;}
+  .toc ol{list-style:none;counter-reset:toc;column-count:2;column-gap:24px;}
+  .toc li{counter-increment:toc;font-size:13px;margin-bottom:6px;break-inside:avoid;}
   .toc li::before{content:counter(toc) ".";color:var(--teal);font-weight:700;margin-right:8px;}
   .toc a{color:var(--text-2);text-decoration:none;}
   .toc a:hover{color:var(--teal);}
@@ -53,6 +55,7 @@
   .prose + .prose{margin-top:10px;}
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
+  .card + .card{margin-top:14px;}
 
   .param-grid{display:flex;flex-direction:column;gap:14px;}
   .param{border-left:3px solid var(--teal);padding:2px 0 2px 14px;}
@@ -69,6 +72,14 @@
   ul.limits{list-style:none;display:flex;flex-direction:column;gap:9px;}
   ul.limits li{font-size:12.5px;color:var(--text-2);line-height:1.6;padding-left:16px;position:relative;}
   ul.limits li::before{content:'';position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:50%;background:var(--amber);}
+
+  ol.steps{display:flex;flex-direction:column;gap:10px;counter-reset:steps;}
+  ol.steps li{font-size:12.5px;color:var(--text-2);line-height:1.6;padding-left:28px;position:relative;counter-increment:steps;}
+  ol.steps li::before{content:counter(steps);position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;background:var(--teal-dim);color:var(--teal);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;}
+
+  .formula-box{background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text-1);line-height:1.8;overflow-x:auto;white-space:pre;}
+  .approx-flag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--amber);background:rgba(217,119,6,0.12);border-radius:100px;padding:4px 10px;margin-bottom:12px;}
+  .approx-flag svg{width:13px;height:13px;stroke:var(--amber);}
 
   .footer-note{font-size:11.5px;color:var(--text-3);border-top:1px solid var(--border);padding-top:18px;margin-top:8px;}
 </style>
@@ -87,14 +98,19 @@
 
   <div class="wrap">
     <div class="doc-title">How Bend-The-Curve Works</div>
-    <div class="doc-sub">A standalone plain-language reference to the BTC adjustment concept and its main parameters — for sharing outside the Forecast Copilot app.</div>
-    <div class="doc-meta">Single-file reference · no external app dependency · main concepts and parameters only, not a full process manual</div>
+    <div class="doc-sub">A standalone plain-language reference to the BTC adjustment process, its parameters, its formula, and the multi-business-unit workflow — for sharing outside the Forecast Copilot app.</div>
+    <div class="doc-meta">Single-file reference · no external app dependency · generalized terminology throughout (no company-specific names or tools)</div>
 
     <div class="toc">
       <div class="toc-title">Contents</div>
       <ol>
         <li><a href="#what">What BTC Does</a></li>
         <li><a href="#params">Key Parameters</a></li>
+        <li><a href="#formula">The Adjustment Formula</a></li>
+        <li><a href="#multibu">Worked Example: The 4-Tab Case</a></li>
+        <li><a href="#workflow">Publishing Workflow</a></li>
+        <li><a href="#phasing">Quarterly Phasing</a></li>
+        <li><a href="#installed">New vs. Renewal Adjustments</a></li>
         <li><a href="#example">Illustrative Example</a></li>
         <li><a href="#limits">Why Automate This</a></li>
       </ol>
@@ -107,7 +123,7 @@
       </div>
       <div class="card">
         <p class="prose">A statistical forecast only knows what history looks like — it has no way to see planned quality improvements, process changes, or organizational commitments that haven't happened yet. <strong>Bend-The-Curve (BTC)</strong> is the adjustment layer that reconciles the two: it takes the statistical forecast and nudges it toward a committed target, so the plan you publish reflects both what the data says <em>and</em> what the organization intends to make happen.</p>
-        <p class="prose">It's applied as a deliberate, incremental adjustment — not a hard override — so the forecast still looks like a plausible curve rather than a discontinuous jump.</p>
+        <p class="prose">It's applied as a deliberate, incremental adjustment — not a hard override — so the forecast still looks like a plausible curve rather than a discontinuous jump. In practice it's run by an analyst who owns the sizing decision, working from a shared planning system that several other roles (a validator, an extraction/loading step, and the team that runs the underlying statistical model) all feed into or depend on downstream.</p>
       </div>
     </section>
 
@@ -120,19 +136,19 @@
         <div class="param-grid">
           <div class="param">
             <div class="param-name">Modifier %</div>
-            <div class="param-desc">The primary lever. 100% means no change — the adjusted forecast equals the raw statistical forecast. Lower percentages pull the forecast down toward the target; e.g. an 80% modifier closes roughly 20% of the gap between forecast and target.</div>
+            <div class="param-desc">The primary lever. 100% means no change — the adjusted forecast equals the raw statistical forecast. Lower percentages pull the forecast down toward the target. Demonstrated sensitivity from a real sizing session: at 100% the gap to target is unchanged; at 85% the remaining gap is roughly 6%; at 80% it narrows to roughly 2%. The relationship isn't linear — small modifier changes near the target produce outsized gap-closing effects.</div>
           </div>
           <div class="param">
             <div class="param-name">Ramp-In (Incremental Weeks)</div>
-            <div class="param-desc">The adjustment isn't applied as a single jump — it's spread and incremented gradually across the remaining forecast horizon, so the change accumulates over time instead of landing all at once in the first week.</div>
+            <div class="param-desc">The adjustment isn't applied as a single jump — it's spread and incremented gradually across the remaining forecast horizon (a defined first and last forecast week), so the change accumulates over time instead of landing all at once. The stated intent: "not a lot of change at the beginning," building toward the full modifier by the end of the window.</div>
           </div>
           <div class="param">
             <div class="param-name">Allocation Method</div>
-            <div class="param-desc">Once an adjustment is sized at a summary level, it's allocated back down to the lowest reporting dimensions using a <em>weighted</em> split that respects each dimension's existing share of volume — not an equal split across dimensions.</div>
+            <div class="param-desc">Once an adjustment is sized at a summary level, it's allocated back down to the lowest reporting dimensions (region, country, core/upsell, etc.) using a <em>weighted</em> split that respects each dimension's existing share of volume — explicitly <strong>not</strong> an equal split, since an equal split across many low-level dimensions would distort the smaller ones.</div>
           </div>
           <div class="param">
             <div class="param-name">Segment Intersections</div>
-            <div class="param-desc">When a product or metric is tracked under more than one organizational hierarchy at once (e.g. two different business units, or multiple service types), the same modifier has to be entered separately for each intersection — it produces a different absolute number in each one, since each intersection starts from a different base volume.</div>
+            <div class="param-desc">When a product is tracked under more than one organizational hierarchy at once (see the worked example below), the same modifier has to be entered separately for each intersection — it produces a different absolute number in each one, since each intersection starts from a different base volume.</div>
           </div>
           <div class="param">
             <div class="param-name">Quarterly Phasing</div>
@@ -146,26 +162,119 @@
       </div>
     </section>
 
+    <section id="formula">
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+        The Adjustment Formula
+      </div>
+      <div class="card">
+        <span class="approx-flag"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Reverse-engineered from observed behavior — not a confirmed spec</span>
+        <p class="prose" style="margin-bottom:14px;">The owning analyst described the ramp's behavior and demonstrated its outputs at several modifier settings, but the exact underlying formula was never independently confirmed — only the qualitative shape was verified: 100% modifier means no change, and the adjustment holds back early before bending sharply toward the end of the window. The formula below is a steep power-curve ramp that reproduces <em>that boundary case and that qualitative shape</em> — <strong>it is one plausible implementation, not a verified reproduction of exact intermediate values from the original process</strong>.</p>
+        <div class="formula-box">rampFraction(w) = (w / (N - 1)) ^ 8
+
+Adjusted(w) = Forecast(w) × (1 − (1 − Modifier) × rampFraction(w))
+
+  w         = week index within the adjustment window (0-based)
+  N         = number of weeks in the window (first forecast week → last)
+  Modifier  = the chosen % as a decimal (e.g. 0.77)
+
+  At w = 0        → rampFraction = 0  → Adjusted = Forecast          (no change yet)
+  At w = N-1       → rampFraction = 1  → Adjusted = Forecast × Modifier   (full effect)</div>
+        <p class="prose" style="margin-top:14px;">The high exponent (^8) is what makes the curve stay nearly flat for most of the window and then bend sharply in the final few weeks — matching the stated intent of holding change back early and letting it "accumulate towards the second half."</p>
+      </div>
+    </section>
+
+    <section id="multibu">
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+        Worked Example: The 4-Tab Case
+      </div>
+      <div class="card">
+        <p class="prose">Some products are tracked under <strong>two different business-unit hierarchies at once</strong> — the same physical product line rolls up into more than one reporting structure. Crossed with the two service types (Parts Only vs. Parts + Labour), that produces <strong>four distinct data intersections</strong>, each of which needs its own separately-sized adjustment tab — even though all four ultimately trace back to one sizing decision.</p>
+        <table class="data-tbl" style="margin:14px 0;">
+          <thead><tr><th>Tab</th><th>Business Unit</th><th>Service Type</th><th>Illustrative weekly value</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Unit A</td><td>Parts + Labour</td><td>258</td></tr>
+            <tr><td>2</td><td>Unit B</td><td>Parts + Labour</td><td>not separately observed</td></tr>
+            <tr><td>3</td><td>Unit A</td><td>Parts Only</td><td>2</td></tr>
+            <tr><td>4</td><td>Unit B</td><td>Parts Only</td><td>not separately observed</td></tr>
+          </tbody>
+        </table>
+        <p class="prose">The <strong>same modifier</strong> (e.g. 77%) is applied to all four tabs — the analyst sizes the adjustment once, then re-applies that single lever across each intersection by changing the filter combination. The four resulting absolute values are <em>not</em> equal (258 vs. 2 in the example above) because each intersection starts from a wildly different base volume — a rate applied consistently produces very different absolute numbers depending on the size of what it's applied to. Applied correctly, the four intersections' totals should sum back up very close to the original single-adjustment sizing.</p>
+        <p class="prose" style="margin-top:10px;"><strong>Simpler downstream metrics</strong> that don't have a Parts Only / Parts + Labour split need only 2 tabs (one per business unit) instead of 4 for the same product. Across an entire product portfolio, dual-business-unit products needing the full 4-tab treatment are a minority — most single-hierarchy products only ever need one tab.</p>
+      </div>
+    </section>
+
+    <section id="workflow">
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Publishing Workflow
+      </div>
+      <div class="card">
+        <ol class="steps">
+          <li>The analyst copies the sized adjustment values from their working calculation.</li>
+          <li>Pastes them <strong>as fixed values, not formulas</strong>, into a dedicated "adjusted" field in the shared planning system — the underlying tool only accepts literal values, not formula references or multiple values at once.</li>
+          <li>A visual marker flags the field as a pending, unpublished change.</li>
+          <li>The analyst reviews the change, then explicitly publishes it — or discards it, reverting to the prior value, if it looks wrong.</li>
+          <li>On publish, values are automatically allocated down to the lowest reporting dimensions using the weighted split described above.</li>
+          <li>A downstream extraction step pulls the published adjustment and merges it into the shared forecast series that other teams report against — this is also the point where the adjustment becomes visible to anyone outside the sizing process; before publish, it's not visible to anyone else.</li>
+        </ol>
+        <p class="prose" style="margin-top:14px;"><strong>Known constraints of this manual path:</strong> the adjustment field rejects a literal zero (a workaround formula is needed for zero-value weeks); a handful of small mistakes typically make it through validation over time simply due to the sheer volume of manual entries across many tabs; and turnaround is typically a couple of days per metric end-to-end, a bit longer for the installed-base metric since it has an extra downstream reprocessing step before the adjustment is fully reflected.</p>
+      </div>
+    </section>
+
+    <section id="phasing">
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        Quarterly Phasing
+      </div>
+      <div class="card">
+        <p class="prose">Targets are ultimately set at the <em>quarterly</em> level, but sizing happens in two passes. First, the annual-level adjustment above is sized and checked. Then a separate, simpler pass rebalances each quarter: rather than the incremental power-curve ramp, this pass uses a direct percentage scale — compute the % difference between the current value and the quarterly target, apply that % uniformly, and check the result.</p>
+        <p class="prose" style="margin-top:10px;"><strong>Why a second pass exists:</strong> naively dividing an annual target evenly across four quarters produces an unrealistic instant step-down. Leadership explicitly asked to avoid a "cliff drop, then a spike back up" shape at quarter boundaries — so the phasing pass intentionally starts higher and ends lower within each quarter, smoothing the transition while still landing on the same annual total.</p>
+      </div>
+    </section>
+
+    <section id="installed">
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="M3.3 7 12 12l8.7-5"/><path d="M12 22V12"/></svg>
+        New vs. Renewal Adjustments
+      </div>
+      <div class="card">
+        <p class="prose">The installed-base side uses the same BTC methodology, but sizes <strong>two separate fields</strong> rather than one aggregate number:</p>
+        <div class="param-grid" style="margin-top:12px;">
+          <div class="param">
+            <div class="param-name">New Additions</div>
+            <div class="param-desc">Raised if external guidance (e.g. from financial planning) suggests the base forecast should be higher, or lowered if a product line is losing momentum.</div>
+          </div>
+          <div class="param">
+            <div class="param-name">Renewal Rate</div>
+            <div class="param-desc">What percentage of an expiring cohort is expected to remain active — sized as an assumed retention rate, since the true rate isn't knowable until it actually happens.</div>
+          </div>
+        </div>
+        <p class="prose" style="margin-top:12px;"><strong>Sequencing:</strong> first align to any known shipment/volume forecast if one exists; then apply the assumed renewal rate; then visually check that the resulting curve looks smooth rather than jumping unnaturally between periods. One complication specific to this metric: the "expiring" input sometimes lags behind the adjustment cycle — a separate downstream process recalculates and reloads it after the new-additions/renewal sizing is already committed, so the two can be temporarily out of step.</p>
+      </div>
+    </section>
+
     <section id="example">
       <div class="sec-title">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
         Illustrative Example
       </div>
       <div class="card">
-        <div class="sec-sub" style="margin-bottom:14px;">Rounded, made-up numbers — for shape only, not a real forecast</div>
+        <div class="sec-sub" style="margin-bottom:14px;">Rounded, made-up numbers run through the formula above — for shape only, not a real forecast</div>
         <table class="data-tbl" style="margin-bottom:16px;">
           <thead><tr><th>Metric</th><th>Value</th></tr></thead>
           <tbody>
             <tr><td>Statistical Forecast</td><td>12,400</td></tr>
             <tr><td>Committed Target</td><td>11,000</td></tr>
-            <tr><td>Modifier</td><td>82%</td></tr>
-            <tr><td>Adjusted Forecast</td><td>11,252</td></tr>
-            <tr><td>Remaining Gap</td><td>252</td></tr>
+            <tr><td>Modifier</td><td>87%</td></tr>
+            <tr><td>Adjusted Forecast (end of window)</td><td>11,049</td></tr>
+            <tr><td>Remaining Gap</td><td>49</td></tr>
           </tbody>
         </table>
         <div class="chart-legend">
           <span><span class="dot" style="background:var(--chart1)"></span>Statistical Forecast</span>
-          <span><span class="dot" style="background:var(--chart3)"></span>Adjusted (BTC)</span>
+          <span><span class="dot" style="background:var(--chart3)"></span>Adjusted (BTC ramp)</span>
           <span><span class="dot" style="background:var(--chart2)"></span>Target</span>
         </div>
         <div id="ref-chart" style="height:220px;width:100%;"></div>
@@ -179,16 +288,17 @@
       </div>
       <div class="card">
         <ul class="limits">
-          <li>A manual, spreadsheet-driven version of this process usually means adjustments are entered as flat values rather than reusable formulas.</li>
-          <li>Zero-value periods and edge-case weeks often need special-case workarounds.</li>
-          <li>Visibility into an adjustment is typically limited until it flows all the way downstream into shared reporting.</li>
-          <li>Sizing a single change across every segment intersection by hand is slow and easy to get slightly out of sync.</li>
-          <li>An end-to-end pass across every input (forecast, service requests, installed base) commonly takes a few days per cycle when done by hand.</li>
+          <li>A manual, spreadsheet-driven version of this process means adjustments are entered as flat values, one tab at a time, rather than reusable formulas.</li>
+          <li>Zero-value periods and edge-case weeks need special-case workarounds.</li>
+          <li>Visibility into an adjustment is limited until it's published and flows all the way downstream into shared reporting.</li>
+          <li>Sizing one change across every segment intersection (up to 4 tabs per dual-business-unit product) by hand is slow and easy to get slightly out of sync — the four intersections' totals only reconcile back to the original sizing if every tab is updated consistently.</li>
+          <li>Keeping many manually-edited tabs under version control gets harder over time; a handful of small mistakes typically slip through despite review.</li>
+          <li>An end-to-end pass across every input (forecast, request volume, installed base) commonly takes a few days per cycle when done by hand, with the installed-base metric taking longer due to its extra downstream reprocessing step.</li>
         </ul>
       </div>
     </section>
 
-    <div class="footer-note">Standalone reference — main concepts and parameters only. Not a substitute for the full process documentation.</div>
+    <div class="footer-note">Standalone reference — generalized terminology throughout; no company-specific names or tool references. Not a substitute for the full internal process documentation.</div>
   </div>
 
   <script>
@@ -208,13 +318,18 @@
         ? '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>'
         : '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
     }
+    // Same ramp formula documented above: Adjusted(w) = Forecast(w) * (1 - (1-M) * (w/(N-1))^8)
+    function btcRefRampSeries(forecast, modifier) {
+      const N = forecast.length;
+      return forecast.map((v, w) => Math.round(v * (1 - (1 - modifier) * Math.pow(w / (N - 1), 8))));
+    }
     function btcRefRenderChart() {
       const dark = document.documentElement.getAttribute('data-theme') === 'dark';
       const axisColor = dark ? '#97a1b8' : '#94a3b8', gridColor = dark ? '#273349' : '#e8edf7';
       const weeks = Array.from({length:8}, (_,i) => 'W' + (i+1));
       const forecast = [12400,12430,12470,12510,12560,12600,12650,12700];
       const target = new Array(8).fill(11000);
-      const adjusted = forecast.map((v,i) => Math.round(v - (v-11252*(v/12400)) * Math.min(1,(i+1)/6)));
+      const adjusted = btcRefRampSeries(forecast, 0.87);
       window.btcRefChart = Highcharts.chart('ref-chart', {
         chart: { type:'line', backgroundColor:'transparent', spacing:[10,8,4,4] },
         title:{text:null}, credits:{enabled:false}, legend:{enabled:false},
@@ -224,7 +339,7 @@
         plotOptions:{ line:{ lineWidth:2.2, marker:{enabled:false} } },
         series:[
           { name:'Statistical Forecast', data:forecast, color:'#0d9488' },
-          { name:'Adjusted (BTC)', data:adjusted, color:'#7c3aed' },
+          { name:'Adjusted (BTC ramp)', data:adjusted, color:'#7c3aed' },
           { name:'Target', data:target, color:'#0284c7', dashStyle:'ShortDash' }
         ]
       });
