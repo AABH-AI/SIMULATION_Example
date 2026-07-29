@@ -784,3 +784,14 @@ then forecast FY27 (Task 2, ideas only).
 **Not touched (flagged, out of scope for this pass)**: `BPA_FORCASTING_MOCK.HTML`'s embedded `whatif` module has its own separate, pre-existing copy of the engine (doesn't load `fc_engine.js`) — it still has the old flat ratios and arbitrary BTC weights. Desync between the two Forecast Copilot surfaces; owner to decide whether to port these fixes there too.
 
 **Also this session (compliance, logged in root `remove.md`)**: found and removed `forecast_copilot/input/name_mapping_reference.xlsx` from git tracking — it contained literal "Dell"/"Poweredge"/"Vxrail"/etc. strings (a real-name → de-branded-name lookup) and was publicly downloadable from the repo. The served dataset (`forecast_fy26.xlsx`) was checked separately and is clean.
+
+---
+
+## 2026-07-30 — BTC Guide page (de-identified reference)
+
+**Prompt**: owner added a local `GUIDE.md` (an internal knowledge-transfer transcript — real names, direct quotes, real internal tool/product names) and asked for a web UI explaining BTC functionality, main parameters only, not everything.
+
+**Compliance call**: the source file is a different, higher tier of sensitive than generic branding — it names real individuals and quotes them directly, plus real Dell tool names (not committed to the repo, not even read into it; only used as background research locally). Built a new page, `BTC Guide — Forecast Copilot.html`, containing **only the de-identified conceptual/parameter knowledge**: no real names, no direct quotes, no Dell-specific tool or product names. Content: what BTC conceptually does, six key parameters (Modifier %, Ramp-In, Allocation Method, Segment Intersections, Quarterly Phasing, New-vs-Renewal split), one illustrative example (invented round numbers, not the source document's real figures) with a small Highcharts line chart, a section connecting the concepts to the suite's existing AI BTC Advisor / BTC Distribution pages, and a short "why automate this" list.
+- Added as a 7th nav item across all 6 existing pages (own icon, standard `nav-item` link).
+- Self-contained: doesn't load `fc_engine.js` (pure static reference, no filter/compute dependency), has its own minimal theme-toggle script consistent with the rest of the suite's dark-mode support.
+- Verified: JS syntax check on all 7 pages; real-browser pass — chart renders, dark-mode toggle works, nav link present and active-highlighted on all pages, cross-page navigation works, and a confidentiality scan of the rendered page for the source names/tools (Dell, Doug, Mark Mazza, Joanna, Julius, USDM, PowerEdge, VxRail, PowerScale) returned zero hits.
