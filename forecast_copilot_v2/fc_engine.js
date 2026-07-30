@@ -22,10 +22,10 @@ const FILTER_OPTIONS = {
   gcfa: ['All','GCFA','non-GCFA','Unknown']
 };
 
-const FC_STATE_KEY = 'fc_state_v2';   // v2: de-branded generic filter values (old v1 held Dell names — discarded on upgrade)
+const FC_STATE_KEY = 'fc_state_v2';   // v2: generic de-branded filter values (old v1 keys are incompatible — discarded on upgrade)
 const FC_DEFAULT_STATE = {
   filters: { fy: 'All', quarter: '2025-Q1', week: '2025-W01', region: 'AMERICAS', lob: 'Server Line A', business: 'Unit A', warranty: 'All', service: 'Parts + Labour (Unit A)', coreupsell: 'All', wotype: 'All', fqm: 'All', gcfa: 'All' },
-  ncOverride: 10, aposOverride: 5, simMode: 'manual',
+  ncOverride: 10, renewOverride: 5, simMode: 'manual',
   // (2) BTC Signals drive the selected BTC by default across all pages.
   btcStrategy: 'signals', manualBTC: null, distMode: 'equal',
   // (2) BTC Signals — equal-weight levers whose average IS the selected BTC %.
@@ -67,11 +67,11 @@ function fcSaveState(state) {
  * loads another scenario's plan into the live fields. All in localStorage; no
  * backend. Publishing one to Excel is Phase 5.
  * ---------------------------------------------------------------------- */
-const FC_PLAN_KEYS = ['filters','ncOverride','aposOverride','simMode','btcStrategy','manualBTC','btcSignals','distMode','weekOverrides','approvals'];
+const FC_PLAN_KEYS = ['filters','ncOverride','renewOverride','simMode','btcStrategy','manualBTC','btcSignals','distMode','weekOverrides','approvals'];
 const FC_PRESETS = {
-  Baseline:     { ncOverride:10, aposOverride:5,  simMode:'manual', btcStrategy:null,                manualBTC:null, distMode:'equal' },
-  Aggressive:   { ncOverride:30, aposOverride:20, simMode:'manual', btcStrategy:'historicalBestFit', manualBTC:null, distMode:'ai' },
-  Conservative: { ncOverride:0,  aposOverride:0,  simMode:'manual', btcStrategy:'closestToAOP',       manualBTC:null, distMode:'historical' }
+  Baseline:     { ncOverride:10, renewOverride:5,  simMode:'manual', btcStrategy:null,                manualBTC:null, distMode:'equal' },
+  Aggressive:   { ncOverride:30, renewOverride:20, simMode:'manual', btcStrategy:'historicalBestFit', manualBTC:null, distMode:'ai' },
+  Conservative: { ncOverride:0,  renewOverride:0,  simMode:'manual', btcStrategy:'closestToAOP',       manualBTC:null, distMode:'historical' }
 };
 function fcGenId() { return 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fcDeep(v) { return (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v; }
@@ -180,7 +180,7 @@ function fcOptLabel(key, val) { return (FC_OPT_LABEL[key] && FC_OPT_LABEL[key][v
  * surfaced by a "Live / Simulated" badge. In live mode:
  *   - real weekly ASU + Warranty Expirations drive each slice,
  *   - SR / Dispatch stay derived (ratios),
- *   - New Contracts / APOS stay modeled levers (no such columns exist),
+ *   - New Contracts / RENEW stay modeled levers (no such columns exist),
  *   - filter OPTIONS are derived from the data's own distinct values.
  * Historical BTC / accuracy / AOP remain modeled overlays in both modes.
  * ------------------------------------------------------------------------ */
@@ -249,9 +249,9 @@ function fcApplyLiveFilterOptions() {
 
 function fcRepairLiveFilters() {
   // A stored fc_state_v1 (or the seeded defaults) may hold values that don't
-  // exist in the real data (AMERICAS vs Americas, PowerEdge vs Poweredge, the
-  // ESG/ISG service combos, ...). Snap any invalid value to a sensible real one
-  // so the default live slice is populated.
+  // exist in the real data (case/casing mismatches, retired service-type
+  // combos, ...). Snap any invalid value to a sensible real one so the
+  // default live slice is populated.
   Object.keys(FC_LIVE_FIELD).forEach((key) => {
     const opts = FILTER_OPTIONS[key] || [];
     if (opts.indexOf(fcState.filters[key]) !== -1) return;
@@ -339,7 +339,7 @@ const FC_COREUPSELL_FACTOR = { 'All': 1.00, 'Core': 0.60, 'Upsell': 0.40 };
 const FC_WOTYPE_FACTOR     = { 'All': 1.00, 'Break Fix': 0.60, 'Part/s dispatch': 0.40 };
 const FC_FQM_FACTOR        = { 'All': 1.00, '1': 0.60, '0': 0.40 };
 const FC_GCFA_FACTOR       = { 'All': 1.00, 'GCFA': 0.20, 'non-GCFA': 0.75, 'Unknown': 0.05 };
-const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_APOS_WEEKLY = 21500;
+const FC_BASE_ASU = 480000, FC_BASE_NC_WEEKLY = 9200, FC_BASE_RENEW_WEEKLY = 21500;
 const FC_EXPIRATION_RATE = 0.035, FC_BASE_RENEWAL_RATE = 0.853, FC_SR_RATIO = 0.185;
 
 function fcCombinedFactor(filters) {
@@ -380,28 +380,28 @@ function fcGenerateWeeklySeries(filters) {
   const factor = fcCombinedFactor(filters);
   const dispatchRatio = live ? fcLiveDispatchRatio(filters) : fcDispatchRatio(filters);
   const rngNC = seeded(fcSeedFor(filters, 'nc'));
-  const rngAPOS = seeded(fcSeedFor(filters, 'apos'));
+  const rngRENEW = seeded(fcSeedFor(filters, 'renew'));
 
-  // New Contracts / APOS stay modeled levers. Scale their magnitude to the slice:
+  // New Contracts / RENEW stay modeled levers. Scale their magnitude to the slice:
   // seeded uses the multiplicative factor; live scales to the real ASU level so
   // the levers move the forecast by a sensible proportion.
   let ncApScale = factor;
   if (live && !live.empty) ncApScale = fcAvg(live.asuBase) / FC_BASE_ASU;
-  const newContracts = [], apos = [];
+  const newContracts = [], renew = [];
   for (let w = 0; w < 13; w++) {
     const seasonal = 1 + 0.08 * Math.sin((w / 13) * Math.PI * 2);
     const trend = 1 + w * 0.004;
     newContracts.push(Math.round(FC_BASE_NC_WEEKLY * ncApScale * seasonal * trend * (0.94 + rngNC() * 0.12)));
-    apos.push(Math.round(FC_BASE_APOS_WEEKLY * ncApScale * seasonal * trend * (0.94 + rngAPOS() * 0.12)));
+    renew.push(Math.round(FC_BASE_RENEW_WEEKLY * ncApScale * seasonal * trend * (0.94 + rngRENEW() * 0.12)));
   }
 
   // Modeled roll-forward. startPrior/expSeries let live mode anchor it to real
   // data; when omitted it behaves exactly as the original seeded model.
-  function rollModeled(ncFactor, aposFactor, startPrior, expSeries) {
+  function rollModeled(ncFactor, renewFactor, startPrior, expSeries) {
     const asu = []; let prior = startPrior;
     for (let w = 0; w < 13; w++) {
       const expirations = expSeries ? expSeries[w] : prior * FC_EXPIRATION_RATE;
-      const renewals = apos[w] * FC_BASE_RENEWAL_RATE * aposFactor;
+      const renewals = renew[w] * FC_BASE_RENEWAL_RATE * renewFactor;
       const additions = newContracts[w] * ncFactor;
       const cur = prior - expirations + renewals + additions;
       asu.push(cur); prior = cur;
@@ -417,34 +417,34 @@ function fcGenerateWeeklySeries(filters) {
     const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
     // Levers apply as the modeled lift RELATIVE to default overrides, so the
     // real baseline is preserved at default sliders (ratio = 1) and moves
-    // proportionally as NC/APOS change.
+    // proportionally as NC/RENEW change.
     const startPrior = asuBase[0];
     const modeledDefault = rollModeled(1, 1, startPrior, expirations);
-    const rollASU = (ncFactor, aposFactor) => {
-      const m = rollModeled(ncFactor, aposFactor, startPrior, expirations);
+    const rollASU = (ncFactor, renewFactor) => {
+      const m = rollModeled(ncFactor, renewFactor, startPrior, expirations);
       return asuBase.map((v, w) => Math.round(v * (modeledDefault[w] ? m[w] / modeledDefault[w] : 1)));
     };
-    return { weeks: live.weeks, newContracts, apos, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'live' };
+    return { weeks: live.weeks, newContracts, renew, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'live' };
   }
 
   // ---- seeded fallback (original behavior) ----
-  const rollASU = (ncFactor, aposFactor) => rollModeled(ncFactor, aposFactor, FC_BASE_ASU * factor).map(Math.round);
+  const rollASU = (ncFactor, renewFactor) => rollModeled(ncFactor, renewFactor, FC_BASE_ASU * factor).map(Math.round);
   const asuBase = rollASU(1, 1);
   const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
   const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE));
-  return { weeks: fcWeeksForQuarter(fcEffectiveQuarter(filters.quarter)), newContracts, apos, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
+  return { weeks: fcWeeksForQuarter(fcEffectiveQuarter(filters.quarter)), newContracts, renew, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
 }
 
-function fcSensitivity() { return { nc: 0.6, apos: 0.4 }; }
-function fcApplyOverrides(series, ncOverridePct, aposOverridePct) {
+function fcSensitivity() { return { nc: 0.6, renew: 0.4 }; }
+function fcApplyOverrides(series, ncOverridePct, renewOverridePct) {
   const sens = fcSensitivity();
   const ncFactor = 1 + ((ncOverridePct - 10) / 100) * sens.nc;
-  const aposFactor = 1 + ((aposOverridePct - 5) / 100) * sens.apos;
-  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, aposFactor));
+  const renewFactor = 1 + ((renewOverridePct - 5) / 100) * sens.renew;
+  const asuAdj = series.rollASU(Math.max(0, ncFactor), Math.max(0, renewFactor));
   const srAdj = asuAdj.map(v => Math.round(v * FC_SR_RATIO));
   const dspAdj = srAdj.map(v => Math.round(v * series.dispatchRatio));
-  return { asuAdj, srAdj, dspAdj, ncFactor, aposFactor };
+  return { asuAdj, srAdj, dspAdj, ncFactor, renewFactor };
 }
 function fcSum(arr) { return arr.reduce((a,b) => a+b, 0); }
 function fcAvg(arr) { return arr.length ? fcSum(arr)/arr.length : 0; }
@@ -522,8 +522,8 @@ function fcRecommendOverrides(filters) {
   const avgAccuracy = fcAvg(hist.accuracy);
   const shortfall = Math.max(0, 100 - avgAccuracy);
   const nc = Math.max(0, Math.min(100, Math.round(10 + shortfall * 1.8)));
-  const apos = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
-  return { nc, apos, avgAccuracy: Math.round(avgAccuracy),
+  const renew = Math.max(0, Math.min(100, Math.round(5 + shortfall * 1.2)));
+  return { nc, renew, avgAccuracy: Math.round(avgAccuracy),
     rationale: `Based on a ${Math.round(avgAccuracy)}% average forecast accuracy over the last 12 fiscal quarters, a corrective override is recommended to compensate for historical variance.` };
 }
 
@@ -577,9 +577,9 @@ function fcDistributeWeekly(series, btcPct, distMode, overrides) {
 function fcCompute() {
   const filters = fcState.filters;
   const series = fcGenerateWeeklySeries(filters);
-  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.aposOverride);
+  const adj = fcApplyOverrides(series, fcState.ncOverride, fcState.renewOverride);
   const hist = fcGenerateHistory(filters);
-  const originalTotals = { nc: fcSum(series.newContracts), apos: fcSum(series.apos), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase), expir: fcSum(series.expirations || []) };
+  const originalTotals = { nc: fcSum(series.newContracts), renew: fcSum(series.renew), asu: series.asuBase[series.asuBase.length-1], sr: fcSum(series.srBase), dsp: fcSum(series.dspBase), expir: fcSum(series.expirations || []) };
   const scenarioTotals = { asu: adj.asuAdj[adj.asuAdj.length-1], sr: fcSum(adj.srAdj), dsp: fcSum(adj.dspAdj) };
   const btcRec = fcRecommendBTC(filters, { srTotal: scenarioTotals.sr, dspTotal: scenarioTotals.dsp });
   let selectedBTCPct = 0, selectedDetail = null;
@@ -1016,7 +1016,7 @@ function fcInjectBadge() {
   el.id = 'fc-data-badge';
   el.setAttribute('role', 'status');
   el.title = live
-    ? 'Live data: ASU & Warranty Expirations read from the input workbook (forecast_fy26.xlsx). SR/Dispatch are derived; New Contracts, APOS and BTC are modeled. Click to re-check.'
+    ? 'Live data: ASU & Warranty Expirations read from the input workbook (forecast_fy26.xlsx). SR/Dispatch are derived; New Contracts, RENEW and BTC are modeled. Click to re-check.'
     : 'Simulated data: no local server detected, so figures are seeded/generated. Run "python serve.py" and click to switch to live data.';
   el.style.cssText = [
     'position:fixed', 'left:14px', 'bottom:14px', 'z-index:9999',
@@ -1152,7 +1152,7 @@ function fcRenderCompare() {
   const rows = cols.map(s => ({ name: s.name, plan: s.plan, r: fcComputeFor(s.plan) }));
   const metrics = [
     ['Slice',                 x => `${x.plan.filters.quarter} · ${x.plan.filters.region} · ${x.plan.filters.lob}`],
-    ['NC / APOS override',    x => `${x.plan.ncOverride}% / ${x.plan.aposOverride}%`],
+    ['NC / RENEW override',    x => `${x.plan.ncOverride}% / ${x.plan.renewOverride}%`],
     ['BTC strategy',          x => fcBtcLabel(x.plan.btcStrategy)],
     ['BTC %',                 x => fcPct(x.r.final.btcPct || 0, 2)],
     ['ASU baseline (qtr end)',x => fcN(x.r.originalTotals.asu)],

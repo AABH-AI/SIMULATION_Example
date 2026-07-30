@@ -193,7 +193,7 @@
       <div class="panel-sub" id="fva-sub">Forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
       <div class="toggle-group" id="metric-toggle">
         <button class="toggle-btn" data-metric="nc">New Contracts</button>
-        <button class="toggle-btn" data-metric="apos">APOS</button>
+        <button class="toggle-btn" data-metric="renew">Renewals</button>
         <button class="toggle-btn" data-metric="asu">ASU</button>
         <button class="toggle-btn active" data-metric="sr">SR</button>
         <button class="toggle-btn" data-metric="dsp">Dispatch</button>
@@ -292,7 +292,7 @@ function renderFva() {
   const p = histPeriods(true);                 // (5.2.2.3.1) all quarters by default, no 'All' bucket
   const acc = histBtcAccuracy(p).acc;
   const r = fcCompute();
-  const baseMap = { nc:r.originalTotals.nc, apos:r.originalTotals.apos, asu:r.originalTotals.asu, sr:r.originalTotals.sr, dsp:r.originalTotals.dsp };
+  const baseMap = { nc:r.originalTotals.nc, renew:r.originalTotals.renew, asu:r.originalTotals.asu, sr:r.originalTotals.sr, dsp:r.originalTotals.dsp };
   let base = baseMap[fvaMetric] || r.originalTotals.sr;
   if (p.mode === 'week') base = base / 13;      // per-week scale
   const rf = seeded(fcSeedFor(fcState.filters, 'fcast|'+fvaMetric+'|'+p.mode+'|'+fcState.filters.fy+'|'+fcState.filters.quarter));
