@@ -1,6 +1,6 @@
 ﻿# Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-07-27 (filter-rail UI polish)
+> Last updated: 2026-07-30 (Session 38 — Service→donut, horizontal donuts, international numbers, reusable chart-expand with reliable revert, FvA average line, sidebar funnel-reopen)
 
 > **NOTE — relocated to `forecast_copilot/IMP_DOCS_FC/` on 2026-07-27.** Full history is retained here
 > (nothing trimmed): Sessions 1–23 are inherited **main-suite (TET BPA, formerly "ISG BPA")** dashboard
@@ -947,3 +947,79 @@ brand reads "Planning Suite"; Reset is a boxed button; no "Planning slice select
 58px strip with grid hidden; BTC Visuals nav icon is a bar chart; each graph panel has an expand button
 (Dashboard 5, Historical 3, BTC Visuals 5); expand modal opens centered with blur(6px), moves the chart in
 (title from the panel) and restores it on close.
+
+---
+
+## Session 35 — forecast_copilot_v2: BTC Advisor reworked to manual selection + saved scenarios; BTC Visuals merged in then deleted; expand-modal fixes
+**Files**: `fc_engine.js` (engine `?v=8`), `BTC Advisor — Forecast Copilot.html` (rewritten), `Dashboard`/`Historical Performance`/`Final Forecast` (nav link removed, `?v=8`), **deleted** `BTC Visuals — Forecast Copilot.html`. Docs: `HANDOFF.md`.
+**Prompts**: (1) BTC Advisor: drop "Recommend" from the subtitle; remove the Historical Best Fit / Balanced / Closest to AOP buttons; remove **BTC Signals**; add a **manual BTC slider** shifted to the left; **save up to 3 BTC scenarios**; move the **BTC Comparison** box to the right of the selector, have it reflect scenarios, and show it **only when ≥2 scenarios**; remove the **Opportunity table**. (2) Bring the **BTC Visuals** graphs into BTC Advisor. (3) After verifying, **delete BTC Visuals**. (4) Fix the expand-to-detail bugs: LOB & Service-Type bars **don't revert to original size** after expanding; Region & Product-Business donuts **don't grow** when expanded and their **legend disappears**.
+
+**What was done**:
+- **(1) BTC Advisor rewrite** — This page is now the single place BTC is chosen; it forces `btcStrategy='manual'` and normalises any legacy/out-of-range `manualBTC` into **[0, 25]%** (default 8%).
+  - Subtitle → "Compare and select the BTC value to bend the curve toward your AOP target." (no "Recommend").
+  - Removed the **strategy toggle**, the **BTC Signals** panel, and the **Opportunity table**.
+  - **Manual BTC Selector** (left column): slider `0–25%` (step 0.5) → live **Selected BTC**, **Adjusted SR**, and an **AOP note** (✓ meets / △ short of target). Drives `fcState.manualBTC` and the whole app.
+  - **Saved scenarios (up to 3)**: `fcState.btcScenarios[] = {id,name,btc}`. "Save scenario" captures the current BTC (name optional → "Scenario N"); chips list each with load-on-click and a × delete; **Save disabled at 3**.
+  - **BTC Comparison** (right column): one row per saved scenario — BTC %, Adjusted ASU/SR/Dispatch off the current slice totals — active row highlighted, click a row to load its BTC. **Hidden until ≥2 scenarios**; when hidden the selector spans full width (`.advisor-grid.solo`).
+- **(2) BTC Visuals graphs moved in**: Region & Product-Business **donuts** (+ legends), **LOB** and **Service-Type** vertical bars (count badges), and the quarter-only **Fiscal-Week** DS-vs-BTC bars — all rendered from the same engine helpers (`fcDrawDonut`, `fcDrawGroupedBars`, `distributeByFactor`, `FC_*_FACTOR`). The editable **Forecast Table** is retained below them.
+- **(3) BTC Visuals deleted** (`git rm`) after in-browser verification; nav link removed from all remaining pages; the Dashboard activity item "BTC Visuals review" → "BTC distribution review".
+- **(4) Expand-modal fixes (shared engine)**:
+  - **Donuts didn't grow** — `fcDrawDonut` pinned `chart.height: 150`; removed it so the pie follows its container (still 150px normally via the `.donut` box, grows to fill the modal).
+  - **Legend disappeared** — `fcOpenChartModal` moved only the chart `<div>`; it now moves the enclosing **`.donut-wrap`** (chart **+ legend**) when present, with new modal CSS scaling the donut to ~56% width / full height and enlarging the legend.
+  - **Bars didn't revert** — new `fcReflowChart(id)` reflows **synchronously and again after a tick** on both open and close, and close now reflows the tracked `chartId` (not `firstElementChild.id`, which is undefined for a moved wrap), so charts reliably return to their original size.
+
+**Verified in-browser (0 console errors, live data)** + `python -m unittest` **15/15**:
+BTC Advisor renders donuts + LOB/Service bars + weekly bars; slider updates Selected BTC / Adjusted SR / AOP note; saving reveals the Comparison at the 2nd scenario (`.solo` drops), caps at 3, load/delete work; expanded donut carries its legend and both chart types return to original size on close (growth confirmed logically — the headless pane reports `innerHeight 0`, collapsing the modal's `86vh`, so on-screen growth is a real-viewport check). Dashboard/Historical/Final Forecast load clean on `?v=8` with a 4-item nav.
+
+---
+
+## Session 36 — forecast_copilot_v2: filter-collapse UX, LOB-aware distribution layout, BTC Selector figures, expand feature removed
+**Files**: `fc_engine.js` (engine `?v=9`), `BTC Advisor — Forecast Copilot.html`, `Dashboard`/`Historical Performance`/`Final Forecast` (`?v=9`). Docs: `HANDOFF.md`.
+**Prompts**: (1) Filters — once collapsed, drop the collapse button and **expand by clicking the funnel thumbnail**; **center the funnel** in the collapsed strip. (2) BTC Advisor — when a **single Global LOB** is selected, **remove the by-LOB chart** and lay Region / Product Business / Service Type out **3-across**; rename **"Manual BTC Selector" → "BTC Selector"**; add **Adjusted ASU** (before SR) and **Adjusted Dispatch** (after SR) figures. (3) **Remove the expand-to-detail views** from all visuals.
+
+**What was done**:
+- **(1) Filter collapse (shared engine `fcInjectChrome` + chrome CSS)**:
+  - **(1.1)** `body.fc-filters-collapsed .fc-filter-toggle{display:none}` hides the collapse button once collapsed; a click handler on the **funnel header** expands again (ignores clicks on the toggle button so the expanded-state collapse still works).
+  - **(1.2)** Centering fix: the funnel lives inside an injected `.filter-rail-head-title` flex wrapper whose own `font-size:13px` was re-showing the "Filters" text (~40px) and shoving the icon left. Collapsed rules now set the head to a centered column and force `.filter-rail-head-title{width:100%;justify-content:center;gap:0;font-size:0}` + a 22px funnel — verified the icon centre matches the rail centre (offset 0).
+- **(2) BTC Advisor**:
+  - **(2.1)** Distribution charts moved into one `#dist-grid`. When `filters.lob === 'All'` → class `lob-all` (2×2, LOB shown); otherwise `lob-one` (3 columns, `#panel-lob{display:none}` and its chart skipped) so Region / Business / Service sit in one row. Column count changes nudge Highcharts with `reflow()` so the width:100% charts refit.
+  - **(2.2.1)** Panel title → **"BTC Selector"**.
+  - **(2.2.2)** Added **Adjusted ASU** and **Adjusted Dispatch** calc boxes around the existing Adjusted SR (order: Selected BTC · ASU · SR · Dispatch), all from `scenarioAdjusted(r, selectedBTCPct)` so they match the comparison rows for the active BTC.
+- **(3) Expand feature removed**: dropped the `fcInjectChartExpand()` call and deleted the whole expand block (icon, `fcInjectChartExpandCSS`, `fcReflowChart`, `fcOpenChartModal`, `fcCloseChartModal`, `fcInjectChartExpand`) from the engine — no expand buttons or modal are injected on any page now.
+
+**Verified in-browser (0 console errors, live data)** + `python -m unittest` **15/15**:
+BTC Advisor — title "BTC Selector"; calc shows BTC 8.0% / ASU 21,13,994 / SR 83,72,587 / Dispatch 41,86,297; default single LOB → `lob-one`, LOB panel hidden, 3 charts; switch to All → `lob-all`, LOB panel shown, `chart-lob` renders ("8 LOBs"); **0 expand buttons, no `#fc-chart-modal`**. Filters (checked on BTC Advisor + Historical) — collapsed strip hides the toggle, funnel centred (offset 0), clicking the funnel expands. Dashboard/Historical/Final Forecast load clean on `?v=9`.
+
+---
+
+## Session 37 — forecast_copilot_v2: cascading FY→Q→W filters, tight Forecast-vs-Actual band, BTC slider 0–100, one-row expandable charts, sidebar-icon collapse
+**Files**: `fc_engine.js` (engine `?v=10`), `BTC Advisor` + `Historical Performance` (+ `Dashboard`/`Final Forecast` cache bump). Docs: `HANDOFF.md`.
+**Prompts**: (1) Filters cascade — a chosen Fiscal Year limits Quarter+Week to that year; a chosen Quarter limits Week to its weeks. (2) Data — for 1 LOB / 1 quarter, forecast-vs-actual varies by only ~4–5k per **quarter** (outliers ≤10k), and actuals may sit **above** the forecast (previously always below). (3) BTC Advisor — slider 0–25% → **0–100%**; **BTC-by-week bars recoloured** to the Historical Forecast-vs-Actual palette; distribution charts **smaller, in one row, expandable** (30% backdrop, revert to original size, x-axis labels not cut off). (4) Workspace collapse — replace the «/» arrow with a **VS Code/Claude sidebar icon**, moved to the **left**. (5) Collapsed filters — show the **funnel near the workspace icon**; add a **gap** between the Filters/Reset head and the first filter.
+
+**What was done**:
+- **(1) Cascading filters (engine)**: `fcAllowedOptions(key)` derives Quarter from the FY (`FY22`==2022) and Week from the Quarter (`fcWeeksForQuarter`) or FY. `fcApplyFilterSelection` snaps now-invalid dependents to `All` and rebuilds their dropdowns via `fcRebuildFilterDropdown`; `fcWireFilters` was refactored onto these. Verified: FY22 → Quarter list is only 2022-Q1…Q4; Quarter 2022-Q2 → Week list is only 2022-W14…W26.
+- **(2) Forecast vs Actual (Historical page)**: replaced `actual = forecast × accuracy` (always below, huge gap) with a per-quarter signed gap — mostly ±4–5k, ~1-in-7 an outlier up to ±10k — distributed across weeks in week-mode with jitter that nets to the quarter gap. Verified: 1-LOB/1-quarter week-mode quarter gap ≈ 4.1k with weeks landing above and below; quarter-mode gaps all ≤10k with mixed signs. Caption updated.
+- **(3) BTC Advisor**: `BTC_MAX` 25→**100** (slider `max="100"`); **BTC-by-week** bars now DS=teal `#0d9488` / BTC=blue `#0284c7` (matching FvA); `#dist-grid` is now always **one row** (`lob-all`=4 cols, `lob-one`=3 cols) with compact donuts (stacked over legend, 118px) and 170px bar charts. **Per-chart expand** (`bx-*`, BTC-Advisor-local): 30%-opaque backdrop, fixed 640px card; moves the chart (or whole `.donut-wrap` so the legend comes too) into the modal and back. **Sizing uses `setSize(clientW, clientH)`** — Highcharts `reflow()` only re-reads width, so it wouldn't grow/return height; `setSize` grows in the modal and snaps back on close (verified 170→506→170; donut 118→445→118, legend travels).
+- **(4) Workspace toggle (engine)**: static `FC_SIDEBAR_ICON` (panel-left glyph) replaces the arrow; `align-self:flex-start` (left); `fcSyncCollapseGlyphs` now only flips the tooltip for the nav.
+- **(5) Collapsed filters (engine)**: the funnel becomes a **26×26 bordered icon button** at the top of the strip (top-aligned, matching the Workspace toggle so they pair up); `.primary-grid{margin-top:16px}` adds the head→filters gap.
+
+**Verified in-browser (0 console errors, live data)** + `python -m unittest` **15/15**:
+cascade lists correct; FvA band tight with above/below actuals; BTC slider max 100; fwbars colours `[#0d9488,#0284c7]`; dist-grid one row (4/3 cols); 5 expand buttons on BTC Advisor, **0** on Dashboard; expand grows and reverts (height + donut) with a 30% backdrop; Workspace toggle is an SVG icon (no arrow) pinned left; collapsed funnel boxed at top near the Workspace icon; 16px head→filter gap. All pages on `?v=10`.
+
+---
+
+## Session 38 — forecast_copilot_v2: Service→donut, horizontal donuts, international numbers, reusable expand (with reliable revert), FvA average line, sidebar funnel-reopen
+**Files**: `fc_engine.js` (engine `?v=11`), `BTC Advisor` + `Historical Performance` (+ `Dashboard`/`Final Forecast` cache bump). Docs: `HANDOFF.md`.
+**Prompts**: (1) Visuals — Service Type → donut like Region; make Region/Business donuts smaller **horizontally, not vertically** (they were clipped at the bottom); **all visuals must revert to original size after expand**. (2) Numbers → **international format** (grand/million: K/M/B, en-US grouping — not Indian lakhs). (3) Filters — **Reset** button the **same height** as the collapse button. (4) Historical Forecast vs Actual — make it **expandable** (30% backdrop, collapses to same size); **remove the trend line**, add an **Average line** (same colour) tracking the per-period forecast/actual midpoint. (pending) When filters are collapsed, show the **filter icon next to the Workspace icon**.
+
+**What was done**:
+- **(pending 5.1 — done)** Collapsing filters now **hides the whole rail** and shows a **funnel button in the sidebar, immediately right of the Workspace toggle** (`.fc-toggle-row` holds both; `.fc-filter-reopen` shows only when `body.fc-filters-collapsed`). Clicking the funnel reopens the filters. Replaces the old 58px funnel-strip.
+- **(1.1)** BTC Advisor Service Type is a **donut** (`donut-service`/`legend-service`) rendered via `renderDonut`; removed the bar chart + count badge.
+- **(1.2)** Donut layout reverted to **row** (donut *beside* legend) at a full **112×140** so the pie isn't clipped; the one-row compactness comes from narrower columns, not a squashed height.
+- **(1.3 / 4.1) Reusable expand moved into the engine** as `fcInitChartExpand([panelId…])` (`fcx-*`, 30% backdrop, fixed 640px card). BTC Advisor opts in its 5 chart panels; Historical opts in the FvA panel. **Reliable revert**: `fcxFit` resizes each axis independently via `setSize(w>1?w:undefined, h>1?h:undefined)` and a single shared timer (no stale re-sizes); close **hides the modal first**, then restores the element and fits to the reclaimed container. Verified grow→revert: region donut 140→445→140, LOB 170→506→170, FvA 210→523→210.
+- **(2)** `fcN` now emits **K/M/B with en-US grouping** (adds B, forces `en-US`). BTC Advisor summary figures (calc boxes, comparison) use `fcN` (e.g. 10.42M); the weekly table uses `en-US` full numbers (editable), dropping all `en-IN`.
+- **(3)** `.filter-reset` is now **26px tall** (flex-centred) to match the collapse button.
+- **(4.2)** FvA "Trend" (regression via `fcTrendline`) → **"Average"** line = `round((forecast+actual)/2)` per period, colour kept `#dc2626`; legend + caption updated.
+
+**Verified in-browser (0 console errors, live data)** + `python -m unittest` **15/15**:
+Service is a pie (6 legend items); donut-wrap is `row` at 140px; `fcN` → 8.37M/587K/1.23B/940; calc shows 10.42M etc.; 5 `fcx-btn` on BTC Advisor, 0 on Dashboard; expand grows **and** reverts for donut + bar + FvA with a 30% backdrop; Reset = 26px = toggle; collapsing filters hides the rail and shows the funnel 6px right of the Workspace icon (same row), funnel-click reopens; FvA has Forecast/Actual/**Average** (no Trend), Average = midpoints. All pages `?v=11`.

@@ -654,6 +654,60 @@ function fcFitDropdownToRail(dd, item) {
 }
 
 let fcActiveRender = null;   // the current page's render callback (for in-place filter reset)
+/* ---- (1) Cascading Fiscal Year -> Fiscal Quarter -> Fiscal Week option lists ----
+ * FY22 == calendar 2022; a quarter's 13 weeks come from fcWeeksForQuarter(). Choosing a
+ * specific Fiscal Year limits Quarter + Week to that year (1.1); choosing a specific
+ * Quarter limits Week to that quarter's weeks (1.2). Every list keeps its 'All' option. */
+function fcYearFromFY(fy) { const m = /^FY(\d{2})$/.exec(fy || ''); return m ? 2000 + (+m[1]) : null; }
+function fcYearFromQuarter(q) { const m = /^(\d{4})-Q[1-4]$/.exec(q || ''); return m ? +m[1] : null; }
+function fcAllowedOptions(key) {
+  const base = FILTER_OPTIONS[key] || [];
+  if (key === 'quarter') {
+    const y = fcYearFromFY(fcState.filters.fy);
+    return y == null ? base : base.filter(o => o === 'All' || fcYearFromQuarter(o) === y);
+  }
+  if (key === 'week') {
+    const q = fcState.filters.quarter;
+    if (fcYearFromQuarter(q) != null) {
+      const wk = fcWeeksForQuarter(q);
+      return base.filter(o => o === 'All' || wk.indexOf(o) >= 0);
+    }
+    const y = fcYearFromFY(fcState.filters.fy);
+    return y == null ? base : base.filter(o => o === 'All' || o.indexOf(y + '-W') === 0);
+  }
+  return base;
+}
+function fcRebuildFilterDropdown(key) {
+  const item = document.querySelector('.filter-item[data-filter="' + key + '"]'); if (!item) return;
+  const dd = item.querySelector('.filter-dropdown'); if (!dd) return;
+  dd.innerHTML = '';
+  fcAllowedOptions(key).forEach(opt => {
+    const o = document.createElement('div');
+    o.className = 'filter-option' + (fcState.filters[key] === opt ? ' selected' : '');
+    o.textContent = fcOptLabel(key, opt);
+    o.dataset.value = opt;
+    o.onclick = (e) => { e.stopPropagation(); dd.classList.remove('open'); fcApplyFilterSelection(key, opt); };
+    dd.appendChild(o);
+  });
+}
+function fcApplyFilterSelection(key, opt) {
+  fcSetFilter(key, opt);
+  // Cascade: snap now-invalid dependents to 'All', then rebuild their option lists.
+  if (key === 'fy') {
+    if (fcAllowedOptions('quarter').indexOf(fcState.filters.quarter) < 0) fcState.filters.quarter = 'All';
+    if (fcAllowedOptions('week').indexOf(fcState.filters.week) < 0) fcState.filters.week = 'All';
+    fcSaveState(fcState);
+    fcRebuildFilterDropdown('quarter'); fcRebuildFilterDropdown('week');
+  } else if (key === 'quarter') {
+    if (fcAllowedOptions('week').indexOf(fcState.filters.week) < 0) fcState.filters.week = 'All';
+    fcSaveState(fcState);
+    fcRebuildFilterDropdown('week');
+  }
+  fcRefreshFilterButtons();
+  document.querySelectorAll('.filter-dropdown.open').forEach(x => x.classList.remove('open'));
+  if (typeof fcActiveRender === 'function') fcActiveRender();
+}
+
 function fcWireFilters(onChange) {
   fcActiveRender = onChange;
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
@@ -665,22 +719,9 @@ function fcWireFilters(onChange) {
     }
     const btn = item.querySelector('.filter-value');
     btn.firstChild.textContent = fcOptLabel(key, fcState.filters[key]);
-    const dd = document.createElement('div'); dd.className = 'filter-dropdown';
-    FILTER_OPTIONS[key].forEach(opt => {
-      const o = document.createElement('div');
-      o.className = 'filter-option' + (fcState.filters[key] === opt ? ' selected' : '');
-      o.textContent = fcOptLabel(key, opt);
-      o.dataset.value = opt;
-      o.onclick = (e) => {
-        e.stopPropagation();
-        btn.firstChild.textContent = fcOptLabel(key, opt);
-        dd.querySelectorAll('.filter-option').forEach(x => x.classList.remove('selected'));
-        o.classList.add('selected'); dd.classList.remove('open');
-        fcSetFilter(key, opt); onChange();
-      };
-      dd.appendChild(o);
-    });
-    item.appendChild(dd);
+    let dd = item.querySelector('.filter-dropdown');
+    if (!dd) { dd = document.createElement('div'); dd.className = 'filter-dropdown'; item.appendChild(dd); }
+    fcRebuildFilterDropdown(key);   // (1) options respect the FY/Quarter cascade
     btn.onclick = (e) => {
       e.stopPropagation();
       document.querySelectorAll('.filter-dropdown.open').forEach(x => { if (x!==dd) x.classList.remove('open'); });
@@ -729,9 +770,10 @@ function fcInjectFilterRailCSS() {
   .filter-rail-head-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1)}
   .filter-rail-head-title svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0}
   /* (2.1) Reset is a boxed button sitting between the Filters title and the collapse button. */
-  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-2);cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:7px;font-family:inherit;padding:4px 10px}
+  /* (3) Reset matches the collapse button's height (26px). */
+  .filter-reset{font-size:10.5px;font-weight:700;color:var(--text-2);cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:7px;font-family:inherit;height:26px;padding:0 10px;display:inline-flex;align-items:center}
   .filter-reset:hover{border-color:var(--teal);color:var(--teal)}
-  .primary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;margin-bottom:4px}
+  .primary-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 8px;margin-top:16px;margin-bottom:4px}
   .primary-grid .filter-item,.secondary-grid .filter-item{margin-bottom:0;min-width:0}
   .primary-grid .filter-value,.secondary-grid .filter-value{min-width:0;overflow:hidden;white-space:nowrap}
   .primary-grid .filter-value .caret,.secondary-grid .filter-value .caret{flex-shrink:0}
@@ -808,7 +850,15 @@ function fcWireFilterRailUI() {
   rail.dataset.fcRailWired = '1';
 }
 
-function fcN(v) { return v>=1e6?(v/1e6).toFixed(2)+'M':v>=1e3?Math.round(v/1e3).toLocaleString()+'K':Math.round(v).toString(); }
+// (2) International/abbreviated number format: K (thousand/"grand"), M (million), B (billion),
+// with en-US thousands grouping (1,234,567 — never the Indian lakh grouping).
+function fcN(v) {
+  v = +v; const a = Math.abs(v);
+  if (a >= 1e9) return (v/1e9).toFixed(2)+'B';
+  if (a >= 1e6) return (v/1e6).toFixed(2)+'M';
+  if (a >= 1e3) return Math.round(v/1e3).toLocaleString('en-US')+'K';
+  return Math.round(v).toLocaleString('en-US');
+}
 function fcPct(v, d) { return v.toFixed(d==null?1:d)+'%'; }
 
 /* ---- theme (light/dark) ---- */
@@ -996,7 +1046,9 @@ function fcDrawDonut(id, shares, opts) {
   const data = shares.map((s, i) => ({ name: s.key, y: s.value, color: s.key === 'All' ? '#8ec5ff' : palette[i % palette.length] }));
   if (fcHCharts[id]) fcHCharts[id].destroy();
   fcHCharts[id] = Highcharts.chart(el, {
-    chart: { type: 'pie', backgroundColor: 'transparent', height: opts.h || 150, spacing: [4,4,4,4] },
+    // Height is intentionally NOT pinned here — it follows the container (the .donut box
+    // is 150px normally, and grows to fill the expand modal), so the donut reflows on expand.
+    chart: { type: 'pie', backgroundColor: 'transparent', spacing: [4,4,4,4] },
     title: { text: null }, credits: { enabled: false }, legend: { enabled: false },
     tooltip: {
       backgroundColor: '#0f172a', borderColor: '#0f172a', borderRadius: 8, padding: 10,
@@ -1205,31 +1257,38 @@ function fcInjectChromeCSS() {
   .primary-grid{align-items:start}
   .filter-rail .filter-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .filter-rail-sub{margin:3px 0 12px}
-  .fc-side-toggle,.fc-filter-toggle{border:1px solid var(--border);background:var(--card);color:var(--text-2);border-radius:7px;width:26px;height:26px;line-height:1;font-size:15px;cursor:pointer;flex-shrink:0}
-  .fc-side-toggle:hover,.fc-filter-toggle:hover{border-color:var(--teal);color:var(--teal)}
-  .fc-side-toggle{align-self:flex-end;margin:-2px 2px 8px}
-  /* (1.1) Workspace collapse -> narrow icon-only rail (thumbnails stay visible; no
-     floating tab). The collapse button itself stays visible to expand again. */
+  .fc-side-toggle,.fc-filter-toggle,.fc-filter-reopen{border:1px solid var(--border);background:var(--card);color:var(--text-2);border-radius:7px;width:26px;height:26px;line-height:1;font-size:15px;cursor:pointer;flex-shrink:0}
+  .fc-side-toggle:hover,.fc-filter-toggle:hover,.fc-filter-reopen:hover{border-color:var(--teal);color:var(--teal)}
+  .fc-side-toggle svg,.fc-filter-reopen svg{width:16px;height:16px;stroke:currentColor;display:block}
+  /* (4 / pending 5.1) The Workspace toggle (VS Code-style icon) and the filter-reopen
+     funnel share a row at the top-LEFT of the sidebar. The funnel shows only when filters
+     are collapsed; clicking it reopens them. */
+  .fc-toggle-row{display:flex;align-items:center;gap:6px;align-self:flex-start;margin:-2px 0 10px 2px}
+  .fc-side-toggle,.fc-filter-reopen{display:inline-flex;align-items:center;justify-content:center}
+  .fc-filter-reopen{display:none}
+  body.fc-filters-collapsed .fc-filter-reopen{display:inline-flex}
+  /* (pending 5.1) Collapsing filters hides the whole rail — the sidebar funnel reopens it. */
+  body.fc-filters-collapsed .filter-rail{display:none}
+  /* (1.1) Workspace collapse -> narrow icon-only rail (thumbnails stay visible). */
   body.fc-nav-collapsed .sidebar{width:62px;padding:14px 8px}
   body.fc-nav-collapsed .sidebar .brand-text,
   body.fc-nav-collapsed .sidebar .nav-label{display:none}
   body.fc-nav-collapsed .sidebar .brand{justify-content:center;padding:6px 0 16px}
   body.fc-nav-collapsed .sidebar .nav-item{justify-content:center;gap:0;font-size:0;padding:10px 0}
-  body.fc-nav-collapsed .fc-side-toggle{align-self:center}
-  /* (2.1) Filters collapse -> narrow icon strip (funnel icon + expand button). */
-  body.fc-filters-collapsed .filter-rail{width:58px;padding:16px 8px;overflow:hidden}
-  body.fc-filters-collapsed .filter-rail .primary-grid,
-  body.fc-filters-collapsed .filter-rail .filter-reset{display:none}
-  body.fc-filters-collapsed .filter-rail-head{flex-direction:column;gap:12px}
-  body.fc-filters-collapsed .filter-rail-head-title{font-size:0}
+  body.fc-nav-collapsed .fc-toggle-row{align-self:flex-start}
   /* (5) keep 100vh panels window-height under the app zoom (vh ignores CSS zoom) */
   html,body,.sidebar,.filter-rail,.main{height:calc(100vh * var(--fc-vh-scale, 1))}
   .topbar{gap:8px}`;
   document.head.appendChild(st);
 }
+// (4) VS Code / Claude-style "toggle sidebar" icon for the Workspace collapse button.
+var FC_SIDEBAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>';
+// (pending 5.1) Funnel icon for the sidebar "reopen filters" button (shown when collapsed).
+var FC_FUNNEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>';
 function fcSyncCollapseGlyphs() {
+  // (4) The Workspace toggle keeps its static sidebar icon — only the tooltip flips.
   const nav = document.querySelector('.fc-side-toggle');
-  if (nav) nav.innerHTML = document.body.classList.contains('fc-nav-collapsed') ? '»' : '«';
+  if (nav) nav.title = document.body.classList.contains('fc-nav-collapsed') ? 'Expand Workspace' : 'Collapse Workspace';
   const fil = document.querySelector('.fc-filter-toggle');
   if (fil) fil.innerHTML = document.body.classList.contains('fc-filters-collapsed') ? '»' : '«';
 }
@@ -1253,12 +1312,17 @@ function fcInjectChrome() {
   if (localStorage.getItem(FC_FILTER_KEY) === '1') document.body.classList.add('fc-filters-collapsed'); // persisted
   fcApplyZoom(fcGetZoom());                                                                        // (5) persisted, applied on load
 
-  // (1) Workspace collapse button lives INSIDE the sidebar (not the main area).
+  // (1/pending 5.1) A top-left row in the sidebar holds the Workspace toggle plus a funnel
+  // that reopens the filters (visible only while filters are collapsed).
   const sidebar = document.querySelector('.sidebar');
-  if (sidebar && !sidebar.querySelector('.fc-side-toggle')) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'fc-side-toggle';
-    b.title = 'Collapse Workspace'; b.innerHTML = '«';
-    b.onclick = fcToggleNav; sidebar.insertBefore(b, sidebar.firstChild);
+  if (sidebar && !sidebar.querySelector('.fc-toggle-row')) {
+    const row = document.createElement('div'); row.className = 'fc-toggle-row';
+    const nav = document.createElement('button'); nav.type = 'button'; nav.className = 'fc-side-toggle';
+    nav.title = 'Collapse Workspace'; nav.innerHTML = FC_SIDEBAR_ICON; nav.onclick = fcToggleNav;
+    const fil = document.createElement('button'); fil.type = 'button'; fil.className = 'fc-filter-reopen';
+    fil.title = 'Show filters'; fil.innerHTML = FC_FUNNEL_ICON; fil.onclick = fcToggleFilters;
+    row.appendChild(nav); row.appendChild(fil);
+    sidebar.insertBefore(row, sidebar.firstChild);
   }
   // (2.1) Filters collapse button lives in the filter-rail header.
   const fhead = document.querySelector('.filter-rail .filter-rail-head');
@@ -1267,8 +1331,17 @@ function fcInjectChrome() {
     b.title = 'Collapse filters'; b.innerHTML = '«';
     b.onclick = fcToggleFilters; fhead.appendChild(b);
   }
+  // (1.1) Once collapsed the toggle button is hidden — clicking the funnel thumbnail
+  // (the filter-rail header) expands the filters again.
+  if (fhead && !fhead.__fcExpandWired) {
+    fhead.__fcExpandWired = true;
+    fhead.title = 'Filters';
+    fhead.addEventListener('click', e => {
+      if (e.target.closest('.fc-filter-toggle')) return;   // the button manages its own collapse
+      if (document.body.classList.contains('fc-filters-collapsed')) fcToggleFilters();
+    });
+  }
   fcSyncCollapseGlyphs();
-  fcInjectChartExpand();   // (3) per-chart "expand to detail view" buttons + modal
 
   // (5) drive the persisted app zoom from the usual gesture, invisibly (no control tab)
   if (!window.__fcZoomKeys) {
@@ -1287,76 +1360,98 @@ function fcInjectChrome() {
   }
 }
 
-/* ---- (3) Expand any chart into a centered detail view over a blurred page ---- */
-var FC_EXPAND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
-function fcInjectChartExpandCSS() {
-  if (typeof document === 'undefined' || document.getElementById('fc-chartx-css')) return;
-  const st = document.createElement('style'); st.id = 'fc-chartx-css';
+/* ---- Reusable per-chart expand modal (Session 38) ----
+ * Pages opt in with fcInitChartExpand([panelId,...]). A 30%-opaque backdrop; the chart
+ * element (or its whole .donut-wrap, so the legend travels too) is moved into a fixed-size
+ * modal and back. Sizing uses setSize() — Highcharts reflow() only re-reads WIDTH, so it
+ * would neither grow nor shrink height; setSize(clientW, clientH) grows in the modal and
+ * snaps back to the original size on close. A single shared timer avoids stale re-sizes. */
+function fcInjectExpandCSS() {
+  if (typeof document === 'undefined' || document.getElementById('fc-expand-css')) return;
+  const st = document.createElement('style'); st.id = 'fc-expand-css';
   st.textContent = `
-  .fc-expand-chart{position:absolute;top:12px;right:14px;z-index:5;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text-2);cursor:pointer;padding:0}
-  .fc-expand-chart:hover{border-color:var(--teal);color:var(--teal)}
-  .fc-expand-chart svg{width:15px;height:15px}
-  /* backdrop: page behind is blurred ~30% */
-  .fc-chart-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:4vh 4vw;background:rgba(15,23,42,.28);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  .fc-chart-modal[hidden]{display:none}
-  .fc-chart-modal-card{position:relative;width:min(1100px,92vw);height:min(680px,86vh);background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 60px rgba(15,23,42,.35);padding:26px 26px 20px;display:flex;flex-direction:column}
-  .fc-chart-modal-title{font:700 15px/1 inherit;color:var(--text-1);margin:0 0 12px;padding-right:32px}
-  .fc-chart-modal-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text-2);font-size:16px;line-height:1;cursor:pointer}
-  .fc-chart-modal-close:hover{border-color:var(--red);color:var(--red)}
-  .fc-chart-modal-body{flex:1;min-height:0}
-  .fc-chart-modal-body>*{width:100%!important;height:100%!important}`;
+  .fcx-panel{position:relative}
+  .fcx-btn{position:absolute;top:10px;right:12px;z-index:4;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--text-2);cursor:pointer;padding:0}
+  .fcx-btn:hover{border-color:var(--teal);color:var(--teal)}
+  .fcx-btn svg{width:15px;height:15px;stroke:currentColor}
+  .fcx-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:4vh 4vw;background:rgba(15,23,42,0.30)}
+  .fcx-modal[hidden]{display:none}
+  .fcx-card{position:relative;width:min(1040px,92vw);height:640px;background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 24px 60px rgba(15,23,42,.35);padding:24px 26px 26px;display:flex;flex-direction:column}
+  .fcx-title{font:700 15px/1 inherit;color:var(--text-1);margin:0 0 14px;padding-right:34px}
+  .fcx-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text-2);font-size:16px;line-height:1;cursor:pointer}
+  .fcx-close:hover{border-color:var(--red);color:var(--red)}
+  .fcx-body{flex:1;min-height:0}
+  .fcx-body>*{width:100%!important;height:100%!important}
+  .fcx-body .donut-wrap{flex-direction:row;align-items:center;justify-content:center;gap:42px}
+  .fcx-body .donut{width:54%!important;max-width:54%;height:88%!important;flex:0 0 auto}
+  .fcx-body .donut-legend{flex-direction:column;flex-wrap:nowrap;font-size:15px;gap:12px}
+  .fcx-body .donut-legend .lval{font-size:13px;margin-left:18px}`;
   document.head.appendChild(st);
 }
-function fcOpenChartModal(id, title) {
+var FC_EXPAND_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>';
+var fcxModal = null, fcxTimer = null;
+function fcxChartId(panel) {
+  const donut = panel.querySelector('.donut'); if (donut) return donut.id;
+  const el = Array.prototype.find.call(panel.querySelectorAll('[id]'), n => fcHCharts[n.id]);
+  return el ? el.id : null;
+}
+function fcxFit(id) {
+  const c = fcHCharts[id]; if (!c) return;
   const el = document.getElementById(id); if (!el) return;
-  const ov = document.getElementById('fc-chart-modal'); if (!ov) return;
-  const body = ov.querySelector('.fc-chart-modal-body');
-  ov.querySelector('.fc-chart-modal-title').textContent = title || 'Detail view';
-  el.__fcOrigin = { parent: el.parentNode, next: el.nextSibling, style: el.getAttribute('style') || '' };
-  body.appendChild(el);
-  ov.hidden = false;
-  const ch = fcHCharts[id]; if (ch) setTimeout(() => { try { ch.reflow(); } catch (e) {} }, 40);
+  const w = el.clientWidth, h = el.clientHeight;
+  // Resize each axis independently (a 0 means the container is hidden/undetermined — keep
+  // that dimension). This lets height grow even where width can't be measured.
+  if (w > 1 || h > 1) { try { c.setSize(w > 1 ? w : undefined, h > 1 ? h : undefined, false); } catch (e) {} }
 }
-function fcCloseChartModal() {
-  const ov = document.getElementById('fc-chart-modal'); if (!ov || ov.hidden) return;
-  const body = ov.querySelector('.fc-chart-modal-body');
-  const el = body.firstElementChild;
-  if (el && el.__fcOrigin) {
-    const o = el.__fcOrigin;
-    if (o.style) el.setAttribute('style', o.style); else el.removeAttribute('style');
-    if (o.next) o.parent.insertBefore(el, o.next); else o.parent.appendChild(el);
-    el.__fcOrigin = null;
-    const ch = fcHCharts[el.id]; if (ch) setTimeout(() => { try { ch.reflow(); } catch (e) {} }, 40);
+function fcxScheduleFit(id) {
+  fcxFit(id);                                   // synchronous (reading clientW/H forces layout)
+  if (fcxTimer) clearTimeout(fcxTimer);
+  fcxTimer = setTimeout(() => fcxFit(id), 150); // settle any late layout in a real viewport
+}
+function fcxEnsureModal() {
+  if (fcxModal) return fcxModal;
+  fcxModal = document.createElement('div'); fcxModal.className = 'fcx-modal'; fcxModal.hidden = true;
+  fcxModal.innerHTML = '<div class="fcx-card"><div class="fcx-title"></div><button type="button" class="fcx-close" title="Close">✕</button><div class="fcx-body"></div></div>';
+  document.body.appendChild(fcxModal);
+  fcxModal.addEventListener('click', e => { if (e.target === fcxModal) fcxCloseModal(); });
+  fcxModal.querySelector('.fcx-close').onclick = fcxCloseModal;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') fcxCloseModal(); });
+  return fcxModal;
+}
+function fcxOpen(panelId) {
+  const panel = document.getElementById(panelId); if (!panel) return;
+  const id = fcxChartId(panel); if (!id) return;
+  const el = document.getElementById(id);
+  const moving = (el.closest && el.closest('.donut-wrap')) || el;   // move donut+legend together
+  const modal = fcxEnsureModal(); const body = modal.querySelector('.fcx-body');
+  modal.querySelector('.fcx-title').textContent = (panel.querySelector('.panel-title') || {}).textContent || 'Detail view';
+  moving.__fcxOrigin = { parent: moving.parentNode, next: moving.nextSibling, style: moving.getAttribute('style') || '', chartId: id };
+  body.appendChild(moving); modal.hidden = false;
+  fcxScheduleFit(id);
+}
+function fcxCloseModal() {
+  if (!fcxModal || fcxModal.hidden) return;
+  const moving = fcxModal.querySelector('.fcx-body').firstElementChild;
+  fcxModal.hidden = true;                       // hide first so the panel reclaims its layout
+  if (moving && moving.__fcxOrigin) {
+    const o = moving.__fcxOrigin;
+    if (o.style) moving.setAttribute('style', o.style); else moving.removeAttribute('style');
+    if (o.next) o.parent.insertBefore(moving, o.next); else o.parent.appendChild(moving);
+    moving.__fcxOrigin = null;
+    fcxScheduleFit(o.chartId);                  // size the chart back to its restored container
   }
-  ov.hidden = true;
 }
-function fcInjectChartExpand() {
+function fcInitChartExpand(panelIds) {
   if (typeof document === 'undefined') return;
-  fcInjectChartExpandCSS();
-  if (!document.getElementById('fc-chart-modal')) {
-    const ov = document.createElement('div'); ov.id = 'fc-chart-modal'; ov.className = 'fc-chart-modal'; ov.hidden = true;
-    ov.innerHTML = '<div class="fc-chart-modal-card"><div class="fc-chart-modal-title"></div><button type="button" class="fc-chart-modal-close" title="Close">✕</button><div class="fc-chart-modal-body"></div></div>';
-    document.body.appendChild(ov);
-    ov.addEventListener('click', e => { if (e.target === ov) fcCloseChartModal(); });
-    ov.querySelector('.fc-chart-modal-close').addEventListener('click', fcCloseChartModal);
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fcCloseChartModal(); });
-  }
-  // A "graph panel" is any .panel holding a chart container: an <svg viewBox> placeholder
-  // or an already-rendered Highcharts target (fcHCharts key). One button per panel.
-  const targets = new Map();   // panelId-ish -> {id, title}
-  const consider = (el) => {
-    if (!el || !el.id) return;
-    const panel = el.closest && el.closest('.panel'); if (!panel) return;
-    if (panel.querySelector('.fc-expand-chart')) return;
-    const title = (panel.querySelector('.panel-title') || {}).textContent || 'Detail view';
-    panel.style.position = 'relative';
+  fcInjectExpandCSS(); fcxEnsureModal();
+  (panelIds || []).forEach(pid => {
+    const panel = document.getElementById(pid); if (!panel || panel.querySelector('.fcx-btn')) return;
+    panel.classList.add('fcx-panel');
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'fc-expand-chart'; b.title = 'Expand to detail view'; b.innerHTML = FC_EXPAND_ICON;
-    b.onclick = () => fcOpenChartModal(el.id, title);
+    b.type = 'button'; b.className = 'fcx-btn'; b.title = 'Expand chart'; b.innerHTML = FC_EXPAND_ICON;
+    b.onclick = () => fcxOpen(pid);
     panel.appendChild(b);
-  };
-  document.querySelectorAll('.panel svg[viewBox][id]').forEach(consider);
-  Object.keys(fcHCharts).forEach(id => consider(document.getElementById(id)));
+  });
 }
 
 /* ==== END SHARED ENGINE ==== */

@@ -3,7 +3,9 @@
 > Quick-start for a new session or teammate. This is the folder-local handoff for the
 > **`forecast_copilot/`** product. Full detail is in `README.md`; the plan is in
 > `BUILD_PLAN.md`; the chronological build log is in `PROMPT_TRAIL.md`.
-> Last updated: 2026-07-27 (Phases 0–6 complete; filter-rail UI polish — see PROMPT_TRAIL).
+> Last updated: 2026-07-30 (Session 38 — Service→donut, horizontal donuts, international K/M/B numbers,
+> reusable chart-expand `fcInitChartExpand` with reliable revert, FvA average line, sidebar funnel-reopen.
+> Sessions 35–37 built BTC Advisor's manual BTC + scenarios, cascading filters, tight FvA band — see PROMPT_TRAIL).
 
 ---
 
@@ -36,8 +38,9 @@ python -m unittest         # 14 tests (read path + write path), stdlib only
 ## The loop / architecture ("1 + 6 + 4")
 
 - **1 flow:** immutable input → in-app edits → `output/` (timestamped, never overwrites input).
-- **6 pages** (left nav order): Dashboard · ASU Simulation · Historical Performance · AI BTC Advisor ·
-  BTC Distribution · Final Forecast. State flows across all of them via `localStorage` (`fc_state_v1`).
+- **4 pages** (left nav order, `forecast_copilot_v2/`): Dashboard · Historical Performance · BTC Advisor ·
+  Final Forecast. State flows across all of them via `localStorage` (`fc_state_v2`). (The former **BTC
+  Visuals** page was merged into **BTC Advisor** in Session 35 — its distribution charts now live there.)
 - **4 audit:** every weekly edit is a timestamped delta in the active scenario's ledger; the published
   workbook carries **Final Forecast · Assumptions · Audit** sheets (the Audit sheet records the input's
   sha256 + the ledger).
