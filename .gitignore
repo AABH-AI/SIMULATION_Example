@@ -28,3 +28,7 @@ remove.md
 
 # Compliance: internal Dell-name mapping reference, never expose publicly.
 forecast_copilot/input/name_mapping_reference.xlsx
+forecast_copilot_v2/input/name_mapping_reference.xlsx
+
+# Local-only BTC guide — keep locally, never commit.
+forecast_copilot_v2/IMP_DOCS_FC/BTC_GUIDE.md
