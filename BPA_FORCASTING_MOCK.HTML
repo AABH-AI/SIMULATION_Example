@@ -93,12 +93,12 @@
     }
     .filter-value:hover, .filter-value.open { border-color: var(--teal); }
     .filter-value .caret { font-size: 9px; color: var(--text-3); }
-    .filter-dropdown {
+    .filter-rail .filter-dropdown {
       display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 160px; max-height: 240px;
       overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
       box-shadow: 0 10px 28px rgba(15,23,42,0.16); z-index: 100; padding: 4px;
     }
-    .filter-dropdown.open { display: block; }
+    .filter-rail .filter-dropdown.open { display: block; }
     .filter-option { padding: 6px 9px; border-radius: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
     .filter-option:hover { background: var(--card-hi); color: var(--text-1); }
     .filter-option.selected { color: var(--teal); font-weight: 700; }
