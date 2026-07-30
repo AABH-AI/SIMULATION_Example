@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Advisor — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1280px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  /* Filter rail — sits directly right of the nav */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .toggle-group{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .toggle-btn{padding:8px 15px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .toggle-btn.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .toggle-btn:hover:not(.active){border-color:var(--text-3);color:var(--text-1);}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+
+  .slider-row{margin-bottom:14px;}
+  .slider-head{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-bottom:7px;}
+  .slider-head .val{color:var(--teal);font-weight:700;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--card-hi);accent-color:#0d9488;cursor:pointer;}
+
+  .calc-box{background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+  .calc-label{font-size:12.5px;color:var(--text-2);font-weight:600;}
+  .calc-value{font-size:22px;font-weight:800;color:var(--teal);transition:color .2s;}
+  .override-row{display:flex;align-items:center;gap:10px;}
+  .override-row input[type=text]{width:90px;background:var(--card-hi);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text-1);font-size:13px;text-align:right;}
+  .override-row button{padding:7px 14px;border-radius:7px;border:1px solid var(--teal);background:transparent;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;}
+  .override-row button:hover{background:var(--teal-dim);}
+
+  table.data-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.data-tbl th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  table.data-tbl td{padding:10px 10px;border-bottom:1px solid var(--border);color:var(--text-1);}
+  table.data-tbl tr:last-child td{border-bottom:none;}
+  table.data-tbl tr.best td{background:rgba(13,148,136,0.05);}
+  .risk-low{color:var(--green);font-weight:700;}
+  .risk-medium{color:var(--amber);font-weight:700;}
+  .risk-high{color:var(--red);font-weight:700;}
+
+  /* BTC Signals */
+  .panel-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px;}
+  .panel-hd .panel-title{margin-bottom:0;}
+  .signals-avg{flex-shrink:0;font-size:10.5px;font-weight:700;color:var(--teal);background:var(--teal-dim);border-radius:999px;padding:2px 10px;font-variant-numeric:tabular-nums;}
+  .slider-head .sig-name{font-weight:600;color:var(--text-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;}
+  .slider-head .sig-right{display:flex;align-items:center;gap:6px;}
+  .sig-remove{border:none;background:transparent;color:var(--text-3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;border-radius:5px;}
+  .sig-remove:hover{color:var(--red);background:var(--card-hi);}
+  .add-signal-btn{margin-top:6px;width:100%;padding:8px 12px;border:1px dashed var(--border-hi,#b4bde8);border-radius:8px;background:transparent;color:var(--teal);font:600 12px inherit;font-family:inherit;cursor:pointer;}
+  .add-signal-btn:hover{background:var(--teal-dim);border-color:var(--teal);}
+
+  /* (2.3 / 2.4.1) Compact BTC Signals + a much smaller Selected BTC box */
+  .advisor-grid{grid-template-columns:1.6fr 1fr;align-items:start;}
+  .panel.compact{padding:14px 16px;}
+  .panel.compact .slider-row{margin-bottom:8px;}
+  .panel.compact .slider-head{margin-bottom:4px;font-size:11.5px;}
+  .panel.compact input[type=range]{height:4px;}
+  .selected-btc{display:flex;flex-direction:column;}
+  .selected-btc .calc-box{padding:10px 14px;margin-bottom:6px;}
+  .selected-btc .calc-value{font-size:24px;}
+  .selected-btc .calc-label{font-size:11px;}
+  .selected-btc .panel-sub{font-size:10.5px;}
+  .selected-btc .override-row{gap:6px;}
+  .selected-btc .override-row input{width:100%;flex:1;}
+  .selected-btc .override-row button{white-space:nowrap;}
+
+  /* Weekly Forecast Table (moved here from BTC Visuals) */
+  .tw{max-height:340px;overflow-y:auto;}
+  .pos{color:var(--green);} .neg{color:var(--red);}
+  .wk-input{width:104px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;font:inherit;text-align:right;background:var(--card);color:var(--text-1);font-variant-numeric:tabular-nums;}
+  .wk-input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-dim);}
+  .wk-input.edited{border-color:var(--teal);background:var(--teal-dim);font-weight:700;}
+  .wk-reset{border:none;background:transparent;color:var(--teal);cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;border-radius:6px;}
+  .wk-reset:hover{background:var(--teal-dim);}
+  .fc-mini-btn{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:5px 11px;font:600 11.5px inherit;font-family:inherit;color:var(--teal);cursor:pointer;}
+  .fc-mini-btn:hover{background:var(--teal-dim);border-color:var(--teal);}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">Planning Suite</span></div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+      <a class="nav-item" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
+      <a class="nav-item active" href="BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>BTC Advisor</a>
+      <a class="nav-item" href="BTC Visuals — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>BTC Visuals</a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filters
+    </div>
+
+    <div class="filter-item" data-filter="fy"><span class="filter-label">Fiscal Year</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Server Line A<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="business"><span class="filter-label">Business Unit</span><button type="button" class="filter-value">Unit A<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="warranty"><span class="filter-label">Warranty Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour (Unit A)<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div class="page-title">BTC Advisor</div>
+      <div class="page-sub">Recommend, compare and select the BTC value to bend the curve toward your AOP target.</div>
+    </div>
+
+    <div class="toggle-group" id="strategy-toggle">
+      <button class="toggle-btn" data-strategy="historicalBestFit">Historical Best Fit</button>
+      <button class="toggle-btn" data-strategy="balanced">Balanced</button>
+      <button class="toggle-btn" data-strategy="closestToAOP">Closest to AOP</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">BTC Comparison</div>
+      <div class="panel-sub">Historical Best Fit, Balanced and Closest to AOP are fixed BTC presets — click a row (or a button above) to load it into the signals. A manual entry appears as its own row.</div>
+      <table class="data-tbl">
+        <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted ASU</th><th>Adjusted SR</th><th>Adjusted Dispatch</th></tr></thead>
+        <tbody id="cmp-body"></tbody>
+      </table>
+    </div>
+
+    <div class="grid-2 advisor-grid">
+      <div class="panel compact">
+        <div class="panel-hd"><div class="panel-title">BTC Signals</div><span class="signals-avg" id="signals-avg">—</span></div>
+        <div class="panel-sub">Equal-weight levers (50–100%) — their average sets the Selected BTC. Add your own signals as needed.</div>
+        <div id="signals-list"></div>
+        <button type="button" id="btn-add-signal" class="add-signal-btn">+ Add signal</button>
+      </div>
+      <div class="panel compact selected-btc">
+        <div class="calc-box"><span class="calc-label">Selected BTC</span><span class="calc-value" id="calc-btc">—</span></div>
+        <div class="panel-sub" id="selected-sub" style="margin-bottom:10px;">Choose a recommendation above, or enter a manual override.</div>
+        <div class="override-row">
+          <input type="text" id="manual-override" placeholder="Manual %" inputmode="decimal">
+          <button id="btn-use-manual">Use</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Forecast Table</div>
+      <div class="panel-sub">Type a new number in the <b>BTC Forecast</b> column to override a week. Edits are flagged, resettable, and recorded in the Change Ledger on the BTC Visuals page.</div>
+      <div id="edit-status" style="display:flex;align-items:center;justify-content:space-between;margin:4px 0 10px;font-size:12px;color:var(--text-2);">
+        <span id="edit-count"></span>
+        <button id="reset-all" class="fc-mini-btn" style="display:none;">Reset all edits</button>
+      </div>
+      <div class="tw">
+        <table class="data-tbl">
+          <thead><tr><th>Fiscal Week</th><th>DS Forecast</th><th>BTC Forecast</th><th>Variance</th><th></th></tr></thead>
+          <tbody id="weekly-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Opportunity Table</div>
+      <div class="panel-sub">Regions with the largest gap between DS Forecast and BTC Forecast — highest reallocation opportunity first</div>
+      <table class="data-tbl">
+        <thead><tr><th>Dimension</th><th>Opportunity Score</th><th>Recommended Uplift %</th><th>Reason</th></tr></thead>
+        <tbody id="opp-body"></tbody>
+      </table>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js?v=7"></script>
+  <script>
+
+/* ---- BTC Advisor page-specific rendering ---- */
+const STRATEGY_LABELS = { historicalBestFit: 'Historical Best Fit', balanced: 'Balanced', closestToAOP: 'Closest to AOP', manual: 'Manual BTC', signals: 'BTC Signals' };
+// (2.1.2) Fixed BTC presets for the strategies — selecting one loads it into every signal.
+const STRATEGY_BTC = { historicalBestFit: 75, balanced: 60, closestToAOP: 80 };
+const OPP_REASONS = ['High dispatch density + low remote resolution', 'Strong chatbot deflection opportunity', 'Self-heal coverage gap'];
+
+// (2.4) BTC Signals drive the Selected BTC out of the box on first load.
+if (!fcState.btcStrategy) { fcState.btcStrategy = 'signals'; fcSaveState(fcState); }
+
+/* ---- BTC Signals: equal-weight levers; their average IS the Selected BTC ---- */
+function renderSignals() {
+  const list = document.getElementById('signals-list');
+  const signals = fcState.btcSignals || [];
+  list.innerHTML = signals.map((s, i) => `
+    <div class="slider-row" data-idx="${i}">
+      <div class="slider-head">
+        <span class="sig-name" title="${fcEsc(s.name)}">${fcEsc(s.name)}</span>
+        <span class="sig-right"><span class="val sig-val">${Math.round(s.value)}%</span><button type="button" class="sig-remove" data-idx="${i}" title="Remove signal" aria-label="Remove ${fcEsc(s.name)}">×</button></span>
+      </div>
+      <input type="range" class="btc-slider" min="50" max="100" value="${Math.round(Math.max(50, s.value))}" data-idx="${i}">
+    </div>`).join('');
+
+  list.querySelectorAll('input.btc-slider').forEach(inp => {
+    inp.oninput = e => {
+      const i = +e.target.dataset.idx;
+      fcState.btcSignals[i].value = +e.target.value;
+      const row = e.target.closest('.slider-row');
+      if (row) row.querySelector('.sig-val').textContent = Math.round(e.target.value) + '%';
+      fcState.btcStrategy = 'signals'; fcState.manualBTC = null;
+      fcSaveState(fcState);
+      const mo = document.getElementById('manual-override'); if (mo) mo.value = '';
+      updateStrategyToggle();
+      fcRenderAdvisor();   // refresh Selected BTC / comparison / weekly — does NOT rebuild the sliders
+    };
+  });
+  list.querySelectorAll('.sig-remove').forEach(btn => {
+    btn.onclick = () => {
+      if ((fcState.btcSignals || []).length <= 1) { alert('Keep at least one signal.'); return; }
+      fcState.btcSignals.splice(+btn.dataset.idx, 1);
+      fcState.btcStrategy = 'signals'; fcState.manualBTC = null;
+      fcSaveState(fcState);
+      renderSignals(); updateStrategyToggle(); fcRenderAdvisor();
+    };
+  });
+}
+
+function fcRenderAdvisor() {
+  const r = fcCompute();
+  const manualActive = fcState.btcStrategy === 'manual' && fcState.manualBTC != null;
+  const selPct = manualActive ? null : (r.selectedDetail ? Math.round(r.selectedDetail.btcPct) : null);
+
+  // (6.1) Comparison rows are the fixed presets; Adjusted ASU/SR/Dispatch derive from
+  // the slice and are shown as full numbers (no K/M abbreviation).
+  const full = v => Math.round(v).toLocaleString('en-IN');
+  const stratRow = (pct) => ({
+    asu: Math.round(r.scenarioTotals.asu * (1 + pct/100)),
+    sr: Math.round(r.scenarioTotals.sr * (1 + pct/100)),
+    dsp: Math.round(r.scenarioTotals.dsp * (1 + pct/100))
+  });
+
+  let cmpHtml = ['historicalBestFit','balanced','closestToAOP'].map(key => {
+    const pct = STRATEGY_BTC[key], d = stratRow(pct), sel = (selPct === pct);
+    return `<tr class="${sel?'best':''}" data-strategy="${key}" style="cursor:pointer;">
+      <td>${sel?'<strong>':''}${STRATEGY_LABELS[key]}${sel?'</strong>':''}</td>
+      <td>${pct}%</td><td>${full(d.asu)}</td><td>${full(d.sr)}</td><td>${full(d.dsp)}</td>
+    </tr>`;
+  }).join('');
+  if (manualActive) {
+    const pct = Math.round(fcState.manualBTC), d = stratRow(pct);
+    cmpHtml += `<tr class="best"><td><strong>Manual BTC</strong></td><td>${fcPct(fcState.manualBTC,2)}</td><td>${full(d.asu)}</td><td>${full(d.sr)}</td><td>${full(d.dsp)}</td></tr>`;
+  }
+  document.getElementById('cmp-body').innerHTML = cmpHtml;
+  document.querySelectorAll('#cmp-body tr[data-strategy]').forEach(tr => { tr.onclick = () => applyStrategy(tr.dataset.strategy); });
+
+  // Signals average badge.
+  document.getElementById('signals-avg').textContent = 'avg ' + fcPct(fcSignalsAverage(fcState.btcSignals), 1);
+
+  // Selected BTC value + descriptor — rounded to a whole percent (2.1).
+  if (r.selectedDetail) {
+    document.getElementById('calc-btc').textContent = fcPct(r.selectedDetail.btcPct, 0);
+    let sub;
+    if (manualActive) sub = 'Manual BTC applied.';
+    else {
+      const key = Object.keys(STRATEGY_BTC).find(k => STRATEGY_BTC[k] === selPct);
+      sub = key ? `${STRATEGY_LABELS[key]} selected.` : `Driven by BTC Signals — equal-weight average of ${(fcState.btcSignals||[]).length} signals.`;
+    }
+    document.getElementById('selected-sub').textContent = sub;
+  } else {
+    document.getElementById('calc-btc').textContent = '—';
+    document.getElementById('selected-sub').textContent = 'Adjust the BTC Signals, pick a recommendation, or enter a manual override.';
+  }
+
+  renderWeekly(r);
+  renderOpportunity(r);
+}
+
+/* ---- Opportunity Table (moved here from BTC Visuals, item 4.5) ---- */
+function renderOpportunity(r) {
+  const totalBTCVolume = fcSum(r.weekly.btcForecast);
+  const regionShares = distributeByFactor(FC_REGION_FACTOR, fcSum(r.weekly.variance)).filter(s => s.key !== 'All');
+  const sorted = regionShares.slice().sort((a,b) => b.value - a.value);
+  document.getElementById('opp-body').innerHTML = sorted.map((s,i) => {
+    const score = Math.max(40, 95 - i*12);
+    const upliftPct = totalBTCVolume ? +(s.value / totalBTCVolume * r.selectedBTCPct).toFixed(1) : 0;
+    return `<tr><td>${s.key} · ${r.filters.lob}</td><td>${score}</td><td>${upliftPct}%</td><td>${OPP_REASONS[i%OPP_REASONS.length]}</td></tr>`;
+  }).join('');
+}
+
+/* ---- Weekly Forecast Table (moved here from BTC Visuals) ---- */
+function renderWeekly(r) {
+  document.getElementById('weekly-body').innerHTML = r.weekly.weeks.map((w,i) => {
+    const variance = r.weekly.variance[i];
+    const edited = r.weekly.edited[i];
+    const val = r.weekly.btcForecast[i];
+    return `<tr>
+      <td>${w}</td>
+      <td>${dsFmt(r.weekly.dsForecast[i])}</td>
+      <td><input type="text" inputmode="numeric" class="wk-input${edited?' edited':''}" data-week="${w}" value="${val.toLocaleString('en-IN')}" aria-label="BTC Forecast for ${w}"></td>
+      <td class="${variance>=0?'pos':'neg'}">${variance>=0?'+':''}${fcN(variance)}</td>
+      <td>${edited?`<button class="wk-reset" data-week="${w}" title="Reset to computed value">↺</button>`:''}</td>
+    </tr>`;
+  }).join('');
+
+  document.querySelectorAll('#weekly-body .wk-input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const wk = e.target.dataset.week;
+      const raw = e.target.value.replace(/[^0-9.-]/g,'');
+      if (raw === '') fcClearWeekOverride(wk);
+      else { const v = Math.round(parseFloat(raw)); if (!isNaN(v)) fcSetWeekOverride(wk, v); }
+      fcRenderAdvisor();
+    });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
+  });
+  document.querySelectorAll('#weekly-body .wk-reset').forEach(btn => {
+    btn.addEventListener('click', () => { fcClearWeekOverride(btn.dataset.week); fcRenderAdvisor(); });
+  });
+
+  const nEdits = Object.keys(fcState.weekOverrides || {}).length;
+  document.getElementById('edit-count').textContent = nEdits ? `${nEdits} week${nEdits>1?'s':''} manually edited — final forecast now sums the weekly plan.` : 'No manual edits — weekly plan is auto-distributed.';
+  document.getElementById('reset-all').style.display = nEdits ? 'inline-block' : 'none';
+}
+
+function updateStrategyToggle() {
+  const selPct = (fcState.btcStrategy === 'manual' && fcState.manualBTC != null) ? null : Math.round(fcSignalsAverage(fcState.btcSignals));
+  document.querySelectorAll('#strategy-toggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', STRATEGY_BTC[b.dataset.strategy] === selPct);
+  });
+}
+
+// (2.2) Show the DS Forecast column as the full number (no K/M abbreviation).
+function dsFmt(v) { return Math.round(v).toLocaleString('en-IN'); }
+
+// (2.1.2) Picking a strategy loads its FIXED preset BTC into every signal so both the
+// BTC Signals tab and the Selected BTC reflect the choice.
+function applyStrategy(key) {
+  const pct = STRATEGY_BTC[key]; if (pct == null) return;
+  (fcState.btcSignals || []).forEach(s => s.value = pct);
+  fcState.btcStrategy = 'signals'; fcState.manualBTC = null;
+  fcSaveState(fcState);
+  const mo = document.getElementById('manual-override'); if (mo) mo.value = '';
+  renderSignals(); updateStrategyToggle(); fcRenderAdvisor();
+}
+
+// (2.4.2) Manual override applies on the button OR by pressing Enter in the field.
+// (2.1.2.4) Manual entry also drives the signals (each set to the manual value, floored at 50).
+function applyManual() {
+  const v = parseFloat(document.getElementById('manual-override').value);
+  if (isNaN(v) || v < 0) return;
+  const clamped = Math.max(50, Math.min(100, v));
+  (fcState.btcSignals || []).forEach(s => s.value = clamped);
+  fcState.btcStrategy = 'manual'; fcState.manualBTC = +v.toFixed(2);
+  fcSaveState(fcState); renderSignals(); updateStrategyToggle(); fcRenderAdvisor();
+}
+
+fcWireFilters(fcRenderAdvisor);
+
+document.querySelectorAll('#strategy-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => applyStrategy(b.dataset.strategy);
+});
+
+document.getElementById('btn-use-manual').onclick = applyManual;
+document.getElementById('manual-override').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyManual(); } });
+
+document.getElementById('btn-add-signal').onclick = () => {
+  const name = (prompt('Name the new signal', 'New Signal ' + ((fcState.btcSignals || []).length + 1)) || '').trim();
+  if (!name) return;
+  fcState.btcSignals.push({ name, value: 50 });
+  fcState.btcStrategy = 'signals'; fcState.manualBTC = null;
+  fcSaveState(fcState);
+  renderSignals();
+  updateStrategyToggle();
+  fcRenderAdvisor();
+};
+
+document.getElementById('reset-all').onclick = () => { fcClearAllWeekOverrides(); fcRenderAdvisor(); };
+
+renderSignals();
+updateStrategyToggle();
+fcRenderAdvisor();
+  </script>
+</body>
+</html>
