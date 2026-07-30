@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historical Performance — Forecast Copilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<script>(function(){try{var t=localStorage.getItem('fc_theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<style>
+  :root{
+    --bg:#f4f7fb; --sidebar:#ffffff; --card:#ffffff; --card-hi:#eef2f9;
+    --border:#dde5f2; --text-1:#0f172a; --text-2:#4a5578; --text-3:#94a3b8;
+    --teal:#0d9488; --teal-dim:rgba(13,148,136,0.10); --green:#16a34a; --red:#dc2626; --amber:#d97706;
+    --chart1:#0d9488; --chart2:#d97706; --chart3:#0284c7; --chart4:#7c3aed; --chart5:#db2777;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1524; --sidebar:#131b2c; --card:#131b2c; --card-hi:#1b2438;
+    --border:#273349; --text-1:#e8eef8; --text-2:#c2cadd; --text-3:#97a1b8;
+    --teal-dim:rgba(13,148,136,0.20);
+  }
+  .topbar{display:flex;justify-content:flex-end;align-items:center;margin:-16px -16px 4px 0;}
+  .theme-toggle{display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--text-2);border-radius:8px;padding:8px;font:inherit;cursor:pointer;transition:background .12s,border-color .12s,color .12s;}
+  .theme-toggle:hover{border-color:var(--teal);color:var(--text-1);}
+  .theme-toggle svg{width:15px;height:15px;stroke:currentColor;display:block;}
+  .theme-toggle #theme-toggle-icon{display:inline-flex;align-items:center;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--text-1);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;display:flex;overflow:hidden;}
+
+  .sidebar{width:198px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;height:100vh;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px;}
+  .brand-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#0d9488,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-icon svg{width:18px;height:18px;stroke:#fff;}
+  .brand-text{display:flex;flex-direction:column;line-height:1.3;}
+  .brand-name{font-size:14px;font-weight:700;color:var(--text-1);}
+  .brand-sub{font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-3);}
+  .nav-label{font-size:11px;font-weight:600;color:var(--text-3);padding:6px 10px;margin-top:4px;}
+  .nav-list{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;transition:background .12s,color .12s;}
+  .nav-item svg{width:16px;height:16px;stroke:currentColor;flex-shrink:0;}
+  .nav-item:hover{background:var(--card-hi);color:var(--text-1);}
+  .nav-item.active{background:var(--teal-dim);color:var(--teal);font-weight:600;}
+
+  .main{flex:1;height:100vh;overflow-y:auto;}
+  .main-pad{padding:32px 40px 40px;max-width:1320px;}
+  .page-head{margin-bottom:20px;}
+  .page-title{font-size:24px;font-weight:800;letter-spacing:-.01em;color:var(--text-1);margin-bottom:4px;}
+  .page-sub{font-size:13.5px;color:var(--text-2);}
+
+  /* Filter rail — sits directly right of the nav */
+  .filter-rail{
+    width:244px; flex-shrink:0; background:var(--sidebar);
+    border-right:1px solid var(--border); height:100vh; overflow-y:auto;
+    padding:22px 18px;
+  }
+  .filter-rail-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--text-1);}
+  .filter-rail-head svg{width:16px;height:16px;stroke:var(--teal);flex-shrink:0;}
+  .filter-rail-sub{font-size:10.5px;color:var(--text-3);margin:3px 0 18px;}
+  .filter-rail .filter-item{margin-bottom:13px;}
+  .filter-rail .filter-dropdown{left:0;right:0;min-width:0;}
+  .filter-rail .filter-option{white-space:normal;}
+  .filter-item{display:flex;flex-direction:column;gap:5px;position:relative;}
+  .filter-label{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+  .filter-value{
+    font:inherit;font-size:12.5px;font-weight:600;color:var(--text-1);
+    background:var(--card-hi);border:1px solid var(--border);border-radius:7px;
+    padding:6px 9px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;
+    text-align:left;
+  }
+  .filter-value:hover{border-color:var(--teal);}
+  .filter-value .caret{font-size:9px;color:var(--text-3);}
+  .filter-dropdown{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;max-height:260px;
+    overflow-y:auto;background:var(--card-hi);border:1px solid var(--border);border-radius:8px;
+    box-shadow:0 10px 28px rgba(15,23,42,0.16);z-index:100;padding:4px;
+  }
+  .filter-dropdown.open{display:block;}
+  .filter-option{padding:7px 10px;border-radius:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;}
+  .filter-option:hover{background:var(--card);color:var(--text-1);}
+  .filter-option.selected{color:var(--teal);font-weight:700;}
+
+  .kpi-row{display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:16px;}
+  .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .kpi-label{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;}
+  .kpi-value{font-size:22px;font-weight:800;color:var(--text-1);letter-spacing:-.02em;}
+  .range-meter{margin-top:12px;}
+  .range-track{position:relative;height:8px;border-radius:4px;background:var(--card-hi);border:1px solid var(--border);}
+  .range-band{position:absolute;top:-1px;bottom:-1px;background:var(--teal);border-radius:4px;min-width:6px;}
+  .range-scale{display:flex;justify-content:space-between;font-size:9.5px;font-weight:600;color:var(--text-3);margin-top:5px;}
+
+  .quarter-list{display:flex;gap:12px;}
+  .quarter-item{flex:1;display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card-hi);border:1px solid var(--border);border-radius:10px;padding:10px 14px;}
+  .quarter-item.top{border-color:var(--teal);}
+  .quarter-name{font-size:12.5px;font-weight:700;color:var(--text-1);}
+  .quarter-aop{font-size:11px;color:var(--text-2);margin-top:2px;}
+  .quarter-btc{font-size:15px;font-weight:800;color:var(--teal);font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+  .panel-sub{font-size:11.5px;color:var(--text-2);margin-bottom:14px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .toggle-group{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+  .toggle-btn{padding:6px 13px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text-2);font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;}
+  .toggle-btn.active{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .toggle-btn:hover:not(.active){border-color:var(--text-3);color:var(--text-1);}
+  .chart-legend{display:flex;gap:14px;font-size:11px;color:var(--text-2);margin-bottom:8px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+  .axis-labels{display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;}
+</style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></div>
+      <div class="brand-text"><span class="brand-name">Forecast Copilot</span><span class="brand-sub">Planning Suite</span></div>
+    </div>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav-list">
+      <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
+      <a class="nav-item active" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
+      <a class="nav-item" href="BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>BTC Advisor</a>
+      <a class="nav-item" href="BTC Visuals — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>BTC Visuals</a>
+      <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
+    </nav>
+  </aside>
+
+  <aside class="filter-rail">
+    <div class="filter-rail-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Filters
+    </div>
+
+    <div class="filter-item" data-filter="fy"><span class="filter-label">Fiscal Year</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="quarter"><span class="filter-label">Fiscal Quarter</span><button type="button" class="filter-value">2025-Q1<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="week"><span class="filter-label">Fiscal Week</span><button type="button" class="filter-value">2025-W01<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="region"><span class="filter-label">Region</span><button type="button" class="filter-value">AMERICAS<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="lob"><span class="filter-label">Global LOB</span><button type="button" class="filter-value">Server Line A<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="business"><span class="filter-label">Business Unit</span><button type="button" class="filter-value">Unit A<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="warranty"><span class="filter-label">Warranty Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="service"><span class="filter-label">Service Type</span><button type="button" class="filter-value">Parts + Labour (Unit A)<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="coreupsell"><span class="filter-label">Core / Upsell</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="wotype"><span class="filter-label">WO Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="fqm"><span class="filter-label">FQM Flag</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+    <div class="filter-item" data-filter="gcfa"><span class="filter-label">GCFA Type</span><button type="button" class="filter-value">All<span class="caret">▾</span></button></div>
+  </aside>
+
+  <main class="main">
+   <div class="main-pad">
+    <div class="topbar">
+      <button class="theme-toggle" onclick="fcToggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <span id="theme-toggle-icon"></span>
+      </button>
+    </div>
+    <div class="page-head">
+      <div class="page-title">Historical Performance</div>
+      <div class="page-sub">12 quarters of forecast accuracy, AOP achievement and BTC patterns for the selected slice.</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-label">Best Historical BTC Range</div>
+        <div class="kpi-value" id="kpi-btc-range">—</div>
+        <div class="range-meter">
+          <div class="range-track"><div class="range-band" id="btc-range-band"></div></div>
+          <div class="range-scale"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Most Successful Planning Periods</div>
+        <div class="quarter-list" id="quarter-list"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">Historical BTC Trend</div>
+        <div class="panel-sub" id="sub-btc">Last year</div>
+        <svg id="chart-hist-btc" viewBox="0 0 700 150" width="100%" height="150"></svg>
+        <div class="axis-labels" id="axis-btc"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Forecast Accuracy Trend</div>
+        <div class="panel-sub" id="sub-acc">Last year</div>
+        <svg id="chart-accuracy" viewBox="0 0 700 150" width="100%" height="150"></svg>
+        <div class="axis-labels" id="axis-acc"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Forecast vs Actual</div>
+      <div class="panel-sub" id="fva-sub">Forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
+      <div class="toggle-group" id="metric-toggle">
+        <button class="toggle-btn" data-metric="nc">New Contracts</button>
+        <button class="toggle-btn" data-metric="apos">APOS</button>
+        <button class="toggle-btn" data-metric="asu">ASU</button>
+        <button class="toggle-btn active" data-metric="sr">SR</button>
+        <button class="toggle-btn" data-metric="dsp">Dispatch</button>
+      </div>
+      <div class="chart-legend"><span><span class="dot" id="lg-forecast" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span><span><span class="dot" style="background:#dc2626"></span>Trend</span></div>
+      <svg id="fva" viewBox="0 0 900 210" width="100%" height="210"></svg>
+      <div class="axis-labels" id="axis-fva"></div>
+    </div>
+   </div>
+  </main>
+
+  <script src="fc_engine.js?v=7"></script>
+  <script>
+
+/* ---- Historical Performance page-specific rendering ---- */
+function fcRenderHistorical() {
+  const filters = fcState.filters;
+  const hist = fcGenerateHistory(filters);
+
+  // (1.1) Best historical BTC range — the high-performing band on the 0–100% BTC
+  // scale, spanning 65%–80%.
+  const btcRangeLo = 65, btcRangeHi = 80;
+  document.getElementById('kpi-btc-range').textContent = btcRangeLo + '% — ' + btcRangeHi + '%';
+  const band = document.getElementById('btc-range-band');
+  band.style.left = btcRangeLo + '%';
+  band.style.width = (btcRangeHi - btcRangeLo) + '%';
+
+  // (1.2) Most Successful Planning Periods — quarters only (never 'All'), with the
+  // quarter's BTC value shown on the right of each.
+  const ranked = hist.quarters
+    .map((q,i) => ({ q, aop: hist.aop[i], btc: hist.btc[i] }))
+    .filter(x => /^\d{4}-Q[1-4]$/.test(x.q))
+    .sort((a,b) => b.aop - a.aop).slice(0,3);
+  document.getElementById('quarter-list').innerHTML = ranked.map((item,i) => `
+    <div class="quarter-item${i===0?' top':''}">
+      <div><div class="quarter-name">${item.q}${i===0?' ★':''}</div><div class="quarter-aop">${item.aop}% AOP</div></div>
+      <div class="quarter-btc">${(+item.btc).toFixed(1)}%</div>
+    </div>`).join('');
+
+  const pctFmt = v => Math.round(v) + '%';
+  // (5.1) Trend charts use dynamic periods: "Last year" by default, the selected fiscal
+  // year's quarters (5.1.3), or the selected quarter's weeks (5.1.4). Values rounded (5.1.1);
+  // driven by the Fiscal Year selection (5.1.5).
+  const tp = histPeriods(false);
+  const ta = histBtcAccuracy(tp);
+  document.getElementById('sub-btc').textContent = tp.sub;
+  document.getElementById('sub-acc').textContent = tp.sub;
+  fcDrawLineSeries('chart-hist-btc', [
+    {data:ta.btc, color:'#0d9488', name:'BTC'},
+    {data:fcTrendline(ta.btc), color:'#dc2626', name:'Trend', dashed:true, noHover:true}
+  ], {w:700,h:150,min:50,max:90,yTicks:[50,60,70,80,90],yFmt:v=>v+'%',labels:tp.labels,fmt:pctFmt});
+  fcDrawLineSeries('chart-accuracy', [
+    {data:ta.acc, color:'#0d9488', name:'Accuracy'},
+    {data:fcTrendline(ta.acc), color:'#dc2626', name:'Trend', dashed:true, noHover:true}
+  ], {w:700,h:150,min:60,max:100,yTicks:[60,70,80,90,100],yFmt:v=>v+'%',labels:tp.labels,fmt:pctFmt});
+
+  renderFva();
+}
+
+/* ---- Period model shared by the trend charts and Forecast vs Actual ----
+ * quarter selected -> weeks; fiscal year selected -> that year's quarters;
+ * neither -> "Last year" (last 4 quarters) for trends, or all quarters for FvA. */
+function histRealQuarters() { return (FILTER_OPTIONS.quarter || []).filter(x => /^\d{4}-Q[1-4]$/.test(x)).sort(); }
+function histPeriods(allDefault) {
+  const f = fcState.filters;
+  if (/^\d{4}-Q[1-4]$/.test(f.quarter)) {
+    const weeks = fcWeeksForQuarter(f.quarter);
+    return { mode:'week', keys:weeks, labels:weeks.map(w=>'W'+w.split('-W')[1]), sub:'Weeks · '+f.quarter };
+  }
+  if (/^FY\d{2}$/.test(f.fy)) {
+    const yr = '20'+f.fy.slice(2), qs = [1,2,3,4].map(n=>yr+'-Q'+n);
+    return { mode:'quarter', keys:qs, labels:qs, sub:'Quarters · '+f.fy };
+  }
+  const qs = histRealQuarters();
+  return allDefault
+    ? { mode:'all', keys:qs, labels:qs, sub:'All fiscal quarters' }
+    : { mode:'lastyear', keys:qs.slice(-4), labels:qs.slice(-4), sub:'Last year' };
+}
+function histBtcAccuracy(p) {
+  const salt = p.mode + '|' + fcState.filters.fy + '|' + fcState.filters.quarter;
+  const rb = seeded(fcSeedFor(fcState.filters, 'hbtc|'+salt));
+  const ra = seeded(fcSeedFor(fcState.filters, 'hacc|'+salt));
+  const n = p.keys.length, btc = [], acc = [];
+  for (let i=0;i<n;i++){
+    const drift = n>1 ? i/(n-1) : 0;
+    const b = Math.round(Math.max(55, Math.min(85, 55 + drift*8 + rb()*24)));   // (5.1.1) rounded, 55–85
+    btc.push(b);
+    acc.push(Math.round(Math.max(70, Math.min(92, 92 - Math.abs(b-75)*0.8 + (ra()*2-1)))));
+  }
+  return { btc, acc };
+}
+
+/* ---- Forecast vs Actual (5.2): metric-selectable, dynamic periods ---- */
+let fvaMetric = 'sr';
+function renderFva() {
+  const p = histPeriods(true);                 // (5.2.2.3.1) all quarters by default, no 'All' bucket
+  const acc = histBtcAccuracy(p).acc;
+  const r = fcCompute();
+  const baseMap = { nc:r.originalTotals.nc, apos:r.originalTotals.apos, asu:r.originalTotals.asu, sr:r.originalTotals.sr, dsp:r.originalTotals.dsp };
+  let base = baseMap[fvaMetric] || r.originalTotals.sr;
+  if (p.mode === 'week') base = base / 13;      // per-week scale
+  const rf = seeded(fcSeedFor(fcState.filters, 'fcast|'+fvaMetric+'|'+p.mode+'|'+fcState.filters.fy+'|'+fcState.filters.quarter));
+  const n = p.keys.length;
+  const forecast = p.keys.map((_,i) => Math.round(base * (0.9 + (n>1?i/(n-1):0)*0.25) * (0.96 + rf()*0.08)));
+  const actual = forecast.map((v,i) => Math.round(v * (acc[i]/100)));
+  const trend = fcTrendline(forecast.map((v,i) => (v + actual[i]) / 2));
+  const fcColor = p.mode === 'week' ? '#8ec5ff' : '#0d9488';   // (5.2.2.3.3.1) light blue in week view
+  document.getElementById('lg-forecast').style.background = fcColor;
+  document.getElementById('fva-sub').textContent = p.sub + ' · Actual = Forecast × Forecast Accuracy';
+  fcDrawGroupedBars('fva', p.labels, [
+    {label:'Forecast', color:fcColor, values:forecast},
+    {label:'Actual', color:'#0284c7', values:actual},
+    {label:'Trend', color:'#dc2626', values:trend, type:'line', noHover:true}
+  ], {w:900, h:210});
+}
+
+fcWireFilters(fcRenderHistorical);
+document.querySelectorAll('#metric-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => {
+    fvaMetric = b.dataset.metric;
+    document.querySelectorAll('#metric-toggle .toggle-btn').forEach(x => x.classList.toggle('active', x===b));
+    renderFva();
+  };
+});
+fcRenderHistorical();
+  </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+# Forecast Copilot — AI Planning Suite
+
+> Folder-local documentation for the `forecast_copilot/` product.
+> This is a **copy** kept inside the folder; the canonical project docs in `../../IMP_DOCS/` are left as-is.
+> New here? Start with `HANDOFF.md` (quick-start), then this file for detail.
+> Last updated: 2026-07-27 (Phases 0–6 complete; filter-rail UI polish).
+
+A 6-page suite for **BTC (Bend-the-Curve) forecast planning**, built around an **input → edit →
+publish** loop. Light theme (Inter font, teal `#0d9488` accent), charts via Highcharts 11.4.8.
+
+The pages run standalone (pure HTML/CSS/JS, live on GitHub Pages via the repo-root `.nojekyll`) in
+**Simulated** mode on seeded data. Run the optional **`serve.py`** (zero-dependency, Python stdlib) and
+they switch to **Live** mode: reading the real input workbook and publishing timestamped, audited
+forecasts to `output/`. No `pip install`, no build step, no cloud. See "Data source: Live vs
+Simulated" and "Local server & read path" below.
+
+Separate product from the ISG BPA dashboards (`../../BPA_FORCASTING_MOCK.HTML` etc.) — no shared code with them.
+
+---
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `fc_engine.js` | **Shared engine — single source of truth.** Loaded by all 6 pages. Edit here once. |
+| `Dashboard — Forecast Copilot.html` | Entry point. 9 KPI cards, Forecast vs Target table, ASU/SR/Dispatch trends, Historical BTC trend, activity list |
+| `ASU Simulation — Forecast Copilot.html` | Manual Simulation (NC/APOS sliders) + Recommendation Mode (Accept / Modify / Reject) |
+| `Historical Performance — Forecast Copilot.html` | 12-quarter BTC / Accuracy / AOP / Modernization trends (0–100% axes), Forecast vs Actual |
+| `AI BTC Advisor — Forecast Copilot.html` | 3-strategy BTC comparison table (click-to-select), 6 confidence-driver sliders, manual BTC override |
+| `BTC Distribution — Forecast Copilot.html` | Region/Business donuts, LOB/Service h-bars, weekly DS-vs-BTC bars, Weekly Forecast Table, Opportunity Table |
+| `Final Forecast — Forecast Copilot.html` | Original/Scenario/BTC/Final/Target chart, Submission Summary, status cards, Approve/Submit |
+| `Dispatches_Dummy.xlsx`, `forecast_fy26.xlsx` | Reference data files — **not wired into the app** (all in-app data is mock/seeded) |
+
+Navigation order (left sidebar): Dashboard → ASU Simulation → Historical → AI BTC Advisor → BTC Distribution → Final Forecast.
+
+---
+
+## Data source: Live vs Simulated (`fc_engine.js` provider — Phase 2)
+
+The engine runs in one of two modes, decided once at load and shown by a fixed
+**badge** in the bottom-left corner:
+
+| Mode | When | Data | Badge |
+|---|---|---|---|
+| **Live** | `serve.py` is running (page served over `http://`) | Real workbook via `GET /api/dataset` | teal "Live data" |
+| **Simulated** | No server (e.g. opened from `file://`, or a plain static host) | Seeded generator | amber "Simulated data" |
+
+`fcInitData()` does a **synchronous** `GET /api/dataset` at engine load — because
+the engine script runs *before* each page's inline render script, real data is
+guaranteed ready before the first `fcCompute()`, so no page needed changing. Any
+failure (no server, `file://`, non-2xx) is caught and the engine stays Simulated.
+Clicking the badge reloads to re-check (e.g. after starting the server).
+
+**In Live mode:**
+- **Filter options are derived from the data's distinct values** (not hardcoded),
+  which removes the `AMERICAS`/`Americas`, `PowerEdge`/`Poweredge` reconciliation
+  problem — the rail shows exactly what's in the workbook. One filter is
+  relabelled because the seeded model uses a different name: **Global LOB →
+  Product** (the real `Product` column). The `business` filter reads the real
+  **Business Unit** column (options **Unit A / Unit B**) in both modes. A
+  stored/seeded filter value that isn't a real option is snapped to `All`.
+  Label rename (both modes): **Fiscal Quarter → Fiscal Qrtr**, **Global LOB →
+  Product** (live) — see `FC_SIM_LABEL` / `FC_LIVE_LABEL` / `FC_LIVE_FIELD`.
+  **Business Unit** (`business`→`businessUnit`) and **Warranty Type**
+  (`warranty`→`warrantyType`) are separate filters, each backed by its own column.
+- **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
+  quarter + slice, rows are aggregated into the quarter's 13 canonical weeks. The
+  Service Dataset is dense on **Product × Region × week** (see *Input data* below),
+  so single- and two-dimension drill-downs show a full 13-week trend. For any
+  weeks with no matching rows (only deeper 3-plus-filter combos), ASU — a *stock* —
+  carries its last observed value forward, and Expirations — a *flow* — is 0.
+- **SR / Dispatch stay derived** by ratio (`SR = ASU × 0.185`; Dispatch =
+  `SR × serviceRatio`).
+- **New Contracts / APOS stay modeled levers** (no such columns exist). They apply
+  as the modeled lift *relative to* the default slider position, so at default
+  sliders the scenario equals the real baseline and moving a slider adjusts it
+  proportionally.
+- **Historical BTC / accuracy / AOP remain modeled overlays** in both modes.
+
+Simulated mode is the original seeded engine, unchanged — it is the fallback.
+
+## Scenarios (`fc_engine.js` — Phase 3)
+
+The single working plan is now a **library of named scenarios**. A scenario is a full snapshot of a
+plan: the slice (all filters), NC/APOS overrides, BTC strategy/manual value, distribution mode, and
+approvals. `fcState.scenarios[]` holds them; `fcState.activeScenarioId` marks the one loaded into the
+live fields — so **the active scenario *is* the live working state**, and every page reads
+`fcState.filters` etc. unchanged. `fcSaveState()` mirrors live edits back into the active scenario
+automatically, so edits stick to it. All in `localStorage`; no backend (publishing one to Excel is Phase 5).
+
+A **scenario bar** is injected at the top of the filter rail (same injection pattern as the badge) on
+the five editing pages — **not the Dashboard**, which keeps its filters but is a read-only overview:
+a dropdown to switch, **New / Duplicate / Rename / Delete**, a **Compare** button, and three
+**preset** chips — **Baseline / Aggressive / Conservative** — that apply a fixed recipe of levers to
+the current slice (deterministic, no LLM). Switching a scenario or applying a preset reloads the page
+so every page-specific input (sliders, filter buttons) reflects the new plan; New/Duplicate/Rename
+just update the bar.
+
+**Compare** (up to 3 scenarios) opens a modal that recomputes each selected plan via `fcComputeFor()`
+— which applies the plan to the live fields, runs `fcCompute()`, then restores the live state — and
+tabulates slice, levers, BTC strategy/%, baseline vs lever-adjusted ASU/SR/Dispatch, final SR, and
+accuracy. Migration: any existing `fc_state_v1` (or a fresh one) is wrapped into a first "Baseline"
+scenario, so nothing is lost.
+
+Key symbols: `fcSnapshotPlan` / `fcApplyPlan`, `fcSwitchScenario`, `fcSaveAsScenario`,
+`fcDuplicateScenario`, `fcRenameScenario`, `fcDeleteScenario`, `fcApplyPreset`, `fcComputeFor`,
+`FC_PRESETS`, `fcActiveScenario`.
+
+## Weekly edits & change ledger (Phase 4)
+
+The **Weekly Forecast Table** on the BTC Distribution page is editable: type a new number in the
+**BTC Forecast** column to override a week. Edits are stored per-week in the active scenario
+(`weekOverrides`, a plan field — so they persist, travel when you switch scenarios, and flow through
+`fcCompute()` to every page). `fcDistributeWeekly()` applies an override by replacing that week's
+computed value (other weeks keep their auto-distribution); when any override exists, the **final SR
+becomes the bottom-up sum of the weekly plan**, so the Final Forecast page reflects hand-edits.
+
+Edited cells are flagged (teal), each has a per-week reset (↺), and a **Reset all edits** button
+clears them. Every edit appends a **timestamped delta** to the active scenario's `ledger`
+(`{ts, action, week, from, to}`), shown newest-first in the **Change Ledger** panel below the table.
+Actions: `set` / `reset` / `reset-all`.
+
+Key symbols: `fcSetWeekOverride`, `fcClearWeekOverride`, `fcClearAllWeekOverrides`, `fcScenarioLedger`,
+`fcLogEdit`; `weekly.edited[]` / `weekly.hasOverrides` from `fcDistributeWeekly`.
+
+## Architecture: shared engine (`fc_engine.js`)
+
+The engine (`fc_engine v1`) was previously an **identical block copy-pasted into all 6 HTML files**.
+It has since been **extracted into `fc_engine.js`** so there is one source of truth.
+
+### Page structure
+
+```html
+<head>
+  … Highcharts 11.4.8 (CDN) …          <!-- must load first: engine calls Highcharts.setOptions() -->
+</head>
+<body>
+  … page markup …
+  <script src="fc_engine.js"></script>  <!-- shared engine -->
+  <script> /* page-specific rendering only */ </script>
+</body>
+```
+
+**Load order is a hard requirement:**
+1. Highcharts (CDN, in `<head>`, synchronous)
+2. `fc_engine.js` (bottom of `<body>`) — references `Highcharts` at parse time and reads `#theme-toggle-icon` via `fcSyncThemeBtn()`, so it must run after both exist
+3. The page-specific inline `<script>` — calls engine globals (`fcCompute`, `fcDrawLineSeries`, `fcWireFilters`, …)
+
+All three are classic (non-module) scripts, so the engine's top-level `const`/`function` are global and visible to the page script.
+
+> **Editing rule:** change engine behaviour in `fc_engine.js` **only**. Do not re-inline it into the HTML files.
+
+### What the engine provides
+
+| Area | Key symbols |
+|---|---|
+| Cross-page state | `fcState`, `fcLoadState`/`fcSaveState` (localStorage key `fc_state_v1`), `fcSetFilter` |
+| Seeded data | `seeded()`, `fcHash`, `fcSeedFor`, factor maps (`FC_REGION_FACTOR`, `FC_LOB_FACTOR`, …) |
+| Pipeline | `fcGenerateWeeklySeries` (ASU roll-forward), `fcApplyOverrides`, `fcGenerateHistory` |
+| Recommendations | `fcRecommendOverrides`, `fcRecommendBTC` (3 strategies), `fcDistributeWeekly` |
+| Master compute | `fcCompute()` — every page calls this |
+| Filters UI | `fcWireFilters(onChange)` |
+| Charts | `fcDrawLineSeries`, `fcDrawGroupedBars` (Highcharts, cached in `fcHCharts`, 320 ms animated `setData`) |
+| Theme | `fcToggleTheme` / `fcApplyTheme` (light/dark, persisted to `fc_theme`) |
+| Formatting | `fcN` (K/M), `fcPct` |
+
+### Business pipeline (per selected slice)
+
+```
+ASU[w] = ASU[w-1] − Expirations[w] + (APOS[w] × RenewalRate × aposFactor) + (NewContracts[w] × ncFactor)
+SR      = ASU × 0.185
+Dispatch = SR × service.dispatchRatio
+```
+
+Data is deterministic: `fcSeedFor()` hashes the active `region|lob|business|service|quarter` combo, so the same
+slice always produces the same numbers and different slices produce different, realistically-scaled ones.
+
+### Cross-page state (`fc_state_v1`)
+
+`fcState` persists to `localStorage` and carries filters, `ncOverride`/`aposOverride`, `simMode`,
+`btcStrategy`/`manualBTC`, `distMode`, and `approvals` across pages — a selection made on one page is
+already applied when the next page loads.
+
+---
+
+## Filters
+
+Right-hand rail on every page. 11 filters, all wired through `fcWireFilters` → `fcSetFilter` → re-render.
+
+| Filter | `data-filter` | Options |
+|---|---|---|
+| Fiscal Qrtr | `quarter` | `YYYY-Qn` (no "All" — parsed by `fcWeeksForQuarter`) |
+| Fiscal Week | `week` | `YYYY-Wnn` (no "All") |
+| Region | `region` | **All**, AMERICAS, EMEA, APJ |
+| Global LOB *(Live: Product)* | `lob` | **All** + generic product lines (Server Line A–C, Storage Array A–K, Data Protection A/B, Networking A/B, Hyperconverged A) |
+| Business Unit | `business` | **All**, Unit A, Unit B |
+| Warranty Type | `warranty` | **All**, Basic, Premium, Premium Flex, Premium Plus |
+| Service Type | `service` | **All**, Parts Only / Parts + Labour / Labour Only (Simulated suffixes `(Unit A)`/`(Unit B)`) |
+| Core / Upsell | `coreupsell` | All, Core, Upsell |
+| WO Type | `wotype` | All, Break Fix, Part/s dispatch |
+| FQM Flag | `fqm` | All, 1, 0 |
+| GCFA Type | `gcfa` | All, GCFA, non-GCFA, Unknown |
+
+**"All" semantics:** the aggregate factor is the sum of the dimension's parts (e.g. `FC_REGION_FACTOR.All = 2.65`),
+so because the engine is multiplicative, all-`All` equals the total over the full cross-product of slices.
+
+> **Casing note:** the label is `All` everywhere (Region/LOB/Business/Service were previously `ALL` and were
+> normalized to `All` to match the other filters). A browser holding an **old** `fc_state_v1` with `'ALL'` will
+> miss the factor-map key and fall back to factor `1` for that dimension until the filter is reselected. Fresh
+> users are unaffected (defaults are `AMERICAS` / `PowerEdge` / `ESG`, not `All`).
+
+---
+
+## Charts & licensing
+
+- Rendering: **Highcharts 11.4.8** via cdnjs (`cdnjs.cloudflare.com/.../highcharts/11.4.8/highcharts.min.js`).
+  Do not switch to `code.highcharts.com` — it 403s requests without a Referer header (breaks `file://`).
+- Charts are cached in `fcHCharts` and updated in place (`setData`, 320 ms) rather than recreated.
+- **Licensing:** Highcharts is commercially licensed but free for **non-commercial / research** use, which is
+  the scope of this suite. A note to that effect is in the header of `fc_engine.js`.
+
+---
+
+## Verification
+
+After any engine edit, load each page in a browser and confirm: 0 console errors, engine loaded
+(`typeof fcCompute === 'function'`), and charts render. Expected chart counts:
+Dashboard 5 · ASU Simulation 3 · Historical 4 · AI BTC Advisor 0 · BTC Distribution 1 · Final Forecast 1.
+
+---
+
+## Local server & read path (`serve.py`) — Phase 1
+
+`serve.py` is a **zero-dependency** local server (Python 3 standard library only — no `pip install`,
+no network). It serves the static suite over `http://` *and* exposes a small JSON API over the
+**read-only** input workbook (`input/forecast_fy26.xlsx`, sheet **Service Dataset**).
+
+```bash
+cd forecast_copilot
+python serve.py            # -> http://127.0.0.1:8000/  (Ctrl+C to stop)
+# options: --port 8000  --host 127.0.0.1  --input <path to .xlsx>
+```
+
+| Route | Method | Returns |
+|---|---|---|
+| `/` | GET | 302 redirect to the Dashboard page |
+| `/api/health` | GET | `{status, source, sheet, sha256, rowCount}` |
+| `/api/dataset` | GET | `{source, sheet, sha256, columns[], rowCount, rows[], summary{totals,distinct}}` |
+| `/api/outputs` | GET | `{outputs:[{filename, bytes, modified}]}` — publish history, newest first |
+| `/api/publish` | POST | writes a timestamped forecast `.xlsx` to `output/`; returns `{ok, filename, publishedAt, inputSha256, bytes}` |
+| any other path | GET | static file from `forecast_copilot/` |
+
+- **Read-only input.** The server never writes to the workbook. Every response echoes the file's
+  `sha256`, which `test_dataset.py` pins to `input/INPUT_SHA256.txt`, so "input never mutated" is provable.
+- **Parsing.** An `.xlsx` is a zip of XML; the fixed-format Service Dataset sheet is parsed with
+  `zipfile` + `xml.etree`. The sheet is found by **name** and columns are mapped by **header label**,
+  so the parser survives sheet/column reordering. Categorical values are kept verbatim (no
+  `Poweredge→PowerEdge` normalization) — Phase 2 derives filter options from the data's distinct values.
+- **Result is cached** in memory (re-parsed only if the file's mtime/size change).
+
+### Publish / write path (Phase 5)
+
+**Submit Forecast** on the Final Forecast page `POST`s the current plan to `/api/publish`; `serve.py`
+writes a **timestamped** workbook to `output/` — e.g. `forecast_<scenario>_2026-07-23_182121.xlsx` —
+with three sheets:
+- **Final Forecast** — summary (ASU/SR/Dispatch: forecast, target, gap, BTC %) + the weekly plan (with an *Edited* flag per week).
+- **Assumptions** — the slice (all filters) and levers (NC/APOS, BTC strategy/%, distribution mode, confidence, risk).
+- **Audit** — publish metadata + the **input file's sha256** + the scenario's change ledger.
+
+It **never overwrites** (a name clash gets a `-2`, `-3` suffix), so `output/` is an append-only record;
+the input workbook is only read (its hash is recorded in Audit). The `.xlsx` is written with the same
+**stdlib-only** writer (inline strings, a tiny styles part) — no openpyxl.
+
+**Submit button behavior:** after publishing, Submit shows **"Published ✓"** and **disables itself**
+until the plan changes — it fingerprints the plan on publish and re-enables the moment any filter,
+lever, BTC choice, or weekly edit differs (tooltip: *"Published — edit the plan to publish a new
+version"*). It never deletes; re-publishing later just adds a new file. **Approve Scenario / Approve
+BTC** remain per-review toggles that reset on load. A **Published Forecasts** panel lists the history
+(via `/api/outputs`). With no server (static/`file://`), Submit falls back to a browser **JSON
+download** so nothing is lost.
+
+### Test
+
+```bash
+cd forecast_copilot
+python -m unittest -v          # 14 tests, stdlib only (read path + write path)
+```
+
+`test_publish.py` asserts the write path: a publish produces a valid 3-sheet `.xlsx`, a second publish
+never overwrites the first, the payload's numbers + ledger + input hash are recorded, and the input
+workbook is left untouched. `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 14 slice
+aggregates (grand total, by-FY incl. the back-cast FY22/FY23, by-Region, and multi-dimension slices), the 14,820-row × 14-column
+schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
+The expected pivot was ground-truthed with an independent regex parse of the workbook.
+
+### Input data
+
+Two workbooks in `input/`, both **modeled/dummy demo data**:
+
+- **`forecast_fy26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
+  **14,820 rows** = 19 products × 3 regions × 260 weeks (52 × 5 fiscal years, **FY22–FY26**), one row
+  per Product × Region × week. **14 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region,
+  Warranty Type, **Business Unit** (Unit A ~80% / Unit B ~20% per Product), ASU, Warranty Expirations,
+  Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. FY24–FY26 are the original dense+scaled data
+  (grand ASU there ~812.66M); **FY22 and FY23 are back-cast from FY24** along the existing growth trend
+  (FY23 ≈ FY24 × 0.78, FY22 ≈ × 0.60, small deterministic per-row jitter) — same categorical mix and
+  ratios, a believable earlier installed base. Grand ASU across all 5 years ~1.11B.
+- **`fy24-26_info.xlsx` — reference/info only, not read by the app.** Holds the Dell 10-K-derived
+  sheets (FY26 Official, Product Estimates, Product x Quarter, Warranty Assumptions) plus an
+  **"ASU by Product"** summary sheet (one row per FY > Quarter > Week, one column per product = ASU
+  summed across regions, plus a Total, with an Excel AutoFilter).
+
+`input/INPUT_SHA256.txt` pins the sha256 of both files. The **runtime rule** holds: the server only
+ever *reads* the source and never writes to it.
+
+> **Provenance.** The Service Dataset was derived from an original 2,964-row sample (one row per
+> Product × week, single rotating region) by densifying to a full Product × Region × week grid and
+> scaling ASU uniformly to 10% (so all distribution ratios are preserved and magnitudes are
+> believable). That was a one-time, dev-time transformation — the two workbooks are now **maintained
+> directly as the source of truth**. The derivation is preserved in git history and in
+> `PROMPT_TRAIL.md` (the earlier `densify_service_dataset.py` generator that produced it has been
+> retired now that the workbooks are hand-maintained).
