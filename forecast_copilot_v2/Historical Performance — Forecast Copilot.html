@@ -121,7 +121,6 @@
       <a class="nav-item" href="Dashboard — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>Dashboard</a>
       <a class="nav-item active" href="Historical Performance — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>Historical</a>
       <a class="nav-item" href="BTC Advisor — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>BTC Advisor</a>
-      <a class="nav-item" href="BTC Visuals — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-9"/></svg>BTC Visuals</a>
       <a class="nav-item" href="Final Forecast — Forecast Copilot.html"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M15 2v5h5"/></svg>Final Forecast</a>
     </nav>
   </aside>
@@ -188,9 +187,9 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="panel-fva">
       <div class="panel-title">Forecast vs Actual</div>
-      <div class="panel-sub" id="fva-sub">Forecast vs actual (Actual = Forecast × Forecast Accuracy)</div>
+      <div class="panel-sub" id="fva-sub">Forecast vs actual</div>
       <div class="toggle-group" id="metric-toggle">
         <button class="toggle-btn" data-metric="nc">New Contracts</button>
         <button class="toggle-btn" data-metric="renew">Renewals</button>
@@ -198,14 +197,14 @@
         <button class="toggle-btn active" data-metric="sr">SR</button>
         <button class="toggle-btn" data-metric="dsp">Dispatch</button>
       </div>
-      <div class="chart-legend"><span><span class="dot" id="lg-forecast" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span><span><span class="dot" style="background:#dc2626"></span>Trend</span></div>
+      <div class="chart-legend"><span><span class="dot" id="lg-forecast" style="background:var(--chart1)"></span>Forecast</span><span><span class="dot" style="background:var(--chart3)"></span>Actual</span><span><span class="dot" style="background:#dc2626"></span>Average</span></div>
       <svg id="fva" viewBox="0 0 900 210" width="100%" height="210"></svg>
       <div class="axis-labels" id="axis-fva"></div>
     </div>
    </div>
   </main>
 
-  <script src="fc_engine.js?v=7"></script>
+  <script src="fc_engine.js?v=11"></script>
   <script>
 
 /* ---- Historical Performance page-specific rendering ---- */
@@ -290,7 +289,6 @@ function histBtcAccuracy(p) {
 let fvaMetric = 'sr';
 function renderFva() {
   const p = histPeriods(true);                 // (5.2.2.3.1) all quarters by default, no 'All' bucket
-  const acc = histBtcAccuracy(p).acc;
   const r = fcCompute();
   const baseMap = { nc:r.originalTotals.nc, renew:r.originalTotals.renew, asu:r.originalTotals.asu, sr:r.originalTotals.sr, dsp:r.originalTotals.dsp };
   let base = baseMap[fvaMetric] || r.originalTotals.sr;
@@ -298,15 +296,38 @@ function renderFva() {
   const rf = seeded(fcSeedFor(fcState.filters, 'fcast|'+fvaMetric+'|'+p.mode+'|'+fcState.filters.fy+'|'+fcState.filters.quarter));
   const n = p.keys.length;
   const forecast = p.keys.map((_,i) => Math.round(base * (0.9 + (n>1?i/(n-1):0)*0.25) * (0.96 + rf()*0.08)));
-  const actual = forecast.map((v,i) => Math.round(v * (acc[i]/100)));
-  const trend = fcTrendline(forecast.map((v,i) => (v + actual[i]) / 2));
+
+  // (2) Forecast vs Actual is a TIGHT band: per fiscal quarter the actual differs from the
+  // forecast by only ~4–5k (up to ~10k for the occasional outlier), and the actual can land
+  // ABOVE or BELOW the forecast. The gap is per-quarter — not per-week, not per-year.
+  const rg = seeded(fcSeedFor(fcState.filters, 'fvagap|'+fvaMetric+'|'+p.mode+'|'+fcState.filters.fy+'|'+fcState.filters.quarter));
+  const quarterGap = () => {
+    const outlier = rg() < 0.15;                          // ~1-in-7 quarters is an outlier
+    const mag = outlier ? (5000 + rg()*5000) : (4000 + rg()*1000);
+    return (rg() < 0.5 ? -1 : 1) * mag;                   // signed: actual above OR below
+  };
+  let actual;
+  if (p.mode === 'week') {
+    // One quarter-level gap G, spread over the 13 weeks with per-week jitter that nets to G:
+    // individual weeks sit above/below forecast, but the quarter total is off by just ~4–5k.
+    const G = quarterGap();
+    let d = forecast.map(() => (rg()*2 - 1) * 2600);
+    const adj = (G - d.reduce((a,b) => a+b, 0)) / n;
+    d = d.map(x => x + adj);
+    actual = forecast.map((v,i) => Math.round(v + d[i]));
+  } else {
+    actual = forecast.map(v => Math.round(v + quarterGap()));   // each bar is one quarter
+  }
+  // (4.2) Replace the straight regression trend with an "Average" line that follows the
+  // per-period average of forecast & actual (same colour as the old trend line).
+  const average = forecast.map((v,i) => Math.round((v + actual[i]) / 2));
   const fcColor = p.mode === 'week' ? '#8ec5ff' : '#0d9488';   // (5.2.2.3.3.1) light blue in week view
   document.getElementById('lg-forecast').style.background = fcColor;
-  document.getElementById('fva-sub').textContent = p.sub + ' · Actual = Forecast × Forecast Accuracy';
+  document.getElementById('fva-sub').textContent = p.sub + ' · Actual tracks forecast within a tight per-quarter band (±4–5k)';
   fcDrawGroupedBars('fva', p.labels, [
     {label:'Forecast', color:fcColor, values:forecast},
     {label:'Actual', color:'#0284c7', values:actual},
-    {label:'Trend', color:'#dc2626', values:trend, type:'line', noHover:true}
+    {label:'Average', color:'#dc2626', values:average, type:'line'}
   ], {w:900, h:210});
 }
 
@@ -319,6 +340,7 @@ document.querySelectorAll('#metric-toggle .toggle-btn').forEach(b => {
   };
 });
 fcRenderHistorical();
+fcInitChartExpand(['panel-fva']);   // (4.1) Forecast vs Actual is expandable
   </script>
 </body>
 </html>
