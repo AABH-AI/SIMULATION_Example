@@ -93,12 +93,12 @@
     }
     .filter-value:hover, .filter-value.open { border-color: var(--teal); }
     .filter-value .caret { font-size: 9px; color: var(--text-3); }
-    .filter-dropdown {
+    .filter-rail .filter-dropdown {
       display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 160px; max-height: 240px;
       overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
       box-shadow: 0 10px 28px rgba(15,23,42,0.16); z-index: 100; padding: 4px;
     }
-    .filter-dropdown.open { display: block; }
+    .filter-rail .filter-dropdown.open { display: block; }
     .filter-option { padding: 6px 9px; border-radius: 6px; font-size: 12px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
     .filter-option:hover { background: var(--card-hi); color: var(--text-1); }
     .filter-option.selected { color: var(--teal); font-weight: 700; }
@@ -846,10 +846,6 @@
       <p class="home-title-sub">Demand Intelligence Platform</p>
       <p class="home-desc">Integrated demand forecasting, scenario analysis, and partner performance intelligence across AMER · EMEA · APJ.</p>
     </div>
-    <div class="home-logo">
-      <img src="Aligned logo.png" alt="He" style="height:34px;"
-        onerror="this.outerHTML='<span style=\'color:var(--text-2);font-size:12px;font-weight:600;\'>He</span>'">
-    </div>
   </div>
 
   <div class="home-stats-strip">
@@ -896,15 +892,15 @@
         <div class="tile-stat">150 records &nbsp;·&nbsp; <span>Exportable</span></div>
       </div>
 
-      <div class="tile" onclick="openDashboard('whatif')">
+      <a href="forecast_copilot_v2/Dashboard — Forecast Copilot.html" class="tile" style="text-decoration:none;">
         <div class="tile-head">
           <div class="tile-icon" style="background:rgba(13,148,136,0.1);border-color:rgba(13,148,136,0.2);color:var(--teal);"><i class="ti ti-sparkles"></i></div>
           <i class="ti ti-arrow-up-right tile-arrow"></i>
         </div>
-        <div class="tile-title">Forecast Copilot</div>
+        <div class="tile-title" style="color:var(--text-1);">Forecast Copilot</div>
         <div class="tile-desc">AI-powered planning suite — Bend-The-Curve (BTC) recommendations, ASU/SR/Dispatch simulation, historical performance, and scenario management.</div>
-        <div class="tile-stat">AI BTC Engine &nbsp;·&nbsp; <span style="color:var(--teal);">6 Workspaces</span></div>
-      </div>
+        <div class="tile-stat">AI BTC Engine &nbsp;·&nbsp; <span style="color:var(--teal);">5 Workspaces</span></div>
+      </a>
 
       <a href="bend_the_curve.html" class="tile" style="text-decoration:none;">
         <div class="tile-head">

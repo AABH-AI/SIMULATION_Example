@@ -475,12 +475,12 @@
 
   <div class="module-grid">
 
-    <a href="forecast_copilot/Dashboard — Forecast Copilot.html" class="mod" style="--c:#0d9488;">
+    <a href="forecast_copilot_v2/Dashboard — Forecast Copilot.html" class="mod" style="--c:#0d9488;">
       <div class="mod-tag">AI Planning Suite</div>
       <div class="mod-title">Forecast Copilot <span class="chip-new">New</span></div>
       <div class="mod-desc">Full Bend-The-Curve planning workflow — New Contracts &amp; Renewals Simulation, a real 3-strategy BTC Recommendation Engine, Automatic Weekly Distribution, and Final Forecast submission. Cross-page filters and selections persist across all 6 pages.</div>
       <div class="mod-foot">
-        <span class="mod-file">forecast_copilot/Dashboard — Forecast Copilot.html</span>
+        <span class="mod-file">forecast_copilot_v2/Dashboard — Forecast Copilot.html</span>
         <span class="mod-arrow">↗</span>
       </div>
     </a>
@@ -566,7 +566,7 @@
 
 <script>
   const PRIMARY = new Set([
-    'forecast_copilot/Dashboard — Forecast Copilot.html',
+    'forecast_copilot_v2/Dashboard — Forecast Copilot.html',
     'BPA_FORCASTING_MOCK.HTML',
     'TET BPA — Business Planning and Analytics.html',
     'AST_Forcasting.html',
@@ -576,7 +576,7 @@
   ]);
 
   const LABELS = {
-    'forecast_copilot/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
+    'forecast_copilot_v2/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
     'BPA_FORCASTING_MOCK.HTML':                     'TET BPA — Forecasting Suite (Active)',
     'TET BPA — Business Planning and Analytics.html':                       'TET BPA v2 — Redesign',
     'AST_Forcasting.html':                          'TET BPA: Business Planning and Analytics',
@@ -619,7 +619,7 @@
   function renderRows(pages, q) {
     const list = document.getElementById('pageList');
     const lq = (q||'').toLowerCase().trim();
-    const ORDER = ['forecast_copilot/Dashboard — Forecast Copilot.html','BPA_FORCASTING_MOCK.HTML','TET BPA — Business Planning and Analytics.html','AST_Forcasting.html',
+    const ORDER = ['forecast_copilot_v2/Dashboard — Forecast Copilot.html','BPA_FORCASTING_MOCK.HTML','TET BPA — Business Planning and Analytics.html','AST_Forcasting.html',
                    'enterprise_whatif_forecasting_platform.html','bend_the_curve.html','animated_UI.html'];
     const entries = Array.from(pages.entries())
       .filter(([,label]) => !lq || label.toLowerCase().includes(lq) || _[0]?.toLowerCase().includes(lq))

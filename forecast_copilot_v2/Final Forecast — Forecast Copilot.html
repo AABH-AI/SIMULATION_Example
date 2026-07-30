@@ -288,7 +288,7 @@ function fcSetPublishStatus(msg, cls) {
 function fcPlanFingerprint() {
   const f = fcState.filters;
   return JSON.stringify([f.quarter, f.region, f.lob, f.business, f.service, f.coreupsell, f.wotype, f.fqm, f.gcfa,
-    fcState.ncOverride, fcState.aposOverride, fcState.btcStrategy, fcState.manualBTC, fcState.distMode, fcState.weekOverrides]);
+    fcState.ncOverride, fcState.renewOverride, fcState.btcStrategy, fcState.manualBTC, fcState.distMode, fcState.weekOverrides]);
 }
 function fcApplySubmitUI() {
   const btn = document.getElementById('btn-submit');
@@ -320,7 +320,7 @@ function fcBuildPublishPayload() {
       'Service Type': f.service, 'Core/Upsell': f.coreupsell, 'WO Type': f.wotype, 'FQM Flag': f.fqm, 'GCFA Type': f.gcfa
     },
     assumptions: {
-      'NC Override %': fcState.ncOverride, 'APOS Override %': fcState.aposOverride,
+      'NC Override %': fcState.ncOverride, 'Renewals Override %': fcState.renewOverride,
       'BTC Strategy': fcBtcLabel(fcState.btcStrategy), 'BTC %': +btcPct.toFixed(2),
       'Distribution Mode': fcState.distMode, 'Confidence %': conf, 'Risk': risk
     },

@@ -515,3 +515,15 @@ Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (cha
 **Compliance**: no real names, direct quotes, or Dell-specific tool/product names in either page — verified via confidentiality scan (0 hits) after the expansion, same as the original versions.
 
 **Verified**: JS syntax on both files, formula output recomputed and cross-checked against the illustrative table, real-browser pass (chart renders, all new TOC anchors scroll correctly on both pages, new section text confirmed present, in-app page's 7-item nav and active state intact).
+
+---
+
+## Session 32 — Fix: right-side Filters panel silently broken across all BPA_FORCASTING_MOCK.HTML modules
+
+**Prompt**: owner reported the Filters panel showing empty (just a search box, no checkboxes) on the Forecast Accuracy module; asked to check IMP_DOCS for prior context on this.
+
+**Root cause** (pre-existing, not introduced by this session's edits — confirmed via `git show` that the offending CSS predates any of today's changes, tracing back to the original `mock in Main File` commit that embedded a Forecast Copilot-style module into this file): a CSS class-name collision. The embedded Copilot module's own filter-rail styles define a bare, unscoped `.filter-dropdown { display: none; ... }` rule (meant only for its own absolutely-positioned dropdown popups, toggled via a `.open` class added to that same element). The file's original, separate right-side Filters accordion panel (`#filter-container`) also happens to use the literal class name `.filter-dropdown` for its own group wrappers — but toggles visibility on a *child* (`.filter-dropdown-content.open`), never on the outer `.filter-dropdown` element itself. Because the Copilot rule's `display: none` had no scoping, it silently hid all 8 filter-group wrappers (93 checkboxes total) across every module (Forecast Accuracy, Actuals Profiling, Data Management, etc.) — the checkboxes were always present in the DOM, just permanently invisible.
+
+**Fix**: scoped the Copilot module's `.filter-dropdown` / `.filter-dropdown.open` rules to `.filter-rail .filter-dropdown` / `.filter-rail .filter-dropdown.open` — mirroring a partial scoping fix that already existed one line above it (`.filter-rail .filter-dropdown { left: 0; right: 0; min-width: 0; }`) but wasn't applied to the actual `display` rule. This fully isolates the Copilot module's dropdown styling to its own `.filter-rail` container without touching the original Filters panel's accordion behavior.
+
+**Verified**: JS syntax check; real-browser pass — Forecast Trend/Actuals Profiling/Data Management filter panels all show and expand their real checkbox groups (7/7/53/4/8/4/5/5 counts confirmed), the separate forecast_copilot_v2 page's own (differently-scoped) filter-dropdown pattern still opens/closes correctly with no regression, 0 console errors throughout.

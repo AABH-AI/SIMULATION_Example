@@ -180,7 +180,7 @@
 
     <div class="kpi-row">
       <div class="kpi-card"><div class="kpi-label">New Contracts Forecast</div><div class="kpi-value" id="kpi-nc">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">APOS Forecast</div><div class="kpi-value" id="kpi-apos">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">Renewals Forecast</div><div class="kpi-value" id="kpi-renew">—</div></div>
       <div class="kpi-card"><div class="kpi-label">ASU Forecast</div><div class="kpi-value" id="kpi-asu">—</div></div>
       <div class="kpi-card"><div class="kpi-label">SR Forecast</div><div class="kpi-value" id="kpi-sr">—</div></div>
       <div class="kpi-card"><div class="kpi-label">Dispatch Forecast</div><div class="kpi-value" id="kpi-dsp">—</div></div>
@@ -262,7 +262,7 @@ function fcRenderDashboard() {
   const r = fcCompute();
 
   document.getElementById('kpi-nc').textContent = fcN(r.originalTotals.nc);
-  document.getElementById('kpi-apos').textContent = fcN(r.originalTotals.apos);
+  document.getElementById('kpi-renew').textContent = fcN(r.originalTotals.renew);
   document.getElementById('kpi-asu').textContent = fcN(r.originalTotals.asu);
   document.getElementById('kpi-sr').textContent = fcN(r.originalTotals.sr);
   document.getElementById('kpi-dsp').textContent = fcN(r.originalTotals.dsp);
@@ -295,7 +295,7 @@ function fcRenderDashboard() {
     [{label:'Forecast',color:'#0d9488',values:[r.originalTotals.asu, r.originalTotals.sr, r.originalTotals.dsp]},
      {label:'Target',color:'#0284c7',values:[asuTarget, srTarget, dspTarget]}]);
 
-  document.getElementById('act-1').textContent = `NC Override ${fcState.ncOverride}% · APOS Override ${fcState.aposOverride}%`;
+  document.getElementById('act-1').textContent = `NC Override ${fcState.ncOverride}% · Renewals Override ${fcState.renewOverride}%`;
   document.getElementById('act-2').textContent = `${r.filters.quarter} · Accuracy ${r.hist.accuracy[r.hist.accuracy.length-1]}%`;
   const btcChosen = !!fcState.btcStrategy;
   document.getElementById('act-3').textContent = btcChosen ? `BTC selected: ${fcPct(r.selectedBTCPct,2)} (${fcState.btcStrategy})` : `${r.filters.region} — no BTC selected yet`;
