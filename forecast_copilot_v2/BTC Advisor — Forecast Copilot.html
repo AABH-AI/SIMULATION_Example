@@ -126,22 +126,32 @@
   table.data-tbl tr:last-child td{border-bottom:none;}
   table.data-tbl tr.best td{background:rgba(13,148,136,0.06);}
 
-  /* Distribution charts — one row, made narrower (horizontally), NOT shorter: donut sits
-     beside its legend at full height so it isn't clipped (item 1.2). Full detail via expand. */
-  .donut-wrap{display:flex;flex-direction:row;align-items:center;gap:12px;}
-  .donut{width:112px;height:140px;flex-shrink:0;}
-  .donut-legend{display:flex;flex-direction:column;gap:5px;font-size:10.5px;min-width:0;}
+  /* Distribution charts. Donut sits beside its legend at full height (not clipped). */
+  .donut-wrap{display:flex;flex-direction:row;align-items:center;gap:14px;}
+  .donut{width:120px;height:140px;flex-shrink:0;}
+  .donut-legend{display:flex;flex-direction:column;gap:5px;font-size:11px;min-width:0;}
   .donut-legend > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .donut-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
-  .donut-legend .lval{color:var(--text-2);font-size:10px;margin-left:8px;}
-  .dist-grid .panel{padding:14px 16px;}
-  .dist-grid .panel-title{font-size:12.5px;}
-  .dist-grid .panel-hd{padding-right:28px;}
-  .dist-grid svg{height:170px;}
-  /* All distribution charts on ONE line: 4-across normally, 3-across when the LOB chart is dropped. */
-  .dist-grid.lob-all{grid-template-columns:repeat(4,1fr);}
-  .dist-grid.lob-one{grid-template-columns:repeat(3,1fr);}
-  .dist-grid.lob-one #panel-lob{display:none;}
+  .donut-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
+  .donut-legend .lval{color:var(--text-2);font-size:10.5px;margin-left:8px;}
+
+  /* Region/Business/LOB on the LEFT, shortened horizontally; Service Type as a tall
+     column on the RIGHT spanning their full height. */
+  .dist-main{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1fr);gap:16px;align-items:stretch;margin-bottom:16px;}
+  .dist-left{min-width:0;}
+  .dist-left > .panel:last-child{margin-bottom:0;}
+  .dist-main > #panel-service{margin-bottom:0;}
+
+  /* Region + Product Business: equal columns AND equal height (1.1.1.2). The donut-wrap
+     is a fixed height so both panels match regardless of legend length. */
+  .dist-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;}
+  .dist-top .donut-wrap{height:150px;}
+
+  /* Service Type: legend BELOW the chart, content vertically centred in the tall column. */
+  #panel-service{display:flex;flex-direction:column;}
+  #panel-service .svc-wrap{flex:1;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+  #panel-service .donut{width:100%;max-width:300px;height:220px;}
+  #panel-service .donut-legend{flex-direction:column;align-items:flex-start;gap:6px;font-size:11px;}
+  #panel-service .donut-legend > div{white-space:nowrap;}
 
   /* Weekly Forecast Table */
   .tw{max-height:340px;overflow-y:auto;}
@@ -233,30 +243,36 @@
       </div>
     </div>
 
-    <!-- Distribution charts. When a single Global LOB is selected the LOB chart is dropped and
-         Region / Product Business / Service Type collapse into one 3-across row (item 2.1). -->
-    <div class="grid-2 dist-grid" id="dist-grid">
-      <div class="panel" id="panel-region">
-        <div class="panel-title">BTC Distribution by Region</div>
-        <div class="donut-wrap">
-          <div class="donut" id="donut-region"></div>
-          <div class="donut-legend" id="legend-region"></div>
+    <!-- Distribution charts: Region/Business/LOB on the LEFT (shortened), Service Type
+         as a tall column on the RIGHT spanning their full height. -->
+    <div class="dist-main">
+      <div class="dist-left">
+        <div class="grid-2 dist-top">
+          <div class="panel" id="panel-region">
+            <div class="panel-title">BTC Distribution by Region</div>
+            <div class="donut-wrap">
+              <div class="donut" id="donut-region"></div>
+              <div class="donut-legend" id="legend-region"></div>
+            </div>
+          </div>
+          <div class="panel" id="panel-business">
+            <div class="panel-title">BTC Distribution by Product Business</div>
+            <div class="donut-wrap">
+              <div class="donut" id="donut-business"></div>
+              <div class="donut-legend" id="legend-business"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-lob">
+          <div class="panel-hd"><div class="panel-title">BTC Distribution by LOB</div><span class="dist-count" id="count-lob"></span></div>
+          <svg id="chart-lob" viewBox="0 0 900 200" width="100%" height="200"></svg>
         </div>
       </div>
-      <div class="panel" id="panel-business">
-        <div class="panel-title">BTC Distribution by Product Business</div>
-        <div class="donut-wrap">
-          <div class="donut" id="donut-business"></div>
-          <div class="donut-legend" id="legend-business"></div>
-        </div>
-      </div>
-      <div class="panel" id="panel-lob">
-        <div class="panel-hd"><div class="panel-title">BTC Distribution by LOB</div><span class="dist-count" id="count-lob"></span></div>
-        <svg id="chart-lob" viewBox="0 0 460 170" width="100%" height="170"></svg>
-      </div>
+
       <div class="panel" id="panel-service">
         <div class="panel-title">BTC Distribution by Service Type</div>
-        <div class="donut-wrap">
+        <div class="donut-wrap svc-wrap">
           <div class="donut" id="donut-service"></div>
           <div class="donut-legend" id="legend-service"></div>
         </div>
@@ -405,25 +421,23 @@ function renderDonut(donutId, legendId, shares){
 function renderDistribution(r){
   const totalBTCVolume = fcSum(r.weekly.btcForecast);
 
-  // A single Global LOB → the by-LOB breakdown is meaningless, so drop that chart and lay
-  // Region / Product Business / Service Type out 3-across (item 2.1).
-  const showLob = fcState.filters.lob === 'All';
-  const grid = document.getElementById('dist-grid');
-  grid.classList.toggle('lob-all', showLob);
-  grid.classList.toggle('lob-one', !showLob);
+  // (1.1.1.1) Region + Product Business donuts drop the 'All' summary slice.
+  const noAll = arr => arr.filter(s => s.key !== 'All');
+  renderDonut('donut-region', 'legend-region', noAll(distributeByFactor(FC_REGION_FACTOR, totalBTCVolume)));
+  renderDonut('donut-business', 'legend-business', noAll(distributeByFactor(FC_BUSINESS_FACTOR, totalBTCVolume)));
 
-  renderDonut('donut-region', 'legend-region', distributeByFactor(FC_REGION_FACTOR, totalBTCVolume));
-  renderDonut('donut-business', 'legend-business', distributeByFactor(FC_BUSINESS_FACTOR, totalBTCVolume));
-
-  // (1.1) Service Type is now a donut, like Region / Product Business.
-  const svcShares = distributeByFactor(FC_SERVICE_FACTOR, totalBTCVolume).filter(s => s.key !== 'All').sort((a,b) => b.value - a.value);
+  // Service Type — larger donut, full-width row, legend below (styled in CSS).
+  const svcShares = noAll(distributeByFactor(FC_SERVICE_FACTOR, totalBTCVolume)).sort((a,b) => b.value - a.value);
   renderDonut('donut-service', 'legend-service', svcShares);
 
+  // (1.1.2 / item 2.1) LOB gets its own full-width row; still dropped for a single Global LOB.
+  const showLob = fcState.filters.lob === 'All';
+  document.getElementById('panel-lob').style.display = showLob ? '' : 'none';
   if (showLob){
-    const lobShares = distributeByFactor(FC_LOB_FACTOR, totalBTCVolume).filter(s => s.key !== 'All').sort((a,b) => b.value - a.value);
-    fcDrawGroupedBars('chart-lob', lobShares.map(s=>s.key), [{label:'BTC', color:'#0d9488', values:lobShares.map(s=>s.value)}], {h:170, rotate:-40});
+    const lobShares = noAll(distributeByFactor(FC_LOB_FACTOR, totalBTCVolume)).sort((a,b) => b.value - a.value);
+    fcDrawGroupedBars('chart-lob', lobShares.map(s=>s.key), [{label:'BTC', color:'#0d9488', values:lobShares.map(s=>s.value)}], {w:900, h:200, rotate:-40});
     document.getElementById('count-lob').textContent = lobShares.length + ' LOBs';
-    const c = fcHCharts['chart-lob']; if (c) { try { c.reflow(); } catch(e){} }   // refit width on column change
+    const c = fcHCharts['chart-lob']; if (c) { try { c.reflow(); } catch(e){} }
   }
 
   // Weekly distribution only makes sense for a specific quarter — hidden when FY/Quarter is 'All'.

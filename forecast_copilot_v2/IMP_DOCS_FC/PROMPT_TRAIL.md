@@ -1,6 +1,6 @@
 ﻿# Prompt Trail — ISG BPA
 > Chronological log of every major request and what was built/fixed. Update after each session.
-> Last updated: 2026-07-30 (Session 38 — Service→donut, horizontal donuts, international numbers, reusable chart-expand with reliable revert, FvA average line, sidebar funnel-reopen)
+> Last updated: 2026-07-31 (Session 41 — BTC Advisor: Service Type moved to a right-hand column, others shortened, gap fix)
 
 > **NOTE — relocated to `forecast_copilot/IMP_DOCS_FC/` on 2026-07-27.** Full history is retained here
 > (nothing trimmed): Sessions 1–23 are inherited **main-suite (TET BPA, formerly "ISG BPA")** dashboard
@@ -1035,3 +1035,27 @@ Service is a pie (6 legend items); donut-wrap is `row` at 140px; `fcN` → 8.37M
 - **Dashboard panel naming**: chart panel retitled **"Forecast vs Target — Chart View"** (was a duplicate of the table panel's title); subtitle corrected to **"ASU, SR & Dispatch, current quarter"** (was "SR & Dispatch, current quarter" — the chart's own `fcDrawGroupedBars` call already included ASU, only the caption was stale).
 
 **Verified before push**: `node --check` on `fc_engine.js` + inline-script syntax check (`new Function`) on all 4 pages (Dashboard, Historical Performance, BTC Advisor, Final Forecast) — all clean. Confirmed all 4 pages render the identical 12 `data-filter` keys, so nothing is orphaned by the primary/secondary split. Traced `fcWireFilterRailUI`'s `addCols` DOM-append + CSS grid auto-placement by hand for the new key order (no jsdom/browser available this session): primary grid lays out as 2 rows of 2 (`fy`/`quarter`, `region`/`lob`), then `service` full-width, then `business` trailing alone in col 1 — no mid-grid gaps; secondary grid is a clean 3×2. Confirmed `fcFitDropdownToRail`'s dropdown positioning is computed live via `item.closest('.filter-rail')` + `getBoundingClientRect()`, so it's unaffected by which grid (primary/secondary) an item sits in. Checked no id collisions (`secondary-filters`, `more-filters-toggle` were previously-dead code paths, never rendered while `FC_SECONDARY_FILTERS` was empty).
+
+---
+
+## Session 40 — forecast_copilot_v2: BTC Advisor distribution layout rework (Region/Business row, full-width LOB, larger Service, no 'All')
+**Files**: `BTC Advisor — Forecast Copilot.html` only (no engine change).
+**Prompts**: (1.1.1) Region + Product Business donuts — **remove the 'All' slice**; make the **two panels equal** (Business was taller). (1.1.2) LOB — **must revert after expand**; move it **below** Region/Business as a **full-width** row (spanning Region's left edge to Business's right edge). (1.1.3) Service Type — **larger horizontally**, **legend below** the chart. (1.1.4) verify all visuals revert after expand.
+
+**What was done**:
+- Replaced the single 4-across `#dist-grid` with an explicit stack: a `grid-2 dist-top` row (Region | Product Business) → full-width `#panel-lob` → full-width `#panel-service`.
+- **(1.1.1.1)** `renderDistribution` filters `'All'` out of the Region and Business shares (they already were for LOB/Service).
+- **(1.1.1.2)** `.dist-top` uses `minmax(0,1fr)` columns + `align-items:stretch`, and `.dist-top .donut-wrap{height:150px}` — so both panels are identical width **and** height regardless of legend length.
+- **(1.1.2.2)** LOB is now a standalone full-width `.panel` (viewBox 900×200), so it spans the same content width as the Region/Business row by construction. The single-Global-LOB drop still applies (`#panel-lob` hidden, chart skipped).
+- **(1.1.3)** `#panel-service .svc-wrap` is `flex-direction:column` (legend **below** the donut); the donut is enlarged in its full-width panel.
+- **(1.1.2.1 / 1.1.4)** Revert re-verified for every chart via the engine's `fcxFit` (`setSize` per-axis): region 140→445→140, business 140→430→140, **LOB 200→506→200**, service 230→430→230 — all grow in the modal and return to original size. Making LOB a full-width standalone panel also removes the grid-column ambiguity that made its width measurement flaky on close.
+
+**Verified in-browser (0 console errors)**: legends show no 'All'; Region & Business panels equal; single Global LOB hides `#panel-lob`; all four charts expand and revert. (No engine edit → no `?v` bump.)
+
+---
+
+## Session 41 — forecast_copilot_v2: Service Type moved to a right-hand column
+**Files**: `BTC Advisor — Forecast Copilot.html` only (no engine change).
+**Prompts**: (1) BTC Distribution by Service Type — move it to the **right of all the other visuals**; shorten the others horizontally to make room. (2) fix the missing gap between the bottom visual and the Forecast Table.
+**What was done**: Wrapped Region/Business (the `dist-top` grid) + LOB in a `.dist-left` block and placed it beside `#panel-service` in a two-column `.dist-main` grid (`minmax(0,2.1fr) minmax(0,1fr)`, `align-items:stretch`). Service is now a **tall right column spanning the full height** of the left stack (Region/Business row + LOB); the left visuals are correspondingly narrower. Service keeps its legend-below layout, vertically centred in the tall panel (`#panel-service` flex column, `.svc-wrap{flex:1;justify-content:center}`), legend stacked. The two columns' bottom panels have `margin-bottom:0` for alignment, so `.dist-main` was given `margin-bottom:16px` to restore the gap before the Forecast Table.
+**Verified in-browser (0 console errors)**: 2-track grid; Service panel height (590) = Region/Business row (279) + LOB (295) + gap → spans full height on the right; Region & Business still equal (279 each); all charts expand and revert; 16px gap between `.dist-main` and the Forecast Table. (No engine edit → no `?v` bump.)

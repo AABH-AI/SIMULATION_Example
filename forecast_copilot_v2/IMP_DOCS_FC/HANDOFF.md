@@ -3,11 +3,11 @@
 > Quick-start for a new session or teammate. This is the folder-local handoff for the
 > **`forecast_copilot/`** product. Full detail is in `README.md`; the plan is in
 > `BUILD_PLAN.md`; the chronological build log is in `PROMPT_TRAIL.md`.
-> Last updated: 2026-07-31 (Session 39 — filter rail re-collapsed to primary/secondary groups;
-> Dashboard's duplicate "Forecast vs Target" panel names disambiguated. Session 38 built Service→donut,
-> horizontal donuts, international K/M/B numbers, reusable chart-expand with reliable revert, FvA average
-> line, sidebar funnel-reopen. Sessions 35–37 built BTC Advisor's manual BTC + scenarios, cascading
-> filters, tight FvA band — see PROMPT_TRAIL).
+> Last updated: 2026-07-31 (Sessions 40–41 — BTC Advisor distribution layout: Region/Business row +
+> full-width LOB, Service Type as a right-hand column, 'All' slice removed, gap fix. Session 39 re-collapsed
+> the filter rail to primary/secondary groups + disambiguated Dashboard panel names. Session 38 built
+> Service→donut, international K/M/B numbers, reusable chart-expand with reliable revert, FvA average line,
+> sidebar funnel-reopen. Sessions 35–37 built manual BTC + scenarios, cascading filters, tight FvA band — see PROMPT_TRAIL).
 
 ---
 
