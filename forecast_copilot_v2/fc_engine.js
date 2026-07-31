@@ -737,11 +737,12 @@ function fcWireFilters(onChange) {
  * Restructures the flat filter list into a compact 2-column primary grid plus a
  * collapsible "More filters" secondary grid, and adds a Reset link. Done by DOM
  * injection so no per-page markup changes are needed. */
-// (6) Every filter is shown in the primary grid — no collapsible "More filters".
-// (3.1) Order drives the 2-col layout (col1, col2, col1, …): left column = Fiscal
-// Year, Fiscal Week, Global LOB; right column = Fiscal Quarter, Region, Business Unit.
-const FC_PRIMARY_FILTERS = ['fy', 'quarter', 'week', 'region', 'lob', 'business', 'service', 'warranty', 'coreupsell', 'wotype', 'fqm', 'gcfa'];
-const FC_SECONDARY_FILTERS = [];
+// Primary = the slice you actually touch every visit; secondary = rarely-changed
+// attribute filters, collapsed behind "More filters" by default (order drives the
+// 2-col layout: col1, col2, col1, … — service spans both columns and resets the
+// column count for whatever follows it).
+const FC_PRIMARY_FILTERS = ['fy', 'quarter', 'region', 'lob', 'service', 'business'];
+const FC_SECONDARY_FILTERS = ['week', 'warranty', 'coreupsell', 'wotype', 'fqm', 'gcfa'];
 
 function fcRefreshFilterButtons() {
   document.querySelectorAll('.filter-item[data-filter]').forEach(item => {
