@@ -21,64 +21,67 @@ import serve
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Hand-checked pivot: name -> (predicate over a record, (count, ΣASU, ΣExpirations, ΣFQM)).
+# Hand-checked pivot: name -> (predicate over a record, (count, ΣASU, ΣAPOS, ΣRenewals, ΣFQM)).
 # For the Service Dataset (14,820 rows = 19 products x 3 regions x 260 weeks over
 # 5 fiscal years FY22-FY26). FY24/FY25/FY26 are the original dense+scaled data
 # (grand ASU there ~812.66M); FY22 and FY23 were back-cast from FY24 along the
 # existing growth trend (FY23 = FY24 x ~0.78, FY22 x ~0.60, with small deterministic
 # per-row jitter) preserving every categorical column and distribution ratio, so the
-# FY24/25/26 slices below are unchanged from the earlier ground-truth. All numbers
-# ground-truthed via an independent inline-string regex parse of the workbook.
+# ΣASU per slice is unchanged from the earlier ground-truth.
+# ASU now decomposes into APOS + Renewals: per row Renewals = round(0.20 * ASU) and
+# APOS = ASU - Renewals, so APOS + Renewals == ASU EXACTLY for every slice (~80% / ~20%).
+# All numbers ground-truthed via an independent inline-string regex parse of the workbook.
 PIVOT = {
     "GRAND":                    (lambda r: True,
-                                 (14820, 1110489194, 6372280, 10380)),
+                                 (14820, 1110489194, 888391366, 222097828, 10380)),
     "FY=FY22":                  (lambda r: r["fy"] == "FY22",
-                                 (2964, 129512482, 729005, 2079)),
+                                 (2964, 129512482, 103610014, 25902468, 2079)),
     "FY=FY23":                  (lambda r: r["fy"] == "FY23",
-                                 (2964, 168314912, 947207, 2079)),
+                                 (2964, 168314912, 134651964, 33662948, 2079)),
     "FY=FY24":                  (lambda r: r["fy"] == "FY24",
-                                 (2964, 215633277, 1213576, 2079)),
+                                 (2964, 215633277, 172506602, 43126675, 2079)),
     "FY=FY25":                  (lambda r: r["fy"] == "FY25",
-                                 (2964, 270636630, 1564732, 2055)),
+                                 (2964, 270636630, 216509278, 54127352, 2055)),
     "FY=FY26":                  (lambda r: r["fy"] == "FY26",
-                                 (2964, 326391893, 1917760, 2088)),
+                                 (2964, 326391893, 261113508, 65278385, 2088)),
     "Region=Americas":          (lambda r: r["region"] == "Americas",
-                                 (4940, 564555281, 3238738, 3460)),
+                                 (4940, 564555281, 451644242, 112911039, 3460)),
     "Region=EMEA":              (lambda r: r["region"] == "EMEA",
-                                 (4940, 302291830, 1735346, 3460)),
+                                 (4940, 302291830, 241833483, 60458347, 3460)),
     "Region=APJ":               (lambda r: r["region"] == "APJ",
-                                 (4940, 243642083, 1398196, 3460)),
+                                 (4940, 243642083, 194913641, 48728442, 3460)),
     "FY26 & EMEA":              (lambda r: r["fy"] == "FY26" and r["region"] == "EMEA",
-                                 (988, 88724249, 521768, 696)),
+                                 (988, 88724249, 70979406, 17744843, 696)),
     "Product=Server Line A":    (lambda r: r["product"] == "Server Line A",
-                                 (780, 881710277, 5054637, 591)),
+                                 (780, 881710277, 705368217, 176342060, 591)),
     "Quarter=2026-Q1":          (lambda r: r["fiscalQuarter"] == "2026-Q1",
-                                 (741, 76586300, 479440, 525)),
+                                 (741, 76586300, 61269041, 15317259, 525)),
     "Week=2024-W01":            (lambda r: r["fiscalWeek"] == "2024-W01",
-                                 (57, 3676019, 23338, 42)),
+                                 (57, 3676019, 2940816, 735203, 42)),
     "FY26 & Server Line A & Americas": (
                                  lambda r: r["fy"] == "FY26" and r["product"] == "Server Line A"
                                  and r["region"] == "Americas",
-                                 (52, 131954700, 774696, 40)),
+                                 (52, 131954700, 105563761, 26390939, 40)),
 }
 
 EXPECTED_COLUMNS = [
     ("fy", "string"), ("fiscalQuarter", "string"), ("fiscalWeek", "string"),
     ("product", "string"), ("region", "string"), ("warrantyType", "string"),
     ("businessUnit", "string"),
-    ("asu", "number"), ("warrantyExpirations", "number"), ("coreUpsell", "string"),
+    ("asu", "number"), ("apos", "number"), ("renewals", "number"), ("coreUpsell", "string"),
     ("woType", "string"), ("fqmFlag", "number"), ("gcfaType", "string"),
     ("serviceType", "string"),
 ]
 
 
 def _slice_aggregate(rows, predicate):
-    """Return (count, ΣASU, ΣWarrantyExpirations, ΣFQMFlag) over matching rows."""
+    """Return (count, ΣASU, ΣAPOS, ΣRenewals, ΣFQMFlag) over matching rows."""
     matched = [r for r in rows if predicate(r)]
     return (
         len(matched),
         sum(r["asu"] for r in matched),
-        sum(r["warrantyExpirations"] for r in matched),
+        sum(r["apos"] for r in matched),
+        sum(r["renewals"] for r in matched),
         sum(r["fqmFlag"] for r in matched),
     )
 
@@ -118,22 +121,33 @@ class DatasetReadPathTest(unittest.TestCase):
         grand = _slice_aggregate(self.rows, lambda r: True)
         parts = [_slice_aggregate(self.rows, lambda r, rg=rg: r["region"] == rg)
                  for rg in ("Americas", "EMEA", "APJ")]
-        for i in range(4):  # count, ASU, expirations, fqm
+        for i in range(5):  # count, ASU, APOS, Renewals, fqm
             self.assertEqual(sum(p[i] for p in parts), grand[i])
 
     def test_fiscal_years_partition_grand_total(self):
         grand = _slice_aggregate(self.rows, lambda r: True)
         parts = [_slice_aggregate(self.rows, lambda r, fy=fy: r["fy"] == fy)
                  for fy in ("FY22", "FY23", "FY24", "FY25", "FY26")]
-        for i in range(4):
+        for i in range(5):
             self.assertEqual(sum(p[i] for p in parts), grand[i])
+
+    def test_apos_plus_renewals_equals_asu(self):
+        """ASU decomposes exactly into APOS + Renewals for every row (and in total)."""
+        for r in self.rows:
+            self.assertEqual(r["apos"] + r["renewals"], r["asu"])
+        grand = _slice_aggregate(self.rows, lambda r: True)
+        self.assertEqual(grand[2] + grand[3], grand[1])          # ΣAPOS + ΣRenewals == ΣASU
+        # ~80% / ~20% split at the aggregate level
+        self.assertAlmostEqual(grand[2] / grand[1], 0.80, delta=0.005)
+        self.assertAlmostEqual(grand[3] / grand[1], 0.20, delta=0.005)
 
     def test_summary_totals_match_grand(self):
         grand = _slice_aggregate(self.rows, lambda r: True)
         totals = self.data["summary"]["totals"]
         self.assertEqual(totals["asu"], grand[1])
-        self.assertEqual(totals["warrantyExpirations"], grand[2])
-        self.assertEqual(totals["fqmFlag"], grand[3])
+        self.assertEqual(totals["apos"], grand[2])
+        self.assertEqual(totals["renewals"], grand[3])
+        self.assertEqual(totals["fqmFlag"], grand[4])
 
     def test_distinct_values(self):
         distinct = self.data["summary"]["distinct"]

@@ -77,7 +77,8 @@ FIELD_SCHEMA = [
     ("Warranty Type", "warrantyType", "string"),
     ("Business Unit", "businessUnit", "string"),
     ("ASU", "asu", "number"),
-    ("Warranty Expirations", "warrantyExpirations", "number"),
+    ("APOS", "apos", "number"),
+    ("Renewals", "renewals", "number"),
     ("Core/Upsell", "coreUpsell", "string"),
     ("W/O Type", "woType", "string"),
     ("FQM Flag", "fqmFlag", "number"),
@@ -111,24 +112,57 @@ def _read_shared_strings(zf: zipfile.ZipFile) -> list[str]:
     return out
 
 
-def _worksheet_path(zf: zipfile.ZipFile, sheet_name: str) -> str:
-    """Resolve the worksheet part path for a sheet by its display name."""
-    wb = ET.fromstring(zf.read("xl/workbook.xml"))
-    rid = None
-    for sheet in wb.iter(_q(_MAIN, "sheet")):
-        if sheet.get("name") == sheet_name:
-            rid = sheet.get(_q(_DOC_REL, "id"))
-            break
-    if rid is None:
-        raise ValueError(f"Sheet {sheet_name!r} not found in workbook")
+# The dataset sheet is identified by these header labels, not by sheet name, so
+# the workbook can be opened/re-saved in Excel (which may rename the sheet -- it
+# has renamed "Service Dataset" -> "Raw_data" before) without breaking the reader.
+_SHEET_SIGNATURE = frozenset({"FY", "Fiscal Week", "Product", "Region", "ASU"})
 
+
+def _all_sheets(zf: zipfile.ZipFile):
+    """Return [(sheet_name, worksheet_path), ...] in workbook order."""
+    wb = ET.fromstring(zf.read("xl/workbook.xml"))
     rels = ET.fromstring(zf.read("xl/_rels/workbook.xml.rels"))
-    for rel in rels.iter(_q(_RELS, "Relationship")):
-        if rel.get("Id") == rid:
-            target = rel.get("Target")
-            # Targets are relative to the xl/ folder.
-            return "xl/" + target.lstrip("/") if not target.startswith("xl/") else target
-    raise ValueError(f"Relationship {rid!r} for sheet {sheet_name!r} not found")
+    rid_to_target = {rel.get("Id"): rel.get("Target")
+                     for rel in rels.iter(_q(_RELS, "Relationship"))}
+    out = []
+    for sheet in wb.iter(_q(_MAIN, "sheet")):
+        target = rid_to_target.get(sheet.get(_q(_DOC_REL, "id")))
+        if target is None:
+            continue
+        path = target if target.startswith("xl/") else "xl/" + target.lstrip("/")
+        out.append((sheet.get("name"), path))
+    return out
+
+
+def _header_labels(zf: zipfile.ZipFile, ws_path: str, shared: list[str]):
+    """Return the first row's cell values (the column headers) for a worksheet."""
+    ws = ET.fromstring(zf.read(ws_path))
+    sd = ws.find(_q(_MAIN, "sheetData"))
+    if sd is None:
+        return []
+    rows = sd.findall(_q(_MAIN, "row"))
+    if not rows:
+        return []
+    return [_cell_value(c, shared) for c in rows[0]]
+
+
+def _resolve_sheet(zf: zipfile.ZipFile, preferred: str, shared: list[str]):
+    """Locate the dataset sheet robustly. Returns (actual_sheet_name, worksheet_path).
+
+    Order: (1) the preferred name if present; (2) any sheet whose header row carries
+    the expected column signature (survives an Excel rename); (3) the first sheet.
+    """
+    sheets = _all_sheets(zf)
+    if not sheets:
+        raise ValueError("workbook contains no worksheets")
+    by_name = {name: path for name, path in sheets}
+    if preferred in by_name:
+        return preferred, by_name[preferred]
+    for name, path in sheets:
+        labels = {lbl for lbl in _header_labels(zf, path, shared) if lbl}
+        if _SHEET_SIGNATURE.issubset(labels):
+            return name, path
+    return sheets[0]
 
 
 def _coerce_number(text: str):
@@ -177,7 +211,9 @@ def load_dataset(input_path: str = DEFAULT_INPUT, sheet_name: str = SHEET_NAME) 
 
     with zipfile.ZipFile(input_path) as zf:
         shared = _read_shared_strings(zf)
-        ws_path = _worksheet_path(zf, sheet_name)
+        # Resolve by header signature, not just name -- tolerant of Excel renaming
+        # the sheet on save. `sheet_name` becomes the *preferred* name.
+        sheet_name, ws_path = _resolve_sheet(zf, sheet_name, shared)
         ws = ET.fromstring(zf.read(ws_path))
 
     sheet_data = ws.find(_q(_MAIN, "sheetData"))
@@ -561,15 +597,47 @@ def make_server(host: str, port: int, input_path: str) -> ThreadingHTTPServer:
     return httpd
 
 
+def repin_inputs(input_path=DEFAULT_INPUT):
+    """Rewrite input/INPUT_SHA256.txt for the current input files.
+
+    Validates that the workbook still parses (so a corrupt file is never pinned),
+    then records the sha256 of the workbook plus name_mapping_reference.xlsx if it
+    exists. Run this after intentionally opening/saving the workbook in Excel.
+    """
+    data = load_dataset(input_path)   # raises loudly if the file no longer parses
+    input_dir = os.path.dirname(os.path.abspath(input_path))
+    files = [os.path.basename(input_path)]
+    extra = os.path.join(input_dir, "name_mapping_reference.xlsx")
+    if os.path.exists(extra):
+        files.append("name_mapping_reference.xlsx")
+    lines = []
+    for name in files:
+        with open(os.path.join(input_dir, name), "rb") as fh:
+            lines.append(f"{hashlib.sha256(fh.read()).hexdigest()} *{name}")
+    with open(os.path.join(input_dir, "INPUT_SHA256.txt"), "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("\n".join(lines) + "\n")
+    print("re-pinned INPUT_SHA256.txt:")
+    for ln in lines:
+        print("  " + ln)
+    print(f"  (workbook parses OK: {data['rowCount']} rows, sheet {data['sheet']!r})")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Forecast Copilot local server (Phase 1)")
     ap.add_argument("--host", default="127.0.0.1", help="bind host (default: 127.0.0.1, localhost only)")
     ap.add_argument("--port", type=int, default=8000, help="bind port (default: 8000)")
     ap.add_argument("--input", default=DEFAULT_INPUT, help="path to the input workbook")
+    ap.add_argument("--repin", action="store_true",
+                    help="re-pin input/INPUT_SHA256.txt to the current input files and exit "
+                         "(run this after intentionally opening/saving the workbook in Excel)")
     args = ap.parse_args(argv)
 
     if not os.path.exists(args.input):
         sys.exit(f"Input workbook not found: {args.input}")
+
+    if args.repin:
+        repin_inputs(args.input)
+        return
 
     # Parse once up front so startup fails loudly on a bad file, and print a summary.
     try:
@@ -584,7 +652,8 @@ def main(argv=None):
     print(f"  input   : {os.path.basename(args.input)}  (sha256 {data['sha256'][:12]}...)")
     print(f"  dataset : {data['rowCount']} rows, sheet {data['sheet']!r}")
     print(f"  totals  : ASU={data['summary']['totals']['asu']:,}  "
-          f"Expirations={data['summary']['totals']['warrantyExpirations']:,}")
+          f"APOS={data['summary']['totals']['apos']:,}  "
+          f"Renewals={data['summary']['totals']['renewals']:,}")
     print(f"  API     : {url}api/health  |  {url}api/dataset")
     print(f"  open    : {url}   (Ctrl+C to stop)")
     try:

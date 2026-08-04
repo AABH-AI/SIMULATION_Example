@@ -178,9 +178,11 @@ function fcOptLabel(key, val) { return (FC_OPT_LABEL[key] && FC_OPT_LABEL[key][v
  * Simulated mode: the seeded generator below (used when there is no server,
  * e.g. opening a page from file://). The mode is decided once at load and
  * surfaced by a "Live / Simulated" badge. In live mode:
- *   - real weekly ASU + Warranty Expirations drive each slice,
+ *   - real weekly ASU drives each slice; ASU decomposes into its real
+ *     APOS + Renewals components (per row ASU = APOS + Renewals, ~80% / ~20%),
  *   - SR / Dispatch stay derived (ratios),
- *   - New Contracts / RENEW stay modeled levers (no such columns exist),
+ *   - New Contracts / RENEW overrides stay modeled levers, and the roll-forward
+ *     churn rate is modeled (there is no churn column in the data),
  *   - filter OPTIONS are derived from the data's own distinct values.
  * Historical BTC / accuracy / AOP remain modeled overlays in both modes.
  * ------------------------------------------------------------------------ */
@@ -286,35 +288,42 @@ function fcLiveDispatchRatio(filters) {
   return FC_LIVE_DISPATCH_RATIO[s] != null ? FC_LIVE_DISPATCH_RATIO[s] : FC_LIVE_DISPATCH_RATIO['All'];
 }
 
-// Aggregate the real workbook into 13 canonical weekly ASU + Expiration values
-// for the selected quarter + slice. ASU is a stock -> carry the last observed
-// value forward into weeks with no matching rows (and back-fill leading gaps);
-// Expirations is a flow -> zero when absent. Returns null unless live.
+// Aggregate the real workbook into 13 canonical weekly ASU values (plus its real
+// APOS + Renewals components) for the selected quarter + slice. ASU is a stock ->
+// carry the last observed value forward into weeks with no matching rows (and
+// back-fill leading gaps); APOS/Renewals (its ~80%/20% parts) carry with it so the
+// identity ASU = APOS + Renewals holds week to week. Returns null unless live.
 function fcLiveWeeklyBase(filters) {
   if (fcDataMode !== 'live' || !fcLiveRows) return null;
   const q = fcEffectiveQuarter(filters.quarter);
   const weeks = fcWeeksForQuarter(q);
   const sums = Object.create(null);
-  weeks.forEach((w) => { sums[w] = { asu: 0, exp: 0, has: false }; });
+  weeks.forEach((w) => { sums[w] = { asu: 0, apos: 0, ren: 0, has: false }; });
   for (let i = 0; i < fcLiveRows.length; i++) {
     const r = fcLiveRows[i];
     if (r.fiscalQuarter !== q) continue;
     const w = r.fiscalWeek;
     if (!(w in sums)) continue;
     if (!fcRowMatches(r, filters)) continue;
-    sums[w].asu += r.asu || 0; sums[w].exp += r.warrantyExpirations || 0; sums[w].has = true;
+    sums[w].asu += r.asu || 0;
+    sums[w].apos += r.apos || 0;
+    sums[w].ren += r.renewals || 0;
+    sums[w].has = true;
   }
-  let anyHas = false, firstVal = 0;
-  for (let k = 0; k < weeks.length; k++) { if (sums[weeks[k]].has) { anyHas = true; firstVal = sums[weeks[k]].asu; break; } }
-  if (!anyHas) return { weeks, asuBase: weeks.map(() => 0), expirations: weeks.map(() => 0), empty: true };
-  const asuBase = [], expirations = [];
-  let last = firstVal;
+  let anyHas = false, seed = { asu: 0, apos: 0, ren: 0 };
+  for (let k = 0; k < weeks.length; k++) {
+    if (sums[weeks[k]].has) { anyHas = true; seed = { asu: sums[weeks[k]].asu, apos: sums[weeks[k]].apos, ren: sums[weeks[k]].ren }; break; }
+  }
+  if (!anyHas) return { weeks, asuBase: weeks.map(() => 0), aposBase: weeks.map(() => 0), renewalsBase: weeks.map(() => 0), empty: true };
+  const asuBase = [], aposBase = [], renewalsBase = [];
+  let last = seed;
   weeks.forEach((w) => {
-    if (sums[w].has) last = sums[w].asu;
-    asuBase.push(Math.round(last));
-    expirations.push(Math.round(sums[w].exp));
+    if (sums[w].has) last = { asu: sums[w].asu, apos: sums[w].apos, ren: sums[w].ren };
+    asuBase.push(Math.round(last.asu));
+    aposBase.push(Math.round(last.apos));
+    renewalsBase.push(Math.round(last.ren));
   });
-  return { weeks, asuBase, expirations, empty: false };
+  return { weeks, asuBase, aposBase, renewalsBase, empty: false };
 }
 
 function seeded(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
@@ -410,21 +419,27 @@ function fcGenerateWeeklySeries(filters) {
   }
 
   if (live && !live.empty) {
-    // Baseline = real observed ASU; SR/Dispatch derived by ratio.
+    // Baseline = real observed ASU; SR/Dispatch derived by ratio. ASU's real
+    // APOS + Renewals components (they sum to ASU) are carried through for
+    // reference. There is no churn column in the data, so the roll-forward uses
+    // the modeled churn rate; it is normalized below so default sliders reproduce
+    // the real baseline exactly.
     const asuBase = live.asuBase.slice();
-    const expirations = live.expirations.slice();
+    const realApos = live.aposBase.slice();
+    const realRenewals = live.renewalsBase.slice();
     const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
     const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
+    const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE)); // modeled churn
     // Levers apply as the modeled lift RELATIVE to default overrides, so the
     // real baseline is preserved at default sliders (ratio = 1) and moves
     // proportionally as NC/RENEW change.
     const startPrior = asuBase[0];
-    const modeledDefault = rollModeled(1, 1, startPrior, expirations);
+    const modeledDefault = rollModeled(1, 1, startPrior);
     const rollASU = (ncFactor, renewFactor) => {
-      const m = rollModeled(ncFactor, renewFactor, startPrior, expirations);
+      const m = rollModeled(ncFactor, renewFactor, startPrior);
       return asuBase.map((v, w) => Math.round(v * (modeledDefault[w] ? m[w] / modeledDefault[w] : 1)));
     };
-    return { weeks: live.weeks, newContracts, renew, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'live' };
+    return { weeks: live.weeks, newContracts, renew, realApos, realRenewals, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'live' };
   }
 
   // ---- seeded fallback (original behavior) ----
@@ -433,7 +448,10 @@ function fcGenerateWeeklySeries(filters) {
   const srBase = asuBase.map(v => Math.round(v * FC_SR_RATIO));
   const dspBase = srBase.map(v => Math.round(v * dispatchRatio));
   const expirations = asuBase.map(v => Math.round(v * FC_EXPIRATION_RATE));
-  return { weeks: fcWeeksForQuarter(fcEffectiveQuarter(filters.quarter)), newContracts, renew, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
+  // Mirror the live data model: ASU = APOS + Renewals (~80% / ~20%), summing exactly.
+  const realRenewals = asuBase.map(v => Math.round(v * 0.20));
+  const realApos = asuBase.map((v, i) => v - realRenewals[i]);
+  return { weeks: fcWeeksForQuarter(fcEffectiveQuarter(filters.quarter)), newContracts, renew, realApos, realRenewals, asuBase, srBase, dspBase, expirations, factor, dispatchRatio, rollASU, source: 'simulated' };
 }
 
 function fcSensitivity() { return { nc: 0.6, renew: 0.4 }; }
@@ -1069,7 +1087,7 @@ function fcInjectBadge() {
   el.id = 'fc-data-badge';
   el.setAttribute('role', 'status');
   el.title = live
-    ? 'Live data: ASU & Warranty Expirations read from the input workbook (forecast_fy26.xlsx). SR/Dispatch are derived; New Contracts, RENEW and BTC are modeled. Click to re-check.'
+    ? 'Live data: ASU (= APOS + Renewals) read from the input workbook (forecast_fy26.xlsx). SR/Dispatch are derived; NC/RENEW overrides and BTC are modeled. Click to re-check.'
     : 'Simulated data: no local server detected, so figures are seeded/generated. Run "python serve.py" and click to switch to live data.';
   el.style.cssText = [
     'position:fixed', 'left:14px', 'bottom:14px', 'z-index:9999',

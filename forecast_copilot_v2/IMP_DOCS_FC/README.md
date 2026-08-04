@@ -63,15 +63,19 @@ Clicking the badge reloads to re-check (e.g. after starting the server).
   Product** (live) — see `FC_SIM_LABEL` / `FC_LIVE_LABEL` / `FC_LIVE_FIELD`.
   **Business Unit** (`business`→`businessUnit`) and **Warranty Type**
   (`warranty`→`warrantyType`) are separate filters, each backed by its own column.
-- **Real weekly ASU + Warranty Expirations drive each slice.** For the selected
-  quarter + slice, rows are aggregated into the quarter's 13 canonical weeks. The
-  Service Dataset is dense on **Product × Region × week** (see *Input data* below),
-  so single- and two-dimension drill-downs show a full 13-week trend. For any
-  weeks with no matching rows (only deeper 3-plus-filter combos), ASU — a *stock* —
-  carries its last observed value forward, and Expirations — a *flow* — is 0.
+- **Real weekly ASU drives each slice; ASU = APOS + Renewals.** ASU now decomposes
+  into two real columns — **APOS** (~80% of ASU) and **Renewals** (~20%) — where per
+  row `Renewals = round(0.20 × ASU)` and `APOS = ASU − Renewals`, so they sum to ASU
+  exactly. For the selected quarter + slice, rows are aggregated into the quarter's 13
+  canonical weeks. The Service Dataset is dense on **Product × Region × week** (see
+  *Input data* below), so single- and two-dimension drill-downs show a full 13-week
+  trend. For any weeks with no matching rows (only deeper 3-plus-filter combos), ASU —
+  a *stock* — carries its last observed value forward, and its APOS/Renewals parts
+  carry with it so the identity holds week to week.
 - **SR / Dispatch stay derived** by ratio (`SR = ASU × 0.185`; Dispatch =
   `SR × serviceRatio`).
-- **New Contracts / APOS stay modeled levers** (no such columns exist). They apply
+- **New Contracts / APOS *overrides* stay modeled levers** (the roll-forward's NC/APOS
+  sliders and its churn rate are modeled — there is no churn column). They apply
   as the modeled lift *relative to* the default slider position, so at default
   sliders the scenario equals the real baseline and moving a slider adjusts it
   proportionally.
@@ -167,7 +171,9 @@ All three are classic (non-module) scripts, so the engine's top-level `const`/`f
 ### Business pipeline (per selected slice)
 
 ```
-ASU[w] = ASU[w-1] − Expirations[w] + (APOS[w] × RenewalRate × aposFactor) + (NewContracts[w] × ncFactor)
+In the data: ASU = APOS + Renewals (per row, ~80% / ~20%, summing exactly).
+Lever roll-forward (modeled churn, NC/APOS sliders relative to defaults):
+ASU[w] = ASU[w-1] − Churn[w] + (APOS[w] × RenewalRate × aposFactor) + (NewContracts[w] × ncFactor)
 SR      = ASU × 0.185
 Dispatch = SR × service.dispatchRatio
 ```
@@ -283,14 +289,14 @@ download** so nothing is lost.
 
 ```bash
 cd forecast_copilot
-python -m unittest -v          # 14 tests, stdlib only (read path + write path)
+python -m unittest -v          # 16 tests, stdlib only (read path + write path)
 ```
 
 `test_publish.py` asserts the write path: a publish produces a valid 3-sheet `.xlsx`, a second publish
 never overwrites the first, the payload's numbers + ledger + input hash are recorded, and the input
 workbook is left untouched. `test_dataset.py` asserts `serve.load_dataset()` reproduces a hand-checked pivot of 14 slice
-aggregates (grand total, by-FY incl. the back-cast FY22/FY23, by-Region, and multi-dimension slices), the 14,820-row × 14-column
-schema, distinct values, the input sha256, and that Region/FY slices each partition the grand total.
+aggregates (grand total, by-FY incl. the back-cast FY22/FY23, by-Region, and multi-dimension slices), the 14,820-row × 15-column
+schema, distinct values, the input sha256, that APOS + Renewals = ASU for every row, and that Region/FY slices each partition the grand total.
 The expected pivot was ground-truthed with an independent regex parse of the workbook.
 
 ### Input data
@@ -299,9 +305,11 @@ Two workbooks in `input/`, both **modeled/dummy demo data**:
 
 - **`forecast_fy26.xlsx` — the source the engine reads.** A single sheet, **Service Dataset**:
   **14,820 rows** = 19 products × 3 regions × 260 weeks (52 × 5 fiscal years, **FY22–FY26**), one row
-  per Product × Region × week. **14 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region,
-  Warranty Type, **Business Unit** (Unit A ~80% / Unit B ~20% per Product), ASU, Warranty Expirations,
-  Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. FY24–FY26 are the original dense+scaled data
+  per Product × Region × week. **15 columns**: FY, Fiscal Quarter, Fiscal Week, Product, Region,
+  Warranty Type, **Business Unit** (Unit A ~80% / Unit B ~20% per Product), **ASU, APOS, Renewals**
+  (ASU = APOS + Renewals per row; Renewals = round(0.20 × ASU) ≈ 20%, APOS = ASU − Renewals ≈ 80%),
+  Core/Upsell, W/O Type, FQM Flag, GCFA Type, Service Type. (`APOS` + `Renewals` replace the former
+  single `Warranty Expirations` column — Session 42.) FY24–FY26 are the original dense+scaled data
   (grand ASU there ~812.66M); **FY22 and FY23 are back-cast from FY24** along the existing growth trend
   (FY23 ≈ FY24 × 0.78, FY22 ≈ × 0.60, small deterministic per-row jitter) — same categorical mix and
   ratios, a believable earlier installed base. Grand ASU across all 5 years ~1.11B.

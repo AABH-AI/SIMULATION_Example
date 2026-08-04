@@ -30,7 +30,7 @@ JS** — no `pip install`, no build step, no cloud.
 ```bash
 cd forecast_copilot
 python serve.py            # -> http://127.0.0.1:8000/  (opens the Dashboard; Ctrl+C to stop)
-python -m unittest         # 14 tests (read path + write path), stdlib only
+python -m unittest         # 16 tests (read path + write path), stdlib only
 ```
 
 - **Live vs Simulated:** a bottom-left badge shows the mode. Served by `serve.py` → **Live** (real
@@ -64,7 +64,7 @@ python -m unittest         # 14 tests (read path + write path), stdlib only
 
 - **Phases 0–6 complete** on branch **`hn-new`** (pushed to `AABH-AI/SIMULATION_Example`).
   0 scaffold · 1 server+read · 2 real-data adapter · 3 scenarios · 4 editing+ledger · 5 publish ·
-  6 e2e+docs. Verified end-to-end in a browser (0 console errors), 14/14 tests pass.
+  6 e2e+docs. Verified end-to-end in a browser (0 console errors), 16/16 tests pass.
 - **Phase 7 (LLM insights)** is optional/later — read-only explanation of scenarios; needs a model API
   + backend key, so it's off the static/offline critical path.
 - **Post-demo decision (open):** *should the production version be Power BI?* The working demo now
@@ -80,3 +80,8 @@ python -m unittest         # 14 tests (read path + write path), stdlib only
   ESTIMATES"); regenerating/enriching it is a deliberate dev-time act (re-pin `INPUT_SHA256.txt` +
   update the pivot test). Commit the `.xlsx` data files **and** published `output/` files; gitignore
   only Excel lock temps (`~$*.xlsx`) and Python `__pycache__/`.
+- **Opening/reading `input/forecast_fy26.xlsx` in Excel is safe** — the reader finds the data sheet by
+  its column signature, not by name, so an Excel rename/re-encode no longer breaks it. If you **save**
+  from Excel, run `python serve.py --repin` once afterward to refresh the hash pin.
+- **Data model:** ASU decomposes into two real columns, **APOS (~80%)** and **Renewals (~20%)**, with
+  `Renewals = round(0.20 × ASU)` and `APOS = ASU − Renewals` (they sum to ASU exactly).
