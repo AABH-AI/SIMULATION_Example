@@ -1108,3 +1108,20 @@ NC/RENEW levers from the Session ~38 rework are untouched.)
 console errors and APOS + Renewals == ASU per week at the exact 80/20 split. Pushed to `master`
 (GitHub Pages deploy). **New rule** (supersedes the old "never open in Excel"): opening/reading the
 workbook in Excel is safe; after a save, run `python serve.py --repin`.
+
+## Session 43 — BTC Advisor: two-stage adjustment flow (APOS + Renewals → ASU → SR & Dispatch)
+**Origin**: built on `hn-new` first (owner asked for it there), then **merged** so both `master` and `hn-new` carry it together with the Session 42 data model.
+**Files**: `BTC Advisor — Forecast Copilot.html` only (no engine change → engine stays `?v=11`).
+**Prompt**: build a BTC-adjustment flow — Step 1 adjusts APOS (= "new contracts") + Renewals to give ASU (ASU = APOS + Renewals); that ASU feeds SR + Dispatch, which get a second round of adjustment. Drop "BTC" from the distribution headings; show APOS/Renewals controls + counts with ASU below (visuals adjust with the selection); move the BTC selector right and remove its ASU/SR/Dispatch boxes; after adjusting, show ASU + SR/Dispatch controls with counts; forecast table reflects the selection.
+**Clarified (AskUserQuestion)**: Step-1 levers = APOS (new contracts) + Renewals; controls = sliders with live counts; BTC uplift stays a separate headline bend applied on top.
+
+**What was built** (page-local; no shared-engine edit):
+- **Step 1 (top-left)**: APOS + Renewals sliders (−50…+50% vs baseline) with live counts + baselines; prominent **ASU = APOS + Renewals** box. At 0% the figures equal the slice's real baseline.
+- **BTC Selector (top-right)**: moved right; Adjusted ASU/SR/Dispatch boxes removed (keeps BTC-uplift slider + Selected BTC + AOP note + save-scenario).
+- **Step 2**: shows the Step-1 ASU, then SR + Dispatch sliders with counts (SR derives from adjusted ASU by the slice's SR/ASU ratio then its own ±%; Dispatch derives from adjusted SR by the Dispatch/SR ratio then its own ±%).
+- **Distribution visuals**: "BTC" dropped from all five headings; donuts/bars distribute the Step-1 adjusted ASU (LOB series relabelled BTC→ASU).
+- **Persistence**: four adjustment %s (`aposAdjPct`/`renewAdjPct`/`srAdjPct`/`dspAdjPct`) in `fcState` (whole-object persistence). Scenarios / comparison / editable weekly table / chart-expand preserved.
+
+**Now merged**: with the Session 42 data model present on the same branch, `stageFigures()` uses the **real** `realApos`/`realRenewals` columns (the 80/20 fallback only kicks in when the data model is absent). Both branches (`master` + `hn-new`) were reconciled to this combined state, so each carries the data model **and** the two-stage flow.
+
+**Verified** (served live in the `hn-new/` clone, 0 console errors): baseline APOS + Renewals = ASU; adjusting APOS/Renewals flows to ASU→SR→Dispatch; SR/Dispatch sliders chain; filters re-drive figures; layout (Step 1 left / BTC right / Step 2 3-col) and stripped headings confirmed; `python -m unittest` unaffected.
