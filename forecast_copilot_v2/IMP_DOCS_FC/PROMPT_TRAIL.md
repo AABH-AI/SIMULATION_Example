@@ -1059,3 +1059,52 @@ Service is a pie (6 legend items); donut-wrap is `row` at 140px; `fcN` → 8.37M
 **Prompts**: (1) BTC Distribution by Service Type — move it to the **right of all the other visuals**; shorten the others horizontally to make room. (2) fix the missing gap between the bottom visual and the Forecast Table.
 **What was done**: Wrapped Region/Business (the `dist-top` grid) + LOB in a `.dist-left` block and placed it beside `#panel-service` in a two-column `.dist-main` grid (`minmax(0,2.1fr) minmax(0,1fr)`, `align-items:stretch`). Service is now a **tall right column spanning the full height** of the left stack (Region/Business row + LOB); the left visuals are correspondingly narrower. Service keeps its legend-below layout, vertically centred in the tall panel (`#panel-service` flex column, `.svc-wrap{flex:1;justify-content:center}`), legend stacked. The two columns' bottom panels have `margin-bottom:0` for alignment, so `.dist-main` was given `margin-bottom:16px` to restore the gap before the Forecast Table.
 **Verified in-browser (0 console errors)**: 2-track grid; Service panel height (590) = Region/Business row (279) + LOB (295) + gap → spans full height on the right; Region & Business still equal (279 each); all charts expand and revert; 16px gap between `.dist-main` and the Forecast Table. (No engine edit → no `?v` bump.)
+
+## Session 42 — input data model: ASU decomposed into APOS + Renewals; workbook safe to open in Excel
+**Files**: `input/forecast_fy26.xlsx` (regenerated), `input/INPUT_SHA256.txt`, `serve.py`,
+`test_dataset.py`, `fc_engine.js` (4 `*.html` engine `?v=11→12`), `IMP_DOCS_FC/README.md` + `HANDOFF.md`.
+**Prompts**: (1) Excel data change — Warranty Expirations renamed to **Renewals**; add an **APOS** column;
+set **APOS ≈ 80% of ASU, Renewals ≈ 20%**, with the identity **ASU = APOS + Renewals**. (2) make the
+workbook safe to **open and read in Excel** (the old reader broke on Excel's sheet rename). (3) push to
+master and set up local `master/` + `hn-new/` folders.
+
+**Important workflow note**: this work was originally done in a **stale local checkout** that was ~4
+sessions behind `origin/master` (it still had the pre-rework `?v=7` app *with* the old "BTC Visuals"
+page). Pushing it as-is would have reverted Sessions ~38–41 (BTC Advisor rework, cascading filters,
+removal of the standalone BTC Visuals page) and deployed a regression. So instead: **fresh-cloned the
+current `origin/master`** and **re-applied only the two real deliverables on top of it** — the data-model
+change and the Excel-open reader fix — then pushed. (Two separate clones were created inside the repo
+folder: `master/` and `hn-new/`.)
+
+**Data model** (regenerated via `serve._write_xlsx`, canonical inline-string format, sheet *Service
+Dataset*, now **15 columns**): **APOS** inserted right after ASU. Per row `Renewals = round(0.20 × ASU)`,
+`APOS = ASU − Renewals` → **APOS + Renewals == ASU exactly** (~80% / ~20%). **ASU unchanged** — grand
+ΣASU stays **1,110,489,194**; ΣAPOS **888,391,366** (80.00%), ΣRenewals **222,097,828** (20.00%); 14,820
+rows preserved.
+
+**Read path** (`serve.py`): `FIELD_SCHEMA` now maps **APOS**/`apos` + **Renewals**/`renewals` (replacing
+the single `Warranty Expirations`/`warrantyExpirations`); banner prints APOS + Renewals totals.
+`test_dataset.py` pivot widened to `(count, ΣASU, ΣAPOS, ΣRenewals, ΣFQM)` for all 14 slices
+(ground-truthed by an independent regex parse), plus a new **APOS + Renewals == ASU** invariant → **16
+tests, all pass**.
+
+**Excel-safe reader** (`serve.py`): sheet resolution is now **signature-based, not name-based** —
+`_resolve_sheet()` tries the preferred name, else finds the sheet whose header row carries
+`{FY, Fiscal Week, Product, Region, ASU}`, else the first sheet. So an Excel save that renames the sheet
+(it has done `Service Dataset → Raw_data` before) no longer breaks the reader. Added
+**`python serve.py --repin`** (`repin_inputs()`) to refresh `INPUT_SHA256.txt` after an intentional Excel
+save. Verified: a copy with the sheet renamed to `Raw_data` still reads correctly; the workbook opens
+cleanly in **openpyxl** (strict OOXML lib, a good Excel proxy) — ASU 1357 = APOS 1086 + Renewals 271.
+
+**Engine** (`fc_engine.js`, `?v=11→12` on the 4 pages): `fcLiveWeeklyBase` reads the real `apos`+`renewals`
+columns per week (carried forward with ASU so the identity holds across sparse weeks) instead of the
+removed `warrantyExpirations`; the live series exposes `realApos`/`realRenewals`; the lever roll-forward
+uses the modeled churn rate (no churn column), still normalized so default sliders reproduce the real
+baseline — displayed ASU/SR/Dispatch unchanged. Seeded fallback mirrors the same 80/20 split. (The modeled
+NC/RENEW levers from the Session ~38 rework are untouched.)
+
+**Verified in the fresh `master/` clone**: `node --check fc_engine.js` clean; `python -m unittest` →
+**16/16**; `/api/dataset` exposes `apos`/`renewals` with exact totals; all 4 pages load live with 0
+console errors and APOS + Renewals == ASU per week at the exact 80/20 split. Pushed to `master`
+(GitHub Pages deploy). **New rule** (supersedes the old "never open in Excel"): opening/reading the
+workbook in Excel is safe; after a save, run `python serve.py --repin`.
