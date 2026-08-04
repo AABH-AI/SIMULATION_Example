@@ -163,6 +163,17 @@
   .wk-reset:hover{background:var(--teal-dim);}
   .fc-mini-btn{border:1px solid var(--border);background:var(--card);border-radius:7px;padding:5px 11px;font:600 11.5px inherit;font-family:inherit;color:var(--teal);cursor:pointer;}
   .fc-mini-btn:hover{background:var(--teal-dim);border-color:var(--teal);}
+
+  /* Two-stage adjustment flow (APOS+Renewals -> ASU -> SR/Dispatch) */
+  .slider-sub{font-size:10.5px;color:var(--text-3);margin-top:5px;font-variant-numeric:tabular-nums;}
+  .slider-sub b{color:var(--text-2);}
+  .mut{color:var(--text-3);font-weight:500;}
+  .calc-box.asu-box{background:var(--teal-dim);border-color:var(--teal);}
+  .calc-box.asu-box .calc-value{color:var(--teal);}
+  .stage-eq{font-size:10.5px;color:var(--text-3);font-variant-numeric:tabular-nums;margin:-4px 0 12px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start;}
+  .stage2-grid .calc-box{margin-bottom:0;align-self:stretch;}
+  @media (max-width:900px){ .grid-3{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
@@ -213,18 +224,32 @@
       <div class="page-sub">Compare and select the BTC value to bend the curve toward your AOP target.</div>
     </div>
 
+    <!-- STEP 1: build ASU from APOS (new contracts) + Renewals; STEP-2 BTC selector on the right. -->
     <div class="grid-2 advisor-grid" id="advisor-grid">
+      <div class="panel" id="stage1-panel">
+        <div class="panel-title">Step 1 · Adjust APOS &amp; Renewals</div>
+        <div class="panel-sub">APOS (new contracts) and Renewals build the ASU for the current slice. Adjust each; ASU updates below.</div>
+        <div class="slider-row">
+          <div class="slider-head"><span>APOS <span class="mut">(new contracts)</span></span><span class="val" id="apos-cnt">—</span></div>
+          <input type="range" id="apos-slider" min="-50" max="50" step="1" value="0">
+          <div class="slider-sub">baseline <b id="apos-base">—</b> · adjust <b id="apos-pct">0%</b></div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span>Renewals</span><span class="val" id="renew-cnt">—</span></div>
+          <input type="range" id="renew-slider" min="-50" max="50" step="1" value="0">
+          <div class="slider-sub">baseline <b id="renew-base">—</b> · adjust <b id="renew-pct">0%</b></div>
+        </div>
+        <div class="calc-box asu-box"><span class="calc-label">ASU = APOS + Renewals</span><span class="calc-value" id="stage1-asu">—</span></div>
+      </div>
+
       <div class="panel" id="manual-panel">
         <div class="panel-title">BTC Selector</div>
-        <div class="panel-sub">Drag to set the BTC uplift applied to the current slice. Save up to 3 scenarios to compare.</div>
+        <div class="panel-sub">Headline BTC uplift applied on top of the adjusted forecast. Save up to 3 scenarios to compare.</div>
         <div class="slider-row">
           <div class="slider-head"><span>BTC uplift</span><span class="val" id="btc-val">—</span></div>
           <input type="range" id="btc-slider" min="0" max="100" step="1" value="8">
         </div>
         <div class="calc-box"><span class="calc-label">Selected BTC</span><span class="calc-value" id="calc-btc">—</span></div>
-        <div class="calc-box sub"><span class="calc-label">Adjusted ASU</span><span class="calc-value" id="calc-asu">—</span></div>
-        <div class="calc-box sub"><span class="calc-label">Adjusted SR</span><span class="calc-value" id="calc-sr">—</span></div>
-        <div class="calc-box sub"><span class="calc-label">Adjusted Dispatch</span><span class="calc-value" id="calc-dsp">—</span></div>
         <div class="aop-note" id="aop-note"></div>
         <div class="scn-save-row">
           <input type="text" id="scn-name" placeholder="Scenario name" maxlength="28">
@@ -232,15 +257,34 @@
         </div>
         <div class="scn-list" id="scn-list"></div>
       </div>
+    </div>
 
-      <div class="panel" id="compare-panel" style="display:none;">
-        <div class="panel-hd"><div class="panel-title">BTC Comparison</div><span class="dist-count" id="scn-count"></span></div>
-        <div class="panel-sub">Saved scenarios side by side — click a row to load its BTC into the selector.</div>
-        <table class="data-tbl">
-          <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted ASU</th><th>Adjusted SR</th><th>Adjusted Dispatch</th></tr></thead>
-          <tbody id="cmp-body"></tbody>
-        </table>
+    <!-- STEP 2: the Step-1 ASU feeds SR & Dispatch, each with its own adjustment. -->
+    <div class="panel" id="stage2-panel">
+      <div class="panel-title">Step 2 · SR &amp; Dispatch</div>
+      <div class="panel-sub">The Step 1 ASU flows into SR and Dispatch — adjust each below.</div>
+      <div class="grid-3 stage2-grid">
+        <div class="calc-box asu-box"><span class="calc-label">ASU (from Step 1)</span><span class="calc-value" id="stage2-asu">—</span></div>
+        <div class="slider-row" style="margin-bottom:0;">
+          <div class="slider-head"><span>SR</span><span class="val" id="sr-cnt">—</span></div>
+          <input type="range" id="sr-slider" min="-50" max="50" step="1" value="0">
+          <div class="slider-sub">derived <b id="sr-base">—</b> · adjust <b id="sr-pct">0%</b></div>
+        </div>
+        <div class="slider-row" style="margin-bottom:0;">
+          <div class="slider-head"><span>Dispatch</span><span class="val" id="dsp-cnt">—</span></div>
+          <input type="range" id="dsp-slider" min="-50" max="50" step="1" value="0">
+          <div class="slider-sub">derived <b id="dsp-base">—</b> · adjust <b id="dsp-pct">0%</b></div>
+        </div>
       </div>
+    </div>
+
+    <div class="panel" id="compare-panel" style="display:none;">
+      <div class="panel-hd"><div class="panel-title">BTC Comparison</div><span class="dist-count" id="scn-count"></span></div>
+      <div class="panel-sub">Saved scenarios side by side — click a row to load its BTC into the selector.</div>
+      <table class="data-tbl">
+        <thead><tr><th>Scenario</th><th>BTC %</th><th>Adjusted ASU</th><th>Adjusted SR</th><th>Adjusted Dispatch</th></tr></thead>
+        <tbody id="cmp-body"></tbody>
+      </table>
     </div>
 
     <!-- Distribution charts: Region/Business/LOB on the LEFT (shortened), Service Type
@@ -249,14 +293,14 @@
       <div class="dist-left">
         <div class="grid-2 dist-top">
           <div class="panel" id="panel-region">
-            <div class="panel-title">BTC Distribution by Region</div>
+            <div class="panel-title">Distribution by Region</div>
             <div class="donut-wrap">
               <div class="donut" id="donut-region"></div>
               <div class="donut-legend" id="legend-region"></div>
             </div>
           </div>
           <div class="panel" id="panel-business">
-            <div class="panel-title">BTC Distribution by Product Business</div>
+            <div class="panel-title">Distribution by Product Business</div>
             <div class="donut-wrap">
               <div class="donut" id="donut-business"></div>
               <div class="donut-legend" id="legend-business"></div>
@@ -265,13 +309,13 @@
         </div>
 
         <div class="panel" id="panel-lob">
-          <div class="panel-hd"><div class="panel-title">BTC Distribution by LOB</div><span class="dist-count" id="count-lob"></span></div>
+          <div class="panel-hd"><div class="panel-title">Distribution by LOB</div><span class="dist-count" id="count-lob"></span></div>
           <svg id="chart-lob" viewBox="0 0 900 200" width="100%" height="200"></svg>
         </div>
       </div>
 
       <div class="panel" id="panel-service">
-        <div class="panel-title">BTC Distribution by Service Type</div>
+        <div class="panel-title">Distribution by Service Type</div>
         <div class="donut-wrap svc-wrap">
           <div class="donut" id="donut-service"></div>
           <div class="donut-legend" id="legend-service"></div>
@@ -280,7 +324,7 @@
     </div>
 
     <div class="panel" id="week-panel">
-      <div class="panel-title">BTC Distribution by Fiscal Week</div>
+      <div class="panel-title">Distribution by Fiscal Week</div>
       <div class="panel-sub">DS Forecast (base) vs BTC Forecast (after distribution)</div>
       <svg id="fwbars" viewBox="0 0 700 150" width="100%" height="150"></svg>
       <div id="fw-axis" style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--text-3);margin-top:4px;"></div>
@@ -316,13 +360,63 @@ function clampBTC(v){ v = +v; if (isNaN(v)) return BTC_DEFAULT; return Math.max(
 fcState.btcStrategy = 'manual';
 if (fcState.manualBTC == null || fcState.manualBTC < BTC_MIN || fcState.manualBTC > BTC_MAX) fcState.manualBTC = BTC_DEFAULT;
 if (!Array.isArray(fcState.btcScenarios)) fcState.btcScenarios = [];
+// Two-stage adjustment percentages (page-local; persisted in the whole fcState object).
+['aposAdjPct','renewAdjPct','srAdjPct','dspAdjPct'].forEach(k => { if (typeof fcState[k] !== 'number') fcState[k] = 0; });
 fcSaveState(fcState);
+const sgn = p => (p >= 0 ? '+' : '') + Math.round(p) + '%';
 
 const DONUT_COLORS = ['#0d9488','#d97706','#0284c7','#7c3aed','#db2777','#059669','#ea580c','#0369a1'];
 const ALL_BLUE = '#8ec5ff';
 function donutColor(key, i){ return key === 'All' ? ALL_BLUE : DONUT_COLORS[i % DONUT_COLORS.length]; }
 // (2) International/abbreviated format for summary figures (e.g. 8.37M, 587K).
 const full = v => fcN(v);
+
+/* ---- Two-stage adjustment: APOS + Renewals -> ASU -> SR & Dispatch ----
+   Step 1: APOS (new contracts) and Renewals are the real components of the slice's
+   end-of-quarter ASU (ASU = APOS + Renewals). Each has a % adjustment.
+   Step 2: the adjusted ASU derives SR (by the slice's real SR/ASU ratio) and then
+   Dispatch (by the real Dispatch/SR ratio); each gets its own % adjustment.
+   At 0% on every slider the figures equal the real baseline for the slice. */
+function stageFigures(r){
+  const s = r.series, n = s.asuBase.length - 1;
+  let aposBase = (s.realApos && s.realApos[n]) || 0;
+  let renewBase = (s.realRenewals && s.realRenewals[n]) || 0;
+  if (!(aposBase + renewBase)){ const a = r.originalTotals.asu; renewBase = Math.round(a*0.20); aposBase = a - renewBase; }
+  const asuBase0 = aposBase + renewBase;
+  const apos  = Math.round(aposBase  * (1 + fcState.aposAdjPct/100));
+  const renew = Math.round(renewBase * (1 + fcState.renewAdjPct/100));
+  const asu = apos + renew;
+  const kSR = asuBase0 ? r.originalTotals.sr / asuBase0 : 0.185;
+  const srDerived = Math.round(asu * kSR);
+  const sr = Math.round(srDerived * (1 + fcState.srAdjPct/100));
+  const kDSP = r.originalTotals.sr ? r.originalTotals.dsp / r.originalTotals.sr : (s.dispatchRatio || 0.5);
+  const dspDerived = Math.round(sr * kDSP);
+  const dsp = Math.round(dspDerived * (1 + fcState.dspAdjPct/100));
+  return { aposBase, renewBase, apos, renew, asu, srDerived, sr, dspDerived, dsp };
+}
+function renderStages(sf){
+  // Step 1
+  document.getElementById('apos-cnt').textContent  = full(sf.apos);
+  document.getElementById('renew-cnt').textContent = full(sf.renew);
+  document.getElementById('apos-base').textContent  = full(sf.aposBase);
+  document.getElementById('renew-base').textContent = full(sf.renewBase);
+  document.getElementById('apos-pct').textContent  = sgn(fcState.aposAdjPct);
+  document.getElementById('renew-pct').textContent = sgn(fcState.renewAdjPct);
+  document.getElementById('stage1-asu').textContent = full(sf.asu);
+  // Step 2
+  document.getElementById('stage2-asu').textContent = full(sf.asu);
+  document.getElementById('sr-cnt').textContent  = full(sf.sr);
+  document.getElementById('dsp-cnt').textContent = full(sf.dsp);
+  document.getElementById('sr-base').textContent  = full(sf.srDerived);
+  document.getElementById('dsp-base').textContent = full(sf.dspDerived);
+  document.getElementById('sr-pct').textContent  = sgn(fcState.srAdjPct);
+  document.getElementById('dsp-pct').textContent = sgn(fcState.dspAdjPct);
+}
+function syncStageSliders(){
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  set('apos-slider', fcState.aposAdjPct); set('renew-slider', fcState.renewAdjPct);
+  set('sr-slider', fcState.srAdjPct);     set('dsp-slider', fcState.dspAdjPct);
+}
 
 /* ---- Manual BTC selector ---- */
 function setBTC(v, save){
@@ -370,7 +464,7 @@ function renderScenarios(r){
   const grid = document.getElementById('advisor-grid');
   const show = list.length >= 2;
   panel.style.display = show ? '' : 'none';
-  grid.classList.toggle('solo', !show);
+  grid.classList.remove('solo');   // top grid always holds Step 1 + BTC Selector (two columns)
   if (show){
     document.getElementById('scn-count').textContent = list.length + ' scenarios';
     document.getElementById('cmp-body').innerHTML = list.map(s => {
@@ -418,24 +512,25 @@ function renderDonut(donutId, legendId, shares){
     `<div><span class="dot" style="background:${donutColor(s.key,i)}"></span>${s.key}<span class="lval">${fcN(s.value)}</span></div>`
   ).join('');
 }
-function renderDistribution(r){
-  const totalBTCVolume = fcSum(r.weekly.btcForecast);
+function renderDistribution(r, sf){
+  // Visuals adjust with the selection: distribute the Step-1 adjusted ASU.
+  const total = sf ? sf.asu : fcSum(r.weekly.btcForecast);
 
   // (1.1.1.1) Region + Product Business donuts drop the 'All' summary slice.
   const noAll = arr => arr.filter(s => s.key !== 'All');
-  renderDonut('donut-region', 'legend-region', noAll(distributeByFactor(FC_REGION_FACTOR, totalBTCVolume)));
-  renderDonut('donut-business', 'legend-business', noAll(distributeByFactor(FC_BUSINESS_FACTOR, totalBTCVolume)));
+  renderDonut('donut-region', 'legend-region', noAll(distributeByFactor(FC_REGION_FACTOR, total)));
+  renderDonut('donut-business', 'legend-business', noAll(distributeByFactor(FC_BUSINESS_FACTOR, total)));
 
   // Service Type — larger donut, full-width row, legend below (styled in CSS).
-  const svcShares = noAll(distributeByFactor(FC_SERVICE_FACTOR, totalBTCVolume)).sort((a,b) => b.value - a.value);
+  const svcShares = noAll(distributeByFactor(FC_SERVICE_FACTOR, total)).sort((a,b) => b.value - a.value);
   renderDonut('donut-service', 'legend-service', svcShares);
 
   // (1.1.2 / item 2.1) LOB gets its own full-width row; still dropped for a single Global LOB.
   const showLob = fcState.filters.lob === 'All';
   document.getElementById('panel-lob').style.display = showLob ? '' : 'none';
   if (showLob){
-    const lobShares = noAll(distributeByFactor(FC_LOB_FACTOR, totalBTCVolume)).sort((a,b) => b.value - a.value);
-    fcDrawGroupedBars('chart-lob', lobShares.map(s=>s.key), [{label:'BTC', color:'#0d9488', values:lobShares.map(s=>s.value)}], {w:900, h:200, rotate:-40});
+    const lobShares = noAll(distributeByFactor(FC_LOB_FACTOR, total)).sort((a,b) => b.value - a.value);
+    fcDrawGroupedBars('chart-lob', lobShares.map(s=>s.key), [{label:'ASU', color:'#0d9488', values:lobShares.map(s=>s.value)}], {w:900, h:200, rotate:-40});
     document.getElementById('count-lob').textContent = lobShares.length + ' LOBs';
     const c = fcHCharts['chart-lob']; if (c) { try { c.reflow(); } catch(e){} }
   }
@@ -491,12 +586,12 @@ function renderWeekly(r){
 function fcRenderAdvisor(){
   const r = fcCompute();
 
-  // Selected BTC + adjusted ASU / SR / Dispatch (same basis as the comparison rows) + AOP status.
-  const adj = scenarioAdjusted(r, r.selectedBTCPct);
+  // Two-stage adjustment figures for the current slice.
+  const sf = stageFigures(r);
+  renderStages(sf);
+
+  // Selected BTC headline + AOP status.
   document.getElementById('calc-btc').textContent = fcPct(r.selectedBTCPct, 1);
-  document.getElementById('calc-asu').textContent = full(adj.asu);
-  document.getElementById('calc-sr').textContent = full(adj.sr);
-  document.getElementById('calc-dsp').textContent = full(adj.dsp);
   const note = document.getElementById('aop-note');
   if (r.status.meetsAOP){
     note.className = 'aop-note ok';
@@ -507,7 +602,7 @@ function fcRenderAdvisor(){
   }
 
   renderScenarios(r);
-  renderDistribution(r);
+  renderDistribution(r, sf);
   renderWeekly(r);
 }
 
@@ -523,9 +618,16 @@ document.getElementById('btn-save-scn').onclick = saveScenario;
 document.getElementById('scn-name').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); if (!document.getElementById('btn-save-scn').disabled) saveScenario(); } });
 document.getElementById('reset-all').onclick = () => { fcClearAllWeekOverrides(); fcRenderAdvisor(); };
 
+// Two-stage adjustment sliders (APOS/Renewals -> ASU -> SR/Dispatch).
+[['apos-slider','aposAdjPct'],['renew-slider','renewAdjPct'],['sr-slider','srAdjPct'],['dsp-slider','dspAdjPct']].forEach(([id,key]) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', e => { fcState[key] = Math.round(+e.target.value); fcSaveState(fcState); fcRenderAdvisor(); });
+});
+
 fcWireFilters(fcRenderAdvisor);
 
 syncSliderUI();
+syncStageSliders();
 fcRenderAdvisor();
 fcInitChartExpand(['panel-region','panel-business','panel-lob','panel-service','week-panel']);
   </script>
