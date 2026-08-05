@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sim B — Polished Scenario App (Dispatches BTC)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{--bg:#f0f3fc;--sf:#fff;--cd:#fff;--chi:#eef1fc;--bd:#dde2f4;--bh:#b4bde8;--t1:#0d1020;--t2:#5a6280;--t3:#9099be;--ac:#3a6ef0;--gn:#16a34a;--rd:#dc2626;--am:#b45309;--pu:#6d28d9;--ui:'Plus Jakarta Sans',sans-serif;--mo:'IBM Plex Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--t1);font-family:var(--ui);font-size:13px;padding:16px}
+  .tag{display:inline-block;background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6;font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;margin-bottom:12px}
+  .wrap{max-width:1100px}
+  .head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .head h1{font-size:16px;font-weight:800}.head .sub{font-size:11px;color:var(--t2)}
+  .ctx{margin-left:auto;font-size:10px;font-weight:700;color:var(--ac);background:rgba(58,110,240,.08);border:1px solid rgba(58,110,240,.18);padding:4px 10px;border-radius:6px}
+  .kr{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:12px}
+  .kp{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+  .kl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+  .kv{font-family:var(--mo);font-size:19px;font-weight:600;line-height:1}
+  .ks{font-size:9px;margin-top:5px;color:var(--t3)}
+  .row{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}
+  .card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px}
+  .card h3{font-size:11px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+  .chart-wrap{height:230px;position:relative}
+  .ctrl label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);display:block;margin-bottom:6px}
+  .sl{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .sl input[type=range]{flex:1;height:5px;-webkit-appearance:none;background:var(--bd);border-radius:3px;outline:none}
+  .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--ac);cursor:pointer}
+  .sl input[type=number]{width:52px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .gap{display:flex;justify-content:space-between;font-size:11px;padding:5px 0}
+  .gap b{font-family:var(--mo)}
+  .bar{height:8px;background:var(--chi);border-radius:4px;overflow:hidden;margin:8px 0 4px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--ac),var(--pu));transition:width .3s}
+  .btnrow{display:flex;gap:8px;margin-top:14px}
+  .btn{flex:1;padding:8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:var(--ui)}
+  .pub{background:#dcfce7;color:var(--gn);border-color:#86efac}.pub:hover{background:var(--gn);color:#fff}
+  .dis{background:#f1f5f9;color:var(--t2);border-color:var(--bd)}.dis:hover{background:var(--t2);color:#fff}
+  table{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}
+  th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right}
+  th.l{text-align:left}
+  td{font-family:var(--mo);font-size:11px;padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right}
+  td.l{text-align:left;color:var(--t2)}
+  .neg{color:var(--gn)}.pos{color:var(--rd)}
+  .note{max-width:1100px;margin-top:12px;font-size:11px;color:var(--t2);line-height:1.6}
+</style>
+</head>
+<body>
+<span class="tag">MOCKUP B · Polished scenario app · Dispatches BTC · real POWEREDGE data</span>
+<div class="wrap">
+  <div class="head">
+    <h1>Bend the Curve</h1><span class="sub">Dispatch adjustment · FY26</span>
+    <span class="ctx">POWEREDGE · ESG · Break Fix</span>
+  </div>
+  <div class="kr">
+    <div class="kp"><div class="kl">DS Forecast</div><div class="kv" id="kDS">0</div><div class="ks">No IQR</div></div>
+    <div class="kp"><div class="kl">BTC Adjusted</div><div class="kv" id="kAdj" style="color:var(--ac)">0</div><div class="ks">Dispatches</div></div>
+    <div class="kp"><div class="kl">SMOD Target</div><div class="kv">50,700</div><div class="ks">Dispatches</div></div>
+    <div class="kp"><div class="kl">Forecast Rate</div><div class="kv" id="kFR">0</div><div class="ks">MDR ×100</div></div>
+    <div class="kp"><div class="kl">Adjusted Rate</div><div class="kv" id="kAR" style="color:var(--ac)">0</div><div class="ks">vs .680 tgt</div></div>
+    <div class="kp"><div class="kl">Gap</div><div class="kv" id="kGap">0</div><div class="ks" id="kGapS">—</div></div>
+  </div>
+  <div class="row">
+    <div class="card"><h3>Dispatches — DS vs Adjusted vs Target</h3><div class="chart-wrap"><canvas id="c"></canvas></div>
+      <table><thead><tr><th class="l">FW</th><th>Disp DS</th><th>Disp Adj</th><th>Delta</th><th>MDR ×100</th></tr></thead><tbody id="tb"></tbody></table>
+    </div>
+    <div class="card ctrl"><h3>Controls</h3>
+      <label>BTC Modifier</label>
+      <div class="sl"><input type="range" id="mS" min="50" max="100" value="100" oninput="sync(this.value)"><input type="number" id="mI" min="50" max="100" value="100" oninput="sync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+      <div style="font-size:8px;color:var(--t3);display:flex;justify-content:space-between;margin-top:-8px"><span>Aggressive</span><span>Conservative</span></div>
+      <div style="margin-top:16px">
+        <div class="gap"><span>Adjusted rate</span><b id="gAR">0</b></div>
+        <div class="gap"><span>Target rate</span><b>.680</b></div>
+        <div class="bar"><div id="gbar" style="width:100%"></div></div>
+        <div class="gap"><span>Gap to target</span><b id="gGap" style="color:var(--am)">0</b></div>
+      </div>
+      <div class="btnrow"><button class="btn pub" onclick="publish()">Publish</button><button class="btn dis" onclick="reset()">Reset</button></div>
+      <div style="margin-top:12px;font-size:9px;color:var(--t3);line-height:1.5">Allocation is weighted down to region / country / core-upsell on publish.</div>
+    </div>
+  </div>
+</div>
+<div class="note"><b>What this shows:</b> the adjustment as a clean planning tool — KPI strip, live chart (DS / Adjusted / Target), a modifier slider with gap-to-target meter, and a compact weekly table. No spreadsheet grid; the Excel mechanics are abstracted behind the slider + Publish. Fastest to read, furthest from "the actual file."</div>
+<script>
+var WK=[33,34,35,36,37,38,39,40,41,42,43,44,45];
+var ND=[5218,4927,4541,4700,4749,4823,4421,4458,4617,4475,3944,4661,4473];
+var ASU=[6564301,6560625,6572128,6581221,6580780,6577603,6568789,6552216,6549911,6547044,6542903,6539228,6529427];
+var TARGET_RATE=0.680; // MDR ×100 aggregate target
+var chart;
+function ramp(i,N){return Math.pow(i/(N-1),8)}
+function fmt(n){return Number(Math.round(n)).toLocaleString('en-IN')}
+function compute(){
+  var m=+document.getElementById('mI').value/100;var N=WK.length;
+  var adj=ND.map(function(v,i){return Math.round(v*(1-(1-m)*ramp(i,N-1)))});
+  return adj;
+}
+function render(){
+  var adj=compute();
+  var sD=ND.reduce((a,b)=>a+b,0),sA=adj.reduce((a,b)=>a+b,0),sAsu=ASU.reduce((a,b)=>a+b,0);
+  var frRate=(sD/sAsu*100),arRate=(sA/sAsu*100);
+  document.getElementById('kDS').textContent=fmt(sD);
+  document.getElementById('kAdj').textContent=fmt(sA);
+  document.getElementById('kFR').textContent=frRate.toFixed(3);
+  document.getElementById('kAR').textContent=arRate.toFixed(3);
+  var gap=arRate-TARGET_RATE;
+  document.getElementById('kGap').textContent=(gap>=0?'+':'')+gap.toFixed(3);
+  document.getElementById('kGapS').textContent=Math.abs(gap)<0.005?'on target':(gap>0?'above target':'below');
+  document.getElementById('kGap').style.color=Math.abs(gap)<0.005?'var(--gn)':gap>0?'var(--am)':'var(--rd)';
+  document.getElementById('gAR').textContent=arRate.toFixed(3);
+  document.getElementById('gGap').textContent=(gap>=0?'+':'')+gap.toFixed(3);
+  document.getElementById('gGap').style.color=Math.abs(gap)<0.005?'var(--gn)':'var(--am)';
+  document.getElementById('gbar').style.width=Math.max(4,Math.min(100,(TARGET_RATE/arRate*100)))+'%';
+  var tb='';for(var i=0;i<WK.length;i++){var d=adj[i]-ND[i];tb+='<tr><td class="l">W'+WK[i]+'</td><td>'+fmt(ND[i])+'</td><td>'+fmt(adj[i])+'</td><td class="'+(d<0?'neg':'pos')+'">'+(d>=0?'+':'')+d+'</td><td>'+(adj[i]/ASU[i]*100).toFixed(4)+'</td></tr>'}
+  document.getElementById('tb').innerHTML=tb;
+  var tgtLine=ND.map(()=>Math.round(TARGET_RATE/100*(sAsu/WK.length)));
+  chart.data.labels=WK.map(w=>'W'+w);
+  chart.data.datasets[0].data=ND;chart.data.datasets[1].data=adj;chart.data.datasets[2].data=tgtLine;
+  chart.update();
+}
+function sync(v){v=Math.max(50,Math.min(100,parseInt(v)||100));document.getElementById('mS').value=v;document.getElementById('mI').value=v;render()}
+function publish(){alert('Published → weighted-allocated to region / country. (mock)')}
+function reset(){sync(100)}
+window.onload=function(){
+  chart=new Chart(document.getElementById('c'),{type:'line',data:{labels:[],datasets:[
+    {label:'Disp DS',data:[],borderColor:'#3a6ef0',borderWidth:2,tension:.25,pointRadius:2,fill:false},
+    {label:'Disp Adj',data:[],borderColor:'#16a34a',borderWidth:2,tension:.25,pointRadius:2,fill:false},
+    {label:'Target',data:[],borderColor:'#b45309',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{font:{family:'Plus Jakarta Sans',size:9},usePointStyle:true,padding:12}}},scales:{y:{grid:{color:'#eef1fc'},border:{display:false},ticks:{font:{size:9}}},x:{grid:{display:false},border:{display:false},ticks:{font:{size:9}}}}}});
+  render();
+};
+</script>
+</body>
+</html>

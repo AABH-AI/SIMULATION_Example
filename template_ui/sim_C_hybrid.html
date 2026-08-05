@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sim C — Hybrid Grid + Panel (Dispatches BTC)</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#eef1f8;--sf:#fff;--bd:#c8cedd;--gridln:#dde2f4;--hdr:#f4f6fb;--sel:#eef1fc;--t1:#0d1020;--t2:#5a6280;--t3:#9099be;--ac:#3a6ef0;--gn:#16a34a;--rd:#dc2626;--am:#b45309;--pu:#6d28d9;--ui:'Plus Jakarta Sans',sans-serif;--mo:'IBM Plex Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--t1);font-family:var(--ui);font-size:12px;padding:14px}
+  .tag{display:inline-block;background:#dbeafe;border:1px solid #93c5fd;color:#1e40af;font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;margin-bottom:10px}
+  .app{max-width:1160px;background:var(--sf);border:1px solid var(--bd);border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(13,16,32,.07)}
+  .top{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd)}
+  .top b{font-size:14px;font-weight:800}.top .sub{font-size:10px;color:var(--t2)}
+  .ctx{margin-left:auto;font-size:10px;font-weight:700;color:var(--ac);background:rgba(58,110,240,.08);border:1px solid rgba(58,110,240,.18);padding:4px 10px;border-radius:6px}
+  .tabs{display:flex;background:var(--hdr);border-bottom:1px solid var(--bd)}
+  .tb{padding:7px 15px;font-size:11px;font-weight:600;color:var(--t2);border-right:1px solid var(--bd);cursor:pointer;border-bottom:2px solid transparent}
+  .tb.on{background:var(--sf);color:var(--ac);border-bottom-color:var(--ac)}
+  .body{display:flex}
+  .main{flex:1;padding:12px;overflow-x:auto}
+  .kr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+  .kp{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px 10px}
+  .kl{font-size:7.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:4px}
+  .kv{font-family:var(--mo);font-size:16px;font-weight:600;line-height:1}
+  .ks{font-size:8px;color:var(--t3);margin-top:3px}
+  .gridwrap{border:1px solid var(--gridln);border-radius:7px;overflow:hidden}
+  table{border-collapse:collapse;width:100%}
+  th{background:var(--hdr);color:var(--t2);font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border:1px solid var(--gridln);text-align:right;white-space:nowrap}
+  th.l{text-align:left}
+  td{font-family:var(--mo);font-size:11px;padding:4px 8px;border:1px solid var(--gridln);text-align:right;white-space:nowrap}
+  td.l{text-align:left;color:var(--t2)}
+  tr.actual td{background:#f7f8fb;color:var(--t3)}
+  td.locked{background:#f4f6fb;color:var(--t3)}
+  td.ed{background:#fff;cursor:text}
+  td.ed:hover{background:var(--sel)}
+  td.pending{background:#fef2f2;color:var(--rd);font-weight:600}
+  td.published{background:#f0fdf4;color:var(--gn);font-weight:600}
+  .rok{color:var(--gn)}.rhi{color:var(--rd)}
+  .panel{width:260px;flex-shrink:0;border-left:1px solid var(--bd);background:var(--hdr);padding:14px}
+  .panel h4{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin-bottom:8px}
+  .panel label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--t2);display:block;margin-bottom:6px}
+  .sl{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .sl input[type=range]{flex:1;height:5px;-webkit-appearance:none;background:var(--bd);border-radius:3px;outline:none}
+  .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer}
+  .sl input[type=number]{width:48px;padding:4px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .hint{font-size:8px;color:var(--t3);display:flex;justify-content:space-between}
+  .stat{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px dashed var(--bd)}
+  .stat b{font-family:var(--mo)}
+  .bar{height:7px;background:var(--sel);border-radius:4px;overflow:hidden;margin:8px 0}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--ac),var(--pu))}
+  .btn{width:100%;padding:8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:var(--ui);margin-top:8px}
+  .pub{background:#dcfce7;color:var(--gn);border-color:#86efac}.pub:hover{background:var(--gn);color:#fff}
+  .dis{background:#fee2e2;color:var(--rd);border-color:#fca5a5}.dis:hover{background:var(--rd);color:#fff}
+  .note{max-width:1160px;margin-top:10px;font-size:11px;color:var(--t2);line-height:1.6}
+</style>
+</head>
+<body>
+<span class="tag">MOCKUP C · Hybrid grid + control panel · Dispatches BTC · real POWEREDGE data</span>
+<div class="app">
+  <div class="top"><b>ISG BPA</b><span class="sub">Scenario Model / Bend the Curve</span><span class="ctx">POWEREDGE · ESG · Break Fix</span></div>
+  <div class="tabs"><div class="tb on">Dispatches</div><div class="tb">Contracts</div><div class="tb">PreUCR SR</div></div>
+  <div class="body">
+    <div class="main">
+      <div class="kr">
+        <div class="kp"><div class="kl">DS Forecast</div><div class="kv" id="kDS">0</div><div class="ks">No IQR</div></div>
+        <div class="kp"><div class="kl">BTC Adjusted</div><div class="kv" id="kAdj" style="color:var(--ac)">0</div><div class="ks">Dispatches</div></div>
+        <div class="kp"><div class="kl">Adj Rate ×100</div><div class="kv" id="kAR">0</div><div class="ks">vs .680</div></div>
+        <div class="kp"><div class="kl">Pending</div><div class="kv" id="kPend" style="color:var(--rd)">0</div><div class="ks">unpublished</div></div>
+      </div>
+      <div class="gridwrap"><table id="tA"></table></div>
+      <div style="font-size:9px;color:var(--t3);margin-top:6px">Grey = actuals/locked · white = editable Adj · red = pending · green = published. No-IQR column is the locked reference.</div>
+    </div>
+    <div class="panel">
+      <h4>Sizing</h4>
+      <label>BTC Modifier</label>
+      <div class="sl"><input type="range" id="mS" min="50" max="100" value="100" oninput="sync(this.value)"><input type="number" id="mI" min="50" max="100" value="100" oninput="sync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+      <div class="hint"><span>Aggressive</span><span>Conservative</span></div>
+      <h4 style="margin-top:18px">Gap to Target</h4>
+      <div class="stat"><span>Adjusted rate</span><b id="sAR">0</b></div>
+      <div class="stat"><span>SMOD target</span><b>.680</b></div>
+      <div class="bar"><div id="bar" style="width:100%"></div></div>
+      <div class="stat" style="border:none"><span>Gap</span><b id="sGap" style="color:var(--am)">0</b></div>
+      <button class="btn pub" onclick="publish()">Publish pending</button>
+      <button class="btn dis" onclick="discard()">Discard / reset</button>
+      <div style="margin-top:12px;font-size:8px;color:var(--t3);line-height:1.5">Publish weighted-allocates down to region / country / core-upsell. Zeros rejected (OLAP).</div>
+    </div>
+  </div>
+</div>
+<div class="note"><b>What this shows:</b> the real grid (No-IQR reference + editable Adj column, actuals locked) as the working surface, with a modern side panel for the modifier lever, KPIs and gap-to-target meter. You edit cells <em>or</em> drive the whole column from the slider. Excel truth + modern controls — the middle path.</div>
+<script>
+var WK=[33,34,35,36,37,38,39,40,41,42,43,44,45];
+var ND=[5218,4927,4541,4700,4749,4823,4421,4458,4617,4475,3944,4661,4473];
+var ASU=[6564301,6560625,6572128,6581221,6580780,6577603,6568789,6552216,6549911,6547044,6542903,6539228,6529427];
+var FCSTART=4,TARGET=0.680;
+var adj=ND.slice(),state={};
+function ramp(i,N){return Math.pow(i/(N-1),8)}
+function fmt(n){return Number(Math.round(n)).toLocaleString('en-IN')}
+function applyMod(){var m=+document.getElementById('mI').value/100,N=WK.length-FCSTART;for(var i=FCSTART;i<WK.length;i++){var w=i-FCSTART;adj[i]=Math.round(ND[i]*(1-(1-m)*ramp(w,N)));if(m<1)state[i]='pending';else if(state[i]!=='published')delete state[i]}}
+function render(){
+  applyMod();
+  var h='<tr><th class="l">Fiscal Week</th><th>ASU Closing</th><th>Disp No IQR</th><th>Disp Adj</th><th>MDR ×100</th></tr>';
+  for(var i=0;i<WK.length;i++){var isFc=i>=FCSTART;var cls='locked',ed='';if(isFc){cls=state[i]==='pending'?'pending':state[i]==='published'?'published':'ed';ed=' contenteditable="true" data-i="'+i+'" onblur="edit(this)" onkeydown="keyed(event,this)"';}var r=(adj[i]/ASU[i]*100),rc=r<=0.0705?'rok':'rhi';h+='<tr'+(isFc?'':' class="actual"')+'><td class="l">2026-W'+WK[i]+'</td><td class="locked">'+fmt(ASU[i])+'</td><td class="locked">'+fmt(ND[i])+'</td><td class="'+cls+'"'+ed+'>'+fmt(adj[i])+'</td><td class="'+rc+'">'+r.toFixed(4)+'</td></tr>';}
+  document.getElementById('tA').innerHTML=h;
+  var sD=0,sA=0,sAsu=0,pend=0;for(var i=FCSTART;i<WK.length;i++){sD+=ND[i];sA+=adj[i];sAsu+=ASU[i];if(state[i]==='pending')pend++}
+  var ar=sA/sAsu*100;
+  document.getElementById('kDS').textContent=fmt(sD);
+  document.getElementById('kAdj').textContent=fmt(sA);
+  document.getElementById('kAR').textContent=ar.toFixed(3);
+  document.getElementById('kPend').textContent=pend;
+  document.getElementById('sAR').textContent=ar.toFixed(3);
+  var gap=ar-TARGET;document.getElementById('sGap').textContent=(gap>=0?'+':'')+gap.toFixed(3);
+  document.getElementById('sGap').style.color=Math.abs(gap)<0.005?'var(--gn)':'var(--am)';
+  document.getElementById('bar').style.width=Math.max(4,Math.min(100,TARGET/ar*100))+'%';
+}
+function edit(el){var i=+el.dataset.i;var v=parseInt(el.textContent.replace(/[^0-9]/g,''));if(!v||v<=0){alert('OLAP: cannot enter zero — value must be > 0');render();return}adj[i]=v;state[i]='pending';render()}
+function keyed(e,el){if(e.key==='Enter'){e.preventDefault();el.blur()}}
+function sync(v){v=Math.max(50,Math.min(100,parseInt(v)||100));document.getElementById('mS').value=v;document.getElementById('mI').value=v;render()}
+function publish(){for(var i in state)if(state[i]==='pending')state[i]='published';render()}
+function discard(){for(var i in state)if(state[i]==='pending'){adj[i]=ND[i];delete state[i]}sync(100)}
+render();
+</script>
+</body>
+</html>

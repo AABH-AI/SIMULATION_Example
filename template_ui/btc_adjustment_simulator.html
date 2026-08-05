@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Adjustment Simulator — ISG BPA</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f0f3fc;--sf:#fff;--cd:#fff;--chi:#eef1fc;--bd:#dde2f4;--bh:#b4bde8;--t1:#0d1020;--t2:#5a6280;--t3:#9099be;--ac:#3a6ef0;--gn:#16a34a;--rd:#dc2626;--am:#b45309;--pu:#6d28d9;--ui:'Plus Jakarta Sans',sans-serif;--mo:'IBM Plex Mono',monospace}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--t1);font-family:var(--ui);font-size:13px;min-height:100vh}
+  .hd{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 18px}
+  .hd .brand{font-weight:800;font-size:14px}
+  .hd .crumb{font-size:11px;color:var(--t2)}.hd .crumb b{color:var(--t1)}
+  .hd .ctx{margin-left:auto;font-size:10px;font-weight:700;color:var(--pu);background:rgba(109,40,217,.08);border:1px solid rgba(109,40,217,.18);padding:4px 10px;border-radius:6px}
+  .hd .stamp{font-size:10px;color:var(--t3);font-family:var(--mo)}
+  .tabs{display:flex;gap:4px;padding:12px 18px 0}
+  .tab{padding:8px 18px;border:1px solid var(--bd);background:var(--cd);color:var(--t2);border-radius:8px 8px 0 0;font-size:12px;font-weight:600;cursor:pointer;border-bottom:none}
+  .tab.on{background:var(--ac);border-color:var(--ac);color:#fff}
+  .tab:hover:not(.on){color:var(--ac);border-color:var(--ac)}
+  .wrap{padding:0 18px 24px}
+  .view{display:none}.view.on{display:block}
+  .info{background:rgba(58,110,240,.06);border:1px solid rgba(58,110,240,.14);border-radius:9px;padding:9px 13px;font-size:11px;color:var(--t2);margin:12px 0;display:flex;gap:8px;align-items:flex-start}
+  .info b{color:var(--t1)}.info .i{color:var(--ac);font-weight:800}
+  .kr{display:grid;gap:10px;margin-bottom:12px}
+  .kr6{grid-template-columns:repeat(6,1fr)}.kr5{grid-template-columns:repeat(5,1fr)}
+  .kp{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+  .kl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+  .kv{font-family:var(--mo);font-size:19px;font-weight:600;line-height:1}
+  .ks{font-size:9px;margin-top:5px;color:var(--t3)}
+  .row{display:grid;grid-template-columns:1.65fr 1fr;gap:12px}
+  .card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px}
+  .card h3{font-size:11px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+  .card h3 .ex{font-size:10px;font-weight:600;color:var(--gn);cursor:pointer;padding:3px 8px;border:1px solid #86efac;background:#dcfce7;border-radius:5px}
+  .card h3 .ex:hover{background:var(--gn);color:#fff}
+  .lg{display:flex;gap:14px;font-size:10px;color:var(--t2);margin-bottom:6px;flex-wrap:wrap}
+  .lg span{display:inline-flex;align-items:center;gap:5px}
+  .lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .cw{height:210px;width:100%}
+  .cw svg{display:block;width:100%;height:100%}
+  label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);display:block;margin-bottom:6px}
+  .sl{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .sl input[type=range]{flex:1;height:5px;-webkit-appearance:none;border-radius:3px;outline:none;background:var(--bd)}
+  .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;cursor:pointer}
+  .sl-b input[type=range]::-webkit-slider-thumb{background:var(--ac)}
+  .sl-p input[type=range]::-webkit-slider-thumb{background:var(--pu)}
+  .sl input[type=number]{width:54px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .hint{font-size:8px;color:var(--t3);display:flex;justify-content:space-between;margin-bottom:16px}
+  .mb{border:1px solid var(--bd);border-radius:8px;padding:10px 11px;margin-bottom:12px}
+  .mb.blue{border-color:rgba(58,110,240,.3)}.mb.purple{border-color:rgba(109,40,217,.3)}
+  .mb h4{font-size:10px;font-weight:700;margin-bottom:8px}
+  .gap{display:flex;justify-content:space-between;font-size:11px;padding:5px 0}.gap b{font-family:var(--mo)}
+  .bar{height:8px;background:var(--chi);border-radius:4px;overflow:hidden;margin:8px 0 4px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--ac),var(--pu));transition:width .3s}
+  .btnrow{display:flex;gap:8px;margin-top:14px}
+  .btn{flex:1;padding:8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:var(--ui)}
+  .pub{background:#dcfce7;color:var(--gn);border-color:#86efac}.pub:hover{background:var(--gn);color:#fff}
+  .dis{background:#f1f5f9;color:var(--t2);border-color:var(--bd)}.dis:hover{background:var(--t2);color:#fff}
+  .tw{overflow:auto;max-height:250px;margin-top:12px}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right;position:sticky;top:0}
+  th.l{text-align:left}
+  td{font-family:var(--mo);font-size:11px;padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right}
+  td.l{text-align:left;color:var(--t2)}
+  tr.act td{color:var(--t3);background:#f8f9fc}
+  .neg{color:var(--gn)}.pos{color:var(--rd)}
+  .foot{font-size:10px;color:var(--t3);padding:10px 18px;text-align:center}
+</style>
+</head>
+<body>
+<div class="hd">
+  <span class="brand">ISG BPA</span>
+  <span class="crumb">/ Scenario Model / <b>BTC Adjustment Simulator</b></span>
+  <select id="lobSel" onchange="loadLob(this.value)" style="margin-left:8px;padding:5px 9px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);font-family:var(--ui);font-size:12px;font-weight:600;color:var(--t1);cursor:pointer"></select>
+  <span class="ctx" id="ctx">FY27 forecast window</span>
+  <span class="stamp" id="stamp"></span>
+</div>
+<div class="tabs">
+  <div class="tab on" data-v="disp" onclick="go('disp')">Dispatches</div>
+  <div class="tab" data-v="asu" onclick="go('asu')">Contracts (ASU)</div>
+  <div class="tab" data-v="sr" onclick="go('sr')">PreUCR SR</div>
+</div>
+<div id="loadErr" style="display:none;margin:14px 18px;padding:12px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:9px;color:#b91c1c;font-size:12px;line-height:1.6"></div>
+<div class="wrap">
+
+  <!-- DISPATCHES -->
+  <div class="view on" id="vDisp">
+    <div class="info"><span class="i">i</span><div><b>Dispatch BTC.</b> Bend the DS forecast (No IQR) toward the SMOD parts-dispatch rate target. One modifier, ramped across forecast weeks. Rate = dispatches ÷ ASU (MDR).</div></div>
+    <div class="kr kr6" id="kDisp"></div>
+    <div class="row">
+      <div class="card"><h3>Dispatches — DS vs Adjusted vs Target <span class="ex" onclick="csv('disp')">CSV</span></h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>Disp DS</span><span><i style="background:#16a34a"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+        <div class="cw" id="cDisp"></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>Disp DS</th><th>Disp Adj</th><th>Delta</th><th>MDR ×100</th></tr></thead><tbody id="tDisp"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
+          <div class="sl sl-b"><input type="range" id="dS" min="50" max="100" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="50" max="100" value="100" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="hint"><span>Aggressive</span><span>Conservative</span></div>
+        </div>
+        <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
+        <div class="gap"><span>Adjusted rate</span><b id="dAR">0</b></div>
+        <div class="gap"><span>Target rate</span><b id="dTR">0</b></div>
+        <div class="bar"><div id="dBar"></div></div>
+        <div class="gap"><span>Gap</span><b id="dGap" style="color:var(--am)">0</b></div>
+        <div class="btnrow"><button class="btn pub" onclick="pub('disp')">Publish</button><button class="btn dis" onclick="dSync(100)">Reset</button></div>
+        <div style="margin-top:10px;font-size:9px;color:var(--t3);line-height:1.5">Publish → weighted allocation to region / country / core-upsell. Actuals weeks locked.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTRACTS / ASU -->
+  <div class="view" id="vAsu">
+    <div class="info"><span class="i">i</span><div><b>ASU — two adjustable fields.</b> "New Contracts and APOS… two different fields we would adjust" [day-3]. Chain: <b>Adj ASU = prev − Expiring + Adj New + BTC APOS</b>.</div></div>
+    <div class="kr kr5" id="kAsu"></div>
+    <div class="row">
+      <div class="card"><h3>ASU Forecast — Base vs Adjusted <span class="ex" onclick="csv('asu')">CSV</span></h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>Base ASU</span><span><i style="background:#16a34a"></i>Adj ASU</span></div>
+        <div class="cw" id="cAsu"></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>Base ASU</th><th>Expiring</th><th>New Ct</th><th>APOS</th><th style="color:var(--ac)">Adj New</th><th style="color:var(--pu)">BTC APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">New Contract</h4>
+          <div class="sl sl-b"><input type="range" id="ncS" min="80" max="120" value="100" oninput="aSync()"><input type="number" id="ncI" min="80" max="120" value="100" oninput="aSync()"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="hint"><span>Down</span><span>Up (FP&amp;A guidance)</span></div>
+        </div>
+        <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewal</h4>
+          <div class="sl sl-p"><input type="range" id="apS" min="40" max="100" value="85" oninput="aSync()"><input type="number" id="apI" min="40" max="100" value="85" oninput="aSync()"><span style="font-weight:700;color:var(--pu)">%</span></div>
+          <div class="hint"><span>Low retention</span><span>High retention</span></div>
+        </div>
+        <h4 style="font-size:10px;margin-bottom:8px">ASU vs Base (end of window)</h4>
+        <div class="gap"><span>Base ASU</span><b id="aBase">0</b></div>
+        <div class="gap"><span>Adjusted ASU</span><b id="aAdj" style="color:var(--ac)">0</b></div>
+        <div class="bar"><div id="aBar"></div></div>
+        <div class="gap"><span>Delta</span><b id="aLift" style="color:var(--gn)">0</b></div>
+        <div class="btnrow"><button class="btn pub" onclick="pub('asu')">Publish</button><button class="btn dis" onclick="aReset()">Reset</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PreUCR SR -->
+  <div class="view" id="vSr">
+    <div class="info"><span class="i">i</span><div><b>Pre-UCR SR BTC.</b> Same methodology as dispatches, applied to the SR (No IQR) forecast against the ICR rate target. Post-UCR is a later second round (Mike).</div></div>
+    <div class="kr kr6" id="kSr"></div>
+    <div class="row">
+      <div class="card"><h3>SRs — DS vs Adjusted vs Target <span class="ex" onclick="csv('sr')">CSV</span></h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>SR DS</span><span><i style="background:#16a34a"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+        <div class="cw" id="cSr"></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>SR DS</th><th>SR Adj</th><th>Delta</th><th>ICR ×100</th></tr></thead><tbody id="tSr"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Controls</h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
+          <div class="sl sl-b"><input type="range" id="sS" min="50" max="100" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="50" max="100" value="100" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="hint"><span>Aggressive</span><span>Conservative</span></div>
+        </div>
+        <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
+        <div class="gap"><span>Adjusted rate</span><b id="sAR">0</b></div>
+        <div class="gap"><span>Target rate</span><b id="sTR">0</b></div>
+        <div class="bar"><div id="sBar"></div></div>
+        <div class="gap"><span>Gap</span><b id="sGap" style="color:var(--am)">0</b></div>
+        <div class="btnrow"><button class="btn pub" onclick="pub('sr')">Publish</button><button class="btn dis" onclick="sSync(100)">Reset</button></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="foot">Source: <b>input/btc_data.json</b> (8 LOBs, FY27 forecast window from forecast_fy26.xlsx) · ramp = (mod/100)^8 · no external libs · mock scenario tool, no live cube</div>
+<script>
+// ---------- data loaded from input/btc_data.json ----------
+var BTC={};          // { lob: {...} }  keyed per-LOB source
+var DISP={},SR={},ASU={};
+// ---------- helpers ----------
+function ramp(i,N){return Math.pow(i/(N-1),8)}
+function fmt(n){return Number(Math.round(n)).toLocaleString('en-IN')}
+function kpi(l,v,s,st){return '<div class="kp"><div class="kl">'+l+'</div><div class="kv"'+(st?' style="'+st+'"':'')+'>'+v+'</div><div class="ks">'+s+'</div></div>'}
+// ---------- inline SVG line chart (no external deps) ----------
+function svgChart(elId,labels,series,yfmt){
+  var el=document.getElementById(elId);if(!el)return;
+  var W=680,H=210,pl=58,pr=14,pt=12,pb=24;
+  var all=[];series.forEach(function(s){s.data.forEach(function(v){all.push(v)})});
+  var mn=Math.min.apply(null,all),mx=Math.max.apply(null,all);
+  if(mn===mx){mn-=1;mx+=1;}
+  var pad=(mx-mn)*0.08;mn-=pad;mx+=pad;
+  var n=labels.length;
+  function X(i){return pl+(W-pl-pr)*(n<=1?0:i/(n-1))}
+  function Y(v){return pt+(H-pt-pb)*(1-(v-mn)/(mx-mn))}
+  var s='';var T=4;
+  for(var t=0;t<=T;t++){var val=mn+(mx-mn)*t/T,y=Y(val);
+    s+='<line x1="'+pl+'" y1="'+y.toFixed(1)+'" x2="'+(W-pr)+'" y2="'+y.toFixed(1)+'" stroke="#eef1fc" stroke-width="1"/>';
+    s+='<text x="'+(pl-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#9099be" font-family="IBM Plex Mono">'+yfmt(val)+'</text>';}
+  var step=Math.max(1,Math.ceil(n/8));
+  for(var i=0;i<n;i++){if(i%step===0||i===n-1){s+='<text x="'+X(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9" fill="#9099be" font-family="Plus Jakarta Sans">W'+labels[i]+'</text>';}}
+  series.forEach(function(ser){var d='';ser.data.forEach(function(v,i){d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '});
+    s+='<path d="'+d+'" fill="none" stroke="'+ser.color+'" stroke-width="'+(ser.dash?1.5:2)+'"'+(ser.dash?' stroke-dasharray="5 4"':'')+' stroke-linejoin="round"/>';});
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet"><g>'+s+'</g></svg>';
+}
+// ---------- rate sheet (Dispatches / SR) ----------
+function calcRate(D){var m=+document.getElementById(D.mI).value/100,N=D.wk.length-D.fc;
+  return D.nd.map(function(v,i){if(i<D.fc)return v;var w=i-D.fc;return Math.round(v*(1-(1-m)*ramp(w,N)))});}
+function renderRate(D){
+  var adj=calcRate(D);
+  var sD=0,sA=0,sAsu=0;for(var i=D.fc;i<D.wk.length;i++){sD+=D.nd[i];sA+=adj[i];sAsu+=D.asu[i]}
+  var fr=sD/sAsu*100,ar=sA/sAsu*100,gap=ar-D.target;
+  var gc=Math.abs(gap)<0.003?'var(--gn)':gap>0?'var(--am)':'var(--rd)';
+  document.getElementById(D.kEl).innerHTML=
+    kpi('DS Forecast',fmt(sD),'No IQR')+
+    kpi('BTC Adjusted',fmt(sA),D.unit,'color:var(--ac)')+
+    kpi(D.tgtLbl+' Target',fmt(D.tgtN),D.unit)+
+    kpi('Forecast Rate',fr.toFixed(4),D.rateLbl)+
+    kpi('Adjusted Rate',ar.toFixed(4),'vs '+D.target.toFixed(4),'color:'+gc)+
+    kpi('Gap',(gap>=0?'+':'')+gap.toFixed(4),Math.abs(gap)<0.003?'on target':gap>0?'above':'below','color:'+gc);
+  var tb='';for(var i=0;i<D.wk.length;i++){var d=adj[i]-D.nd[i],isA=i<D.fc;tb+='<tr'+(isA?' class="act"':'')+'><td class="l">W'+D.wk[i]+'</td><td>'+fmt(D.nd[i])+'</td><td>'+fmt(adj[i])+'</td><td class="'+(d<0?'neg':'pos')+'">'+(d>=0?'+':'')+d+'</td><td>'+(adj[i]/D.asu[i]*100).toFixed(4)+'</td></tr>'}
+  document.getElementById(D.tEl).innerHTML=tb;
+  document.getElementById(D.arEl).textContent=ar.toFixed(4);
+  document.getElementById(D.trEl).textContent=D.target.toFixed(4);
+  var gEl=document.getElementById(D.gapEl);gEl.textContent=(gap>=0?'+':'')+gap.toFixed(4);gEl.style.color=gc;
+  document.getElementById(D.barEl).style.width=Math.max(4,Math.min(100,D.target/ar*100))+'%';
+  var tgtWeekly=Math.round(D.target/100*(sAsu/(D.wk.length-D.fc)));
+  svgChart(D.cEl,D.wk,[
+    {color:'#3a6ef0',data:D.nd},
+    {color:'#16a34a',data:adj},
+    {color:'#b45309',dash:true,data:D.wk.map(function(){return tgtWeekly})}
+  ],function(v){return fmt(v)});
+  D._adj=adj;
+}
+// ---------- ASU chain ----------
+function renderAsu(){
+  var ncM=+document.getElementById('ncI').value/100,apM=+document.getElementById('apI').value/100;
+  var ncF=Math.pow(ncM,1.4),apF=Math.pow(apM,2),N=ASU.wk.length;
+  var rows=[],baseChain=ASU.base0,adjChain=ASU.base0;
+  for(var i=0;i<N;i++){var adjNew=Math.round(ASU.nc[i]*ncF),r2=0.3+0.7*(i/(N-1)),btcApos=Math.round(ASU.apos[i]*apF*r2);
+    baseChain=baseChain-ASU.exp[i]+ASU.nc[i]+ASU.apos[i];adjChain=adjChain-ASU.exp[i]+adjNew+btcApos;
+    rows.push({w:ASU.wk[i],base:baseChain,exp:ASU.exp[i],nc:ASU.nc[i],apos:ASU.apos[i],adjNew:adjNew,btcApos:btcApos,adj:adjChain});}
+  var last=rows[N-1],tE=0,tAN=0,tBA=0;for(var i=0;i<N;i++){tE+=rows[i].exp;tAN+=rows[i].adjNew;tBA+=rows[i].btcApos}
+  document.getElementById('kAsu').innerHTML=
+    kpi('Base ASU (end)',(last.base/1e6).toFixed(3)+'M','Chained')+
+    kpi('Adjusted ASU (end)',(last.adj/1e6).toFixed(3)+'M','','color:var(--ac)')+
+    kpi('Total Expiring',fmt(tE),N+' wks')+
+    kpi('Sum Adj New',fmt(tAN),'New Contract','color:var(--ac)')+
+    kpi('Sum BTC APOS',fmt(tBA),'Renewal','color:var(--pu)');
+  var tb='';for(var i=0;i<N;i++){var r=rows[i];tb+='<tr><td class="l">W'+r.w+'</td><td>'+(r.base/1e6).toFixed(3)+'M</td><td>'+fmt(r.exp)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td><td style="color:var(--ac)">'+fmt(r.adjNew)+'</td><td style="color:var(--pu)">'+fmt(r.btcApos)+'</td><td>'+(r.adj/1e6).toFixed(3)+'M</td></tr>'}
+  document.getElementById('tAsu').innerHTML=tb;
+  document.getElementById('aBase').textContent=(last.base/1e6).toFixed(3)+'M';
+  document.getElementById('aAdj').textContent=(last.adj/1e6).toFixed(3)+'M';
+  var lift=last.adj-last.base;var lEl=document.getElementById('aLift');lEl.textContent=(lift>=0?'+':'')+fmt(lift);lEl.style.color=lift>=0?'var(--gn)':'var(--rd)';
+  document.getElementById('aBar').style.width=Math.max(4,Math.min(100,last.base/last.adj*100))+'%';
+  svgChart('cAsu',ASU.wk,[{color:'#3a6ef0',data:rows.map(function(r){return r.base})},{color:'#16a34a',data:rows.map(function(r){return r.adj})}],function(v){return (v/1e6).toFixed(2)+'M'});
+  ASU._rows=rows;
+}
+// ---------- config ----------
+DISP=Object.assign(DISP,{mI:'dI',kEl:'kDisp',tEl:'tDisp',cEl:'cDisp',arEl:'dAR',trEl:'dTR',gapEl:'dGap',barEl:'dBar',unit:'Dispatches',tgtLbl:'SMOD',rateLbl:'MDR ×100',tgtN:50700});
+SR=Object.assign(SR,{mI:'sI',kEl:'kSr',tEl:'tSr',cEl:'cSr',arEl:'sAR',trEl:'sTR',gapEl:'sGap',barEl:'sBar',unit:'SRs',tgtLbl:'ICR',rateLbl:'ICR ×100',tgtN:52000});
+// ---------- handlers ----------
+function dSync(v){v=Math.max(50,Math.min(100,parseInt(v)||100));document.getElementById('dS').value=v;document.getElementById('dI').value=v;renderRate(DISP)}
+function sSync(v){v=Math.max(50,Math.min(100,parseInt(v)||100));document.getElementById('sS').value=v;document.getElementById('sI').value=v;renderRate(SR)}
+function aSync(){var nc=Math.max(80,Math.min(120,parseInt(document.getElementById('ncI').value)||100)),ap=Math.max(40,Math.min(100,parseInt(document.getElementById('apI').value)||85));document.getElementById('ncS').value=nc;document.getElementById('ncI').value=nc;document.getElementById('apS').value=ap;document.getElementById('apI').value=ap;renderAsu()}
+function aReset(){document.getElementById('ncS').value=100;document.getElementById('ncI').value=100;document.getElementById('apS').value=85;document.getElementById('apI').value=85;renderAsu()}
+function pub(which){alert('Published '+which.toUpperCase()+' → weighted-allocated down to region / country / core-upsell. (mock; no live cube)')}
+function go(v){['Disp','Asu','Sr'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v)});document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-v')===v)})}
+function csv(which){var D=which==='disp'?DISP:which==='sr'?SR:null,rows;
+  if(D){rows=[['FW','No IQR','Adj','Rate']];for(var i=0;i<D.wk.length;i++)rows.push(['W'+D.wk[i],D.nd[i],D._adj[i],(D._adj[i]/D.asu[i]*100).toFixed(4)])}
+  else{rows=[['FW','BaseASU','Expiring','NewCt','APOS','AdjNew','BTCApos','AdjASU']];ASU._rows.forEach(function(r){rows.push(['W'+r.w,r.base,r.exp,r.nc,r.apos,r.adjNew,r.btcApos,r.adj])})}
+  var c=rows.map(function(r){return r.join(',')}).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='btc-'+which+'.csv';a.click()}
+// ---------- LOB loader (populate the 3 sheets from btc_data.json) ----------
+function loadLob(lob){
+  var d=BTC[lob];if(!d)return;
+  var tw=d.tail.weeks,fc=tw.length;
+  DISP.wk=tw.concat(d.weeks);DISP.fc=fc;DISP.nd=d.tail.disp.concat(d.dispatches.nd);DISP.asu=d.tail.asu.concat(d.dispatches.asu);
+  DISP.target=+(d.dispatches.target*100).toFixed(4);DISP.tgtN=d.dispatches.target_n;
+  SR.wk=tw.concat(d.weeks);SR.fc=fc;SR.nd=d.tail.sr.concat(d.sr.nd);SR.asu=d.tail.asu.concat(d.sr.asu);
+  SR.target=+(d.sr.target*100).toFixed(4);SR.tgtN=d.sr.target_n;
+  ASU.wk=d.weeks;ASU.base0=d.contracts.base0;ASU.nc=d.contracts.nc;ASU.apos=d.contracts.apos;ASU.exp=d.contracts.exp;
+  document.getElementById('ctx').textContent=lob+' · '+d.category+' · FY27';
+  ['dS','dI','sS','sI'].forEach(function(id){document.getElementById(id).value=100});
+  document.getElementById('ncS').value=100;document.getElementById('ncI').value=100;
+  document.getElementById('apS').value=85;document.getElementById('apI').value=85;
+  renderRate(DISP);renderRate(SR);renderAsu();
+}
+// ---------- boot: fetch the dataset ----------
+function boot(payload){
+  BTC=payload.data||payload;
+  var lobs=payload.lobs||Object.keys(BTC),sel=document.getElementById('lobSel');
+  sel.innerHTML=lobs.map(function(l){return '<option value="'+l+'">'+l+'</option>'}).join('');
+  loadLob(sel.value);
+}
+fetch('input/btc_data.json').then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(boot).catch(function(e){
+  var el=document.getElementById('loadErr');el.style.display='block';
+  el.innerHTML='<b>Could not load input/btc_data.json</b> ('+e+').<br>Serve over http — run <code>python -m http.server</code> in <b>template_ui/</b> and open <code>/btc_adjustment_simulator.html</code>. Browsers block fetch on <code>file://</code> URLs.';
+});
+try{document.getElementById('stamp').textContent=new Date().toLocaleTimeString();setInterval(function(){document.getElementById('stamp').textContent=new Date().toLocaleTimeString()},1000);}catch(e){}
+</script>
+</body>
+</html>

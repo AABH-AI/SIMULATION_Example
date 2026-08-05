@@ -1,0 +1,2252 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:01.000
+Yes, we can.
+
+00:00:01.000 --> 00:00:06.000
+Alright. Oh, there goes my patent, my trade secrets.
+
+00:00:06.000 --> 00:00:11.000
+Don't worry, this is authored by Doug O'Neill.
+
+00:00:11.000 --> 00:00:16.000
+Yeah. That's right. This is the most critical part of the process, not really.
+
+00:00:16.000 --> 00:00:28.000
+Okay, uh, let's see, let me share… And… Cooler.
+
+00:00:28.000 --> 00:00:34.000
+Okay. Oh, yeah.
+
+00:00:34.000 --> 00:00:39.000
+Looks like the eye chart I expected it to.
+
+00:00:39.000 --> 00:00:44.000
+Okay. Yeah, we can see your screen.
+
+00:00:44.000 --> 00:01:08.000
+Yes. I was a delayed between my… screen… this is gonna be tricky, because my mouse just doesn't work real well, but… Okay. Alright, so I kind of debated on… How… complicated, or how painful to make this, because.
+
+00:01:08.000 --> 00:01:15.000
+Um, it is a… a multi-step process, and you'll see.
+
+00:01:15.000 --> 00:01:21.000
+What do I mean by that here soon? So, I decided to go ahead and just walk, like, all the way through an example.
+
+00:01:21.000 --> 00:01:22.000
+Okay.
+
+00:01:22.000 --> 00:01:39.000
+Because I want everybody to see, like. As we go through this, um… You're gonna be… you might start, but why? But wait, but what does that mean? Why'd you do that? So… Um, as we go through it, I think… we have this… is this the full session for the adjustment?
+
+00:01:39.000 --> 00:01:40.000
+uh, discussion? Okay, so we should have plenty of time.
+
+00:01:40.000 --> 00:01:44.000
+Yep.
+
+00:01:44.000 --> 00:01:49.000
+to ask questions, but… A couple of the things that I'm going to show you.
+
+00:01:49.000 --> 00:01:59.000
+are sort of nuances in the way the data is set up today for forecasting and how it flows through to the adjustment queue. Right.
+
+00:01:59.000 --> 00:02:07.000
+Which is my starting point that I make adjustments from. So, I want to show you some of the data nuances.
+
+00:02:07.000 --> 00:02:14.000
+And then, how those flow through, and I say, like, painful, what I mean by that is, it's just that.
+
+00:02:14.000 --> 00:02:32.000
+multi-step process to make sure that. everything ties out to the number that I… the new… value forecast value that I want to be loaded into the adjustment queue, if that makes sense. Um, so yeah, so I'm gonna… I'm gonna… I'm gonna go through it that way.
+
+00:02:32.000 --> 00:02:36.000
+Um, and so there's a lot… there's a lot of, sort of.
+
+00:02:36.000 --> 00:02:40.000
+It's multifaceted. We're balancing multiple things at one time.
+
+00:02:40.000 --> 00:02:48.000
+We have… the starting point. that I'm trying to tie to is service modernization targets.
+
+00:02:48.000 --> 00:02:57.000
+Pretty much, not in every case, but for the most part. So, we work through those. If you could think about yesterday, we talked yesterday about.
+
+00:02:57.000 --> 00:03:05.000
+There's a separate process that Mark. Uh, and Z pretty much managed, which is all the… we have triad.
+
+00:03:05.000 --> 00:03:13.000
+commitments that are based on initiatives, which are the target reductions. Right. We have Z's process that actually, um.
+
+00:03:13.000 --> 00:03:19.000
+tracks the initiatives and how they're, you know, how they're performing, right? So all that.
+
+00:03:19.000 --> 00:03:24.000
+kind of feeds into the intuition behind how this works.
+
+00:03:24.000 --> 00:03:32.000
+So, ultimately, the goal through this adjustment process is to tie out to what is modernization targets are. So.
+
+00:03:32.000 --> 00:03:38.000
+We have the forecast data science process that runs, gets loaded into the adjustment queue.
+
+00:03:38.000 --> 00:03:51.000
+Then we have the planning part of it. This is really the planning part of it. This is making sure that everything ties out to the plans. Okay, so, Paul's there, any questions? Anybody on the call?
+
+00:03:51.000 --> 00:03:52.000
+Nope.
+
+00:03:52.000 --> 00:03:54.000
+Good. Nope.
+
+00:03:54.000 --> 00:04:02.000
+Right, so let's go through one. So, I've picked one here that's a little bit fun, it's VX4L. I think it's a good example of.
+
+00:04:02.000 --> 00:04:08.000
+sort of the, uh, the process I go through, along with the.
+
+00:04:08.000 --> 00:04:16.000
+kind of aha, like, wow, look at how much we have to change that, you know, look how much it has to come down, actually, at the target, right?
+
+00:04:16.000 --> 00:04:28.000
+And the point of this is to sort of, um… Uh, you know, kind of set off alerts, like, if there's something in here that's… you make the adjustment, and you go, wow, that's a big adjustment.
+
+00:04:28.000 --> 00:04:37.000
+Then you can say, hey, by the way, team, Mark, Garish, whoever, you know, like, look at what has to… Visually, what Detroit has signed up for.
+
+00:04:37.000 --> 00:04:47.000
+just want to share this with you, because not that we can do anything about it, or decommit, but it's just to let everybody get ahead of… get ahead of the game here and say, wow.
+
+00:04:47.000 --> 00:04:50.000
+vehicle, PowerfulX, Power Skill, whatever product we're talking about.
+
+00:04:50.000 --> 00:05:08.000
+It's a substantial reduction that they've signed up for, so… and it… again, we're not going to back off on the challenge, but… It's just informational to say, man, set off those alerts, like, okay, these are the products we've got to pay attention to, and we know, like, there's usually 3 or 4 out of every forecast that we do that we have to pay attention to. So, okay.
+
+00:05:08.000 --> 00:05:23.000
+Let me jump in before you move, I've been hearing this word, triads, what's triads? Uh, I mean, my explanation of it is, Joanna, you might have a better one, but it's just, it's… it's like, what, 3 liters?
+
+00:05:23.000 --> 00:05:30.000
+Engineering, supportive… is it serviceability affordability, what's the other one, Joanna? I forget.
+
+00:05:30.000 --> 00:05:31.000
+Quality?
+
+00:05:31.000 --> 00:05:37.000
+There's 3 of them. They… Work together to come up with the, uh, number of.
+
+00:05:37.000 --> 00:05:43.000
+Come up with a target for an extra how many dispatch, I mean, as far as I think they're gonna come out of products.
+
+00:05:43.000 --> 00:05:45.000
+Yeah.
+
+00:05:45.000 --> 00:05:46.000
+They're like the…
+
+00:05:46.000 --> 00:06:01.000
+You were talking… talking to Mike yesterday. Like, the quality, the headcount team, and they're coming together? Yeah, everybody comes together and looks at what can they do, and if they do that, what is the net… the number of SRs or dispatches we would see on these products? Go ahead, go ahead, Gordon, were you gonna say something?
+
+00:06:01.000 --> 00:06:05.000
+I was gonna say, uh, they're like the product owners, aren't they? Where they say, um, VX rail, and…
+
+00:06:05.000 --> 00:06:14.000
+Yeah, so… Yeah, the product owners, but you're having executive sponsorship behind them as well.
+
+00:06:14.000 --> 00:06:20.000
+So, it's… I mean, it sounds like it should be common sense that these groups service.
+
+00:06:20.000 --> 00:06:25.000
+the services team, as well as the quality team, should be working together.
+
+00:06:25.000 --> 00:06:36.000
+Um, but we literally have meetings with them now to collectively cross-functionally work together to say, hey, services say, this is such a pain, why these cases are coming?
+
+00:06:36.000 --> 00:06:40.000
+You need to make these products easier to diagnose.
+
+00:06:40.000 --> 00:06:48.000
+product quality and engineering, how can you do that to make it easier for me to diagnose? Or even self-serve or auto-heal themselves?
+
+00:06:48.000 --> 00:06:53.000
+So, because they're in a room together, and they can collectively see the data together.
+
+00:06:53.000 --> 00:06:54.000
+Mm-hmm.
+
+00:06:54.000 --> 00:07:05.000
+Then they can say, okay, well, I'm gonna… if quality… and engineering are saying, I'm going to make quality improvements so they can be easier to diagnose or get rid of the problem, essentially.
+
+00:07:05.000 --> 00:07:21.000
+It's gonna help services. And then services say, okay, well, we're doing things on the side here that's going to improve technology and stuff like that, that will help reduce dispatches so that we are dispatching correctly, um, the first time, um, and avoiding repeat dispatch and so forth.
+
+00:07:21.000 --> 00:07:38.000
+This is what we're doing as well, so they can see how.
+
+00:07:38.000 --> 00:07:39.000
+Yeah, I can. Yeah.
+
+00:07:39.000 --> 00:07:47.000
+Uh… how mutually inclusive and exclusive they are to one another, so to speak. So, I know, triads and in Asia has different derogatory meaning, but… and… I literally… when I came back from maternity leave, I'm like, who came up with that triad?
+
+00:07:47.000 --> 00:07:48.000
+concept, like, not the best, okay? But it has.
+
+00:07:48.000 --> 00:07:54.000
+Yeah… Provocative. Provocative, yeah.
+
+00:07:54.000 --> 00:07:55.000
+Yeah.
+
+00:07:55.000 --> 00:08:01.000
+But it really is enforce and empower these teams to really collectively work together.
+
+00:08:01.000 --> 00:08:09.000
+And mutually benefit one another or together, so… That's really the gist of it.
+
+00:08:09.000 --> 00:08:12.000
+Yeah. Thank you. So then this team come up with a number.
+
+00:08:12.000 --> 00:08:20.000
+Based on their consensus, right? Mm-hmm. And that is how that works as an input to you. Yes, correct.
+
+00:08:20.000 --> 00:08:41.000
+How do you receive it? I mean, is it, like, some place? Yeah, it sits in a, uh, file… Excel file that Mark manages, yeah, so it… I'll go out and open that file, and… Compare it to what, um, you know, what we have as what we have in the forecast, what the modernization targets. There's a little bit of triangulation that happens there, but yeah.
+
+00:08:41.000 --> 00:08:44.000
+Rahul, I see that you raised your hand. Did you have a question?
+
+00:08:44.000 --> 00:08:51.000
+Yes, so, uh, before actually we deep dive into the process, uh.
+
+00:08:51.000 --> 00:09:03.000
+I would like to know, like, uh, about this Excel. This… The input for this Excel is, like, I could see Julia's Cube or AOP forecast.
+
+00:09:03.000 --> 00:09:10.000
+So, is it, like, directly connected, or we… copy the data from Julius and, uh, get it here.
+
+00:09:10.000 --> 00:09:17.000
+how it works, like, how we get the input data, and how, again, let's say you do the adjustment.
+
+00:09:17.000 --> 00:09:22.000
+Then how… where you store it back to the Julius Cube.
+
+00:09:22.000 --> 00:09:26.000
+Or anywhere else, and what is the process of that? Maybe in short.
+
+00:09:26.000 --> 00:09:36.000
+Yeah, sure, I'll walk through that process. That's a great jumping-off point to show you, because I wanted to show you the pivot tables, where they come from, how they're linked. So, these are basically cubes.
+
+00:09:36.000 --> 00:09:48.000
+That's all they are. I've set up a pivot table that links to USDM. Julius pulls from USDM, so I'm linked to that, basically. So that's why I call this Julius. I'm directly linked to Julius.
+
+00:09:48.000 --> 00:09:56.000
+And then the AOP forecast. I'll rename that for this. It's… this is actually the adjustment cube, so I'm directly connected.
+
+00:09:56.000 --> 00:10:03.000
+And the reason I have these side-by-side is this is one of our… this is one of my quality checks, quality controls, to say.
+
+00:10:03.000 --> 00:10:22.000
+does the history that you… was used for the forecast, does it match Julius? Because it's… Julius pulls from the same data source that Brandon is using to put together the time series table. Okay. So, in theory, this should all match. That's my first check that I do. So, if you look at.
+
+00:10:22.000 --> 00:10:29.000
+Here's an example, right? You can look at ASUs, and then you can say 2C7597, they're closed.
+
+00:10:29.000 --> 00:10:36.000
+They're different. The reason they're different is it's a technical explanation, but the process that.
+
+00:10:36.000 --> 00:10:43.000
+the, uh, the data science forecast process that it uses, it does its own count of ASU's.
+
+00:10:43.000 --> 00:10:53.000
+Compared to the way Julius does it. So it's not exact, but it's usually pretty close, and the difference is in material to how… to our rates when we set our… get our rates all set.
+
+00:10:53.000 --> 00:11:05.000
+So, um, so we can do that, we can look at the work orders, 527, 527, so everything seems to be a good starting point in this case, right? It's just a quick quality check.
+
+00:11:05.000 --> 00:11:14.000
+Um, the other thing is… I mentioned modernization, something that is important, but easy to forget.
+
+00:11:14.000 --> 00:11:20.000
+is that the modernization targets are parts dispatch targets.
+
+00:11:20.000 --> 00:11:26.000
+So… First step in my adjustments is to.
+
+00:11:26.000 --> 00:11:29.000
+change… we had to filter on parts and labor and parts only.
+
+00:11:29.000 --> 00:11:38.000
+That's our… that's our parts dispatch forecast. Um, and then, if you notice over here, we have a similar field in the adjustment queue.
+
+00:11:38.000 --> 00:11:47.000
+That we can say, I want to get my… what is… I want to get my service types that are considered a part… that have a parts dispatched on them.
+
+00:11:47.000 --> 00:11:53.000
+And that introduces a layer of complexity we'll get into here in a minute. The other thing.
+
+00:11:53.000 --> 00:11:57.000
+To be aware of is that some of these products.
+
+00:11:57.000 --> 00:12:01.000
+if you look at Julius, we have a global lob name, which is VXRL.
+
+00:12:01.000 --> 00:12:07.000
+But if you look at the forecast the way forecast is done, because VXRail shows up.
+
+00:12:07.000 --> 00:12:16.000
+in both… Oops, sorry, I can do that. Now, both ESG and ISG, we have to pick both of those.
+
+00:12:16.000 --> 00:12:23.000
+Right? But… in the adjustment queue, another sort of layer of complexity is that.
+
+00:12:23.000 --> 00:12:40.000
+in order to make sure that. the data that VxRail is considered… all of VXRail is forecasted, they have to, uh… Francisco had to build a workaround that says, I want to get VXREL, but I know there's two VXRELs.
+
+00:12:40.000 --> 00:12:45.000
+So, I'm gonna get… I'm gonna have an ESG one and an ISG one.
+
+00:12:45.000 --> 00:12:47.000
+So there's kind of, if you think about this.
+
+00:12:47.000 --> 00:12:59.000
+They're sort of, like, multiples kind of setting in here, right? Which is a lead-up into the complication of how we have to go through and make the adjustments, because I can't just go, hey, I want parts only dispatches, and I want VXRL.
+
+00:12:59.000 --> 00:13:15.000
+I have to go, I want VXRL, ESG, I want parts only. I want VXRL, ISD want parts only. So it starts to kind of… the number of adjustments… Yeah, so it starts to kind of multiply, right? And that's just showing you sort of the complexity we're dealing with… I'm dealing with now, right?
+
+00:13:15.000 --> 00:13:22.000
+So, um, so I'll pause there. Any other questions? I'm gonna try to pause there once a while, because it's a lot to digest.
+
+00:13:22.000 --> 00:13:23.000
+Yeah.
+
+00:13:23.000 --> 00:13:31.000
+Any questions there? Okay. So, now kind of the easier part, if you will, is.
+
+00:13:31.000 --> 00:13:36.000
+Um, I have this little handy table up here that says, I'm looking up.
+
+00:13:36.000 --> 00:13:42.000
+what the modernization target is from our… from our past two forecast cycles.
+
+00:13:42.000 --> 00:13:58.000
+I've got the rates, and I've got the dispatches also for FY27, right? Fy26… is I don't worry about too much, because it typically, if I get FY27 set, it typically FY26 is really close, so I don't worry about FY26 too much.
+
+00:13:58.000 --> 00:14:03.000
+So, I have a really basic annualized starting point here to say.
+
+00:14:03.000 --> 00:14:10.000
+Right now, the data science. the time series forecast has.
+
+00:14:10.000 --> 00:14:18.000
+on its predicted 15,674 dispatches. against a mod target of 14,210. Right.
+
+00:14:18.000 --> 00:14:22.000
+That comes out against these ASUs, we get a rate.
+
+00:14:22.000 --> 00:14:28.000
+You see the calculation there, ASU average, dispatch adjusted, we get a rate of .143.
+
+00:14:28.000 --> 00:14:33.000
+against a mod target of .130. So, we know we have to adjust down.
+
+00:14:33.000 --> 00:14:50.000
+Okay. Right? So… The little tool here, it's not overly fancy that is built, um… to bend the curve is basically… I have this modifier here, it's been the curve, right? So if I set it to 100.
+
+00:14:50.000 --> 00:15:03.000
+I want you guys to see the chart, so I'm going to kind of show you what happens when I do this, and we'll get to the formula in a minute. So, you can see… what happens if I do… if I do… I'm gonna just play… I'm just gonna say 90%, just put that code.
+
+00:15:03.000 --> 00:15:09.000
+So you can see that line changes, right? So I can gauge, as I make a change in this number.
+
+00:15:09.000 --> 00:15:12.000
+I'll make a crazy change so you can see it.
+
+00:15:12.000 --> 00:15:18.000
+See how it drops down like that? Yeah. So, it's basically doing a running calculation that says.
+
+00:15:18.000 --> 00:15:28.000
+I have to adjust a certain amount, and I'm gonna… I'm gonna increment that adjustment over time so that it starts to bend it down.
+
+00:15:28.000 --> 00:15:42.000
+That's how the calculation works. Um, and the reason that we do that, and this… This… I don't… every single adjustment is not made exact. Probably 95% of them are made this way, and the reason they are is because, if you think about.
+
+00:15:42.000 --> 00:15:47.000
+the way time series works, right? It typically forecasts a pretty smooth line, you hope, right?
+
+00:15:47.000 --> 00:15:51.000
+If you were to do a change, a calculation that just says.
+
+00:15:51.000 --> 00:16:12.000
+like, change the slope, it's gonna go… straight down, right? So, we purposely kind of rounded off to say, look, we're going to go through the year, we're going to get some changes implemented, some initiatives are going to kick in, and then over time, it's going to start to accumulate, and we're going to get that net effect of all those adding up towards the second half of the year.
+
+00:16:12.000 --> 00:16:17.000
+That's kind of the approach we use on that. And it's not the only approach, but it's kind of the one that.
+
+00:16:17.000 --> 00:16:25.000
+as we… as we vetted all the possible ways to do this out, this was the one that seemed to align with the way we do the planning.
+
+00:16:25.000 --> 00:16:43.000
+Right. That's why you say it's an art. Yeah, it's an R, yeah. But you can't really see it here, because you can see, like, a little bit, but if you look at, like, a smaller change, you can kind of see, like, it doesn't do a whole lot at the beginning, and then it starts to kind of… the gap kind of widens as you go out over time, right?
+
+00:16:43.000 --> 00:16:46.000
+And as I do these changes, I'm really keeping an eye on.
+
+00:16:46.000 --> 00:16:52.000
+a couple of things. I want to keep an eye on, is my dis… I want to keep an eye on these two numbers. How close am I getting, right?
+
+00:16:52.000 --> 00:16:58.000
+So, if I go down to 85, as an example, I'm at 6% if I go to 80%.
+
+00:16:58.000 --> 00:17:08.000
+Now I'm at 2%, so I could keep playing around with that lever to say I'm getting closer and closer to the number we get, right? And somewhere it might be 82, I don't know if it's gonna make it up.
+
+00:17:08.000 --> 00:17:31.000
+Oh, that was, uh… no, I meant to go 78. So I'm getting closer, and I'll continue to do that, and play with that until I get that number loaded, so… That's kind of the easier part. So, the calculation, I did something here that I don't want to do. I wanted to show you guys how it works. Basically, what it is doing is it's taking the amount of change… so if I put 80%, it's taking 20%.
+
+00:17:31.000 --> 00:17:37.000
+And it's spreading it out. across the number of weeks that I'm changing. In this case.
+
+00:17:37.000 --> 00:17:43.000
+If you look at the first week of forecast here, switch week 40, right? It goes all the way to 52.
+
+00:17:43.000 --> 00:17:57.000
+So, I end up with 65… 55… different forecast values that need to be changed, and it spreads that out, that 20% from the first week, all the way down to the very last week.
+
+00:17:57.000 --> 00:18:12.000
+spreads it out. It's kind of… it's not… it's not real intuitive. It takes a while to practice with it, but what it's doing is it's basically saying, I don't want a lot of change at the beginning, so I'm going to increment the change over time. That's basically all just doing.
+
+00:18:12.000 --> 00:18:17.000
+rounding it out. So, then you'll be making changes only for a couple of weeks?
+
+00:18:17.000 --> 00:18:26.000
+this integration, for example. This actually… so, if I change this value, it changes every… also… you won't keep all of the genes, right?
+
+00:18:26.000 --> 00:18:44.000
+Yeah, well, I'll show you, I'll show you how I'm gonna do it. Yeah, it's a little… that's where the… that's where the painful part comes in. I was talking about earlier, so… So let's just say, you know, I'm gonna go ahead and set this to 77. I don't know, that's close enough, right? I'm at .131.130, I'm at 14389, 14210, that's close enough for this demonstration.
+
+00:18:44.000 --> 00:18:49.000
+So, now I have new values in this… in this dispatch adjusted column.
+
+00:18:49.000 --> 00:18:54.000
+So then you go, okay, well, what do I do with those? I'm gonna take this out, I need that space.
+
+00:18:54.000 --> 00:19:03.000
+This is where the font starts. Anybody familiar with OLAP analysis services in Excel? It's got limitations.
+
+00:19:03.000 --> 00:19:12.000
+It won't take multiple values. you can't pivot multiple values, and it throws an error. So, if I take… so if I take this 380.
+
+00:19:12.000 --> 00:19:27.000
+I'm gonna copy this down. I put it over here… I don't think that formatting, let me fix that formatting, so we can see what's going on.
+
+00:19:27.000 --> 00:19:36.000
+Last one here. Alright, so what's happened is I have my new value. So, a couple of things, right? Done it this way.
+
+00:19:36.000 --> 00:19:52.000
+This is just overlap limitations, but it only takes values. I can't… I can't paste that in. I can't actually load a formula into the value, so if I take… I'm going to take one values, I don't want to break this thing, right? So if I do this, and I go…
+
+00:19:52.000 --> 00:19:58.000
+It's giving me an error. It's telling me you can't have multiple items selected, and the report.
+
+00:19:58.000 --> 00:20:06.000
+To be able to… put that value in and have it allocate down, right? So, it's referencing.
+
+00:20:06.000 --> 00:20:27.000
+this, and this. Correct, because the font starts. Those are where the… those are where the sort of multi-steps I mentioned earlier kicks in. So let me, uh, let me do this real quick. I'm gonna hide this. So, let me show you guys what I'm looking at. So, there is, on the back end.
+
+00:20:27.000 --> 00:20:40.000
+Uh, is it here now, where is it? Hang on outside. Okay, so here it is. On the back end, there is… this OLAP analysis, what-if analysis that's been enabled, right, on the back end. So.
+
+00:20:40.000 --> 00:20:47.000
+Francisco's going in and said, in the adjustment cube, I have certain fields that are labeled adjusted. I want.
+
+00:20:47.000 --> 00:20:57.000
+Doug or Jeff on the CSU side to be able to go and adjust his values. There's only a couple of fields we can do that. So if you look at how this is done.
+
+00:20:57.000 --> 00:21:03.000
+It takes whatever value that I put in. in this case, 380.
+
+00:21:03.000 --> 00:21:08.000
+when I'm able to enter it. It's going to allocate the value.
+
+00:21:08.000 --> 00:21:12.000
+right off the number of allocations, so that's referring to.
+
+00:21:12.000 --> 00:21:23.000
+whatever 380 goes in, it's region, just countries, it's core upsells and everything, so whatever those allocations are, and it's gonna do it weighted. So it's gonna basically just… it's gonna just.
+
+00:21:23.000 --> 00:21:27.000
+take it and put it all the way down to the lowest level, that's what's gonna happen when I enter the value in it.
+
+00:21:27.000 --> 00:21:35.000
+So, um, so that's always enabled in our case, it has to be weighted, or else we're going to put an e-wall location, which just says, take that number and.
+
+00:21:35.000 --> 00:21:49.000
+Divide it. Divided by the number of if it's 10 allocations, and we don't want that to happen. So, it does that. So then, um… So then, this was… I was mentioning this is where the fun starts, right? So, how do I… this is the one we ran into when, uh, when…
+
+00:21:49.000 --> 00:21:55.000
+USDM was built with having, I mentioned earlier. It's, uh, I mentioned earlier.
+
+00:21:55.000 --> 00:22:02.000
+VXRail is listed twice. And there's multiple service type news, and there's product VU type, right?
+
+00:22:02.000 --> 00:22:10.000
+So how do we do this? Well… What I do is, I have to create multiple tabs, so VXREL.
+
+00:22:10.000 --> 00:22:16.000
+For one adjustment, I have to create four tabs.
+
+00:22:16.000 --> 00:22:23.000
+So I got to do this four times, right? So I'm gonna log you through it. So I create copies of the tabs.
+
+00:22:23.000 --> 00:22:41.000
+I gotta create 4 copies. I just wanted you guys to see this. I don't know that it'll… it won't be this hard to build on… I think, through a different way, like a slider type way, but I wanted you to see it because I wanted you to see, like, the nuances in the data and the complications it introduces, right? So now I have… I know I need four.
+
+00:22:41.000 --> 00:22:46.000
+I've got to make 4 adjustments. So, one of them is gonna be, you know, VXREL.
+
+00:22:46.000 --> 00:22:59.000
+uh… ISG, and we'll call it, uh, parts, I call it parts and labor, skews the simplicity here, but VXRISG, this one's gonna be, you know, VXREL.
+
+00:22:59.000 --> 00:23:09.000
+uh, ISG parts only. This one's gonna be VXRL… uh, ESG parts and labor.
+
+00:23:09.000 --> 00:23:23.000
+And this one's gonna be VX row… Parts Only. So, that 380… now has to… oh, one of the issues, sorry.
+
+00:23:23.000 --> 00:23:30.000
+Lots of opportunity for errors in here. So, that 380 now has to be split four ways. It's got to be adjusted.
+
+00:23:30.000 --> 00:23:40.000
+Right, so… Do you have to do it before? Right, so what happens is… I've sized the adjustment, right? So once it's sized, I know.
+
+00:23:40.000 --> 00:23:52.000
+My… my… my adjustment lever was changed to 77%. So… It just so happens that as I create these tabs, and I change all the filters.
+
+00:23:52.000 --> 00:24:00.000
+That 73% applied to every… all four intersections of data. It adds up very closely to the initial adjustment.
+
+00:24:00.000 --> 00:24:16.000
+Okay, so it's great that it works that way, but it still does have four changes. So then I have to go in, and I have to say, oh, you know what, I want to do… Now I need to get, uh, VXRail, and I need to get the ISG portion of it, right? Okay, I want to go over here, and I want to get…
+
+00:24:16.000 --> 00:24:22.000
+Uh, and you can see it's slow. It used to not mean slow, but slower now.
+
+00:24:22.000 --> 00:24:27.000
+Um… yeah. Wow. Alright.
+
+00:24:27.000 --> 00:24:44.000
+Oh, this is actually… I'm on the ESG tab, so I'm on the ESG tab, so I'm gonna go, I'm gonna get ESG… And… I'm gonna get… I don't need to change VXRL, because it's already set, but over here…
+
+00:24:44.000 --> 00:24:50.000
+I select… Clear this out.
+
+00:24:50.000 --> 00:24:59.000
+Julius is a little bit slow. So I can clear this out, and then I can go over here… Oh, forgot to change this, that's fun.
+
+00:24:59.000 --> 00:25:07.000
+This is parts only in this example, parts only…
+
+00:25:07.000 --> 00:25:13.000
+It doesn't usually take this long to refresh, but… It is today, for some reason.
+
+00:25:13.000 --> 00:25:19.000
+There's a lot of work going on in theCUBE at the moment because of all the delays and the refresh. I've been struggling.
+
+00:25:19.000 --> 00:25:20.000
+Okay, so…
+
+00:25:20.000 --> 00:25:36.000
+Ah, there you go. So now, I know I need VXREL ESG… oh, spelled that wrong… So, I need ESG, and then I do a check… Okay, my value's lining up, they look like they're pretty close, quick check.
+
+00:25:36.000 --> 00:25:47.000
+Uh, I'm usually a little more precise than that, but for this exercise. So now I have this 380, I have this new value, not 380 I have a value of 2 in this example, really small, right?
+
+00:25:47.000 --> 00:25:53.000
+I could take that, too, and now it'll actually accept the value.
+
+00:25:53.000 --> 00:26:01.000
+What? What'd it do that time? It did not like something.
+
+00:26:01.000 --> 00:26:10.000
+May have been the best example. It seems referenced.
+
+00:26:10.000 --> 00:26:26.000
+Okay… Oh, I know why, I skipped a step. So, I gotta have the value… And I gotta have… and then I gotta take that, copy that in… And I gotta do that. Now I have a value that I can enter in, indicated by the red mark.
+
+00:26:26.000 --> 00:26:37.000
+And then, once I have that value. add this again. I go up to… the… I have a little button here, I can publish the change.
+
+00:26:37.000 --> 00:26:45.000
+I go… the long way to do it is go to whatever, and you go publish changes. If I don't like that value, and I go, ah, you know what, I can discard the value.
+
+00:26:45.000 --> 00:26:49.000
+I don't know, back to what it was. So I do that 4 times.
+
+00:26:49.000 --> 00:26:57.000
+To get one value, to get one number tied out. I do that 4 times.
+
+00:26:57.000 --> 00:27:14.000
+So, if there would have been multiple weeks, multiple numbers… Well, I'll copy… Yes, what I would do is I'd copy everything, right? So I'd copy this whole series, and I'd go… I'll plug that over… Uh, and then I would do the whole thing, and it would load it like that.
+
+00:27:14.000 --> 00:27:22.000
+We put them all at once. So that's how you do that. I do that four times. So for every… each and every LOV, you have to repeat this process.
+
+00:27:22.000 --> 00:27:30.000
+Well, not every LLB… Of course, I mean, the one that is coming up in the list, right? Yeah, yeah, the ones coming in the list, there's not four… so in the list.
+
+00:27:30.000 --> 00:27:40.000
+some of the storage products, about… actually… I had an old file pulled up, I could tell you… So usually how many LEVs you get for making the adjustment?
+
+00:27:40.000 --> 00:27:59.000
+Oh, for this, it's usually, um… There's gonna be roughly… fish world. 15… 15 to 20 lobs, some of them… We're small enough that they don't need much, if any, adjusting, but we have.
+
+00:27:59.000 --> 00:28:07.000
+12… 13 products, Mark? to be honest, 13 products that are scoped as surf modernization.
+
+00:28:07.000 --> 00:28:23.000
+And then we have another handful that we call all the rest of my sheet, that have enough volume that if we need to go check them to make sure that there's nothing in those that we would want to show differently or forecast differently. So, but all the storage products.
+
+00:28:23.000 --> 00:28:43.000
+have this dual product value type. So, you know, power scale, VXREL, Power Flex, I mean, I have another file, but there's, like, uh… I wanna say 8 products, maybe, see how good my… Then my guess is here. So usually the same, it lobs.
+
+00:28:43.000 --> 00:28:49.000
+They make across the year? Yeah. Yeah, exactly. More or less, or is it, like.
+
+00:28:49.000 --> 00:28:59.000
+These only. Jose. The 13 envelope that you mentioned, right, LOBs, where the adjustments are being made. Right. So, throughout the year, whenever you have this adjustment cycle run.
+
+00:28:59.000 --> 00:29:18.000
+More or less, it's the same? Yes, pretty much. Yeah, unless we start selling a new product or something, low-volume product, right, but no, pretty much, it's… It's, uh, it's set right now. Power is AI, obviously, is introducing its own type of complexity, but yeah, that's one that's kind of the new one. We're spending quite a bit of time on now, but…
+
+00:29:18.000 --> 00:29:34.000
+That's… so that's how the process… that's… that's pretty much the process for storage products. And I had, let's see, my dual, let's see, I have a dual section I keep track of. Here I go, one… His power scale, data domain, Power Reflect, VXRL…
+
+00:29:34.000 --> 00:29:38.000
+So, maybe I was off, like, maybe 5 of those I do that with.
+
+00:29:38.000 --> 00:29:49.000
+But yeah, so, those 5… so I don't do the 4 with every single one of them, but it's just… there's a handful of options. And I wanted to show you kind of the extreme case to get an idea of.
+
+00:29:49.000 --> 00:30:00.000
+As we go through this, as we think about how, what is the future of this look like, right? Um… there is this nuance in the forecast data that.
+
+00:30:00.000 --> 00:30:11.000
+Um, there's, you know, storage products that. are reported in our hierarchy under ESG and ISG. There's also different service types.
+
+00:30:11.000 --> 00:30:21.000
+that adjusted independently as well, parts only and parts and labor, right? And the parts and labor, so when you think about, uh, parts dispatches.
+
+00:30:21.000 --> 00:30:27.000
+There's parts only, and there's parts that labor meaning of harm with labor. The labor forecast is labor only.
+
+00:30:27.000 --> 00:30:34.000
+also parts and waivers. There's some overlap there, because parts and labor is in both. Yeah, it has both, correct.
+
+00:30:34.000 --> 00:30:42.000
+So, a little bit of complexity there. So, I put his hand raised. So, so, maybe a good stop. Anybody on the call have any questions, observations?
+
+00:30:42.000 --> 00:30:48.000
+pretty smart comments about why we can do it easier.
+
+00:30:48.000 --> 00:30:51.000
+I don't think so, not yet. I'll come up with something here soon, though.
+
+00:30:51.000 --> 00:30:52.000
+Okay. Yeah, yeah, yeah, yeah.
+
+00:30:52.000 --> 00:30:53.000
+Not yet.
+
+00:30:53.000 --> 00:31:09.000
+Yeah. Thank you. Yeah, just one question, then. So, when you update these values, it get updated in Julia's Cube directly?
+
+00:31:09.000 --> 00:31:10.000
+So, when you publish, that time it. gets updated, right?
+
+00:31:10.000 --> 00:31:15.000
+Yes, yes, and that's where we're gonna go next, yes, it gets directed… it goes into Julia, so… So what happens is… Those two movies, or it goes to education?
+
+00:31:15.000 --> 00:31:16.000
+Oh, I'm sorry.
+
+00:31:16.000 --> 00:31:22.000
+When you go in, uh, that waterf analysis and click on publish, that time it gets updated, or…
+
+00:31:22.000 --> 00:31:28.000
+I misspoke. It gets loaded directly into the adjustment queue.
+
+00:31:28.000 --> 00:31:52.000
+So, we have the… so we have the, uh… we can't see that, I'm sorry. So I was working in the, in the, in the adjustment queue. Let me go back over to the file I was using, uh… Yeah, so in this one, when I… if we were to publish the values, it would go straight into the adjustment queue, and we have, again, so that we had the ability to, uh, augment the forecast with these types of inputs.
+
+00:31:52.000 --> 00:32:03.000
+there was a dispatch adjusted field created, which is a copy of the original dispatch forecast, and we were able to adjust that field.
+
+00:32:03.000 --> 00:32:05.000
+And then what Francisco creates, uh… an adjustment, and then he lulls it into Julie's Cube, is that it?
+
+00:32:05.000 --> 00:32:10.000
+Okay.
+
+00:32:10.000 --> 00:32:12.000
+Or, sorry, he creates a forecast series. And then loads that.
+
+00:32:12.000 --> 00:32:20.000
+Yeah, so… yeah, exactly. So, what happens next, you have to imagine this, but Francisco goes in and.
+
+00:32:20.000 --> 00:32:27.000
+when we say, hey, Francisco, we're finished. with the adjustments. He goes in and he extracts.
+
+00:32:27.000 --> 00:32:44.000
+the feels needed to then create a forecast series in Julius, right? So, um, in this example, let me see if I… I'll show you… let's see, there is a forecast series filled.
+
+00:32:44.000 --> 00:32:52.000
+here, and in this field, where's where we keep, in this example, the last one we did was FY27AOP.
+
+00:32:52.000 --> 00:32:58.000
+November ISG, so that's our forecast series that we track the actuals against.
+
+00:32:58.000 --> 00:33:06.000
+Oh, yeah. So, extract the data. is extract the dataset from the adjustment cube.
+
+00:33:06.000 --> 00:33:13.000
+Brandon has a process that says, take that data, put it into Julius now, and call it.
+
+00:33:13.000 --> 00:33:25.000
+this, whatever the forecast series is. That's the process after we do all of this. And that's a pretty… that's a pretty fast process, if I wanted to do that. This is the… this is the, uh… This is a pretty, uh, slow…
+
+00:33:25.000 --> 00:33:35.000
+kind of, um, you know, painfully methodical approach to making sure that everything ties out to the targets that we have for, sort of, modernization.
+
+00:33:35.000 --> 00:33:36.000
+Okay, and every… Yeah, and every time when we, uh, start this process.
+
+00:33:36.000 --> 00:33:41.000
+Yeah. Apart from you, does anyone… But…
+
+00:33:41.000 --> 00:33:45.000
+When, let's say, you open this file and refresh this adjustment cube.
+
+00:33:45.000 --> 00:33:51.000
+By default, uh, this adjustment, uh, dispatch adjustment column will be.
+
+00:33:51.000 --> 00:33:57.000
+uh, populated as a 0, and then you go ahead and update the values.
+
+00:33:57.000 --> 00:33:58.000
+I could see some 10 random numbers.
+
+00:33:58.000 --> 00:34:07.000
+Uh… Oh, yeah, yeah. Yeah, that's a really low volume, and there's another catch I didn't mention, but, you know, some of these values.
+
+00:34:07.000 --> 00:34:10.000
+Another limitation to OLAP, it doesn't take… it doesn't take zeros.
+
+00:34:10.000 --> 00:34:14.000
+You can't, like, you can't enter… you can't change zero.
+
+00:34:14.000 --> 00:34:22.000
+It'll give you an error, so it's got to have an actual value greater than zero to be able to adjust it. So this wasn't the best example.
+
+00:34:22.000 --> 00:34:26.000
+this would be a better example where we have higher volume dispatches.
+
+00:34:26.000 --> 00:34:39.000
+Um, to show you, like, what that looks like, but sometimes I have to work around those zeros, and there's a formula to do that. Let's see, this is ISG… Look, that was a lot faster. That's funny.
+
+00:34:39.000 --> 00:34:48.000
+Uh, what I want parts… Labor…
+
+00:34:48.000 --> 00:34:59.000
+You know, it's back to this one. Okay. Show you a little bit better example.
+
+00:34:59.000 --> 00:35:12.000
+It's funny, I noticed that because we're all using technology, especially on our phones, we're always going so fast, my patience levels, my tolerance is getting less and less.
+
+00:35:12.000 --> 00:35:19.000
+Go fast, go fast! Alright. And then this is… the adjustment keeps pretty bad, but it's also a lot.
+
+00:35:19.000 --> 00:35:22.000
+Okay, so…
+
+00:35:22.000 --> 00:35:35.000
+lot less data to… I want to get, uh… Let's see… So, that 380, you remember that number, is now turned into 258.
+
+00:35:35.000 --> 00:35:47.000
+And that values what would get loaded in here, it doesn't change much, but same type of process, copy these out… Sit copy. Trying to use my keyboard shortcuts.
+
+00:35:47.000 --> 00:36:10.000
+So… Copy, and go over here, paste… And then put it in here… And then, see that the values are adjusted, and so, uh, it'll load 256 in this case, it'll load 256, and it'll allocate it down to, you know, country, Corasta, whatever.
+
+00:36:10.000 --> 00:36:15.000
+Um, whatever lowest level of detail is there, so… Does that help?
+
+00:36:15.000 --> 00:36:17.000
+Raul?
+
+00:36:17.000 --> 00:36:23.000
+Yes, definitely. Uh, one more question with regards to the same, it's like.
+
+00:36:23.000 --> 00:36:33.000
+Uh, let's say you adjusted… few rows, and not all. So, uh, while replicating in Julia's Cube, uh.
+
+00:36:33.000 --> 00:36:42.000
+Will it take all from adjusted column, all values from adjusted column itself, or how the things will be that time?
+
+00:36:42.000 --> 00:36:49.000
+As which one will prefer, like, uh, the column M or N in this case?
+
+00:36:49.000 --> 00:36:51.000
+For the adjustments.
+
+00:36:51.000 --> 00:36:56.000
+C column, yeah, column N is our adjustment column, but let's say you updated.
+
+00:36:56.000 --> 00:37:01.000
+Only few rows out of this. overall what we could see, right? You… let's see, you just updated first 10 rows.
+
+00:37:01.000 --> 00:37:04.000
+Only couple of weeks we have, actually. Yeah, yeah.
+
+00:37:04.000 --> 00:37:08.000
+And remaining rows has the old data as it is.
+
+00:37:08.000 --> 00:37:18.000
+So, which one, uh… so, only for 10 rows, uh, it will get reflected, or it will take entire… column N and replace it.
+
+00:37:18.000 --> 00:37:26.000
+as a new forecast.
+
+00:37:26.000 --> 00:37:27.000
+Mm-hmm.
+
+00:37:27.000 --> 00:37:44.000
+Um, if I change just… if I change just, you know, 10 values, it'll take… whatever is… it'll take the entire… all the weeks, right? So if there's 10… If there's 10 that were changed and 55 that weren't, that's the number… that's the set it'll take and put into the, uh, as an extracting for the… for the forecast load. Does that answer your question?
+
+00:37:44.000 --> 00:37:53.000
+Yeah, so what I understand is, like, okay, we will change the entire… all data set. I mean, it's the entire… the range.
+
+00:37:53.000 --> 00:37:54.000
+At a time. And we will take a new volume only.
+
+00:37:54.000 --> 00:38:02.000
+Well, no, we, no, we don't have to. No, sometimes, sometimes there can be some, um… some seasonality in here that is not something that happened last year, right? It was a product quality.
+
+00:38:02.000 --> 00:38:07.000
+Mm-hmm.
+
+00:38:07.000 --> 00:38:21.000
+defect that started to show up a lot in the data, and then, of course, we have a process to go figure out how the root cause and fix it, right? Those can go on for 6-8 weeks, so that could show up next year, and I may only adjust those weeks. I may say, you know what?
+
+00:38:21.000 --> 00:38:26.000
+I know that last year, that wasn't product quality excursion. I want to go ahead and adjust.
+
+00:38:26.000 --> 00:38:31.000
+that out. So, and you're in your example, I might only change, you know, 6-8 values.
+
+00:38:31.000 --> 00:38:33.000
+Mm-hmm.
+
+00:38:33.000 --> 00:38:40.000
+But everything else… everything else will… the entire timeframe.
+
+00:38:40.000 --> 00:38:47.000
+forecast time frame will get extracted. in this example, to get loaded as a forecast series.
+
+00:38:47.000 --> 00:38:58.000
+Okay, um, let's say we change, uh, the… now we could see, uh, row number trip 111 till 115. We change these 5 records.
+
+00:38:58.000 --> 00:38:59.000
+Oh, right?
+
+00:38:59.000 --> 00:39:08.000
+initial 5 records. Uh, but whereas, uh, only these 5 records you have made the changes, but whereas if we see the row number 1.
+
+00:39:08.000 --> 00:39:12.000
+Let's see… Maybe, uh, 125.
+
+00:39:12.000 --> 00:39:13.000
+125?
+
+00:39:13.000 --> 00:39:21.000
+It has, uh… Yeah, it has 239… in your column M, and triple 2 in column… N. So… there… so, which one will go in Julia's Cube now? 2, 3, 9, or triple 2?
+
+00:39:21.000 --> 00:39:26.000
+Right.
+
+00:39:26.000 --> 00:39:33.000
+Oh, oh, the dispatch, the adjusted one will go into… will go into Julius.
+
+00:39:33.000 --> 00:39:34.000
+Yeah, this one. This is…
+
+00:39:34.000 --> 00:39:40.000
+But we don't want to change this, right? We just wanted to change the first 5 rows in our case.
+
+00:39:40.000 --> 00:39:49.000
+So let's do one thing, simple. You remove the values from 117 in the column P, and just keep the rest.
+
+00:39:49.000 --> 00:39:56.000
+Do say it again, remove these. So, I think what… maybe what you're thinking is.
+
+00:39:56.000 --> 00:40:01.000
+This dispatch has no IQR is the original forecast.
+
+00:40:01.000 --> 00:40:02.000
+that we're referencing before adjustments, right. So this is before adjustments.
+
+00:40:02.000 --> 00:40:09.000
+Yes.
+
+00:40:09.000 --> 00:40:10.000
+Yeah, hmm.
+
+00:40:10.000 --> 00:40:15.000
+This row never changes. This is for… you know, record keeping, okay, what was the original forecast, you know, we can go back and track and see.
+
+00:40:15.000 --> 00:40:16.000
+Oh.
+
+00:40:16.000 --> 00:40:30.000
+over how close we might have been on the original forecast, although we don't really have a lot of use for that right now, because the thing, as I mentioned, we do the forecasting, then we do the planning, so we don't necessarily use that a lot anymore, but… we talked about that yesterday, or day before, we would like to add that functionality.
+
+00:40:30.000 --> 00:40:34.000
+Ah, okay, okay. Uh, sorry, then… I'm, uh, my dart is clear now.
+
+00:40:34.000 --> 00:40:37.000
+Yeah.
+
+00:40:37.000 --> 00:40:54.000
+So, we will always refer dispatch-adjusted column, and wherever you are changing those records only will get reflected. Yeah, got it. I thought we are replacing, uh, finally, while going in Julia's Cube from column N to M, means we are.
+
+00:40:54.000 --> 00:40:55.000
+replacing the original forecast values.
+
+00:40:55.000 --> 00:41:08.000
+Oh, I see. Yeah, yeah, I see. Okay, yeah, sorry about that, I didn't understand that. No, we don't… yeah, we have… there's actually… I think there's actually 3 different, um… There's 3 different values, let's see, there's a…
+
+00:41:08.000 --> 00:41:18.000
+There's the original dispatches forecast, and with… it doesn't have an IQR treatment to it, which IQR is the methodology that they use. Yeah, yeah.
+
+00:41:18.000 --> 00:41:27.000
+And then there's the no IQR. For storage products, the one with IQR, it doesn't work very well. It works… it works pretty good for, like.
+
+00:41:27.000 --> 00:41:45.000
+client products, meal. It doesn't work great for the storage, but… so CSG uses the dispatches with the IQR in it more than we do, more than I do. But yeah, so I use the dispatch with no IQR as my starting point to see how, you know, what's going to get loaded into the… into the… If I don't make any changes.
+
+00:41:45.000 --> 00:41:52.000
+what would get loaded into the… into Julia's forecast series, yeah.
+
+00:41:52.000 --> 00:41:53.000
+Yeah, clear for me.
+
+00:41:53.000 --> 00:42:03.000
+So once you make the case, only you validate it, nobody else is gonna validates these numbers, or is it? Yeah, pretty much. Yeah, everybody trusts me, I don't know why what they do.
+
+00:42:03.000 --> 00:42:11.000
+Dallas remark.
+
+00:42:11.000 --> 00:42:12.000
+Yeah.
+
+00:42:12.000 --> 00:42:23.000
+Well, we review it when it gets into Julius, and then he's able to fix it if we do find mistakes. So, what we… we have an understanding going in, right? So, I want to make sure he does a good job of making sure that the messages we've communicated and the volumes we've communicated align to how they emanate from the adjustment cube.
+
+00:42:23.000 --> 00:42:29.000
+He has an understanding going in, and then our team fully supports him and validates to make sure, right? Because, hey, things happen, right? In the import, or even in the adjustment side. But yeah.
+
+00:42:29.000 --> 00:42:34.000
+Yeah.
+
+00:42:34.000 --> 00:42:35.000
+Doug does a great job of translating that.
+
+00:42:35.000 --> 00:42:47.000
+It… it… Thank you. Thank you, Mark. But that presents… that presents some lag, because if you imagine, right, nobody has access to this because it's sort of a playground, a scenario modeling, right?
+
+00:42:47.000 --> 00:42:51.000
+this, the way we do it today is, I put them in, but people can't see them.
+
+00:42:51.000 --> 00:42:58.000
+Until they show up in Julia's setup. And so, if it was in Power BI.
+
+00:42:58.000 --> 00:43:20.000
+And, like, I know the ODPS, they used to put their forecast out, put in Power BI, and everybody could go look at it, right? That would just… cut out a lot of… it would… the validation would be a lot faster. People could go match up the numbers, and Mark could go, or Gordon, or Tommy could go look at it and say, oh, you know what, this was a number that we had in past 2, this is a source of modernization targets.
+
+00:43:20.000 --> 00:43:31.000
+I can see it. It matches up now. And there's usually, I mean, honestly, there's usually a handful of mistakes that end up making their way through, just because of the sheer number of… and they're not… fortunately, they're not really, like.
+
+00:43:31.000 --> 00:43:37.000
+necessarily big mistakes, but there's some little things to kind of get through every once in a while, just because.
+
+00:43:37.000 --> 00:43:49.000
+It's so difficult to… Um, keep track of version control, right? I mean, that gets to be tough over time, so definitely on an ideal way to do it, but there is some lag in here.
+
+00:43:49.000 --> 00:43:58.000
+this process, just process while. Well, um, useful, in terms of what we're trying to accomplish, it's definitely not ideal by any means.
+
+00:43:58.000 --> 00:44:13.000
+So, if something do slip on. Is it rectified right there, or, like, okay, now we'll have to wait… Yeah, it's iterative, so Mark might find something in his validation, say, hey, man, PowerSkill looks like it's, for some reason, a little bit different than…
+
+00:44:13.000 --> 00:44:30.000
+than, uh, what we had in the past, too, and we'll talk about it. Might be an explanation, might not be. Then I have to go in and make an adjustment real quick, and then it's sort of like… It becomes a me-mark feedback, or Tom feedback, I make the adjustment, I go to… I go to Francisco, re-extract, upload to Julius.
+
+00:44:30.000 --> 00:44:42.000
+And then, if it happens again, I, you know, may find another product. Sometimes we may even… sometimes we may even get further along into the process and realize that, you know what, this product is turning out to be, uh, you know.
+
+00:44:42.000 --> 00:44:48.000
+more difficult to bend the curve on than we thought. We might change the target, you know.
+
+00:44:48.000 --> 00:45:13.000
+But yeah, typically… typically it's just kind of iterative, it's just going through it, but… but 99% of it typically goes in, if not more, is usually good, but… Or it gets tough in validation, I mentioned. I mentioned the layers that we have to validate, right? So, we have the parts, dispatch forecast, NMDR, we have the… we have the, uh, labor dispatch forecast in New York, so we have two.
+
+00:45:13.000 --> 00:45:23.000
+arguably, uh, yeah, I guess two sets of validation happened there. We have the units also we have to validate, so there's a lot of validation rules in there.
+
+00:45:23.000 --> 00:45:31.000
+Yeah. And every quarter. Yes.
+
+00:45:31.000 --> 00:45:46.000
+Yeah. Yeah, and I keep emphasizing, you know, I keep saying modernization, and… Uh, talking about the targets that are set, because that really is a linchpin in the process. I mean, we… you know, you could run forecasts all day long, but…
+
+00:45:46.000 --> 00:45:56.000
+And now with the, uh… type of, um, the, the… the targeting, the different work streams that come into play ahead when we do this.
+
+00:45:56.000 --> 00:46:14.000
+Now, we've… the new… I shouldn't say news, I guess it's 3 years old now, but the process now is to say, hey, load in the work that we've done, load that in, and then it drives the accountability back to the folks that signed up for the targets.
+
+00:46:14.000 --> 00:46:19.000
+So, yeah.
+
+00:46:19.000 --> 00:46:25.000
+Uh, okay, let me open up. Or maybe… Do you remember the file that you had shared with us?
+
+00:46:25.000 --> 00:46:30.000
+So we have contracts, dispatches, and pre… Is that a pre-U, CRM?
+
+00:46:30.000 --> 00:46:38.000
+the UCR one? No. Uh, I'm not sure, did I send that to you, Liz? Was that Mike?
+
+00:46:38.000 --> 00:46:41.000
+Wait a minute, let me just open up that slide.
+
+00:46:41.000 --> 00:46:45.000
+Oh yeah, this year, something a while back, or…
+
+00:46:45.000 --> 00:46:58.000
+Can I ask you a question? And it might spawn you to show something I'm only curious, and forgive me, team, right? But I think this is just a… One of the things that we often… often, and I'm sorry, I don't mean to not be on camera, I thought I was, apologies, I like to look at y'all.
+
+00:46:58.000 --> 00:47:09.000
+Because I talk loud and sometimes I'm, uh… So, I just wanted to… chat about the… so, Doug, talk about some of the ways that you handle some of those hierarchy changes. For example, like.
+
+00:47:09.000 --> 00:47:17.000
+Do you do anything in the adjustment cube when they ask to say, hey, let's segregate AI out, right? And you now have a lob, right? Is that stuff that you do in the adjustment queue?
+
+00:47:17.000 --> 00:47:34.000
+Um, can you talk us through some of that? Because you have to deal with a lot of hierarchy adjustments and requests for, ooh, segment out networking, segment out that, right? Is there anything done in this process to help support those questions? And if not, you can move on. I just… you do a lot behind the scenes, and I don't know if you actually came to the adjustment queue to do some of that.
+
+00:47:34.000 --> 00:47:52.000
+Yeah, I mean, there's… there's, uh, we mentioned the prep work that goes into it. We try to make sure that any of the new, like, lobs, products, that there… if there's any product hierarchy changes, that those are built out ahead of time.
+
+00:47:52.000 --> 00:47:53.000
+Yeah. Fair enough.
+
+00:47:53.000 --> 00:48:09.000
+Um, but Mark, I think you're alluding to, like, some of that stuff, some of that ambiguity we come up with, right? So, I don't typically do a lot in the adjustment queue with that. It's usually… it's usually… Uh, it's usually handled ahead of time, you know, PowerEdge AI, hey, it's getting bigger, more visibility, we need a law for that, and that… that gets loaded in. Um, sometimes.
+
+00:48:09.000 --> 00:48:26.000
+after the fact, we find out, like, ECS and optics scale were combined, so ECS, so we had to send this over… there was two sides of that. There was… Uh, the product hierarchy change to feed directly into Julius, and then there was Francisco going in and actually doing a search and replace for those… for those.
+
+00:48:26.000 --> 00:48:38.000
+product for ACS, changing it out to scale, then it can be… then it could be extracted, loaded into… now you have a forecast, and you have actuals, so you can… Compare together. Yeah, this… yeah.
+
+00:48:38.000 --> 00:48:54.000
+We have the same discussion yesterday, right? Yeah. Yeah, it's a moment, so it's moving parts, but… But we have a lot of the processes matured a lot. I think, to Mark's point, there used to be more… more work involved in that, but I think, like, I'd have to go in and.
+
+00:48:54.000 --> 00:48:59.000
+during my, uh, my quality checks, you know, data checks.
+
+00:48:59.000 --> 00:49:12.000
+I might see something in there that is like, oh, you know what, we need to go back through, and we need to… you know, rename that before we start even in the forecast. But the bigger issue… the bigger issue is… is more around.
+
+00:49:12.000 --> 00:49:36.000
+Lately, the process just not working fully. There's been issues with it, so… so I have to create, sometimes, workarounds to be able to enter the adjustments. I know this time… Mark, actually, you just reminded me, now that you said that, that's actually something I did have to do this last time, because there was a geo problem in the SR forecast, so instead of doing one adjustment, I had to create a calculator that allocated the adjustments across the regions.
+
+00:49:36.000 --> 00:49:58.000
+Still actually had to enter 3… it goes in at one time, but instead of doing one column, I had to do 3 rows, 3 columns, and put those in all at one time, but I had to get that geo noise out of the… out of the forecast, so that introduced… Of situation where everybody, anybody that reports on SR forecasting now and wants to do forecast versus actuals.
+
+00:49:58.000 --> 00:50:15.000
+has to go in and pick the mayor, APJ, and EMEA. If you don't filter your territories out, your regions out, you're picking up other SRs that we don't want to count. Yeah, so that's something we had to deal with this time, yeah. So, that was the first time for that.
+
+00:50:15.000 --> 00:50:20.000
+Another… another example of the process not working fully.
+
+00:50:20.000 --> 00:50:21.000
+Thank you.
+
+00:50:21.000 --> 00:50:30.000
+What other fun questions do y'all have? Uh, if you… if I can just share something.
+
+00:50:30.000 --> 00:50:47.000
+Controls are gone. There it is. There you go.
+
+00:50:47.000 --> 00:51:06.000
+Oh, that's the ASU forecast. Yeah, so it's… yeah, this, again, this file is pretty much the same process, the same adjustment process, um… Where, if we change the shipment forecast, or we change… or they call them.
+
+00:51:06.000 --> 00:51:17.000
+If you look in rows O and P, they're called new contracts and APOS, yeah. Yeah, it's funny because it's called Shipsfield Adjust.
+
+00:51:17.000 --> 00:51:26.000
+But it's new contracts and APOS contracts are two different things, right? So, yeah, in this example, I would have two potentially.
+
+00:51:26.000 --> 00:51:33.000
+two different fields that we would adjust. So, the new contract field might need to be adjusted if.
+
+00:51:33.000 --> 00:51:42.000
+we get a guidance from FP&A on what the forecast should be. I might need to raise it up, right? Or, if a product is.
+
+00:51:42.000 --> 00:51:59.000
+uh, losing momentum, I may need to bring it down, right? And the APOS forecast is typically one that ties back to our renewal rates that we have, um, that some of it… most of us calculated in AFOS reporting, but some of it I do on my own. I kind of backwards engineered to.
+
+00:51:59.000 --> 00:52:09.000
+account a renewal rate that I can use, so… Um, but yeah, it's the same methodology. I have been the curve calculation in there, it's all the same.
+
+00:52:09.000 --> 00:52:14.000
+Yeah. So, we were going through this, uh, Excel sheet, right, and we were just trying to.
+
+00:52:14.000 --> 00:52:26.000
+Uh, kind of decipher this based on. the sessions that you have covered over this Excel sheet, right? So, we understand that whatever changes we make, for example, if you just change.
+
+00:52:26.000 --> 00:52:33.000
+The numbers are getting changed from 37. Uh, we… I initially, I thought even these ones are focused numbers.
+
+00:52:33.000 --> 00:52:37.000
+But these are not changing. So, does it mean the forecast starts from week 37?
+
+00:52:37.000 --> 00:52:46.000
+Just talking about this… Oh, yeah, yeah, yeah. From here, the forecast starts.
+
+00:52:46.000 --> 00:52:54.000
+So, if you put… are you saying that that 35600 didn't change when you put that value in? Oh yeah, the above did not change.
+
+00:52:54.000 --> 00:53:16.000
+What didn't, Jake? Yeah, above, like, 19,000, 26… Oh, oh! Oh, oh, those were… because if it doesn't have a, um… It doesn't have a… like a 1 or 2, like, the counting sequence in front of it, it's because those are the actuals. And so, so one of the… great question. One of the things that we do is, um.
+
+00:53:16.000 --> 00:53:24.000
+there's a gap between. forecast comes out, so we have, let's say… The gap is for dispatches in SR, right?
+
+00:53:24.000 --> 00:53:30.000
+It's… it's for everything. So, if you think about, like, if we take the actuals from fiscal week.
+
+00:53:30.000 --> 00:53:38.000
+35, let's say, right? Uh, let's think about it this way. The first forecast week is fiscally 36, right?
+
+00:53:38.000 --> 00:53:44.000
+by the time the process finishes and runs, and we get this.
+
+00:53:44.000 --> 00:53:58.000
+There could be 2 or 3 weeks between. Right? So, in those 2 or 3 weeks, that forecast value that came out, we actually have an actual for it now, in Julius. So, what we'll do is, we'll take, in this case, 26274.
+
+00:53:58.000 --> 00:54:17.000
+was an actual value that came out, so that doesn't need to be adjusted. That really is the number that it was. So we'll load that number and override the forecast value in there so that everything ties out. So it's still overriding a forecast value, but one example is with actuals, the rest of us still just changing the forecast.
+
+00:54:17.000 --> 00:54:25.000
+Does that make sense? No, no, no, no, it makes sense. Yeah. Because we were trying to figure this out, that, okay, because we understood that.
+
+00:54:25.000 --> 00:54:34.000
+From week 35, the forecast actually starts. But these two numbers are not changing. Right. And we had learned from Zoe that by the time.
+
+00:54:34.000 --> 00:54:41.000
+The forecast is completed for ASU. It's already 2 weeks past, so when it comes for dispatches and SR.
+
+00:54:41.000 --> 00:54:50.000
+The actual is, you know, plus 2 weeks of ASU, and the forecast then starts from there. Yeah, generally, every part of the forecast, whether it's these.
+
+00:54:50.000 --> 00:55:13.000
+of these contracts, or the ship's bill to adjust, or if it's the dispatches or SRs, there's a gap, there's a lag there, right? So, or, or a… What'd you call that? I guess it's just a delay. So, by the time it comes out, we get… we go in and put those values in. And it's… it's not really… it's… it doesn't have to be done that way, it's me being particular. I want to have the opportunity.
+
+00:55:13.000 --> 00:55:35.000
+I'm gonna put that value in so that at least we know it matches, right? Um… Now, you might say, but that's a top-level value for that lob. What about… the lower level, you know, country or whatever. That's not gonna match exactly, but at a top level, we have the right value, because it's going to do the same thing. When I put that value in.
+
+00:55:35.000 --> 00:55:40.000
+26274, it's gonna do the same thing as 35600, it's gonna allocate it out.
+
+00:55:40.000 --> 00:55:43.000
+It's a new value, it's gonna allocate it out.
+
+00:55:43.000 --> 00:56:05.000
+But that's actual, right? Yeah, that's actual. But it's the same treatment, right? If we think about it, it's the same treatment. Any new value you put into the, uh, into that adjustment field, it's gonna… if it overrides the current value, it's gonna… Yeah, so whether it's an actual… whether it's an actual week, in this case, 35, 36, or a forecast week, it all, it all gets entered and allocated down.
+
+00:56:05.000 --> 00:56:06.000
+Hmm.
+
+00:56:06.000 --> 00:56:15.000
+Okay. It's not, like… and that's never material enough to actually impact.
+
+00:56:15.000 --> 00:56:22.000
+the, like, the year-over-year comparison, but I just… I'm like, if I have the opportunity, I might as well put it in.
+
+00:56:22.000 --> 00:56:33.000
+Then we were looking at the, uh, Airport renewal. So, we understood in our early session, right, uh, APOS is kind of percentage of decline.
+
+00:56:33.000 --> 00:56:41.000
+Yes. It's what… it's… APOS is what would remain… what percent of the decline would remain active.
+
+00:56:41.000 --> 00:56:45.000
+And it would remain a service unit for the next year. Yeah, right.
+
+00:56:45.000 --> 00:56:57.000
+The answer to that would be, you know, 80% is going to be dropping out. So this is the… decline, right? Decline content. Exactly, that's what it's calculated off of, yeah.
+
+00:56:57.000 --> 00:57:01.000
+We're just looking at… so now this is the United.
+
+00:57:01.000 --> 00:57:07.000
+Uh, which is in a ring over here. U96, yeah.
+
+00:57:07.000 --> 00:57:24.000
+And this adjustment is basically considering the… forecast if I make changes, then this is the decline it is going to calculate what my percentage. And there… and there… and there's some art in this, too, if you remember, right? If you… I have that ASU to the right, I have that ASU line.
+
+00:57:24.000 --> 00:57:29.000
+So there's a little bit of art to this, because, um, APOS is not exact.
+
+00:57:29.000 --> 00:57:46.000
+Yeah, there it is right there. So, yeah, so you can see, like, this is what I use to sort of gauge the changes. So, you know, in this example, the values that are in it would do that, but that's not realistic, so I'll put in… first step is to, uh, align to… if we have.
+
+00:57:46.000 --> 00:58:08.000
+a, uh, a shipment forecast to use. Uh, I would align to that, step one, step two is… use a pause renewal rate, and then, um, and then… then I want to… we want to see a smooth curve here, because you're not going to see that type of change, right? So, you might see flattening out, or continuation down, but, you know, so that's kind of what I've used to gauge.
+
+00:58:08.000 --> 00:58:15.000
+Uh, if it's a… it's a forecast is logical, reasonable, right? Right, right.
+
+00:58:15.000 --> 00:58:23.000
+So, when we are considering the decline, right, decline as in the expiration of the entitlement, right? Yeah.
+
+00:58:23.000 --> 00:58:31.000
+So, is there any cutoff that… when we do a run? So, let's say we are doing the forecast, I mean, for… February. This month.
+
+00:58:31.000 --> 00:58:37.000
+So what would be my cutoff, which I term or define as, okay, this qualifies as.
+
+00:58:37.000 --> 00:59:00.000
+Entitlement expiration, that in the next 2 months, 3 months, 5 months? Uh, it depends on… I think if you're asking about, like, when we do a forecast, how long do we forecast out into the future? No, like… When we say these many quantities, many ASUs are in expiration mode. Right. But when are these going to expire? In the next one month, two months, 3 months? Oh, oh, yeah, so, um…
+
+00:59:00.000 --> 00:59:06.000
+That… they literally expire on… if you go to the… to the left again on that expiration appeal, excuse me.
+
+00:59:06.000 --> 00:59:18.000
+So, uh, yeah. Yeah, expiring. So that means that out here, so these… any week that shows actuals is already expired. That's… that's how many actually expired.
+
+00:59:18.000 --> 00:59:27.000
+But in fiscal week 37, it says 37643 are going to expire, so then some of those won't expire. Some of those be renewed won't expire, right.
+
+00:59:27.000 --> 00:59:34.000
+Did I do that? No. Ah yes. Is this touchscreen? Yes, it is. Oh!
+
+00:59:34.000 --> 00:59:35.000
+Oh, I didn't know that that screen is touchscreen.
+
+00:59:35.000 --> 00:59:51.000
+There you go. That's funny. Yeah, I didn't either, so I won't do that again. But yeah, 37643 is how many are going to expire, so 20% of those, 30% of those would be how many actually renew and stay in the installment. So, this is what, uh, this is my reference.
+
+00:59:51.000 --> 01:00:00.000
+So, I referenced Julius because. there's, in the… the process that is used today.
+
+01:00:00.000 --> 01:00:09.000
+Zooey, if we're doing a fiscal year plan. there isn't an expiration. Zui has an expiration.
+
+01:00:09.000 --> 01:00:36.000
+But it's not loaded into… the adjustment cube yet. So I don't have anything to use to say, what does my rules going to be, but fortunately, I do have Julius that has the expiring, so… they're usually, again, pretty close, not exact, so as of experimenting with these two, I've become more confident over time that I can use Julius as the source for what's expiring. Um, so…
+
+01:00:36.000 --> 01:00:40.000
+then what's funny is, after we do this whole process.
+
+01:00:40.000 --> 01:01:02.000
+And we make the adjustments. it's loaded. I was picked up by Francisco, loaded, uh… Zooey runs her process. Now I… now she then… then she loads everything back into the adjustment queue. So once it's loaded back into the adjustment queue, she forgot, now I have expiring. So it's kind of after the fact that we actually get it, but…
+
+01:01:02.000 --> 01:01:08.000
+Yeah, so that first step, she loads everything back. And we have to have the ASUs in the adjustment queue, so that.
+
+01:01:08.000 --> 01:01:18.000
+when the dispatches and ESRs are forecasted, now we can see our rates, and so we have to… it has to be done that way. We just looked at this… Yep.
+
+01:01:18.000 --> 01:01:48.000
+an SR is the same… same thing. Yeah, same type of methodology, exactly. Everywhere you have a product, it has multiple… this one doesn't… SRs is not as many adjustments, because there's… there's not parts, SRs, and parts are only SRs, I mean… In theory, there is, but the way it reports, it's just… What's that? Sr will be parts only, right? Sr… no, SR is just the case, and in that case, they submit a work order, and they can ask for parts, parts of labor, labor only, they can have… they can request.
+
+01:01:49.000 --> 01:02:06.000
+different things, right? So, SR is easier. Instead of 4 adjustments, the external example, and being VXRL, just ESG and ISG. There's not different types of SRs. The way we forecast them, I mean, there are in the system, but not what we deal with. We're dealing with all the very fixed stuff.
+
+01:02:06.000 --> 01:02:11.000
+Or fix on fail, I guess they call it, also.
+
+01:02:11.000 --> 01:02:16.000
+These details are also coming from the news. What's that? The top details.
+
+01:02:16.000 --> 01:02:25.000
+That's the same thing, it's… yeah, that's the same type of, uh, we have the VR targets, the small targets, like, I don't know why… So this is coming from Julius.
+
+01:02:25.000 --> 01:02:37.000
+Uh, this section is a… this is all… let me think about it… uh… This is all in the adjustment cube, all these values are in the adjustment cube, except for target.
+
+01:02:37.000 --> 01:03:00.000
+So, the adjustment cube has, uh, the data science forecast, and the target is our work on it. Uh… The target is this mod target, like we did in dispatches, how do… in just that details, because whatever you might pick in the filtering, right? The numbers would populate for that. Yeah, so it keys in on… it keys in on this lob, and it just says… it looks it up and says.
+
+01:03:00.000 --> 01:03:11.000
+Give me Power Edge for FY27 from the past 2 we did, whatever. Like, we always have a… we always have an Excel document that has those targets in it, so I just look up.
+
+01:03:11.000 --> 01:03:25.000
+that lob against it, yeah. But it's not… not anywhere in any database, like, be it Hadoop or SQL, it's all manual right now.
+
+01:03:25.000 --> 01:03:33.000
+Because if we want to… automate this, or… have this brought into a platform.
+
+01:03:33.000 --> 01:03:37.000
+We might need to think of bringing that detail. So, sure, absolutely.
+
+01:03:37.000 --> 01:03:42.000
+Yeah. And how is that Excel maintained manually? Manually, yeah, more.
+
+01:03:42.000 --> 01:03:49.000
+Mark, as a whole system. Oh, Mark, are you still managing that file?
+
+01:03:49.000 --> 01:03:50.000
+And you just… I'm sorry, I was… I was multitasking.
+
+01:03:50.000 --> 01:03:51.000
+Isn't it your dendra who does that?
+
+01:03:51.000 --> 01:03:57.000
+Is it Yathandra? Oh, no, you're… I was asking about who's managing the file that has the… the, uh… triad commitments.
+
+01:03:57.000 --> 01:04:09.000
+So there's a… let me walk through that high level on how that's done. He manages it, but it's a… he actually does not manage the file. He leverages the file that's managed by the individual core teams.
+
+01:04:09.000 --> 01:04:20.000
+So there's this gargantuan spreadsheet that's out there that has a tab by product that contains all of the initiatives by product, and then the GPMs and the serviceability teams, they access that.
+
+01:04:20.000 --> 01:04:34.000
+And they update that, uh, and Guthindr's done a good job of building consolidated extractions of that data, so that he can put Power BI in additional information on top of that. I believe that his.
+
+01:04:34.000 --> 01:04:49.000
+consolidated file is the one that you all would want to reference, right, because that's what he uses to conduct the Power BI. The other spreadsheets are so dirty and gross that I wouldn't do that to friends, so… Um, he's already done all the lake work. They had to clean those up. I will tell you that there's an endeavor by.
+
+01:04:49.000 --> 01:04:52.000
+David Cooper, who's the GPM lead in that program.
+
+01:04:52.000 --> 01:05:01.000
+to get out of a spreadsheet-managed process and get us into the one delay model, which will have a leverage of JIRA within that.
+
+01:05:01.000 --> 01:05:07.000
+Um, so that's my ultimate desire as well. The concerns that I have is the data that we need, that you all need.
+
+01:05:07.000 --> 01:05:17.000
+Um, is not contained in JIRA, right? There is no field values for the initiatives, the percentage of adoption, right? There's no value for ICR and whatnot, so there's going to be some.
+
+01:05:17.000 --> 01:05:23.000
+something has to be developed so that joins their initiatives that says, this is what the initiative is for engineering planning.
+
+01:05:23.000 --> 01:05:24.000
+Oh. They are not. Yeah.
+
+01:05:24.000 --> 01:05:33.000
+Bye. So there's no columns for those specific… Oh, yeah. The engineering bug… bugging, um, tool.
+
+01:05:33.000 --> 01:05:34.000
+It's not many… yeah.
+
+01:05:34.000 --> 01:05:50.000
+That's right. They use it for their development cycle, so what happens is they submit to JIRA for management through the roadmap now, right? And so what they want to do is just continue to use that for their initiatives, and just get out of an Excel spreadsheet. However, that destroys all of our planning connectivity to that information, right?
+
+01:05:50.000 --> 01:05:55.000
+And it may in the future, Joanne may not be required, but there are some gaps I've been working with.
+
+01:05:55.000 --> 01:05:59.000
+Uh, David, and there's, like, 10 that don't exist that we would need.
+
+01:05:59.000 --> 01:06:00.000
+Yeah. Yeah, it has to be customized, yeah. Oh, yeah.
+
+01:06:00.000 --> 01:06:05.000
+For, like, no values. Yep. And a well-done way.
+
+01:06:05.000 --> 01:06:21.000
+might be… yeah, might be Mark, we might need to look into that, because if we want to… have this brought into, we need to have… understand how the file is maintained, uh, how frequently it is updated, whether it is appended. I mean, the information is added to existing details.
+
+01:06:21.000 --> 01:06:23.000
+Or a fresh copy is created altogether. So that we need to make sure that we help you.
+
+01:06:23.000 --> 01:06:37.000
+It's updated weekly, one single location, so he pulls it in every Friday, he refreshes his data, they update that worksheet every single day, all day, and then he takes the updated information on Friday into his environment.
+
+01:06:37.000 --> 01:06:41.000
+That's the agreement. That's what the team has asked for. They want to see their updates for their Friday, so they… that's for him, yeah.
+
+01:06:41.000 --> 01:06:44.000
+Thank you. Bye. what Atul is asking, like, just kind of a demo, like, how the worksheet looks.
+
+01:06:44.000 --> 01:06:47.000
+Yeah. Yes.
+
+01:06:47.000 --> 01:07:06.000
+Oh, absolutely. Absolutely. He's ill right now, so could… is there… could we might have to do that, and he's local, he's out in… he's my Bangalore resource, and so… Um, there's opportunity for us to do a different meeting. He's sick this week, Joanna, I haven't seen him in two days, so he's been down, so we might not be able to get him to do that demo, potentially this week, but happy to. I think he'd enjoy.
+
+01:07:06.000 --> 01:07:09.000
+going through that, to be candid. Um, so… Okay.
+
+01:07:09.000 --> 01:07:13.000
+Okay. I'll put that on the list.
+
+01:07:13.000 --> 01:07:14.000
+Thank you. Sorry, I'm long-winded today. craving human interaction, alright.
+
+01:07:14.000 --> 01:07:21.000
+Thanks.
+
+01:07:21.000 --> 01:07:26.000
+Okay, uh…
+
+01:07:26.000 --> 01:07:31.000
+So, Joanna, I mean, uh, what… we discussed yesterday, and what Mike.
+
+01:07:31.000 --> 01:07:36.000
+walked us through was the post-UCR effect, or post-UCR activity that.
+
+01:07:36.000 --> 01:07:41.000
+He is involved doing it, right?
+
+01:07:41.000 --> 01:07:42.000
+Es por esa. Yeah, so once the forecast is published, then he start his activities, right?
+
+01:07:42.000 --> 01:07:48.000
+Yes, for SRs, yep.
+
+01:07:48.000 --> 01:07:57.000
+Yes, yes, once the… once, um… Doug does his adjustments, then that's when he calculates the post-UCR SRs.
+
+01:07:57.000 --> 01:08:03.000
+And that is how he uses that for capacity planning, for headcount planning, and so forth.
+
+01:08:03.000 --> 01:08:04.000
+And financial…
+
+01:08:04.000 --> 01:08:18.000
+Yeah, and that's actually something that, uh, I'm about to… make a, sort of, second round of adjustments, because we need a post-UCR forecast series, and Julia's also.
+
+01:08:18.000 --> 01:08:24.000
+So, I'm about to go through and have some more fun all over again.
+
+01:08:24.000 --> 01:08:30.000
+So, again, it's a different file altogether, right? Yeah, yeah, this one will be a little easier, because it's DSRs.
+
+01:08:30.000 --> 01:08:43.000
+Uh, so I don't have to make… I mean, there is a lot of, um… products, but the number of adjustments is… and I don't think ECR targets every lot. Am I wrong about that, Mark?
+
+01:08:43.000 --> 01:08:44.000
+Oh, yeah. Yes.
+
+01:08:44.000 --> 01:08:50.000
+Your knot is only about 12 to 13 or something in that range that requires some augmentation of what we have here.
+
+01:08:50.000 --> 01:09:00.000
+a little easier, but yeah, we, uh, last year, we… we added that to the process to be able to have some tracking against those targets.
+
+01:09:00.000 --> 01:09:18.000
+We do have a methodology. I know I tested one, Doug, with the latest VMR, and I know you're kind of going down a similar path, right? But I think we could work with them, too. Mike, and help say, hey, here are the targets, and then they could do the math that I did there, right? The unassisted is basically… he says they have a targeted rate. They say, I'm going to go 13% unassisted, right?
+
+01:09:18.000 --> 01:09:34.000
+There's this map that says, okay, well, if Doug's number is 1,000, 13% off that, right, you just take it down and you just do the math, and you do the allocations to the regions the same way, and everything else, right? Um, so we have a process. Doug is going to put it on what I did on steroids. I literally just did the math.
+
+01:09:34.000 --> 01:09:36.000
+at a weekly level.
+
+01:09:36.000 --> 01:09:43.000
+Are you, uh… I also use that VMR file to get distracted here for a minute. Uh, I was gonna use that VMR file for making changes.
+
+01:09:43.000 --> 01:09:44.000
+I would.
+
+01:09:44.000 --> 01:09:54.000
+That VMware file have, or does your calculation adjust more than those 12 or 13 logs?
+
+01:09:54.000 --> 01:09:55.000
+Okay. Uh… Okay.
+
+01:09:55.000 --> 01:10:15.000
+Um, I did the entire… I think I did everything, because I have to do everything for the headcount planning team, bottoms up, and so I might have just done zeros, so you just have to contemplate. You'll be able to see it, it's quite obvious. I do have the rates in there, Doug, so you'll be able to contemplate which ones did, but um… Mike is your guide on that. He'll quickly tell you, but I think I have to, team. There are unassisted transactions that just occur. We have partners, we have other things, okay? So, we do have a headcount plan, so…
+
+01:10:15.000 --> 01:10:22.000
+I have to accommodate in the VMR all of that, unfortunately, at every product level.
+
+01:10:22.000 --> 01:10:29.000
+Yeah. I just noticed on camera, I'm so pale and pink!
+
+01:10:29.000 --> 01:10:30.000
+I know, it's the winter time, don't get outside.
+
+01:10:30.000 --> 01:10:32.000
+And you live in Texas.
+
+01:10:32.000 --> 01:10:36.000
+Here. It's only 70, let's not go outside.
+
+01:10:36.000 --> 01:10:46.000
+You see my wife, her wife, she's, uh, she's naturally, uh, tanned, it's so funny standing by her. I'm like, gosh, I'm getting, I'm getting worse and worse standing by you, looking worse than hers.
+
+01:10:46.000 --> 01:10:48.000
+Oh my god.
+
+01:10:48.000 --> 01:11:00.000
+No, so… The reason I ask these questions for this particular file is because we could not dwell into more of the details. Oh, yeah, yeah, I gotcha.
+
+01:11:00.000 --> 01:11:13.000
+So we could not play around this while I… Yeah, that's where… that's kind of what I was saying earlier, was, um… Let me see… yeah, we can pick on that one.
+
+01:11:13.000 --> 01:11:36.000
+We're gonna submit that file, that was a while back, wasn't it? Yeah, yeah, yeah, so… I already had region… Yeah, so that one, uh, yeah, it's the same thing where, um… You… depending on what filters you have, what you select… I mean, again, you size the initial adjustment, and then you go through a filter out, and that's how you kind of play around with it. But yeah, you could filter out.
+
+01:11:36.000 --> 01:11:48.000
+Um, it's an adjustment in Cube, so nobody really has access to it, except… So the, uh… The only… the only workaround we could do, I mean, we could not open up the filter.
+
+01:11:48.000 --> 01:12:07.000
+So we just played around this. Percentage and see how things are working, so that, you know, we build our own understanding. Yeah, yeah. Yeah, you know, I mean, not to get into solution mode, but I think, uh, I think a slider, you know, some kind of slider, some kind of, just some kind of thing that would actually calculate this type of, like.
+
+01:12:07.000 --> 01:12:28.000
+adjustment would be the ideal. Now, the slider? Could it be there, but the thing is that if you want to make some precise adjustment, like 21% or something, then you have… Yeah, that's right! So, along with that, a field where you can manually type in the number. Yeah, when you go into, like, uh… I always, you know, I always imagine when you go on to a website.
+
+01:12:28.000 --> 01:12:45.000
+If you're modeling alone or something, right, you kind of have some ways to change the numbers around, different… you can do, you know, change the rate, you can change the length, you can change, so it kind of needs that type of flexibility built into it. We are… we are… We are kind of thinking in that direction that… Yeah.
+
+01:12:45.000 --> 01:12:57.000
+how flexible we can keep it, and more intuitive, I would say. Yeah, I've always… I've always gone… I've always gone, thought about it in terms of, it's sort of dimensional, right? It's what, how much.
+
+01:12:57.000 --> 01:13:04.000
+how much time do you want to adjust? How precise does it need to be? So you pick your time frame.
+
+01:13:04.000 --> 01:13:11.000
+You could say, I have 8 weeks I need to adjust because it's an anomaly based on last year. You go, okay, I want these weeks.
+
+01:13:11.000 --> 01:13:20.000
+And I want to take this percent, I want to flatten it out, and so it's kind of, it's kind of multi-dimensional on those in terms of how that would work.
+
+01:13:20.000 --> 01:13:21.000
+Alex.
+
+01:13:21.000 --> 01:13:40.000
+I also would like to bring in some of the conversation. This is a great discussion regarding what SMOD 2.0 will team, so… SMOD 1.0 was very prescriptive, right? Get to a 3-year target, 35%, and we just kind of go in a downward trend per leadership as aggressively as possible, right? That just takes math and good, keen, you know, in-period.
+
+01:13:40.000 --> 01:13:53.000
+outlook and forecast by Doug. With SMOD 2.0, when we talk about these adjustments, inherently, that's going to be a program that focuses on vintage and shipier. And so, as we discuss being able to adjust or manipulate the targets.
+
+01:13:53.000 --> 01:14:00.000
+Those are the areas for which we will have prescribed adjustments to be made. They are going to carry the weight of the.
+
+01:14:00.000 --> 01:14:12.000
+The requirements to achieve the 3-year program, so we must be able to say, hey, I need to bring this ship vintage year down by 11%, because that's the corporate commitment. So they have to be held to that, so for financial reasons, we can lock that in.
+
+01:14:12.000 --> 01:14:27.000
+By years 4, 5, and 6, or greater, eh, just let it ride. Use your proper business rules and let that just kind of ride, because they cannot influence development there. And so, as you guys talk about that, I'm just feeding you other areas. I love the discussion, the radial, the sliders.
+
+01:14:27.000 --> 01:14:33.000
+The prescriptive nature is critical to me because of the way that they're really driving the business in the future, right?
+
+01:14:33.000 --> 01:14:44.000
+targeting this, targeting that, exclude that type deal. So, um, just putting that out there just for further, uh, mind thought, thought leadership as you guys are going through that, so I'll stop there. Thank you.
+
+01:14:44.000 --> 01:14:55.000
+Thanks for the input, Mark.
+
+01:14:55.000 --> 01:15:01.000
+Um, really quickly, um, Doug, while we have you here, is that, you know.
+
+01:15:01.000 --> 01:15:07.000
+How do you make adjustments. For the quarterly phasing.
+
+01:15:07.000 --> 01:15:09.000
+Oh, yeah, I was supposed to come back to that.
+
+01:15:09.000 --> 01:15:10.000
+Good.
+
+01:15:10.000 --> 01:15:20.000
+So… So, I mean, maybe before we get into that, maybe you can just kind of level set and explain what the quarterly phasing is, and what that problem was, if it's… It's relatively new for us.
+
+01:15:20.000 --> 01:15:21.000
+Right.
+
+01:15:21.000 --> 01:15:26.000
+Yeah, yeah. Yeah, so, um… Let's see… the best way to think about it.
+
+01:15:26.000 --> 01:15:32.000
+So, the way we do it, the targets are built.
+
+01:15:32.000 --> 01:15:40.000
+The quarterly targets, right? Um, so, going back to the kind of multi-step approach, the first step is to get the.
+
+01:15:40.000 --> 01:15:46.000
+the sizing in place at an annualized level, right? So, I'll make an adjustment there.
+
+01:15:46.000 --> 01:16:04.000
+I'll go check, and then I'll say… I have another file, I don't… I don't know where it is… I have another file, um, where I go work through the… quarters, and potentially rebalance some things, right? Because seasonality plays into it, holidays, right, play into it. So, um…
+
+01:16:04.000 --> 01:16:10.000
+sometimes I end up saying, you know, if, uh… If we go from Q4.
+
+01:16:10.000 --> 01:16:20.000
+That typically is a down… it's less volume, right? In Q1, we could have a bounce back, in theory, but we also might have a target that says.
+
+01:16:20.000 --> 01:16:27.000
+Oh, wait a second, we're gonna… we're gonna keep that going straight down, right? The data stock model will pick it back up.
+
+01:16:27.000 --> 01:16:41.000
+then I have to come in after I make that first adjustment, and then I gotta kind of rebalance things out. So I have another way. It actually goes back to your point. It's the percent adjustment. That's where the precision comes in. So then I have to make a precise level, if it's 2% different.
+
+01:16:41.000 --> 01:16:52.000
+in Q1, and I need to change… I need to make 2% versus a Q1 target. I literally take 2%, make that change, and then I check, did it break anything on the ends?
+
+01:16:52.000 --> 01:16:53.000
+Mm-hmm.
+
+01:16:53.000 --> 01:17:00.000
+did a disconnect the, you know, end of Q4 to beginning of Q1, end of Q and beginning of Q2, so I kind of do that. Fortunately.
+
+01:17:00.000 --> 01:17:07.000
+We have… I haven't seen that issue yet, but I have rebalanced a little bit, you know, this time around, I had to… I had to play around with a couple of offs.
+
+01:17:07.000 --> 01:17:25.000
+And, like, the rest of ISG has… Uh, I forget how many lobs, it's, like, 20-something lobs. So within that one, it gets a little tricky, too, because you may have to resize its own target, but then there's many lobs in that, so I end up doing some more scenarios, some what-if stuff to say.
+
+01:17:25.000 --> 01:17:30.000
+if I rebalance Q3… Q1, we'll have this to the rest of the quarters. Ultimately.
+
+01:17:30.000 --> 01:17:37.000
+just… I need to tie out to the annualized total, so that's a little bit of art in that part of it, too.
+
+01:17:37.000 --> 01:17:53.000
+So where does that… it's the same type of… it's the same type of adjustment file, but instead of using the bend the curve calculation, I literally use a precision. I calculate what is it currently, what does it all need to be, what's that percent different, I paste it, and then I say whatever's in there.
+
+01:17:53.000 --> 01:18:08.000
+currently times that number, and it equals the target, and I go check. So that goes to your example, that's the different calculation, that's the different way I would go about doing it.
+
+01:18:08.000 --> 01:18:09.000
+Yeah.
+
+01:18:09.000 --> 01:18:15.000
+They've been the curve to get the initial sizing in. It's been there with more of, like, analyzing and making sure that numbers are aligned. Exactly, yeah, yeah. And that could be something… great question, Joanna, that could be something that's also talking about, like, a slider or inputs, is that.
+
+01:18:15.000 --> 01:18:36.000
+To think about, which is, that's that… that's the use case where we got… we have one way to do it, which has been it, we have another we have to consider, which is what if the quarterly phasing doesn't match what's in the target, so that would be a different way to do it. So you compare that number to these numbers, the quarterly phasing of numbers? Yeah, so we have, uh, um… I wonder… I wonder if I have that file.
+
+01:18:36.000 --> 01:18:39.000
+Um… Um…
+
+01:18:39.000 --> 01:18:45.000
+I think it's important to note that, you know, like, these are, like, the nuances that we get, right, from.
+
+01:18:45.000 --> 01:18:53.000
+Our senior leadership, they're like, oh wait, we don't want that to suddenly Q4 drop and then, like, a spike back up in Q1, because.
+
+01:18:53.000 --> 01:19:01.000
+While that might happen… have… have happened historically. You know, we try not to… well, especially for the SMOT initiatives.
+
+01:19:01.000 --> 01:19:08.000
+Not to have it all happen at the end of the year. It's supposed to be.
+
+01:19:08.000 --> 01:19:09.000
+Yeah, yeah.
+
+01:19:09.000 --> 01:19:18.000
+spread out throughout the year, right? Um, typically, they would like to see it more in the first half, just to see more results, or make sure that they have enough time to catch up.
+
+01:19:18.000 --> 01:19:34.000
+So that's why, um, Atul and team, like, the quarterly phasing was, you know, was, um… asked maybe, was it last year, Doug? Just to… because we got that direction to, like.
+
+01:19:34.000 --> 01:19:35.000
+Yeah.
+
+01:19:35.000 --> 01:19:41.000
+hey, let's not make… have a, like, a cliff drop, and then a summit, so to speak, back… Um, let's smooth it out, but make sure that the whole year.
+
+01:19:41.000 --> 01:19:45.000
+that rate still meets the rate that we're supposed to be doing. So that's why, you know.
+
+01:19:45.000 --> 01:19:52.000
+Doug has to make that little massaging for Q1, almost Q2, and then that way it can just.
+
+01:19:52.000 --> 01:19:53.000
+I'll smooth it out, so…
+
+01:19:53.000 --> 01:20:02.000
+Yeah, the first… let's see, for the FY26 forecast, the way the… what we received was literally a shift down.
+
+01:20:02.000 --> 01:20:08.000
+So they took the targets for the year, annualized target, and they just divided it by 4.
+
+01:20:08.000 --> 01:20:29.000
+Oh, and so, we had this FY25, FY26. Right? And that's not realistic. But I lowered it that way, only to come back and then… work with Mark to kind of tilt it back up to rephase it, and that was a big learning experience for us. It was like, okay, wait a second, we need the targets to actually show more of how.
+
+01:20:29.000 --> 01:20:46.000
+you know, they can give us the targets that way. I'm not saying they can't give us to us that way, but the way we have to build it is operationally. What is the most likely scenario to happen, which is not going to be a shift down in volume, right? So then we build it. So what you end up happening is, instead of having to shift down.
+
+01:20:46.000 --> 01:20:54.000
+You can imagine, it starts here and intersects with that shift down, so you get a higher starting point and a lower ending point, and you get the same number.
+
+01:20:54.000 --> 01:20:58.000
+So we have to deal with that kind of phasing sometimes.
+
+01:20:58.000 --> 01:21:12.000
+And this was, like, how frequently this is done, once a year? Yeah, we do it at the beginning of the year, pretty much, for the fiscal year plan. Yeah. That's because… it goes out 5 quarters, so we have to factor in Q4, make sure everything ties together.
+
+01:21:12.000 --> 01:21:20.000
+This is done after AOPI? Yeah, it's for AOP, so we just finished the AOP for this year, um, and that started in fiscal year 30.
+
+01:21:20.000 --> 01:21:31.000
+I forgot 35, 36, and then… And then, which is actually kind of nice that we started. I used to complain about starting early, but the nice thing about starting earlier is because now we can see how Q4.
+
+01:21:31.000 --> 01:21:39.000
+looks versus Q1, and do the rest of the year versus coming in last minute of Q4, trying to make it all fit.
+
+01:21:39.000 --> 01:21:53.000
+We'll be starting this activity. Yeah, in the, yeah. So, last time, we used to start in May, um… Last time, it was last year, I think our first week… first forecast week.
+
+01:21:53.000 --> 01:22:00.000
+used to be, like, fiscal week 28 or 29 is really, really. Now, it's backed up a little bit, um, because.
+
+01:22:00.000 --> 01:22:07.000
+Well, a couple reasons. One is because of the work that goes on in setting targets, and then the other reason is because we don't have a shipment.
+
+01:22:07.000 --> 01:22:13.000
+I call it an orders forecast. We don't have guidance for our ASU forecast.
+
+01:22:13.000 --> 01:22:18.000
+Until December now. We used to get it in, like, September, even, sometimes even.
+
+01:22:18.000 --> 01:22:27.000
+Uh, August when we get it, so that whole process has changed, but… so now we… we borrowed a little bit more time to get more history.
+
+01:22:27.000 --> 01:22:28.000
+Oh, cool. So what did you do with the shipment guidance that we got in December?
+
+01:22:28.000 --> 01:22:31.000
+And then it starts forecast a little later.
+
+01:22:31.000 --> 01:22:36.000
+Like, how did it work?
+
+01:22:36.000 --> 01:22:37.000
+Pulse check.
+
+01:22:37.000 --> 01:22:47.000
+So, that's turned into more of a, um… Yeah, like, a reconciliation, kind of, to say, is there anything in there… and the funny thing is, we've never even got a full.
+
+01:22:47.000 --> 01:22:51.000
+forecast this year, because of PowerEdge AI was taking up everybody's time.
+
+01:22:51.000 --> 01:23:06.000
+So, uh, we typically would get a, uh, sort of a… storage, which would be high-end, mid-range, time guidance, we have power-ins, we had networking, right? So we get these, uh, we get these guys, and we would go.
+
+01:23:06.000 --> 01:23:18.000
+used to, and actually literally put that in. Now we get a loose direction from them early, and then once, to Joanna's question, once it comes out later, we go back and say, is there anything in there that's really different?
+
+01:23:18.000 --> 01:23:19.000
+Like, any… any steps. This is really called out, right?
+
+01:23:19.000 --> 01:23:30.000
+that we need to alert. Yeah, yeah. So, is there anything in the… you know, sales forecast. It's different than what we modeled.
+
+01:23:30.000 --> 01:23:40.000
+And, uh, and then we… and there hasn't typically been a certain… well, I can't say that for sure. Power SJI's… Turning out to be a little bit tricky, but…
+
+01:23:40.000 --> 01:23:46.000
+Yeah, I guess we have to take that into consideration for the process Atul, because it's like, okay, well.
+
+01:23:46.000 --> 01:23:50.000
+We don't give shipment guidance, and this… what Zooey does, and… e-learning process, and what… probably what you do, right?
+
+01:23:50.000 --> 01:23:55.000
+Yeah.
+
+01:23:55.000 --> 01:23:56.000
+Yeah.
+
+01:23:56.000 --> 01:24:05.000
+Uh, your team does, um… But, like, that reconciliation that we get that once a year in December, right before the holidays.
+
+01:24:05.000 --> 01:24:06.000
+Yeah.
+
+01:24:06.000 --> 01:24:26.000
+Alright? I literally drop it right before Christmas to say, hey, if you have time to look at it to see, make sure it aligns to what you… what… What you expect to see, right?
+
+01:24:26.000 --> 01:24:27.000
+Yeah.
+
+01:24:27.000 --> 01:24:41.000
+Yeah, yeah, we don't want it to be so different that it breaks the, you know, the… all of a sudden, your rates that you've been planning for are now likely to look very different for next year. We don't have to… But, you know, usually nowadays, power is PowerEdge AI get most of the focus, especially PowerAase AI. But, um, but we're… Mark and I were talking, you know, we're… we are…
+
+01:24:41.000 --> 01:24:48.000
+Um, we're trying to take the driver's seat in this process to say, look.
+
+01:24:48.000 --> 01:24:51.000
+You know, we're being asked for this level of.
+
+01:24:51.000 --> 01:24:57.000
+precision or level of detail in the forecast. If we are being asked for it.
+
+01:24:57.000 --> 01:25:03.000
+We need everybody else to also provide their inputs need to be as much as possible.
+
+01:25:03.000 --> 01:25:04.000
+Mm-hmm.
+
+01:25:04.000 --> 01:25:17.000
+closer, so… and that's not the alignment we have today, so… or… I mean, trying to get more, like I said, more into the ownership mode of that. So that way, because that helps the process. Anything we had earlier like that is going to be easier for…
+
+01:25:17.000 --> 01:25:23.000
+process, not, like, all the prep work. Yep.
+
+01:25:23.000 --> 01:25:28.000
+So, I can't wait for y'all to take over making all these adjustments. Okay.
+
+01:25:28.000 --> 01:25:53.000
+Alright. There's a good amount of work that you are involved in. Yeah, it is. I mean, it's a lot of, uh… a lot of the… uh, mechanics involved in tying everything out is… it's… it's lengthy, it's detailed, and not an… it's not an exact science, but at the end of the day, we need to be…
+
+01:25:53.000 --> 01:26:11.000
+Everybody needs to be aligned to the targets. Same targets. We didn't talk about the time that you take to do this. Oh, well, you know, typically… typically… If every… if the process runs like it's supposed to, um, I get about 2 days for dispatches and 2 days for SRRs.
+
+01:26:11.000 --> 01:26:18.000
+Yeah, so it's, uh… It's quick, quick turnaround, usually any issues.
+
+01:26:18.000 --> 01:26:37.000
+ASUs are… ASUs are about the same, yeah, 2 or 3 days. It's… it's a little… that one's a little… little trickier, because, um… It has the extra process of we put… we make the adjustments, Zooey picks it up, forecasts it, then he's loaded back in, so that was a little bit trickier, because you have to do some extra validation there, but…
+
+01:26:37.000 --> 01:26:38.000
+Mm-hmm.
+
+01:26:38.000 --> 01:26:48.000
+Yeah. Yes, yes, hold on there. It's quick. It used to not be that quick, but as, as, uh… as the process is needed to become more efficient.
+
+01:26:48.000 --> 01:26:59.000
+We've had to sort of do things like this spreadsheet, which isn't ideal, but to be able to have a quick way to align everything, all the inputs.
+
+01:26:59.000 --> 01:27:11.000
+Sure, sure.
+
+01:27:11.000 --> 01:27:12.000
+That's good.
+
+01:27:12.000 --> 01:27:19.000
+Yeah, I've become a lot better at using Excel than I ever intended to. It's like… They always say, everybody, it's so funny with all the tools and technology, all the advancements, there's still that thing, like, everybody has to know how to use Excel.
+
+01:27:19.000 --> 01:27:29.000
+Yeah. Yup. Yeah, I think… I think this was really, really great session, I might say.
+
+01:27:29.000 --> 01:27:37.000
+Uh… Well, answer a lot of our questions, but still, as I said, that will go into more things… more of the details.
+
+01:27:37.000 --> 01:27:45.000
+We've been using that. Where we can play around the filter so that… Yeah, yeah, I think the first time.
+
+01:27:45.000 --> 01:27:57.000
+We can talk about it and get the intuition behind it all, but it's like anything, until you actually go through the first forecast cycle, you know, we can do the prep work, get some functionality built in, but until we go through that first forecast.
+
+01:27:57.000 --> 01:28:07.000
+then it all starts to stick. You start to see, oh, okay, I see how this fits together, I see this process, yeah. But, you know, like I always say, the main thing that… as we modernize this.
+
+01:28:07.000 --> 01:28:29.000
+and get into more… a lot more what-if, you know, scenario planning. That's where the functionality has to advance a lot in terms of being able to… anybody, anytime, being able to go to, if it's Power BI, if Joanna's in a meeting, or Mark, or… anybody's in a meeting, and somebody says, hey, you know what, we're observing a change in the product's.
+
+01:28:29.000 --> 01:28:41.000
+you know, product quality. be able to go run that through a quick model and say, okay, if we change it X percent, what does that mean in terms of dispatches, SRs?
+
+01:28:41.000 --> 01:28:47.000
+What does that mean in terms of, you know, parts planning, headcount, cost, all of that stuff? So, all those points connect.
+
+01:28:47.000 --> 01:28:52.000
+Yep.
+
+01:28:52.000 --> 01:29:01.000
+There is no shortage of demand for, uh… running model… running scenarios right now, especially with PowerEdge AI.
+
+01:29:01.000 --> 01:29:02.000
+Seems like every week now, Mark, we're running a different forecast, aren't we?
+
+01:29:02.000 --> 01:29:11.000
+Yeah.
+
+01:29:11.000 --> 01:29:12.000
+Okay.
+
+01:29:12.000 --> 01:29:21.000
+Yeah, yeah, Mark had to step away for a second, um, but I think that it's also important to know, Atul, and… you know, the Alliant Automation Team, right? Right now, AI, it's a separate.
+
+01:29:21.000 --> 01:29:30.000
+forecasts, because the data… you know, like, the volume is so low, um… Since 20… fiscal year 24.
+
+01:29:30.000 --> 01:29:38.000
+compared to now, that, um, the modeling is done manually, um, through, you know, Mark and team, you know.
+
+01:29:38.000 --> 01:29:45.000
+And with, like, a lot of the intelligence that we're gathering from other teams as well, like David Cooper and Fur Rates and so forth.
+
+01:29:45.000 --> 01:29:54.000
+it's important to kind of consider, like. in the future state of forecasting, like, how do we handle those new products? Like, right now.
+
+01:29:54.000 --> 01:30:01.000
+We just, like, carved the AI out, and we're just only doing… focusing on the ISG core products.
+
+01:30:01.000 --> 01:30:09.000
+Um, because the… as you can imagine, because of the lack of data, it statistically, it's not going to give you enough run rate.
+
+01:30:09.000 --> 01:30:16.000
+To give you a forecast, right? So there's a lot of… Um, business knowledge and, like, you know.
+
+01:30:16.000 --> 01:30:17.000
+And so that we're adding to it.
+
+01:30:17.000 --> 01:30:24.000
+So, in case of a new product, right, which does not have any historical background.
+
+01:30:24.000 --> 01:30:27.000
+It generally falls into some… some part family, or some LOB family.
+
+01:30:27.000 --> 01:30:29.000
+Yeah. Yeah.
+
+01:30:29.000 --> 01:30:36.000
+A reference can be made from the, uh, I would say, predecessor, right?
+
+01:30:36.000 --> 01:30:45.000
+Yeah, you're… so you're… you're asking about is actually ties into this generation discussion we've been having.
+
+01:30:45.000 --> 01:30:54.000
+But really. what we're talking about is a vintage-type forecast, right? So… a new product launches.
+
+01:30:54.000 --> 01:31:01.000
+What are the products? What generation, what vintage, what all that stuff, right? So, we need an intake process.
+
+01:31:01.000 --> 01:31:09.000
+to be able to add that in. I'll talk about that with Jennifer yesterday and Nick, was somehow we need a way to say.
+
+01:31:09.000 --> 01:31:20.000
+We have a product roadmap. We have a new product, a new version of a similar lab launching, right? We need to go ahead and… we need to build that in, because let's just say, in the data.
+
+01:31:20.000 --> 01:31:25.000
+Right now, we're selling 17G, but we know next year, 18G is going to start selling.
+
+01:31:25.000 --> 01:31:31.000
+AT&T's on the data yet, right? So we have to be able to actually input.
+
+01:31:31.000 --> 01:31:46.000
+what is that AT&G forecast look like? Right? What are the products for AT&G? And that's just an example. Maybe there's a little different lob coming out, right? It's not in the data yet. We need to be able to go model that also. So we do need… we do need that ability at some point.
+
+01:31:46.000 --> 01:31:51.000
+Absolutely. Yeah, that is what I was coming from, that in order to do that, right.
+
+01:31:51.000 --> 01:32:08.000
+We need to have something. If we don't have at all anything, it's a fresh product, altogether new, new, new version, no, no history, no family, nothing of that sort.
+
+01:32:08.000 --> 01:32:09.000
+Yeah.
+
+01:32:09.000 --> 01:32:21.000
+In that case, then there would be something from the parts side has been done, like, as in… Uh, to a new party introduction, right? We have this seed stock that we… calling for manufacturing that particular product, right? Right. So, how much we have called, based on what you have called, could it be sales.
+
+01:32:21.000 --> 01:32:33.000
+Uh, forecast projecting basis on how the markets are behaving, right? Or… some inputs coming from MarketSide, that this is an open market data point that we have collected, and we see that it's aligned to what.
+
+01:32:33.000 --> 01:32:40.000
+We have been thinking or projecting for this particular, maybe we can use that. Right, right. There has to be something, because if there is nothing, yeah.
+
+01:32:40.000 --> 01:33:02.000
+Then how are you going to plan? Yeah, yeah, we have a… boring draw, but we have, right now, we have an call introduction plan, and in that production plan, it lays out quarters, it goes out, like, two, two and a half years, maybe longer, but it actually has, like, every product's going to be launching, right? Then, on top of that, and that quality uses that for setting their targets.
+
+01:33:02.000 --> 01:33:06.000
+So then, after they get those numbers, they say, okay, our fur.
+
+01:33:06.000 --> 01:33:16.000
+rate, right, we say translate to an MVR. We need a translation to ICR, we don't have that yet, but we need to be able to say, this is the assumptions for that product.
+
+01:33:16.000 --> 01:33:29.000
+And that goes in, and then it's picked up by the forecast, by the data science model somehow. So that's going to be, to me, Joanna, that's going to be the key dependency for being able to get into what we call a gym level forecast.
+
+01:33:29.000 --> 01:33:36.000
+Yeah, agreed, and it's… yeah, it's something where… You know, that's always on the back of my mind, because, like.
+
+01:33:36.000 --> 01:33:46.000
+Yes, well, we can model it. With… against, like… similar generations or similar LOBs.
+
+01:33:46.000 --> 01:33:47.000
+Yeah.
+
+01:33:47.000 --> 01:33:52.000
+it's not going to be the same. Like, how do we… adding… like, because the compute… The technology is gonna get bigger, right? It's gonna get better.
+
+01:33:52.000 --> 01:33:53.000
+Alright. Yeah.
+
+01:33:53.000 --> 01:33:58.000
+So they compute the processing, you know, and so forth, it's just going to be a lot.
+
+01:33:58.000 --> 01:34:05.000
+greater than it was in the past, so it's not like we can, hey, just model it after an old generation.
+
+01:34:05.000 --> 01:34:06.000
+But then at plus 10, I don't know. Does that…
+
+01:34:06.000 --> 01:34:16.000
+Mm-mm. Yeah, it's gotten more complicated, to Joanna's point, as these… as the… as the computing power is picking up, we're able… we sell fewer.
+
+01:34:16.000 --> 01:34:25.000
+Of whatever it is to get the same amount of power. So, we used to be able to model all the previous generation, now we can't model off the previous generation.
+
+01:34:25.000 --> 01:34:26.000
+We'll have the same.
+
+01:34:26.000 --> 01:34:37.000
+Yeah. Yeah, so, like, yeah, just to add to what Doug is saying, where… the products are getting smaller, or not smaller, much more efficient, higher compute.
+
+01:34:37.000 --> 01:34:43.000
+We're selling less of them. Um, but yeah, they will still generate cases and dispatches.
+
+01:34:43.000 --> 01:34:44.000
+Correct.
+
+01:34:44.000 --> 01:34:45.000
+You know, so…
+
+01:34:45.000 --> 01:34:57.000
+even more down that road is. We also are in an environment where we are allowing specialized engineering to actually drive the development and structure of the product, so in our Dell AI product, for example.
+
+01:34:57.000 --> 01:35:15.000
+there's actually two aspects of that product, is Dell designed and non-Dell, right? So we have NVIDIA and AMD, they contribute to the design, and in that product, for example, they do a full node sled-type replacement, right? Because they do not have OEM component replacement, so you can't just go in and just rip and replace like you can on a standard server.
+
+01:35:15.000 --> 01:35:32.000
+So when that happens, to understand that, you can't just build it off the Tigradonis generation. We are so compartmentalized now that within generation, within actual product set that says, oh, within AI, I now also have this structure that says, I can expect a higher level of volume here.
+
+01:35:32.000 --> 01:35:38.000
+higher level of cost here, because I've got to replace that full sled, which is a big money item, versus, say.
+
+01:35:38.000 --> 01:35:45.000
+Um, you know, a hard drive, which is how good money still, sorry, the discount hard drives so much, but… Versus a GPU, it's not. Right.
+
+01:35:45.000 --> 01:35:46.000
+So…
+
+01:35:46.000 --> 01:35:57.000
+Yeah, yeah, yeah. Okay, uh, that's a good point, uh, we'll start looking into that, and how we can.
+
+01:35:57.000 --> 01:36:03.000
+from the forecasting per se, or from the modeling per se, we can do that. Because in my experience, we need to have some data points.
+
+01:36:03.000 --> 01:36:04.000
+Yeah.
+
+01:36:04.000 --> 01:36:12.000
+Yeah, in order to obtain the model, we need to provide something. Yeah. We don't have that ability right now, and we definitely need… And that is the reason why it's been done manually.
+
+01:36:12.000 --> 01:36:13.000
+Yeah.
+
+01:36:13.000 --> 01:36:23.000
+Yeah. Well… I think what… I think what the… question that… the broader question that people want to understand is, how is.
+
+01:36:23.000 --> 01:36:29.000
+the aging of these products. influencing the forecast.
+
+01:36:29.000 --> 01:36:35.000
+So, older products coming out. Uh, what you would say higher.
+
+01:36:35.000 --> 01:36:59.000
+rate of dispatch, higher rate of case, right? And newer ones coming in, you would… you would assume your mix would be getting better, right? And so you would want to… you would want to reflect that in your forecast, if that's, you know, what's happening, right? And that's the key everybody wants to know, is, like, how, you know, for… for a vintage, you know, for a product that's sold in Q1.
+
+01:36:59.000 --> 01:37:09.000
+of FY25, here's how it's been tracking. What about Q2 of 25, and hopefully along the way, you see each of those getting better. And then you, once you get that vintage.
+
+01:37:09.000 --> 01:37:30.000
+dimension into the forecast, now you can actually do better analysis to show… answer that question of, if I do vintage on the left and I do fiscal year, fiscal quarter across the top, you can actually profile each product and figure out how… what's going into it for the forecast. That's a big thing people have been wanting for a while.
+
+01:37:30.000 --> 01:37:38.000
+We haven't reporting, we can see in actuals, we can do a report like that, we just can't do forecasts like that, you know?
+
+01:37:38.000 --> 01:37:42.000
+How long do we have? this morning.
+
+01:37:42.000 --> 01:37:47.000
+Uh, I think that's, um… well, we have it till 12.
+
+01:37:47.000 --> 01:37:48.000
+Yeah, so I don't know if you guys have any other questions or anything.
+
+01:37:48.000 --> 01:37:53.000
+Oh, it's more time!
+
+01:37:53.000 --> 01:37:54.000
+I'll… I'll have a quick roundtable. Alok or Rahul, if you have anything.
+
+01:37:54.000 --> 01:37:59.000
+Hold on.
+
+01:37:59.000 --> 01:38:04.000
+Mm-hmm.
+
+01:38:04.000 --> 01:38:07.000
+If you guys have questions, you guys are on mute.
+
+01:38:07.000 --> 01:38:09.000
+Uh, no, uh, we are good at the moment, it works indeed.
+
+01:38:09.000 --> 01:38:13.000
+No questions. Yeah, same for my end, too.
+
+01:38:13.000 --> 01:38:14.000
+Yes.
+
+01:38:14.000 --> 01:38:25.000
+Okay. Yeah, and um… You know, you guys, um, spend some time sort of debriefing what we did here, and while you're in town, if we need a follow-up, let's do that.
+
+01:38:25.000 --> 01:38:36.000
+Here's what is easier than doing it over the phone. We get, you know, we get distracted while they're on calls and stuff, so… Make sure you guys have a good handle on… the wood and the why.
+
+01:38:36.000 --> 01:38:40.000
+Yes. We'll do that, okay?
+
+01:38:40.000 --> 01:38:46.000
+So I, I actually have a question, um, not related to this topic here.
+
+01:38:46.000 --> 01:38:55.000
+But for tomorrow's session, I just realized when I, um… the topic is, um, Atul, advanced analytics, the Bend the Curve methodology.
+
+01:38:55.000 --> 01:38:56.000
+Mm-hmm.
+
+01:38:56.000 --> 01:39:08.000
+you know, just to walk through… of the forecasting models, validation… I mean, is that essentially what we just covered now, or is this something else that you want to… take a deeper dive into.
+
+01:39:08.000 --> 01:39:15.000
+Uh, we did cover a lot of the way that… the way that I do it now, but could we spend time brainstorming on.
+
+01:39:15.000 --> 01:39:20.000
+Might be too early, but thinking a little bit… in more detail about.
+
+01:39:20.000 --> 01:39:26.000
+the functionality we would want to have available, not just expand the conversation from just bend the curb to what?
+
+01:39:26.000 --> 01:39:29.000
+Yeah.
+
+01:39:29.000 --> 01:39:38.000
+to the idea of what about percentages, what about, like, what are all the different scenarios we run into that we need to make adjustments for?
+
+01:39:38.000 --> 01:39:42.000
+That way, we have a list of, oh, well, phasing.
+
+01:39:42.000 --> 01:39:49.000
+bend the curve, um, all the things we have to address, anomalies, seasonality, right? Then we can kind of start… it'll help them think about how they want to build that functionality out.
+
+01:39:49.000 --> 01:39:57.000
+Yeah, okay, that's fine. I just want to make sure that we… for tomorrow's topic, we can start… you know, whiteboarding that together.
+
+01:39:57.000 --> 01:40:01.000
+And then that way, you know, and then the team here, you know, I know that.
+
+01:40:01.000 --> 01:40:07.000
+You'll have time to digest it and say, well, you know, how would you typically do this in.
+
+01:40:07.000 --> 01:40:11.000
+these adjustments? How is that handled? What's that intake process look like? You know?
+
+01:40:11.000 --> 01:40:12.000
+Right.
+
+01:40:12.000 --> 01:40:19.000
+Um, what are the things that we need to call out? Like, if we do need a product, um, a new product or new LOB.
+
+01:40:19.000 --> 01:40:28.000
+How do we make sure we carve that out separately, so it doesn't… so we just focus on the core products, and then new products, and so forth?
+
+01:40:28.000 --> 01:40:34.000
+Right. It shouldn't be as easy as we make adjustments and list them out, and just say.
+
+01:40:34.000 --> 01:40:36.000
+this is the reason, this is how we do it, why we do it.
+
+01:40:36.000 --> 01:40:37.000
+Okay. Yep, that sounds fair.
+
+01:40:37.000 --> 01:40:48.000
+Yeah. Um… Then, the other question would be then, when we want to meet up with Joey? Uh… Yeah, no.
+
+01:40:48.000 --> 01:40:53.000
+Uh, tomorrow afternoon, um, with the data engineering. I know that I'm just realizing.
+
+01:40:53.000 --> 01:40:54.000
+The forecasting data, yeah, yeah.
+
+01:40:54.000 --> 01:41:00.000
+Yeah, and Brandon Adams, he'll stop by, um, tomorrow afternoon.
+
+01:41:00.000 --> 01:41:09.000
+I did have a… I did book a bigger conference room in the afternoon, so, um… Cepheus? Cepheus?
+
+01:41:09.000 --> 01:41:11.000
+In the afternoon? So, in the morning, you'll be at wavelength, but, um, in the afternoon, this.
+
+01:41:11.000 --> 01:41:15.000
+Okay.
+
+01:41:15.000 --> 01:41:21.000
+CPS conference room, which is bigger. For you guys to include Zooey and Brandon.
+
+01:41:21.000 --> 01:41:22.000
+And so forth. Want to make sure it's big enough for all of you guys.
+
+01:41:22.000 --> 01:41:28.000
+Yeah.
+
+01:41:28.000 --> 01:41:29.000
+That's all the fun! Thanks, Jordan.
+
+01:41:29.000 --> 01:41:33.000
+Okay.
+
+01:41:33.000 --> 01:41:36.000
+So, sorry, apologies for the delay. talking loud, getting everybody worked up. I get excited about this stuff.
+
+01:41:36.000 --> 01:41:46.000
+Yeah.
+
+01:41:46.000 --> 01:41:47.000
+Okay. Anything else? Did you have any other questions?
+
+01:41:47.000 --> 01:41:52.000
+Yeah, I think…
+
+01:41:52.000 --> 01:41:58.000
+I don't think we might go grab some lunch. We were talking about that yesterday, if y'all still have time. Yeah.
+
+01:41:58.000 --> 01:42:00.000
+Yep. Sure.
+
+01:42:00.000 --> 01:42:07.000
+Well, thank you, Doug, um, walking us through this. There's more to come, so if you guys have questions, um.
+
+01:42:07.000 --> 01:42:14.000
+Let me know, and again, I'll post the recording and notes in that SharePoint for everyone to have access to.
+
+01:42:14.000 --> 01:42:15.000
+You know.
+
+01:42:15.000 --> 01:42:21.000
+I try to make sure that I'm adding team members as I go, but… At least it's one place to find them, okay?
+
+01:42:21.000 --> 01:42:26.000
+Gotcha. Sounds good. Okay, thank you. Thank you. Bye, everybody!
+
+01:42:26.000 --> 01:42:28.000
+Thank you! Thank you, everyone.
+
+01:42:28.000 --> 01:42:34.000
+Thanks, bye.Thank youThank youThank you.I've
+
