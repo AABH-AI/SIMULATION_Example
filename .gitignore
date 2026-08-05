@@ -25,6 +25,7 @@ simulation-overview-platform.html
 executive_forecast_operational_dashboard.html
 enterprise_whatif_forecasting_platform.html
 remove.md
+template_ui/Dummy.xlsx
 
 # Compliance: internal Dell-name mapping reference, never expose publicly.
 forecast_copilot/input/name_mapping_reference.xlsx
