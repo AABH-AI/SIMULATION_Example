@@ -41,11 +41,11 @@
   .cw svg{display:block;width:100%;height:100%}
   label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);display:block;margin-bottom:6px}
   .sl{display:flex;align-items:center;gap:9px;margin-bottom:4px}
-  .sl input[type=range]{flex:1;height:5px;-webkit-appearance:none;border-radius:3px;outline:none;background:var(--bd)}
+  .sl input[type=range]{flex:0.55;height:5px;-webkit-appearance:none;border-radius:3px;outline:none;background:var(--bd)}
   .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;cursor:pointer}
   .sl-b input[type=range]::-webkit-slider-thumb{background:var(--ac)}
   .sl-p input[type=range]::-webkit-slider-thumb{background:var(--pu)}
-  .sl input[type=number]{width:54px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .sl input[type=number]{width:82px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
   .hint{font-size:8px;color:var(--t3);display:flex;justify-content:space-between;margin-bottom:16px}
   .mb{border:1px solid var(--bd);border-radius:8px;padding:8px 9px;margin-bottom:9px}
   .mb.blue{border-color:rgba(58,110,240,.3)}.mb.purple{border-color:rgba(109,40,217,.3)}
@@ -100,6 +100,8 @@
   .fopt:hover{background:var(--chi);color:var(--t1)}
   .fopt.on{color:var(--ac);font-weight:700}
   .fopt .ck{width:12px;display:inline-block;color:var(--ac);font-weight:800}
+  .fopt .cb{width:13px;height:13px;border:1.5px solid var(--bh);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:800;flex-shrink:0}
+  .fopt .cb.on{background:var(--ac);border-color:var(--ac)}
 </style>
 </head>
 <body class="rail-open">
@@ -128,14 +130,14 @@
       <div class="card">
         <h3>Controls</h3>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="dS" min="50" max="150" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="50" max="150" value="100" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="dS" min="-150" max="150" value="0" oninput="dSync(this.value)"><input type="number" id="dI" min="-150" max="150" value="0" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
         <div class="gap"><span>Adjusted rate</span><b id="dAR">0</b></div>
         <div class="gap"><span>Target rate</span><b id="dTR">0</b></div>
         <div class="bar"><div id="dBar"></div></div>
         <div class="gap"><span>Gap</span><b id="dGap" style="color:var(--am)">0</b></div>
-        <div class="btnrow"><button class="btn pub" onclick="pub('disp')">Publish</button><button class="btn dis" onclick="dSync(100)">Reset</button></div>
+        <div class="btnrow"><button class="btn pub" onclick="pub('disp')">Publish</button><button class="btn dis" onclick="dSync(0)">Reset</button></div>
         <div style="margin-top:10px;font-size:9px;color:var(--t3);line-height:1.5">Publish → weighted allocation to region / country / core-upsell. Actuals weeks locked.</div>
       </div>
     </div>
@@ -146,17 +148,17 @@
     <div class="kr kr5" id="kAsu"></div>
     <div class="row">
       <div class="card"><h3>ASU Forecast — Base vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#16a34a"></i>Actuals</span><span><i style="background:#3a6ef0"></i>New Contracts</span><span><i style="background:#6d28d9"></i>Renewals</span><span><i style="background:#ea580c"></i>Adjusted</span></div>
+        <div class="lg"><span><i style="background:#16a34a"></i>ASU actuals</span><span><i style="background:#3a6ef0"></i>New Contracts</span><span><i style="background:#6d28d9"></i>Renewals</span><span><i style="background:#ea580c"></i>Adjusted ASUs</span></div>
         <div class="cw" id="cAsu"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>Base ASU</th><th>Expiring</th><th>New Ct</th><th>APOS</th><th style="color:var(--ac)">Adj New</th><th style="color:var(--pu)">BTC APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
       </div>
       <div class="card">
         <h3>Controls</h3>
         <div class="mb blue"><h4 style="color:var(--ac)">New Contract</h4>
-          <div class="sl sl-b"><input type="range" id="ncS" min="50" max="150" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="50" max="150" value="100" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="ncS" min="-150" max="150" value="0" oninput="ncSync(this.value)"><input type="number" id="ncI" min="-150" max="150" value="0" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewal</h4>
-          <div class="sl sl-p"><input type="range" id="apS" min="50" max="150" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="50" max="150" value="100" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
+          <div class="sl sl-p"><input type="range" id="apS" min="-150" max="150" value="0" oninput="apSync(this.value)"><input type="number" id="apI" min="-150" max="150" value="0" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
         </div>
         <h4 style="font-size:10px;margin-bottom:8px">ASU vs Base (end of window)</h4>
         <div class="gap"><span>Base ASU</span><b id="aBase">0</b></div>
@@ -180,14 +182,14 @@
       <div class="card">
         <h3>Controls</h3>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="sS" min="50" max="150" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="50" max="150" value="100" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="sS" min="-150" max="150" value="0" oninput="sSync(this.value)"><input type="number" id="sI" min="-150" max="150" value="0" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
         <div class="gap"><span>Adjusted rate</span><b id="sAR">0</b></div>
         <div class="gap"><span>Target rate</span><b id="sTR">0</b></div>
         <div class="bar"><div id="sBar"></div></div>
         <div class="gap"><span>Gap</span><b id="sGap" style="color:var(--am)">0</b></div>
-        <div class="btnrow"><button class="btn pub" onclick="pub('sr')">Publish</button><button class="btn dis" onclick="sSync(100)">Reset</button></div>
+        <div class="btnrow"><button class="btn pub" onclick="pub('sr')">Publish</button><button class="btn dis" onclick="sSync(0)">Reset</button></div>
       </div>
     </div>
   </div>
@@ -257,7 +259,7 @@ function renderRail(){
     cfg.opts.forEach(function(o){
       var sel=cfg.multi?(o==='All'?F[k].length===0:F[k].indexOf(o)>=0):F[k]===o;
       var fn=cfg.multi?'toggleMulti':'selSingle';
-      h+='<div class="fopt'+(sel?' on':'')+'" onclick="'+fn+'(\''+k+'\',\''+o+'\')">'+(cfg.multi?'<span class="ck">'+(sel?'✓':'')+'</span>':'')+labOf(k,o)+'</div>';
+      h+='<div class="fopt'+(sel?' on':'')+'" onclick="'+fn+'(\''+k+'\',\''+o+'\')">'+(cfg.multi?'<span class="cb'+(sel?' on':'')+'">'+(sel?'✓':'')+'</span>':'')+labOf(k,o)+'</div>';
     });
     h+='</div></div>';
   });
@@ -266,14 +268,10 @@ function renderRail(){
 function ddClick(k){openK=(openK===k)?null:k;renderRail();}
 function toggleMulti(k,v){
   var cfg=cfgOf(k),real=cfg.opts.filter(function(o){return o!=='All';});
-  var time=(k==='fy'||k==='quarter'||k==='week');
-  if(v==='All'){F[k]=[];if(time)syncTime(k);renderRail();applyFilters();return;}
+  if(v==='All'){F[k]=[];renderRail();applyFilters();return;}
   var set={};F[k].forEach(function(x){set[x]=1;});
   if(set[v])delete set[v];else set[v]=1;
-  var arr=real.filter(function(x){return set[x];});
-  if(arr.length>=2){var idx=arr.map(function(x){return real.indexOf(x);});var lo=Math.min.apply(null,idx),hi=Math.max.apply(null,idx);arr=real.slice(lo,hi+1);}
-  F[k]=arr;
-  if(time)syncTime(k);
+  F[k]=real.filter(function(x){return set[x];});   // arbitrary (non-contiguous) multi-select, kept in option order
   renderRail();applyFilters();
 }
 function selSingle(k,v){F[k]=v;openK=null;if(k==='lob'){var s=document.getElementById('lobSel');if(s)s.value=v;loadLob(v);}renderRail();applyFilters();}
@@ -318,18 +316,18 @@ function renderCtx(){
   else{var p=[];if(fy)p.push(fy);if(q)p.push('Q '+q);if(w)p.push('W '+w);tp=p.join(' · ');}
   document.getElementById('ctx').textContent=TL.lob+' · '+F.business+' · '+tp;
 }
-// keep FY / FQ / FW representing the same window at 3 granularities
+// keep FQ / FW representing the same window (FY is now independent — see fyBox)
 function syncTime(k){
   if(!TL)return;
-  if(!F[k].length){F.fy=[];F.quarter=[];F.week=[];return;}
-  var dim=k==='fy'?'fy':k==='quarter'?'fq':'fw';
+  if(!F[k].length){F.quarter=[];F.week=[];return;}
+  var dim=k==='quarter'?'fq':'fw';
   var loV=F[k][0],hiV=F[k][F[k].length-1],lo=-1,hi=-1,i;
   for(i=0;i<TL.fw.length;i++){if(TL[dim][i]===loV){lo=i;break;}}
   for(i=TL.fw.length-1;i>=0;i--){if(TL[dim][i]===hiV){hi=i;break;}}
   if(lo<0||hi<0||lo>hi)return;
-  var fyS=[],qS=[],wS=[];
-  for(i=lo;i<=hi;i++){if(fyS.indexOf(TL.fy[i])<0)fyS.push(TL.fy[i]);if(qS.indexOf(TL.fq[i])<0)qS.push(TL.fq[i]);wS.push(TL.fw[i]);}
-  F.fy=fyS;F.quarter=qS;F.week=wS;
+  var qS=[],wS=[];
+  for(i=lo;i<=hi;i++){if(qS.indexOf(TL.fq[i])<0)qS.push(TL.fq[i]);wS.push(TL.fw[i]);}
+  F.quarter=qS;F.week=wS;
 }
 // ---------- inline SVG line chart (no external deps) ----------
 var SPLIT_FW='25-W25';   // solid up to & incl this fiscal week, dotted (forecast) after
@@ -366,14 +364,14 @@ function svgChart(elId,labels,series,yfmt){
     s+='<text x="'+(xd+3).toFixed(1)+'" y="'+(pt+8)+'" font-size="8" fill="#9099be" font-family="Plus Jakarta Sans">forecast →</text>';}
   series.forEach(function(ser){s+='<circle class="hovdot" r="3.2" fill="'+ser.color+'" stroke="#fff" stroke-width="1" visibility="hidden"/>';});
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet"><g>'+s+'</g></svg>';
-  el._hv={n:n,Xpx:Xpx,Y:Y,labels:labels,series:series,yfmt:yfmt,W:W};
+  el._hv={n:n,Xpx:Xpx,Y:Y,labels:labels,series:series,yfmt:yfmt,W:W,splitPos:splitPos};
   el.onmousemove=function(e){
     var hv=el._hv;if(!hv)return;var svg=el.querySelector('svg');if(!svg)return;var rect=svg.getBoundingClientRect();
     var vx=(e.clientX-rect.left)/rect.width*hv.W,best=0,bd=1e9;
     for(var i=0;i<hv.n;i++){var dx=Math.abs(hv.Xpx[i]-vx);if(dx<bd){bd=dx;best=i;}}
     var px=hv.Xpx[best];
     var dots=svg.querySelectorAll('.hovdot'),html='<div style="opacity:.65;margin-bottom:3px">'+hv.labels[best]+'</div>';
-    hv.series.forEach(function(ser,si){var d=dots[si];if(d){d.setAttribute('cx',px);d.setAttribute('cy',hv.Y(ser.data[best]));d.setAttribute('visibility','visible');}html+='<div><span style="color:'+ser.color+'">■</span> '+(ser.name||'')+' '+hv.yfmt(ser.data[best])+'</div>';});
+    hv.series.forEach(function(ser,si){var col=(hv.splitPos>=0&&best>hv.splitPos&&ser.fcColor)?ser.fcColor:ser.color;var d=dots[si];if(d){d.setAttribute('cx',px);d.setAttribute('cy',hv.Y(ser.data[best]));d.setAttribute('fill',col);d.setAttribute('visibility','visible');}html+='<div><span style="color:'+col+'">■</span> '+(ser.name||'')+' '+hv.yfmt(ser.data[best])+'</div>';});
     var tp=chartTip();tp.innerHTML=html;tp.style.display='block';tp.style.left=(e.clientX+14)+'px';tp.style.top=(e.clientY+14)+'px';
   };
   el.onmouseleave=function(){var tp=document.getElementById('_ctip');if(tp)tp.style.display='none';var svg=el.querySelector('svg');if(!svg)return;svg.querySelectorAll('.hovdot').forEach(function(d){d.setAttribute('visibility','hidden');});};
@@ -381,8 +379,9 @@ function svgChart(elId,labels,series,yfmt){
 // ---------- rate sheet (Dispatches / SR) ----------
 function seriesOf(kind){return kind==='disp'?TL.disp:TL.sr;}
 function calcRate(C){
-  var m=+document.getElementById(C.mI).value/100,nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,ov=OVR[C.kind];
-  return nd.map(function(v,i){var a=i<fc?v:Math.round(v*(1-(1-m)*ramp(i-fc,N)));var o=ov[TL.fw[i]];return (o!=null?o:a);});
+  var p=+document.getElementById(C.mI).value,nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,ov=OVR[C.kind];
+  // p in [-150,150], 0 = forecast (neutral); negative bends line down, positive up, ramped over forecast window
+  return nd.map(function(v,i){var a=i<fc?v:Math.round(v*(1+(p/100)*ramp(i-fc,N)));var o=ov[TL.fw[i]];return (o!=null?o:a);});
 }
 function editRate(kind,fw,val){var n=parseFloat((''+val).replace(/,/g,''));if(isFinite(n))OVR[kind][fw]=Math.round(n);else delete OVR[kind][fw];renderRate(kind==='disp'?DISP:SR);}
 function renderRate(C){
@@ -410,8 +409,8 @@ function renderRate(C){
   var tgtWeekly=vis.length?Math.round(target/100*(S.asu/vis.length)):0;
   var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
   svgChart(C.cEl,lbl,[
-    {color:'#3a6ef0',fcColor:'#3a6ef0',name:'DS',data:vis.map(function(i){return nd[i];})},
-    {color:'#16a34a',fcColor:'#3a6ef0',name:'Adj',data:vis.map(function(i){return adj[i];})},
+    {color:'#3a6ef0',fcColor:'#ea580c',name:'DS',data:vis.map(function(i){return nd[i];})},
+    {color:'#16a34a',fcColor:'#dc2626',name:'Adj',data:vis.map(function(i){return adj[i];})},
     {color:'#b45309',dash:true,name:'AOP Target',data:lbl.map(function(){return tgtWeekly;})}
   ],function(v){return fmt(v);});
   C._adj=adj;C._vis=vis;
@@ -419,7 +418,8 @@ function renderRate(C){
 function editAsu(fw,which,val){var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];renderAsu();}
 // ---------- ASU chain — New Contracts (blue) & Renewals (purple) component lines + Adjusted (orange) ----------
 function renderAsu(){
-  var ncM=+document.getElementById('ncI').value/100,apM=+document.getElementById('apI').value/100;
+  // sliders in [-150,150], 0 = forecast (neutral); mult = 1 + p/100
+  var ncM=1+(+document.getElementById('ncI').value)/100,apM=1+(+document.getElementById('apI').value)/100;
   var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,ov=OVR.asu;
   for(var i=0;i<N;i++){
     var an,ba,adjV,ncV,renV,base=TL.asu[i];
@@ -456,20 +456,23 @@ function renderAsu(){
   var lift=last.adj-last.base;var lEl=document.getElementById('aLift');lEl.textContent=(lift>=0?'+':'')+fmt(lift);lEl.style.color=lift>=0?'var(--gn)':'var(--rd)';
   document.getElementById('aBar').style.width=Math.max(4,Math.min(100,last.adj?last.base/last.adj*100:0))+'%';
   var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
+  // before forecast: single grey 'ASU actuals' line (like SR/Disp actuals). At forecast start it splits:
+  // ASU (orange, =NC+Renewals, moves with sliders) bends away; grey stays static (unadjusted NC+APOS).
   svgChart('cAsu',lbl,[
-    {color:'#16a34a',name:'Actuals',seg:'actual',data:vis.map(function(i){return rows[i].base;})},
-    {color:'#3a6ef0',name:'New Contracts',seg:'forecast',data:vis.map(function(i){return rows[i].ncLine;})},
-    {color:'#6d28d9',name:'Renewals',seg:'forecast',data:vis.map(function(i){return rows[i].renLine;})},
-    {color:'#ea580c',name:'Adjusted',seg:'forecast',data:vis.map(function(i){return rows[i].adj;})}
+    {color:'#16a34a',fcColor:'#16a34a',name:'ASU actuals',data:vis.map(function(i){return rows[i].nc+rows[i].apos;})},
+    {color:'#3a6ef0',name:'New Contracts',seg:'forecast',data:vis.map(function(i){return rows[i].adjNew;})},
+    {color:'#f9a8d4',fcColor:'#6d28d9',name:'Renewals',data:vis.map(function(i){return rows[i].btcApos;})},
+    {color:'#ea580c',name:'Adjusted ASUs',seg:'forecast',data:vis.map(function(i){return rows[i].adjNew+rows[i].btcApos;})}
   ],function(v){return fmt(v);});
   ASU_ROWS=rows;
 }
 // ---------- handlers ----------
-function dSync(v){v=Math.max(50,Math.min(150,parseInt(v)||100));document.getElementById('dS').value=v;document.getElementById('dI').value=v;renderRate(DISP)}
-function sSync(v){v=Math.max(50,Math.min(150,parseInt(v)||100));document.getElementById('sS').value=v;document.getElementById('sI').value=v;renderRate(SR)}
-function ncSync(v){v=Math.max(50,Math.min(150,parseInt(v)||100));document.getElementById('ncS').value=v;document.getElementById('ncI').value=v;renderAsu()}
-function apSync(v){v=Math.max(50,Math.min(150,parseInt(v)||100));document.getElementById('apS').value=v;document.getElementById('apI').value=v;renderAsu()}
-function aReset(){OVR.asu={};document.getElementById('ncS').value=100;document.getElementById('ncI').value=100;document.getElementById('apS').value=100;document.getElementById('apI').value=100;renderAsu()}
+function clampP(v){v=parseInt(v);if(isNaN(v))v=0;return Math.max(-150,Math.min(150,v));}
+function dSync(v){v=clampP(v);document.getElementById('dS').value=v;document.getElementById('dI').value=v;renderRate(DISP)}
+function sSync(v){v=clampP(v);document.getElementById('sS').value=v;document.getElementById('sI').value=v;renderRate(SR)}
+function ncSync(v){v=clampP(v);document.getElementById('ncS').value=v;document.getElementById('ncI').value=v;renderAsu()}
+function apSync(v){v=clampP(v);document.getElementById('apS').value=v;document.getElementById('apI').value=v;renderAsu()}
+function aReset(){OVR.asu={};document.getElementById('ncS').value=0;document.getElementById('ncI').value=0;document.getElementById('apS').value=0;document.getElementById('apI').value=0;renderAsu()}
 function pub(which){alert('Published '+which.toUpperCase()+' → weighted-allocated down to region / country / core-upsell. (mock; no live cube)')}
 function go(v){['Disp','Asu','Sr'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v)});document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-v')===v)})}
 function csv(which){var rows;
@@ -489,8 +492,9 @@ function aggLob(){
 }
 function loadLob(lob){
   TL=(lob==='All')?aggLob():BTC[lob];if(!TL)return;
+  SPLIT_FW=shortFW(TL.fw[TL.fcStart-1]);   // forecast recolor starts exactly where the modifier bend starts (fcStart)
   OVR={disp:{},sr:{},asu:{}};
-  ['dS','dI','sS','sI','ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});
+  ['dS','dI','sS','sI','ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=0;});
   F.lob=lob;renderRail();renderCtx();
   renderRate(DISP);renderRate(SR);renderAsu();
 }
