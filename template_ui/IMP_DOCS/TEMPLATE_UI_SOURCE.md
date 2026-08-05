@@ -131,19 +131,10 @@ BTC V93/V94, ASU chain, 4-Tab OLAP entry (with the "only values" / "no zeros" qu
 
 - **Fidelity mockups** (decision aids): `sim_A_grid.html` (faithful Excel grid), `sim_B_app.html`
   (polished app), `sim_C_hybrid.html` (grid + panel). User chose **B**.
-- **`btc_adjustment_simulator.html`** — the deliverable. Polished scenario app (B style), all 3
-  sheets as tabs, real POWEREDGE data from the xlsx:
-  - **Dispatches** — 1 BTC modifier (50–100%, `^8` ramp over forecast wks), MDR gap-to-target, KPI strip, Chart.js (DS/Adj/Target), weekly table, CSV.
-  - **Contracts (ASU)** — 2 levers (New Contract 80–120%, APOS Renewal 40–100%); ASU chain `Adj ASU = prev − Expiring + Adj New + BTC APOS`; ASU-lift meter; flows table.
-  - **PreUCR SR** — 1 BTC modifier vs ICR target; same pattern as Dispatches.
-  - Actuals weeks locked (`fc` index). Publish = mock (weighted-alloc note). No live cube.
-  - Math verified in Node: DISP 100%→rate .0689, 77%→.0663 (target .0645); ASU chain clean.
-  - **Fix (self-contained render):** Chart.js CDN removed — the render sandbox blocks external
-    scripts, so `new Chart` threw in `window.onload` and killed all 3 sheets (empty grid, dead
-    tabs, no charts). Now: inline SVG line charts (`svgChart()`), zero external deps, init runs
-    **synchronously** at end of body (no load-order/CDN dependency). Works sandboxed + offline.
-  - **Not yet**: real 4-tab ESG/ISG × Parts-Only/Parts+Labor intersections; other LOBs
-    (only POWEREDGE has real rows); editable-cell/publish-discard fidelity (that was mockups A/C).
+- **`btc_adjustment_simulator.html`** — the deliverable (B style). Inline SVG charts (`svgChart()`),
+  zero external deps, init runs **synchronously** at end of body (the render sandbox blocks CDN
+  scripts, so Chart.js was removed). **Rebuilt heavily across later sessions — see the authoritative
+  "CURRENT STATE" section below; the tab names / slider ranges / data-scope in this bullet are historical.**
 
 ## Raw dataset (8-LOB source for the UI)
 
@@ -153,8 +144,12 @@ FY22–26, ASU/APOS/Renewals) + `name_mapping_reference.xlsx`. Generator: `templ
 (renamed from `data/`; an `output/` folder will hold the published series post-adjustment):
 
 - **`btc_raw_dataset.csv`** — tidy long, 7,488 rows (8 LOB × 3 region × 312 wks), all dims + metrics.
-- **`btc_data.json`** — compact per-LOB UI source: FY27 52-wk forecast window + 8-wk FY26 tail,
-  dispatch/SR/ASU-chain arrays + SMOD/ICR targets.
+- **`btc_data.js` / `btc_data.json`** — per-LOB UI source. **Now the FULL FY22–FY27 weekly timeline
+  (312 wks/LOB)**, region-aggregated, emitted by **`gen_ui_from_csv.py`** (reads `btc_raw_dataset.csv`
+  directly — no xlsx/openpyxl dep). Per LOB: `fw/fy/fq/series/asu/disp/sr/nc/apos/exp` arrays, `fcStart`
+  (=260, first FY27 wk), `dispTarget(N)/srTarget(N)`. Top-level `opts:{fy,quarter,week}` = the rail's
+  option lists. `btc_data.js` wraps as `window.BTC_DATA` for `<script src>` (file://-safe; replaced the
+  old `fetch` of `.json`). The older `gen_btc_dataset.py` (FY27-only + xlsx source) is superseded for the UI.
 - **`TERMS_REFERENCE.md` / `.csv`** — decode key (8 LOBs Dell→generic, dim mappings, metric defs, rate assumptions).
 
 8 LOBs: Server Line A (Poweredge), Server Line B AI (Poweredge AI), Storage Array C (Powerscale),
@@ -164,14 +159,58 @@ Hyperconverged A (Vxrail), Networking A (Powerswitch).
 Key facts:
 - Master has ASU/APOS/Renewals only → **Dispatches & SR derived** = ASU × MDR(.00072)/ICR(.0013) × per-LOB mult × seeded noise, calibrated to the real Adjustment templates.
 - **ASU chain** closes exactly within FY (Expiring = balancing term; New Contract/APOS Renewal modelled inflows). FY26→FY27 boundary = intentional anchor reset (24 = 8×3 non-continuous seam weeks).
-- FY22–26 = actuals, FY27 = generated forward forecast (the BTC-adjustable window).
-- **Wired (done):** `btc_adjustment_simulator.html` now `fetch`es `input/btc_data.json` on load →
-  LOB dropdown (8) drives all 3 sheets; each LOB = 8-wk FY26 actual tail (locked) + 52-wk FY27 forecast
-  the sliders bend. Hardcoded POWEREDGE slice removed. Load-error banner if fetch fails.
-  **Must serve over http** (`python -m http.server` in `template_ui/`) — `fetch` is blocked on `file://`.
-  Verified over http: LOB switch updates every sheet, KPIs match generator, 0 console errors.
-- **Not yet:** region/BU/service filters (JSON is region-aggregated; needs richer JSON or read the raw CSV);
-  `output/` publish folder; real 4-tab intersections.
+- FY22–26 = actuals, FY27 = generated forward forecast (the BTC-adjustable window; `fcStart`=260).
+
+## btc_adjustment_simulator.html — CURRENT STATE (authoritative)
+
+> Rebuilt across several iteration rounds; supersedes the historical "Build log" / "Raw dataset —
+> Wired" notes above. Single self-contained HTML, inline SVG charts, no external deps, data via
+> `<script src="input/btc_data.js">` (works from `file://`). Regenerate data: `python input/gen_ui_from_csv.py`.
+
+**Header/chrome** — brand **"BPA"**, breadcrumb **"BTC Adjustment Simulator"** (old "ISG BPA /
+Scenario Model /" dropped). No header LOB dropdown, no clock. Right purple **info badge** (`#ctx`,
+`renderCtx()`) = `LOB · Business Unit · time-period`; time-period shows FY range plus Q and W ranges when selected.
+
+**Tabs** — `ASUs` (default, leftmost) · `SRs` · `Dispatches`. `go('asu'|'sr'|'disp')`.
+
+**Data model** — `window.BTC_DATA = {lobs, opts:{fy,quarter,week}, data:{lob:{fw,fy,fq,series,asu,disp,sr,nc,apos,exp,fcStart,dispTarget(N),srTarget(N)}}}`.
+`TL` = active-LOB timeline; `loadLob(lob)` sets it, `'All'` → `aggLob()` sums all 8 LOBs. **Default LOB = All.**
+
+**Filter rail** (right, collapsible, 12 filters) — fy/quarter/week **multi**, region, lob (Global LOB incl **All**),
+business, warranty, service, coreupsell, wotype, fqm, gcfa **single**. fy/quarter/week/lob are functional;
+the rest cosmetic (no per-dim data in `btc_data.js`).
+- FY/FQ/FW are **arbitrary (non-contiguous) multi-select** via **checkbox squares** (`.cb`) inside each dropdown
+  (`toggleMulti` toggles a value in/out, kept in option order). The old contiguous-range auto-fill and the
+  FY↔FQ↔FW `syncTime` linking were **removed** — each of FY/FQ/FW now filters independently. (`syncTime` is dead code.)
+- `visIdx()` = fy∩quarter∩week over `TL` → drives charts + tables + KPIs; all-clear = all 312 wks.
+- Collapse `»` sits in the Filters header row; collapsed → fixed `☰` at `right:18px` (card-edge aligned).
+  **Reset filters** button (→ All) under the header.
+
+**KPI cards** (3-per-row) — each carries a **change badge** (▲green/▼red %, no QoQ/WoW text) between first
+& last selected period (week→WoW, quarter→QoQ, fy→YoY). ASU: ASU actuals · Adjusted ASU · Declines ·
+New Contracts · Renewals. Rate: DS Forecast · BTC Adjusted · **AOP Target** · Forecast Rate · Adjusted Rate ·
+Gap (whole-number unit gap). US number grouping (`xxx,xxx,xxx`); ASU shown in full (no `M`). Sub-text removed.
+
+**Charts** (`svgChart`) — solid **actuals**, recolored **forecast** segment after the divider. `SPLIT_FW` is now set
+per-LOB in `loadLob` to `shortFW(TL.fw[TL.fcStart-1])` — i.e. the divider sits **exactly at `fcStart` (FY27)**, so the
+forecast recolor and the slider bend start at the same point (old fixed `'25-W25'` mismatch removed). Dashed vertical
+line + "forecast →".
+- **SR & Dispatches** — DS line (blue actuals → **orange** `#ea580c` forecast), **Adj / modifier** line (green
+  `#16a34a` actuals → **red** `#dc2626` forecast), AOP **Target** dashed amber.
+- **ASU** — 4 lines: **ASU actuals** green `#16a34a` (static baseline = unadjusted `nc+apos`, spans the whole
+  timeline; the adjusted line splits off it at forecast start); **New Contracts** `#3a6ef0` (forecast segment only);
+  **Renewals** light pink `#f9a8d4` before → purple `#6d28d9` after; **Adjusted ASUs** orange `#ea580c`
+  (=`adjNew+btcApos`, forecast only). ASU total (orange) = New Contracts + Renewals.
+- **Hover tooltip** — dots + floating box; swatch/dot colour is **segment-aware** (uses `fcColor` when the hovered
+  index is past `splitPos`), so e.g. SR/Disp Adj shows green before forecast, red after.
+
+**Sliders** — range **−150%…+150%, neutral 0** (0 = forecast). Disp/SR **BTC Modifier**: `adj=nd·(1+(p/100)·ramp)`,
+`ramp=(w/(N−1))^8`. ASU **New Contract**(blue)+**APOS Renewal**(purple): mult `=1+p/100`,
+`adjNew=nc·mult`, `btcApos=apos·mult`. Negative bends down, positive up; at 0 the adjusted line overlays the
+neutral forecast. Slider shortened (`flex:0.55`), number box widened (`82px`). `clampP()` clamps to [−150,150].
+
+**Editable table** — adjusted cells on **forecast rows** are inputs (`.ec`): Disp/SR **Adj**; ASU **Adj New**+**BTC APOS**.
+Edits store per-week in `OVR{disp,sr,asu}` (wins over slider), recompute chart/KPIs; cleared on Reset / LOB switch.
 
 ## Future-state asks voiced in calls (product direction)
 
