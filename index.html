@@ -222,12 +222,12 @@
     <p class="section-label">Primary Tools</p>
     <div class="primary-grid">
 
-      <a href="forecast_copilot_v2/Dashboard — Forecast Copilot.html" class="primary-card" style="--card-accent:#0d9488;">
-        <div class="card-tag">AI Planning Suite ✦</div>
-        <div class="card-title">Forecast Copilot <span class="new-badge">New</span></div>
-        <div class="card-desc">Full Bend-The-Curve planning workflow — New Contracts &amp; Renewals Simulation, a real 3-strategy BTC Recommendation Engine, Automatic Weekly Distribution, and Final Forecast submission. Cross-page filters and selections persist across all 6 pages.</div>
+      <a href="template_ui/btc_adjustment_simulator.html" class="primary-card" style="--card-accent:#0d9488;">
+        <div class="card-tag">BTC Simulator ✦</div>
+        <div class="card-title">BTC Adjustments <span class="new-badge">New</span></div>
+        <div class="card-desc">Bend-The-Curve adjustment simulator — reconcile the statistical forecast to SMOD / AOP targets across ASUs, SRs, and Dispatches with live sliders (−150%…+150%, 0 = forecast) and per-week manual overrides.</div>
         <div class="card-footer">
-          <span class="card-file">forecast_copilot_v2/Dashboard — Forecast Copilot.html</span>
+          <span class="card-file">template_ui/btc_adjustment_simulator.html</span>
           <span class="card-cta">Open &#8594;</span>
         </div>
       </a>
@@ -306,7 +306,7 @@
 
   <script>
     const PRIMARY = new Set([
-      'forecast_copilot_v2/Dashboard — Forecast Copilot.html',
+      'template_ui/btc_adjustment_simulator.html',
       'BPA_FORCASTING_MOCK.HTML',
       'TET BPA — Business Planning and Analytics.html',
       'AST_Forcasting.html',
@@ -316,7 +316,7 @@
     ]);
 
     const LABELS = {
-      'forecast_copilot_v2/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
+      'template_ui/btc_adjustment_simulator.html': 'BTC Adjustments — BTC Adjustment Simulator',
       'BPA_FORCASTING_MOCK.HTML':                     'TET BPA — Forecasting Suite (Active)',
       'TET BPA — Business Planning and Analytics.html':                       'TET BPA v2 — Redesign',
       'AST_Forcasting.html':                          'TET BPA: Business Planning and Analytics',
@@ -364,8 +364,8 @@
         .sort((a, b) => {
           const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
           if (aP !== bP) return aP ? -1 : 1;
-          if (a[0] === 'forecast_copilot_v2/Dashboard — Forecast Copilot.html') return -1;
-          if (b[0] === 'forecast_copilot_v2/Dashboard — Forecast Copilot.html') return 1;
+          if (a[0] === 'template_ui/btc_adjustment_simulator.html') return -1;
+          if (b[0] === 'template_ui/btc_adjustment_simulator.html') return 1;
           if (a[0] === 'BPA_FORCASTING_MOCK.HTML')   return -1;
           if (b[0] === 'BPA_FORCASTING_MOCK.HTML')   return 1;
           if (a[0] === 'TET BPA — Business Planning and Analytics.html') return -1;
