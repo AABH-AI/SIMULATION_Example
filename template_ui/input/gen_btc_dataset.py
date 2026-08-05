@@ -126,6 +126,10 @@ hdr=["FY","Fiscal Quarter","Fiscal Week","LOB","Category","Region","Business Uni
      "ASU","APOS","Renewals","Expiring","New Contract","APOS Renewal","Dispatches","SRs"]
 with open(os.path.join(OUT,"btc_raw_dataset.csv"),"w",newline="",encoding="utf-8") as f:
     w=csv.writer(f); w.writerow(hdr); w.writerows(raw_rows)
+payload={"generated_from":"forecast_fy26.xlsx","forecast_window":"FY27 (52 wks)","lobs":LOBS,"data":ui}
 with open(os.path.join(OUT,"btc_data.json"),"w",encoding="utf-8") as f:
-    json.dump({"generated_from":"forecast_fy26.xlsx","forecast_window":"FY27 (52 wks)","lobs":LOBS,"data":ui},f,indent=1)
+    json.dump(payload,f,indent=1)
+# also emit a JS wrapper so the UI loads via <script src> (works from file:// — fetch does not)
+with open(os.path.join(OUT,"btc_data.js"),"w",encoding="utf-8") as f:
+    f.write("window.BTC_DATA = "+json.dumps(payload)+";\n")
 print("raw rows:",len(raw_rows),"| LOBs:",len(ui))
