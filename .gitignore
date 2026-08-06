@@ -33,3 +33,17 @@ forecast_copilot_v2/input/name_mapping_reference.xlsx
 
 # Local-only BTC guide — keep locally, never commit.
 forecast_copilot_v2/IMP_DOCS_FC/BTC_GUIDE.md
+
+# Compliance: confidential Dell client discovery material (real call transcripts, the real
+# adjustment workbook, BTC guide, flow diagram, source-notes with real names) — keep locally, NEVER publish.
+template_ui/day-3.vtt
+template_ui/day 4.txt
+template_ui/Adjustment 1Templates.xlsx
+template_ui/BTC Guide — Forecast Copilot.html
+template_ui/adjustment flow.png
+template_ui/artifact-793a3bd0-38c5-41eb-9772-30b6c8235313-17.html
+template_ui/IMP_DOCS/day-3.vtt
+template_ui/IMP_DOCS/day 4.txt
+template_ui/IMP_DOCS/BTC Guide — Forecast Copilot.html
+template_ui/IMP_DOCS/adjustment flow.png
+template_ui/IMP_DOCS/TEMPLATE_UI_SOURCE.md
