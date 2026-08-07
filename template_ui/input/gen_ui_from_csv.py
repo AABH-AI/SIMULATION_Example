@@ -24,6 +24,9 @@ for r in rows:
 # aggregate across regions: key (LOB, Fiscal Week) -> summed measures + tags
 agg = defaultdict(lambda: {"asu":0,"disp":0,"sr":0,"nc":0,"apos":0,"exp":0})
 meta = {}   # (lob, fw) -> (fy, fq, series)
+# P5 allocation: forecast-window ASU summed per (LOB, dim, value) -> normalised weights
+ALLOC_DIMS = {"region":"Region","coreupsell":"Core/Upsell","service":"Service Type"}
+alloc = defaultdict(float)   # (lob, dim_key, value) -> ASU
 for r in rows:
     k = (r["LOB"], r["Fiscal Week"])
     a = agg[k]
@@ -31,6 +34,19 @@ for r in rows:
     a["sr"]   += int(r["SRs"]);          a["nc"]   += int(r["New Contract"])
     a["apos"] += int(r["APOS Renewal"]); a["exp"]  += int(r["Expiring"])
     meta[k] = (r["FY"], r["Fiscal Quarter"], r["Series"])
+    if r["Series"] == "Forecast":
+        for dk, col in ALLOC_DIMS.items():
+            alloc[(r["LOB"], dk, r[col])] += int(r["ASU"])
+
+def alloc_for(lob):
+    """Normalised forecast-window ASU shares per dimension, e.g.
+    {'region':{'Americas':0.51,...}, 'coreupsell':{...}, 'service':{...}}."""
+    out = {}
+    for dk in ALLOC_DIMS:
+        pairs = {v: w for (l, d, v), w in alloc.items() if l == lob and d == dk}
+        tot = sum(pairs.values()) or 1
+        out[dk] = {v: round(w / tot, 4) for v, w in sorted(pairs.items(), key=lambda x: -x[1])}
+    return out
 
 data = OrderedDict()
 for lob in LOBS:
@@ -44,15 +60,20 @@ for lob in LOBS:
     nc   = [agg[(lob,w)]["nc"]   for w in wks]
     apos = [agg[(lob,w)]["apos"] for w in wks]
     exp  = [agg[(lob,w)]["exp"]  for w in wks]
+    # P4 Ships Forecast: synthesised gross-shipment driver, ~15% above net new contracts.
+    # Deterministic (pure function of nc). Feeds ASU as a distinct adjustable inflow; no raw
+    # ships column exists in the master, so this is a derived component (like Dispatches/SRs).
+    ships = [round(x * 1.15) for x in nc]
     fcStart = next(i for i,s in enumerate(series) if s == "Forecast")
     # rate targets from the FY27 forecast slice
     sD = sum(disp[fcStart:]); sS = sum(sr[fcStart:]); sA = sum(asu[fcStart:])
     data[lob] = {
         "lob": lob, "category": CAT[lob], "fcStart": fcStart,
         "fw": wks, "fy": fy, "fq": fq, "series": series,
-        "asu": asu, "disp": disp, "sr": sr, "nc": nc, "apos": apos, "exp": exp,
+        "asu": asu, "disp": disp, "sr": sr, "nc": nc, "apos": apos, "exp": exp, "ships": ships,
         "dispTarget": round((sD/sA)*SMOD_BEND, 5) if sA else 0, "dispTargetN": round(sD*SMOD_BEND),
         "srTarget":   round((sS/sA)*SMOD_BEND, 5) if sA else 0, "srTargetN":   round(sS*SMOD_BEND),
+        "alloc": alloc_for(lob),
     }
 
 # shared option lists (same timeline for every LOB)
