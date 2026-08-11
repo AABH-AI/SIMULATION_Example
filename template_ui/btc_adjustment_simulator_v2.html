@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>BTC Adjustment Simulator v2 (Flow-Aligned) — BPA</title>
+<title>BTC Adjustment Simulator v3 (Adjustment Cycle) — BPA</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- cdnjs, NOT code.highcharts.com (that 403s requests without a Referer, breaks file:// + strict referrer) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
@@ -36,13 +36,14 @@
   .info b{color:var(--t1)}.info .i{color:var(--ac);font-weight:800}
   .kr{display:grid;gap:10px;margin-bottom:12px}
   .kr6,.kr5{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kr4{grid-template-columns:repeat(4,minmax(0,1fr))}
   .kr2{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kchg{font-family:var(--mo);font-size:10px;font-weight:600;margin-top:6px}
   .kp{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
   .kl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
   .kv{font-family:var(--mo);font-size:19px;font-weight:600;line-height:1}
   .ks{font-size:9px;margin-top:5px;color:var(--t3)}
-  .row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,0.82fr);gap:12px}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,310px);gap:12px}
   .card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px}
   .card h3{font-size:11px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
   .card h3 .ex{font-size:10px;font-weight:600;color:var(--gn);cursor:pointer;padding:3px 8px;border:1px solid #86efac;background:#dcfce7;border-radius:5px}
@@ -60,7 +61,11 @@
   .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;cursor:pointer}
   .sl-b input[type=range]::-webkit-slider-thumb{background:var(--ac)}
   .sl-p input[type=range]::-webkit-slider-thumb{background:var(--pu)}
-  .sl input[type=number]{width:82px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .sl-d input[type=range]::-webkit-slider-thumb{background:#0d9488}
+  .sl-b input[type=range]::-moz-range-thumb{background:var(--ac);border:none;width:15px;height:15px;border-radius:50%}
+  .sl-p input[type=range]::-moz-range-thumb{background:var(--pu);border:none;width:15px;height:15px;border-radius:50%}
+  .sl-d input[type=range]::-moz-range-thumb{background:#0d9488;border:none;width:15px;height:15px;border-radius:50%}
+  .sl input[type=number]{flex:0 0 90px;width:90px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
   .hint{font-size:8px;color:var(--t3);display:flex;justify-content:space-between;margin-bottom:16px}
   .mb{border:1px solid var(--bd);border-radius:8px;padding:8px 9px;margin-bottom:9px}
   .mb.blue{border-color:rgba(58,110,240,.3)}.mb.purple{border-color:rgba(109,40,217,.3)}
@@ -149,117 +154,184 @@
   .allocgrp h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:7px}
   .modalbody table{width:100%}
   .modalfoot{padding:12px 18px;border-top:1px solid var(--bd);display:flex;gap:9px;justify-content:flex-end}
+  .reset-btn{float:right;font-size:10px;padding:4px 8px;margin-left:8px}
+  .hdbtns{display:inline-flex;gap:6px;align-items:center}
+  .hdbtns .btn{float:none;margin:0}
+  .card.ctl.collapsed{display:none}
+  .row.ctl-collapsed{grid-template-columns:minmax(0,1fr)}
+  .ctlreopen{position:fixed;top:105px;right:18px;z-index:41;display:none;box-shadow:0 4px 12px rgba(15,23,42,.14)}
+  .step-nav{font-size:11px;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t2);cursor:pointer;transition:all .15s}
+  .step-nav:hover:not(:disabled){background:var(--chi);border-color:var(--bh);color:var(--t1)}
+  .step-nav:disabled{opacity:.4;cursor:not-allowed}
+  /* 4-tab storage segment bar */
+  .segbar{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
+  .segt{padding:6px 13px;border:1px solid var(--bd);background:var(--cd);color:var(--t2);border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--ui)}
+  .segt:hover:not(.on){border-color:var(--ac);color:var(--ac)}
+  .segt.on{background:var(--pu);border-color:var(--pu);color:#fff}
+  /* editable target box — no blinking caret */
+  .ec.tgtbox{max-width:74px;caret-color:transparent}
+  /* hide scrollbars everywhere (keep scrollability) */
+  *{scrollbar-width:none;-ms-overflow-style:none}
+  *::-webkit-scrollbar{width:0;height:0;display:none}
+  /* control-collapse reopen gear, pinned inside the chart/table card */
+  .row > .card:first-child{position:relative}
+  .ctlgear{position:absolute;top:12px;right:12px;z-index:6;display:none}
+  .row.ctl-collapsed .ctlgear{display:flex}
+  /* filter rail: collapsible "More filters" group */
+  .morehdr{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;color:var(--t1);cursor:pointer;padding:9px 0 7px;border-top:1px solid var(--bd);margin:2px 0 4px}
+  .morehdr:hover{color:var(--ac)}
+  .morehdr .cr{font-size:9px;color:var(--t3)}
+  .moreblk{display:none}
+  .moreblk.open{display:block}
 </style>
 </head>
 <body class="rail-open">
 <div class="hd">
   <span class="brand">BPA</span>
-  <span class="crumb"><b>BTC Adjustment Simulator</b> · Flow-Aligned</span>
+  <span class="crumb"><b>BTC Adjustment Simulator</b> · Adjustment Cycle <span id="cycleFY">FY27</span>, <span id="passCount">Pass 1</span></span>
   <div style="flex:1"></div>
-  <button class="expbtn" id="exportbtn" onclick="exportPublished()" style="display:none">⇩ Export data</button>
   <span class="ctx" id="ctx">—</span>
   <button class="themebtn" id="themebtn" onclick="toggleTheme()" title="Toggle dark mode">☾</button>
 </div>
 <div class="stepper" id="stepper">
-  <div class="step on" id="st1"><b>1</b> Adjust ASU <span class="sub">driver</span></div>
+  <button class="step-nav prev" id="prevStep" onclick="navStep(-1)" disabled>← Prev</button>
+  <div class="step on" id="st1"><b>1</b> Adjust SRs &amp; Dispatches</div>
   <span class="arw">→</span>
-  <div class="step" id="st2"><b>2</b> Adjust Dispatches &amp; SRs</div>
+  <div class="step" id="st2"><b>2</b> Adjust ASU <span class="sub">driver</span></div>
   <span class="arw">→</span>
-  <div class="step" id="st3"><b>3</b> Publish → UMS</div>
+  <div class="step" id="st3"><b>3</b> Publish</div>
+  <button class="step-nav next" id="nextStep" onclick="navStep(1)">Next →</button>
 </div>
 <div class="tabs">
-  <div class="tab on" data-v="asu" onclick="go('asu')">ASUs</div>
+  <div class="tab" data-v="asu" onclick="go('asu')">ASUs</div>
+  <div class="tab on" data-v="sr" onclick="go('sr')">SRs</div>
   <div class="tab" data-v="disp" onclick="go('disp')">Dispatches</div>
-  <div class="tab" data-v="sr" onclick="go('sr')">SRs</div>
+  <div class="tab" data-v="pub" onclick="go('pub')">Publish</div>
 </div>
 <div id="loadErr" style="display:none;margin:14px 18px;padding:12px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:9px;color:#b91c1c;font-size:12px;line-height:1.6"></div>
 <div class="wrap">
 
   <!-- DISPATCHES -->
   <div class="view" id="vDisp">
+    <div class="segbar" id="segDisp"></div>
     <div class="kr kr6" id="kDisp"></div>
     <div class="row">
-      <div class="card"><h3>Dispatches — DS vs Adjusted vs Target</h3>
+      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cDisp"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>ADJ Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div>
       </div>
-      <div class="card">
-        <h3>Controls</h3>
-        <div class="gate" id="gateDisp"><span>🔒</span><span>Lock the ASU forecast (Step&nbsp;1) to enable publishing.</span></div>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="dReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
+        <div class="gate" id="gateDispLock"><span>🔒</span><span>Lock this forecast to finalize adjustments.</span></div>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="dS" min="-150" max="150" value="0" oninput="dSync(this.value)"><input type="number" id="dI" min="-150" max="150" value="0" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="dS" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
-        <div class="ks" style="margin:-4px 0 8px 2px">Derived from adjusted ASU × MDR, then bent by the modifier.</div>
-        <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
+        <h4 style="font-size:10px;margin:6px 0 8px">Gap to Target</h4>
         <div class="gap"><span>Adjusted rate</span><b id="dAR">0</b></div>
-        <div class="gap"><span>Target rate</span><b id="dTR">0</b></div>
+        <div class="gap"><span>Target rate</span><input class="ec tgtbox" id="dTR" value="0%" onfocus="this.select()" onchange="setTarget('disp',this.value)"></div>
         <div class="bar"><div id="dBar"></div></div>
         <div class="gap"><span>Gap</span><b id="dGap" style="color:var(--am)">0</b></div>
-        <div class="btnrow"><button class="btn pub" id="pubDisp" onclick="pub('disp')" disabled>Publish</button><button class="btn dis" onclick="dReset()">Reset</button></div>
+        <div class="btnrow"><button class="btn dis" onclick="go('sr')">← Switch to SRs</button></div>
+        <div class="btnrow"><button class="btn pub" id="dispLockBtn" onclick="toggleDispLock()">🔒 Lock forecast</button></div>
+        <div class="btnrow" style="justify-content:center"><button class="btn pub" id="goStep3Disp" onclick="setStep(2)" style="display:none;flex:0 0 auto;padding:8px 24px">Go to Step 2 (ASU) →</button></div>
       </div>
     </div>
   </div>
 
   <!-- CONTRACTS / ASU -->
-  <div class="view on" id="vAsu">
+  <div class="view" id="vAsu">
     <div class="kr kr5" id="kAsu"></div>
     <div class="row">
-      <div class="card"><h3>ASU Forecast — Base vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span><i style="background:#0d9488"></i>Ships Actuals</span><span><i style="background:#ea580c"></i>Adj ASU</span><span><i style="background:#0891b2"></i>ADJ NC</span><span><i style="background:#ac4073"></i>ADJ APOS</span><span><i style="background:#d97706"></i>ADJ Ships</span></div>
+      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span><i style="background:#ea580c"></i>Adj ASU</span><span><i style="background:#0891b2"></i>Adj NC</span><span><i style="background:#ac4073"></i>Adj APOS</span><span class="decl-lg"><i style="background:#0d9488"></i>Decline Actuals</span><span class="decl-lg"><i style="background:#d97706"></i>Adj Decline</span></div>
         <div class="cw" id="cAsu"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Ships Actuals</th><th style="color:var(--ac)">ADJ NC</th><th style="color:var(--pu)">ADJ APOS</th><th style="color:#0d9488">ADJ Ships</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Decline Actuals</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th style="color:#0d9488">Adj Decline</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
       </div>
-      <div class="card">
-        <h3>Controls</h3>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="aReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
         <div class="mb blue"><h4 style="color:var(--ac)">New Contract</h4>
-          <div class="sl sl-b"><input type="range" id="ncS" min="-150" max="150" value="0" oninput="ncSync(this.value)"><input type="number" id="ncI" min="-150" max="150" value="0" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="ncS" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewal</h4>
-          <div class="sl sl-p"><input type="range" id="apS" min="-150" max="150" value="0" oninput="apSync(this.value)"><input type="number" id="apI" min="-150" max="150" value="0" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
+          <div class="sl sl-p"><input type="range" id="apS" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
         </div>
-        <div class="mb" style="border-color:rgba(13,148,136,.35)"><h4 style="color:#0d9488">Ships Forecast</h4>
-          <div class="sl"><input type="range" id="shS" min="-150" max="150" value="0" oninput="shSync(this.value)" style="accent-color:#0d9488"><input type="number" id="shI" min="-150" max="150" value="0" oninput="shSync(this.value)"><span style="font-weight:700;color:#0d9488">%</span></div>
+        <div class="mb" style="border-color:rgba(13,148,136,.35)"><h4 style="color:#0d9488">Declines</h4>
+          <input type="file" id="declFile" accept=".csv,.txt" style="display:none" onchange="importDeclines(this.files[0]);this.value='';">
+          <div style="display:flex;align-items:center;gap:8px"><button class="btn dis" style="flex:0 0 auto;padding:6px 12px" id="declBtn" onclick="document.getElementById('declFile').click()">⇧ Import declines</button><span id="declStatus" class="ks"></span></div>
         </div>
         <h4 style="font-size:10px;margin-bottom:8px">ASU vs Base (end of window)</h4>
         <div class="gap"><span>Base ASU</span><b id="aBase">0</b></div>
         <div class="gap"><span>Adjusted ASU</span><b id="aAdj" style="color:var(--ac)">0</b></div>
         <div class="bar"><div id="aBar"></div></div>
         <div class="gap"><span>Delta</span><b id="aLift" style="color:var(--gn)">0</b></div>
-        <div class="info" style="margin:10px 0 0"><span class="i">ⓘ</span><span>ASU is the upstream <b>driver</b> — not published to UMS. Lock it to feed Dispatches &amp; SRs, then publish those.</span></div>
-        <div class="btnrow"><button class="btn pub" id="asuLockBtn" onclick="toggleLock()">🔒 Lock forecast</button><button class="btn dis" onclick="aReset()">Reset</button></div>
+        <div class="btnrow"><button class="btn dis" onclick="setStep(1)">← Back to Step 1</button><button class="btn pub" id="asuLockBtn" onclick="toggleLock()">🔒 Lock forecast</button></div>
+        <div class="btnrow" style="justify-content:center"><button class="btn pub" id="goStep2" onclick="setStep(3)" style="display:none;flex:0 0 auto;padding:8px 24px">Go to Step 3 →</button></div>
       </div>
     </div>
   </div>
 
   <!-- PreUCR SR -->
-  <div class="view" id="vSr">
+  <div class="view on" id="vSr">
+    <div class="segbar" id="segSr"></div>
     <div class="kr kr6" id="kSr"></div>
     <div class="row">
-      <div class="card"><h3>SRs — DS vs Adjusted vs Target</h3>
+      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cSr"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div>
       </div>
-      <div class="card">
-        <h3>Controls</h3>
-        <div class="gate" id="gateSr"><span>🔒</span><span>Lock the ASU forecast (Step&nbsp;1) to enable publishing.</span></div>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="sReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
+        <div class="gate" id="gateSrLock"><span>🔒</span><span>Lock this forecast to finalize adjustments.</span></div>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="sS" min="-150" max="150" value="0" oninput="sSync(this.value)"><input type="number" id="sI" min="-150" max="150" value="0" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="sS" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
-        <div class="ks" style="margin:-4px 0 8px 2px">Derived from adjusted ASU × ICR, then bent by the modifier.</div>
-        <h4 style="font-size:10px;margin-bottom:8px">Gap to Target</h4>
+        <h4 style="font-size:10px;margin:6px 0 8px">Gap to Target</h4>
         <div class="gap"><span>Adjusted rate</span><b id="sAR">0</b></div>
-        <div class="gap"><span>Target rate</span><b id="sTR">0</b></div>
+        <div class="gap"><span>Target rate</span><input class="ec tgtbox" id="sTR" value="0%" onfocus="this.select()" onchange="setTarget('sr',this.value)"></div>
         <div class="bar"><div id="sBar"></div></div>
         <div class="gap"><span>Gap</span><b id="sGap" style="color:var(--am)">0</b></div>
-        <div class="btnrow"><button class="btn pub" id="pubSr" onclick="pub('sr')" disabled>Publish</button><button class="btn dis" onclick="sReset()">Reset</button></div>
+        <div class="btnrow"><button class="btn dis" onclick="go('disp')">Switch to Dispatches →</button></div>
+        <div class="btnrow"><button class="btn pub" id="srLockBtn" onclick="toggleSrLock()">🔒 Lock forecast</button></div>
+        <div class="btnrow" style="justify-content:center"><button class="btn pub" id="goStep3Sr" onclick="setStep(2)" style="display:none;flex:0 0 auto;padding:8px 24px">Go to Step 2 (ASU) →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLISH PAGE (Step 3) -->
+  <div class="view" id="vPub">
+    <div class="gate" id="pubGate"><span>🔒</span><span>Lock SRs &amp; Dispatches (Step&nbsp;1) and ASU (Step&nbsp;2) to enable export.</span></div>
+    <div class="kr kr4" id="kPub"></div>
+    <div class="kr kr4" style="margin-bottom:12px">
+      <div class="card"><h3>ASU — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>ASU Forecast</span><span><i style="background:#ea580c"></i>Adj ASU</span></div>
+        <div class="cw" id="cPubAsu"></div></div>
+      <div class="card"><h3>SRs — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#6d28d9"></i>SR Forecast</span><span><i style="background:#ea580c"></i>Adj SR</span></div>
+        <div class="cw" id="cPubSr"></div></div>
+      <div class="card"><h3>Dispatches — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>Disp Forecast</span><span><i style="background:#ea580c"></i>Adj Disp</span></div>
+        <div class="cw" id="cPubDisp"></div></div>
+      <div class="card"><h3>Declines — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#0d9488"></i>Decline Forecast</span><span><i style="background:#ea580c"></i>Adj Decline</span></div>
+        <div class="cw" id="cPubDecline"></div></div>
+    </div>
+    <div class="row">
+      <div class="card"><h3>Published Forecast Summary</h3>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU_Adj</th><th>SR_Adj</th><th>Disp_Adj</th><th>Decline_Adj</th></tr></thead><tbody id="tPub"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Export</h3>
+        <div class="info" style="margin:12px 0"><span class="i">ⓘ</span><span>Export the adjusted forecast data for the forecast window (FY27).</span></div>
+        <div class="btnrow"><button class="btn dis" onclick="setStep(2)">← Back to Step 2</button></div>
+        <div class="btnrow"><button class="btn pub" id="exportBtnPage" onclick="exportPublished()" disabled>⇩ Export data</button></div>
       </div>
     </div>
   </div>
 
 </div>
-<button class="ficon freopen" id="freopen" onclick="toggleRail()" title="Show filters">☰</button>
+<button class="ficon freopen" id="freopen" onclick="toggleRail()" title="Show filters"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
 <aside class="frail" id="frail">
   <div class="frail-hd"><span>Filters</span><button class="ficon" onclick="toggleRail()" title="Collapse filters">»</button></div>
   <button class="freset" onclick="resetFilters()">↺ Reset filters</button>
@@ -273,6 +345,7 @@
   </div>
 </div>
 <!-- data loaded from the generated file so the UI reflects the source; <script src> works from file:// -->
+<script src="input/declines_dummy.js"></script>
 <script src="input/btc_data.js"></script>
 <script>
 </script>
@@ -280,12 +353,18 @@
 // ---------- data (window.BTC_DATA from input/btc_data.js — full FY22-FY27 timeline) ----------
 var BTC={};          // { lob: {fw,fy,fq,series,asu,disp,sr,nc,apos,exp,fcStart,...} }
 var TL=null;         // active timeline for the selected LOB
-var DISP={kind:'disp',mI:'dI',kEl:'kDisp',tEl:'tDisp',cEl:'cDisp',arEl:'dAR',trEl:'dTR',gapEl:'dGap',barEl:'dBar',unit:'Dispatches',tgtLbl:'SMOD',rateLbl:'MDR ×100',dsName:'DISP Actuals',adjName:'ADJ Disp'};
-var SR  ={kind:'sr',  mI:'sI',kEl:'kSr',  tEl:'tSr',  cEl:'cSr',  arEl:'sAR',trEl:'sTR',gapEl:'sGap',barEl:'sBar',unit:'SRs',       tgtLbl:'ICR', rateLbl:'ICR ×100',dsName:'SR Actuals',adjName:'Adj SRs'};
+var DISP={kind:'disp',mI:'dI',kEl:'kDisp',tEl:'tDisp',cEl:'cDisp',kpiId:'kDisp',tabId:'tDisp',chartId:'cDisp',arEl:'dAR',trEl:'dTR',gapEl:'dGap',barEl:'dBar',unit:'Dispatches',tgtLbl:'SMOD',rateLbl:'MDR ×100',dsName:'DISP Actuals',adjName:'Adj Disp'};
+var SR  ={kind:'sr',  mI:'sI',kEl:'kSr',  tEl:'tSr',  cEl:'cSr',  kpiId:'kSr', tabId:'tSr', chartId:'cSr', arEl:'sAR',trEl:'sTR',gapEl:'sGap',barEl:'sBar',unit:'SRs',       tgtLbl:'ICR', rateLbl:'ICR ×100',dsName:'SR Actuals',adjName:'Adj SRs'};
 var ASU_ROWS=[];
 var OVR={disp:{},sr:{},asu:{}};   // manual per-week overrides on the adjusted values
+var TGT_OVR={disp:null,sr:null};  // manual MDR-% target override per metric (null = auto baseline×0.92)
+var DECL_IMPORTED=false;          // declines shown once pulled from the dummy file or manually imported
+var DECL_FILE=null;               // window.BTC_DECLINES (per-LOB declines) loaded from input/declines_dummy.js
+var PASS_COUNT=1;   // adjustment cycle pass counter
 var PUB={disp:false,sr:false};   // publish state — export unlocks when disp+sr both true (ASU is intermediate, not published)
 var ASU_LOCKED=false;            // Step-1 gate: ASU forecast must be locked before disp/SR can publish
+var DISP_LOCKED=false;           // Dispatches forecast lock
+var SR_LOCKED=false;             // SRs forecast lock
 // ---------- helpers ----------
 function ramp(i,N){return N>1?Math.pow(i/(N-1),8):0}
 function fmt(n){return Number(Math.round(n)).toLocaleString('en-US')}
@@ -296,6 +375,8 @@ function kpi(l,v,s,st,pct){
   return '<div class="kp"><div class="kl">'+l+'</div><div class="kv"'+(st?' style="'+st+'"':'')+'>'+v+'</div>'+badge+'<div class="ks">'+s+'</div></div>';
 }
 // ================= FILTER ENGINE =================
+// FY / FQ / FW / LOB slice the timeline data. The remaining dims have no per-week series in the
+// dataset (they exist only as publish-time allocation weights) — they display/select but don't reshape the trend.
 var FILTERS=[
   {k:'fy',      label:'Fiscal Year',   multi:true,  opts:['All']},
   {k:'quarter', label:'Fiscal Quarter',multi:true,  opts:['All']},
@@ -334,8 +415,26 @@ function filterDisplay(cfg){
   return labOf(k,a[0])+'–'+labOf(k,a[a.length-1])+' ('+a.length+')';
 }
 // FQ options limited to the selected FY(s); FW options limited to the selected FY(s) ∩ FQ(s). FY itself never filtered.
+// On Step 3 (Publish tab), restrict FY/Quarter/Week to forecast period only (FY27).
 function optionsFor(cfg){
   if(!TL)return cfg.opts;
+  var currentTab=document.querySelector('.tab.on')?document.querySelector('.tab.on').getAttribute('data-v'):null;
+  var isPublishTab=currentTab==='pub';
+  if(isPublishTab){
+    if(cfg.k==='fy'){
+      var fcFY=TL.fy[TL.fcStart];
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&o===fcFY;}));
+    }
+    if(cfg.k==='quarter'){
+      var fcSet=setOf(TL.fq.slice(TL.fcStart));
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&fcSet[o];}));
+    }
+    if(cfg.k==='week'){
+      var fwSet={};
+      for(var i=TL.fcStart;i<TL.fw.length;i++)fwSet[TL.fw[i]]=1;
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&fwSet[o];}));
+    }
+  }
   if(cfg.k==='quarter'&&F.fy.length){
     var fyS=setOf(F.fy),aq={},i;
     for(i=0;i<TL.fw.length;i++){if(fyS[TL.fy[i]])aq[TL.fq[i]]=1;}
@@ -352,23 +451,39 @@ function optionsFor(cfg){
   }
   return cfg.opts;
 }
+// task 9: the bottom 4 filters live under a collapsible "More filters" toggle
+var MORE_KEYS={coreupsell:1,wotype:1,fqm:1,gcfa:1},moreOpen=false;
+function toggleMore(){moreOpen=!moreOpen;renderRail();}
+// task 7: when a 4-tab/2-tab segment is active, its dimension filters are redundant → hide them
+function hiddenFilters(){
+  var tab=activeTab(),h={};
+  if(tab==='sr'&&(SR._seg||0)>0){h.business=1;h.service=1;}
+  else if(tab==='disp'&&(DISP._seg||0)>0){h.business=1;}
+  return h;
+}
+function fitemHtml(cfg){
+  var k=cfg.k,opts=optionsFor(cfg),h='';
+  h+='<div class="fitem">';
+  h+='<div class="flab">'+cfg.label+(cfg.multi?' <span class="mx">multi</span>':'')+'</div>';
+  h+='<button class="fval" onclick="ddClick(\''+k+'\')"><span>'+filterDisplay(cfg)+'</span><span class="cr">▾</span></button>';
+  h+='<div class="fdd'+(openK===k?' open':'')+'" id="fdd-'+k+'">';
+  opts.forEach(function(o){
+    var sel=cfg.multi?(o==='All'?F[k].length===0:F[k].indexOf(o)>=0):F[k]===o;
+    var fn=cfg.multi?'toggleMulti':'selSingle';
+    h+='<div class="fopt'+(sel?' on':'')+'" onclick="'+fn+'(\''+k+'\',\''+o+'\')">'+(cfg.multi?'<span class="cb'+(sel?' on':'')+'">'+(sel?'✓':'')+'</span>':'')+labOf(k,o)+'</div>';
+  });
+  h+='</div></div>';
+  return h;
+}
 function renderRail(){
   var prevScroll=null;                                   // preserve open-dropdown scroll across rebuild
   if(openK!==null){var od=document.getElementById('fdd-'+openK);if(od)prevScroll=od.scrollTop;}
-  var h='';
+  var hid=hiddenFilters(),main='',more='';
   FILTERS.forEach(function(cfg){
-    var k=cfg.k,opts=optionsFor(cfg);
-    h+='<div class="fitem">';
-    h+='<div class="flab">'+cfg.label+(cfg.multi?' <span class="mx">multi</span>':'')+'</div>';
-    h+='<button class="fval" onclick="ddClick(\''+k+'\')"><span>'+filterDisplay(cfg)+'</span><span class="cr">▾</span></button>';
-    h+='<div class="fdd'+(openK===k?' open':'')+'" id="fdd-'+k+'">';
-    opts.forEach(function(o){
-      var sel=cfg.multi?(o==='All'?F[k].length===0:F[k].indexOf(o)>=0):F[k]===o;
-      var fn=cfg.multi?'toggleMulti':'selSingle';
-      h+='<div class="fopt'+(sel?' on':'')+'" onclick="'+fn+'(\''+k+'\',\''+o+'\')">'+(cfg.multi?'<span class="cb'+(sel?' on':'')+'">'+(sel?'✓':'')+'</span>':'')+labOf(k,o)+'</div>';
-    });
-    h+='</div></div>';
+    if(hid[cfg.k])return;
+    if(MORE_KEYS[cfg.k])more+=fitemHtml(cfg);else main+=fitemHtml(cfg);
   });
+  var h=main+'<div class="morehdr" onclick="toggleMore()"><span>More filters</span><span class="cr">'+(moreOpen?'▴':'▾')+'</span></div><div class="moreblk'+(moreOpen?' open':'')+'">'+more+'</div>';
   var b=document.getElementById('frailBody');if(b)b.innerHTML=h;
   if(prevScroll!=null&&openK!==null){var nd=document.getElementById('fdd-'+openK);if(nd)nd.scrollTop=prevScroll;}
   positionDD();
@@ -412,7 +527,17 @@ function toggleMulti(k,v){
 function toggleRail(){document.body.classList.toggle('rail-open');}
 function resetFilters(){
   FILTERS.forEach(function(cfg){F[cfg.k]=[];});
-  openK=null;loadLob();                              // empty LOB = all; loadLob re-renders everything
+  F.fy=['FY26','FY27'];                              // restore default window (forecast FY + 1 prior)
+  openK=null;loadLob();                              // rebuild data + re-render; preserves step/locks (no page reload)
+}
+// Publish (Step 3): keep FY/FQ/FW selections inside the forecast window only (drop FY26 etc.)
+function pruneToForecast(){
+  if(!TL)return;
+  var fcFY=TL.fy[TL.fcStart],fcQ={},fcW={},i;
+  for(i=TL.fcStart;i<TL.fw.length;i++){fcQ[TL.fq[i]]=1;fcW[TL.fw[i]]=1;}
+  if(F.fy.length)F.fy=F.fy.filter(function(x){return x===fcFY;});
+  F.quarter=F.quarter.filter(function(q){return fcQ[q];});
+  F.week=F.week.filter(function(w){return fcW[w];});
 }
 document.addEventListener('click',function(e){if(openK!==null&&!e.target.closest('.fitem')){openK=null;renderRail();}});
 // ---------- slicing / change periods over the active timeline TL ----------
@@ -439,14 +564,18 @@ function chgPeriods(){
   if(F.fy.length>=2)     return {a:wd('fy',F.fy[0]),     b:wd('fy',F.fy[F.fy.length-1])};
   return null;
 }
-function applyFilters(){if(!TL)return;renderCtx();renderAsu();renderRate(DISP);renderRate(SR);}
+function applyFilters(){if(!TL)return;renderCtx();renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();}
 function renderCtx(){
   if(!TL)return;
   function rng(a,st){if(!a.length)return null;var lo=st?(''+a[0]).slice(2):a[0],hi=st?(''+a[a.length-1]).slice(2):a[a.length-1];return a.length===1?lo:lo+'–'+hi;}
   var fy=rng(F.fy),q=rng(F.quarter,true),w=rng(F.week,true),tp;
   if(!fy&&!q&&!w)tp='FY22–FY27';
   else{var p=[];if(fy)p.push(fy);if(q)p.push('Q '+q);if(w)p.push('W '+w);tp=p.join(' · ');}
-  document.getElementById('ctx').textContent=TL.lob+' · '+filterDisplay(cfgOf('business'))+' · '+tp;
+  var bu=filterDisplay(cfgOf('business'));if(bu==='All')bu='All BUs';
+  var tab=activeTab(),segLbl=null;   // task 7: reflect the active 4-tab/2-tab segment in the header info
+  if(tab==='sr'&&(SR._seg||0)>0)segLbl=segList('sr')[SR._seg].l;
+  else if(tab==='disp'&&(DISP._seg||0)>0)segLbl=segList('disp')[DISP._seg].l;
+  document.getElementById('ctx').textContent=TL.lob+' · '+(segLbl||bu)+' · '+tp;
 }
 // keep FQ / FW representing the same window (FY is now independent — see fyBox)
 function syncTime(k){
@@ -522,7 +651,7 @@ function svgChart(elId,labels,series,yfmt){
   if(HC[elId]){HC[elId].chart.destroy();}
   var T=thm();
   var plotLines=[];
-  if(splitPos>=0&&splitPos<n-1)plotLines.push({value:splitPos+0.5,color:T.div,width:1,dashStyle:'Dash',zIndex:3,
+  if(splitPos>=0&&splitPos<n-1)plotLines.push({value:splitPos,color:T.div,width:1,dashStyle:'Dash',zIndex:3,
     label:{text:'forecast →',rotation:0,y:12,style:{color:T.axis,fontSize:'8px',fontFamily:"'Plus Jakarta Sans',sans-serif"}}});
   var chart=Highcharts.chart(elId,{
     chart:{type:'line',backgroundColor:'transparent',style:{fontFamily:"'Plus Jakarta Sans',sans-serif"},spacing:[8,6,4,4],animation:{duration:300}},
@@ -594,77 +723,150 @@ function initLegends(){
 // ---------- rate sheet (Dispatches / SR) ----------
 function seriesOf(kind){return kind==='disp'?TL.disp:TL.sr;}
 function calcRate(C,adjAsu){
-  var p=+document.getElementById(C.mI).value,nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,ov=OVR[C.kind];
-  adjAsu=adjAsu||TL.asu;
-  // P1: forecast disp/SR volume follows the ADJUSTED ASU at the base rate (MDR/ICR), then the BTC modifier
-  // bends the rate toward target. p in [-150,150], 0 = neutral; ramped over the forecast window.
+  var m=+document.getElementById(C.mI).value,nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,ov=OVR[C.kind];
+  // A2: modifier m is 100 = no change; below 100 bends the forecast DOWN toward target (above = up).
+  // A5: dispatch/SR VALUE is the DS forecast bent by the modifier — decoupled from adjusted ASU
+  //     (ASU only drives the MDR/ICR rate denominator, computed separately in renderRate).
+  // A1: the bend is INCREMENTAL — a smoothstep ramp so little changes early and it accumulates toward
+  //     the back half of the window ("increment the change over time … rounding it out").
+  var r=(100-m)/100;                                           // reduction fraction at full ramp
   return nd.map(function(v,i){
     if(i<fc)return v;                                          // actuals untouched
-    var driven=v*(TL.asu[i]?adjAsu[i]/TL.asu[i]:1);            // scale with adjusted ASU (rate held constant)
-    var a=Math.round(driven*(1+(p/100)*ramp(i-fc,N)));          // modifier bends the rate
+    var t=(N>1)?((i-fc)/(N-1)):1;var w=t*t*(3-2*t);            // smoothstep 0→1 across the forecast window
+    var a=Math.round(v*(1-r*w));                               // incremental bend, 100% = flat/no change
     var o=ov[TL.fw[i]];return (o!=null?o:a);
   });
+}
+// ---------- 4-tab storage split (A9) ----------
+// The dataset has no Business-Unit dimension, so Unit A/B use a synthesized, deterministic split; the
+// Parts / Parts+Labour split reuses the real service allocation weights. Dispatches → 2 tabs (Unit A/B);
+// SRs → 4 tabs (Unit A/B × Parts / Parts+Labour). Segment weights partition the total (sum to 1).
+var SEG_BU={A:0.58,B:0.42};
+function segList(kind){
+  var s=(TL&&TL.alloc&&TL.alloc.service)||{},P=s['Parts Only']||0.5,PL=s['Parts + Labour']||0.5,tot=(P+PL)||1,p2=P/tot,pl2=PL/tot;
+  if(kind==='disp')return [{l:'All',w:1},{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}];
+  return [{l:'All',w:1},
+    {l:'Unit A · Parts',w:SEG_BU.A*p2},{l:'Unit A · Parts+Labour',w:SEG_BU.A*pl2},
+    {l:'Unit B · Parts',w:SEG_BU.B*p2},{l:'Unit B · Parts+Labour',w:SEG_BU.B*pl2}];
+}
+function segWeight(C){var L=segList(C.kind),i=C._seg||0;return L[i]?L[i].w:1;}
+function renderSegTabs(C){
+  var box=document.getElementById(C.kind==='disp'?'segDisp':'segSr');if(!box)return;
+  var L=segList(C.kind),cur=C._seg||0,h='';
+  L.forEach(function(s,i){h+='<button class="segt'+(i===cur?' on':'')+'" onclick="selectSeg(\''+C.kind+'\','+i+')">'+s.l+'</button>';});
+  box.innerHTML=h;
+}
+function selectSeg(kind,i){var C=kind==='disp'?DISP:SR;C._seg=i;renderRate(C);renderRail();renderCtx();}
+function setTarget(kind,val){
+  var n=parseFloat((''+val).replace(/[^0-9.\-]/g,''));
+  TGT_OVR[kind]=isFinite(n)?n:null;
+  var C=kind==='disp'?DISP:SR,el=document.getElementById(C.trEl);
+  if(el){el.value=(TGT_OVR[kind]!=null)?TGT_OVR[kind].toFixed(2)+'%':'';el.blur();}   // 2dp + %, or clear
+  renderRate(C);
 }
 function editRate(kind,fw,val){var n=parseFloat((''+val).replace(/,/g,''));if(isFinite(n))OVR[kind][fw]=Math.round(n);else delete OVR[kind][fw];renderRate(kind==='disp'?DISP:SR);}
 function renderRate(C){
   var nd=seriesOf(C.kind),fc=TL.fcStart;
   var adjAsu=computeAsuRows().map(function(r){return r.adj;});   // P1: live adjusted-ASU driver
   var adj=calcRate(C,adjAsu);
-  var target=(C.kind==='disp'?TL.dispTarget:TL.srTarget)*100,tgtN=(C.kind==='disp'?TL.dispTargetN:TL.srTargetN);
+  renderSegTabs(C);
+  // A9 / 4-tab: scale the DISPLAYED volumes by the active segment weight (MDR rate is identical across tabs;
+  // only the counts split). C._adj is kept as the FULL total below for Publish / export.
+  var sw=segWeight(C);
+  var nds=nd,adjs=adj,adjAsus=adjAsu;
+  if(sw!==1){nds=nd.map(function(x){return Math.round(x*sw);});adjs=adj.map(function(x){return Math.round(x*sw);});adjAsus=adjAsu.map(function(x){return Math.round(x*sw);});}
+  // target internal scale: displayed% = target*100. Manual override (TGT_OVR, entered as MDR %) wins.
+  var mo=TGT_OVR[C.kind];
+  var target=(mo!=null)?(mo/100):((C.kind==='disp'?TL.dispTarget:TL.srTarget)*100);
   var vis=visIdx();
-  function ps(idxs){var sD=0,sA=0,sAsuB=0,sAsuA=0;idxs.forEach(function(i){sD+=nd[i];sA+=adj[i];sAsuB+=TL.asu[i];sAsuA+=adjAsu[i];});var r=sAsuB?sD/sAsuB*100:0,a=sAsuA?sA/sAsuA*100:0;return{ds:sD,btc:sA,asu:sAsuA,rate:r,arate:a,gap:Math.round((a-target)/100*sAsuA)};}
-  var S=ps(vis);
-  var gc=Math.abs(S.arate-target)<0.003?'var(--gn)':S.arate>target?'var(--am)':'var(--rd)';
-  var cp=chgPeriods(),A=cp?ps(cp.a):null,B=cp?ps(cp.b):null;
-  function CB(f){return (cp&&A&&B)?pc(A[f],B[f]):null;}
-  document.getElementById(C.kEl).innerHTML=
-    kpi('DS Forecast',fmt(S.ds),'',null,CB('ds'))+
-    kpi('BTC Adjusted',fmt(S.btc),'','color:var(--ac)',CB('btc'))+
+  if(!vis.length){document.getElementById(C.kpiId).innerHTML='';document.getElementById(C.tabId).innerHTML='';svgChart(C.chartId,[],[]);C._adj=adj;return;}
+  var tAdj=0,tBase=0,sBaseAsu=0,sAdjAsu=0;vis.forEach(function(i){tAdj+=adjs[i];tBase+=nds[i];sBaseAsu+=TL.asu[i]*sw;sAdjAsu+=adjAsus[i];});
+  var tgtN=Math.round(target/100*sAdjAsu);   // AOP Target count = target rate × ASU (same window as adjusted, so Gap ties out)
+  var cp=chgPeriods();
+  function ap2(idxs){var a=0,b=0;idxs.forEach(function(i){a+=adjs[i];b+=nds[i];});return{adj:a,base:b};}
+  var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
+  function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
+  var actualsOnly=vis.every(function(i){return i<fc});
+  // v1 six-card set: DS Forecast, BTC Adjusted, AOP Target, MDR Rate, Adjusted Rate, Gap
+  // MDR (per adjustment template): metric_FY / avgASU_FY / 52. frate/arate/target below carry that rate
+  // (legacy internal scale); the display multiplies by 100 so it reads as a real percentage
+  // (rate 0.10 → 10%). gapN / gc / bar math stay on the internal scale — do not rescale those.
+  var frate=sBaseAsu?tBase/sBaseAsu*100:0, arate=sAdjAsu?tAdj/sAdjAsu*100:0;
+  var gapN=Math.round(tAdj)-tgtN;   // adjusted − target; ties to BTC Adjusted − AOP Target exactly
+  var gc=Math.abs(arate-target)<0.003?'var(--gn)':(arate>target?'var(--am)':'var(--rd)');
+  var u=C.kind==='disp'?'Disp':'SR';
+  document.getElementById(C.kpiId).innerHTML=
+    kpi(u+' DS Forecast',fmt(tBase),'',null,CB('base'))+
+    (actualsOnly?'':kpi(u+' BTC Adjusted',fmt(tAdj),'','color:var(--ac)',CB('adj')))+
     kpi('AOP Target',fmt(tgtN),'')+
-    kpi('Forecast Rate',S.rate.toFixed(4),'',null,CB('rate'))+
-    kpi('Adjusted Rate',S.arate.toFixed(4),'','color:'+gc,CB('arate'))+
-    kpi('Gap',(S.gap>=0?'+':'')+fmt(S.gap),'','color:'+gc,CB('gap'));
-  var tb='';vis.forEach(function(i){var d=adj[i]-nd[i],isA=i<fc;
-    var adjCell=isA?'—':'<input class="ec" value="'+adj[i]+'" onchange="editRate(\''+C.kind+'\',\''+TL.fw[i]+'\',this.value)">';
-    var deltaCell=isA?'<td>—</td>':'<td class="'+(d<0?'neg':'pos')+'">'+(d>=0?'+':'')+d+'</td>';
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(nd[i])+'</td><td>'+adjCell+'</td>'+deltaCell+'</tr>';});
-  document.getElementById(C.tEl).innerHTML=tb;
-  document.getElementById(C.arEl).textContent=S.arate.toFixed(4);
-  document.getElementById(C.trEl).textContent=target.toFixed(4);
-  var gr=S.arate-target;var gEl=document.getElementById(C.gapEl);gEl.textContent=(gr>=0?'+':'')+gr.toFixed(4);gEl.style.color=gc;
-  document.getElementById(C.barEl).style.width=Math.max(4,Math.min(100,S.arate?target/S.arate*100:0))+'%';
-  var tgtWeekly=vis.length?Math.round(target/100*(S.asu/vis.length)):0;
+    kpi('MDR Rate',(frate*100).toFixed(2)+'%','')+
+    (actualsOnly?'':kpi('Adjusted Rate',(arate*100).toFixed(2)+'%','','color:'+gc))+
+    (actualsOnly?'':kpi('Gap',(gapN>=0?'+':'')+fmt(gapN),'','color:'+gc));
+  var tb='';vis.forEach(function(i){var isA=i<fc;
+    var valCell=isA?'—':(sw!==1?fmt(adjs[i]):'<input class="ec" value="'+fmt(adjs[i])+'" onchange="editRate(\''+C.kind+'\',\''+TL.fw[i]+'\',this.value)">');
+    var delta=isA?'—':fmt(adjs[i]-nds[i]);
+    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(nds[i])+'</td>'+(actualsOnly?'':'<td style="color:#ea580c">'+valCell+'</td><td>'+(delta>=0?'+':'')+delta+'</td>')+'</tr>';
+  });
+  document.getElementById(C.tabId).innerHTML=tb;
+  // hide the modifier slider block when the view has no forecast weeks
+  document.querySelectorAll('#'+(C.kind==='disp'?'vDisp':'vSr')+' .mb').forEach(function(e){e.style.display=actualsOnly?'none':'';});
+  // Update table header to hide adjusted columns when actuals-only
+  var thead=document.querySelector('#'+C.tabId).parentElement.querySelector('thead tr');
+  if(thead){
+    if(actualsOnly){
+      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th>';
+    }else{
+      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th><th>Adj '+(C.kind==='disp'?'Disp':'SRs')+'</th><th>Delta</th>';
+    }
+  }
+  if(!actualsOnly){
+    document.getElementById(C.arEl).textContent=(arate*100).toFixed(2)+'%';
+    var tEl=document.getElementById(C.trEl);
+    if(tEl&&document.activeElement!==tEl){
+      if(mo!=null){tEl.value=mo.toFixed(2)+'%';tEl.placeholder='';}
+      else{tEl.value='';tEl.placeholder=(target*100).toFixed(2)+'%';}   // empty at start; auto value shown as hint
+    }
+    var aD=+(arate*100).toFixed(2),tD=+(target*100).toFixed(2),grP=+(aD-tD).toFixed(2);   // gap = shown adj% − shown target%
+    var gEl=document.getElementById(C.gapEl);gEl.textContent=(grP>=0?'+':'')+grP.toFixed(2)+'%';gEl.style.color=gc;
+    document.getElementById(C.barEl).style.width=Math.max(4,Math.min(100,arate?target/arate*100:0))+'%';
+  }
+  var asuTotal=0;vis.forEach(function(i){asuTotal+=adjAsus[i];});
+  var tgtWeekly=vis.length?Math.round(target/100*(asuTotal/vis.length)):0;
   var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
   svgChart(C.cEl,lbl,[
-    {color:'#16a34a',fcColor:'#16a34a',name:C.dsName,data:vis.map(function(i){return nd[i];})},               // green throughout
-    {color:'#ea580c',name:C.adjName,seg:'forecast',data:vis.map(function(i){return adj[i];})},                // orange, forecast only
+    {color:'#16a34a',fcColor:'#16a34a',name:C.dsName,data:vis.map(function(i){return nds[i];})},               // green throughout
+    {color:'#ea580c',name:C.adjName,seg:'forecast',data:vis.map(function(i){return adjs[i];})},                // orange, forecast only
     {color:'#b45309',dash:true,name:'AOP Target',data:lbl.map(function(){return tgtWeekly;})}
   ],function(v){return fmt(v);});
   C._adj=adj;C._vis=vis;
+  if(C.kind==='disp')setDispLockUI();
+  if(C.kind==='sr')setSrLockUI();
 }
 function editAsu(fw,which,val){var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];renderAsu();renderRate(DISP);renderRate(SR);}
 // ---------- ASU chain — pure compute (shared by renderAsu + the disp/SR driver) ----------
-// New Contracts (blue), APOS Renewal (purple), Ships (teal) inflow components + cumulative Adjusted (orange).
+// New Contracts (blue), APOS Renewal (purple), Declines/Expiring (teal) outflow component + cumulative Adjusted (orange).
 function computeAsuRows(){
   if(!TL)return [];
-  // sliders in [-150,150], 0 = neutral; mult = 1 + p/100
-  var ncM=1+(+document.getElementById('ncI').value)/100,
-      apM=1+(+document.getElementById('apI').value)/100,
-      shM=1+(+document.getElementById('shI').value)/100;
-  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,shCum=0,ov=OVR.asu,ships=TL.ships||TL.nc;
+  // sliders 60–150, 100 = neutral; mult = value/100
+  var ncM=(+document.getElementById('ncI').value)/100,
+      apM=(+document.getElementById('apI').value)/100;
+  // Declines are NOT sourced from btc_data.js in v3 — they come from the dummy declines file (TL.declFile,
+  // loaded from input/declines_dummy.js) or a manual import (OVR.asu[fw].dec). Either way SUBTRACTED from ASU.
+  var DF=TL.declFile||null;function baseDec(i){return DF?(DF[i]||0):0;}
+  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,decCum=0,ov=OVR.asu;
   for(var i=0;i<N;i++){
-    var base=TL.asu[i],an,ba,sh,adjV,ncV,renV,shV;
-    if(i<fc){an=TL.nc[i];ba=TL.apos[i];sh=ships[i];adjV=base;ncV=base;renV=base;shV=base;}
+    var base=TL.asu[i],bd=baseDec(i),an,ba,dec,adjV,ncV,renV,decV;
+    if(i<fc){an=TL.nc[i];ba=TL.apos[i];dec=bd;adjV=base;ncV=base;renV=base;decV=base;}
     else{
       var o=ov[TL.fw[i]]||{};
       an=(o.an!=null)?o.an:Math.round(TL.nc[i]*ncM);
       ba=(o.ba!=null)?o.ba:Math.round(TL.apos[i]*apM);
-      sh=(o.sh!=null)?o.sh:Math.round(ships[i]*shM);
-      ncCum+=(an-TL.nc[i]);renCum+=(ba-TL.apos[i]);shCum+=(sh-ships[i]);
-      ncV=base+ncCum;renV=base+renCum;shV=base+shCum;adjV=base+ncCum+renCum+shCum;
+      dec=(o.dec!=null)?o.dec:bd;
+      ncCum+=(an-TL.nc[i]);renCum+=(ba-TL.apos[i]);decCum+=(dec-bd);
+      ncV=base+ncCum;renV=base+renCum;decV=base+decCum;adjV=base+ncCum+renCum-decCum;
     }
-    rows.push({fw:TL.fw[i],base:base,exp:TL.exp[i],nc:TL.nc[i],apos:TL.apos[i],ships:ships[i],
-               adjNew:an,btcApos:ba,adjShips:sh,adj:adjV,ncLine:ncV,renLine:renV,shLine:shV});
+    rows.push({fw:TL.fw[i],base:base,exp:bd,nc:TL.nc[i],apos:TL.apos[i],
+               adjNew:an,btcApos:ba,adjDec:dec,adj:adjV,ncLine:ncV,renLine:renV,decLine:decV});
   }
   return rows;
 }
@@ -672,90 +874,208 @@ function renderAsu(){
   var fc=TL.fcStart,rows=computeAsuRows();
   var vis=visIdx();
   if(!vis.length){document.getElementById('kAsu').innerHTML='';document.getElementById('tAsu').innerHTML='';svgChart('cAsu',[],[]);ASU_ROWS=rows;return;}
-  var last=rows[vis[vis.length-1]],tE=0,tAN=0,tBA=0,tNC=0,tAP=0;vis.forEach(function(i){tE+=rows[i].exp;tAN+=rows[i].adjNew;tBA+=rows[i].btcApos;tNC+=rows[i].nc;tAP+=rows[i].apos;});
+  var last=rows[vis[vis.length-1]],tE=0,tAN=0,tBA=0,tNC=0,tAP=0,tADEC=0;vis.forEach(function(i){tE+=rows[i].exp;tAN+=rows[i].adjNew;tBA+=rows[i].btcApos;tNC+=rows[i].nc;tAP+=rows[i].apos;tADEC+=rows[i].adjDec;});
   var cp=chgPeriods();
   function ap2(idxs){var e=0,an=0,ba=0,nc=0,ap=0;idxs.forEach(function(i){e+=rows[i].exp;an+=rows[i].adjNew;ba+=rows[i].btcApos;nc+=rows[i].nc;ap+=rows[i].apos;});var li=idxs[idxs.length-1];return{base:rows[li].base,adj:rows[li].adj,exp:e,adjNew:an,btcApos:ba,nc:nc,apos:ap};}
   var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
   function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
-  document.getElementById('kAsu').innerHTML=
-    // row 1: actuals
+  var actualsOnly=vis.every(function(i){return i<fc});
+  var kEl=document.getElementById('kAsu');kEl.className='kr '+(DECL_IMPORTED?'kr4':'kr5');   // 4 cols when declines shown
+  kEl.innerHTML=
+    // row 1: actuals (+ Decline Actuals right of APOS when imported)
     kpi('ASU Actuals',fmt(last.base),'',null,CB('base'))+
     kpi('NC Actuals',fmt(tNC),'','color:var(--ac)',CB('nc'))+
     kpi('APOS Actuals',fmt(tAP),'','color:var(--pu)',CB('apos'))+
-    // row 2: adjusted (directly below each actuals card)
-    kpi('Adjusted ASU',fmt(last.adj),'','color:#ea580c',CB('adj'))+
-    kpi('ADJ NC',fmt(tAN),'','color:#0891b2',CB('adjNew'))+
-    kpi('ADJ APOS',fmt(tBA),'','color:#ac4073',CB('btcApos'));
+    (DECL_IMPORTED?kpi('Decline Actuals',fmt(tE),'','color:#0d9488',CB('exp')):'')+
+    // row 2: adjusted (directly below each actuals card; Adj Decline right of Adj APOS when imported)
+    (actualsOnly?'':kpi('Adjusted ASU',fmt(last.adj),'','color:#ea580c',CB('adj')))+
+    (actualsOnly?'':kpi('Adj NC',fmt(tAN),'','color:#0891b2',CB('adjNew')))+
+    (actualsOnly?'':kpi('Adj APOS',fmt(tBA),'','color:#ac4073',CB('btcApos')))+
+    (actualsOnly||!DECL_IMPORTED?'':kpi('Adj Decline',fmt(tADEC),'','color:#d97706',null));
   var tb='';vis.forEach(function(i){var r=rows[i],isA=i<fc;
     var anCell=isA?'—':'<input class="ec" value="'+r.adjNew+'" onchange="editAsu(\''+r.fw+'\',\'an\',this.value)">';
     var baCell=isA?'—':'<input class="ec" value="'+r.btcApos+'" onchange="editAsu(\''+r.fw+'\',\'ba\',this.value)">';
-    var shCell=isA?'—':'<input class="ec" value="'+r.adjShips+'" onchange="editAsu(\''+r.fw+'\',\'sh\',this.value)">';
+    var decCell=isA?'—':'<input class="ec" value="'+r.adjDec+'" onchange="editAsu(\''+r.fw+'\',\'dec\',this.value)">';
     var adjAsuCell=isA?'—':fmt(r.adj);
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td><td>'+fmt(r.ships)+'</td><td style="color:var(--ac)">'+anCell+'</td><td style="color:var(--pu)">'+baCell+'</td><td style="color:#0d9488">'+shCell+'</td><td>'+adjAsuCell+'</td></tr>';});
+    var declAct=DECL_IMPORTED?'<td style="color:#0d9488">'+fmt(r.exp)+'</td>':'';
+    var declAdj=DECL_IMPORTED?'<td style="color:#0d9488">'+decCell+'</td>':'';
+    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declAct+(actualsOnly?'':'<td style="color:var(--ac)">'+anCell+'</td><td style="color:var(--pu)">'+baCell+'</td>'+declAdj+'<td>'+adjAsuCell+'</td>')+'</tr>';});
   document.getElementById('tAsu').innerHTML=tb;
+  // sliders are meaningless with no forecast weeks in view → hide them for actuals-only periods
+  document.querySelectorAll('#vAsu .mb').forEach(function(e){e.style.display=actualsOnly?'none':'';});
+  // Update table header to hide adjusted columns when actuals-only
+  var thead=document.querySelector('#tAsu').parentElement.querySelector('thead tr');
+  if(thead){
+    var dA=DECL_IMPORTED?'<th>Decline Actuals</th>':'',dAj=DECL_IMPORTED?'<th style="color:#0d9488">Adj Decline</th>':'';
+    if(actualsOnly){
+      thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA;
+    }else{
+      thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA+'<th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th>'+dAj+'<th>Adj ASU</th>';
+    }
+  }
   document.getElementById('aBase').textContent=fmt(last.base);
   document.getElementById('aAdj').textContent=fmt(last.adj);
   var lift=last.adj-last.base;var lEl=document.getElementById('aLift');lEl.textContent=(lift>=0?'+':'')+fmt(lift);lEl.style.color=lift>=0?'var(--gn)':'var(--rd)';
   document.getElementById('aBar').style.width=Math.max(4,Math.min(100,last.adj?last.base/last.adj*100:0))+'%';
   var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
-  // 3 full-range actuals baselines + 3 adjusted lines (forecast window only) → all 6 visible after the divider
-  svgChart('cAsu',lbl,[
-    {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos+rows[i].ships;})},
+  // actuals baselines + adjusted lines; Declines (2 series) appended last and only when imported
+  var aser=[
+    {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos-rows[i].exp;})},
     {color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Actuals',  data:vis.map(function(i){return rows[i].nc;})},
     {color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Actuals',data:vis.map(function(i){return rows[i].apos;})},
-    {color:'#0d9488',fcColor:'#0d9488',name:'Ships Actuals',data:vis.map(function(i){return rows[i].ships;})},
-    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew+rows[i].btcApos+rows[i].adjShips;})},
-    {color:'#0891b2',name:'ADJ NC',  seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew;})},
-    {color:'#ac4073',name:'ADJ APOS',seg:'forecast',       data:vis.map(function(i){return rows[i].btcApos;})},
-    {color:'#d97706',name:'ADJ Ships',seg:'forecast',      data:vis.map(function(i){return rows[i].adjShips;})}
-  ],function(v){return fmt(v);});
+    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-rows[i].adjDec;})},
+    {color:'#0891b2',name:'Adj NC',  seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew;})},
+    {color:'#ac4073',name:'Adj APOS',seg:'forecast',       data:vis.map(function(i){return rows[i].btcApos;})}
+  ];
+  if(DECL_IMPORTED){
+    aser.push({color:'#0d9488',fcColor:'#0d9488',name:'Decline Actuals',data:vis.map(function(i){return rows[i].exp;})});
+    aser.push({color:'#d97706',name:'Adj Decline',seg:'forecast',data:vis.map(function(i){return rows[i].adjDec;})});
+  }
+  svgChart('cAsu',lbl,aser,function(v){return fmt(v);});
+  document.querySelectorAll('#vAsu .decl-lg').forEach(function(e){e.style.display=DECL_IMPORTED?'':'none';});
   ASU_ROWS=rows;
   if(ASU_LOCKED)document.querySelectorAll('#tAsu input.ec').forEach(function(e){e.disabled=true;});   // keep Step-1 lock after re-render
 }
 // ---------- handlers ----------
-function clampP(v){v=parseInt(v);if(isNaN(v))v=0;return Math.max(-150,Math.min(150,v));}
-function dSync(v){v=clampP(v);document.getElementById('dS').value=v;document.getElementById('dI').value=v;renderRate(DISP)}
-function sSync(v){v=clampP(v);document.getElementById('sS').value=v;document.getElementById('sI').value=v;renderRate(SR)}
-function dReset(){OVR.disp={};dSync(0);}   // clear manual table edits + zero the slider
-function sReset(){OVR.sr={};sSync(0);}
-// ASU driver sliders — also refresh disp/SR (P1: they follow adjusted ASU)
-function ncSync(v){v=clampP(v);document.getElementById('ncS').value=v;document.getElementById('ncI').value=v;renderAsu();renderRate(DISP);renderRate(SR);}
-function apSync(v){v=clampP(v);document.getElementById('apS').value=v;document.getElementById('apI').value=v;renderAsu();renderRate(DISP);renderRate(SR);}
-function shSync(v){v=clampP(v);document.getElementById('shS').value=v;document.getElementById('shI').value=v;renderAsu();renderRate(DISP);renderRate(SR);}
-function aReset(){OVR.asu={};['ncS','ncI','apS','apI','shS','shI'].forEach(function(id){document.getElementById(id).value=0;});renderAsu();renderRate(DISP);renderRate(SR);}
-// ---------- P2: sequence gate — lock ASU (Step 1) before publishing disp/SR (Step 2) ----------
-function setGates(){
-  ['pubDisp','pubSr'].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=!ASU_LOCKED;});
-  ['gateDisp','gateSr'].forEach(function(id){var g=document.getElementById(id);if(g)g.style.display=ASU_LOCKED?'none':'flex';});
+function clampP(v){v=parseInt(v);if(isNaN(v))v=0;return Math.max(-100,Math.min(150,v));}
+function clampM(v){v=parseFloat(v);if(isNaN(v))v=100;return Math.max(60,Math.min(150,v));}   // disp/SR modifier: 100 = neutral, 60–150
+// coalesce rapid slider input events to one render per animation frame (smooth drag)
+var _raf=0,_rafFn=null;
+function schedule(fn){_rafFn=fn;if(_raf)return;_raf=requestAnimationFrame(function(){_raf=0;var f=_rafFn;_rafFn=null;if(f)f();});}
+function setPair(a,b,v){document.getElementById(a).value=v;document.getElementById(b).value=v;}
+function dSync(v){v=clampM(v);setPair('dS','dI',v);schedule(function(){renderRate(DISP);});}
+function sSync(v){v=clampM(v);setPair('sS','sI',v);schedule(function(){renderRate(SR);});}
+function clearTgtBox(id){var e=document.getElementById(id);if(e){e.value='';}}
+function dReset(){OVR.disp={};TGT_OVR.disp=null;clearTgtBox('dTR');dSync(100);}   // clear edits + target + reset modifier to neutral
+function sReset(){OVR.sr={};TGT_OVR.sr=null;clearTgtBox('sTR');sSync(100);}
+// ASU driver sliders — also refresh disp/SR rate denominators (MDR/ICR use the adjusted ASU)
+function _asuRender(){renderAsu();renderRate(DISP);renderRate(SR);}
+function ncSync(v){v=clampM(v);setPair('ncS','ncI',v);schedule(_asuRender);}
+function apSync(v){v=clampM(v);setPair('apS','apI',v);schedule(_asuRender);}
+function aReset(){OVR.asu={};DECL_IMPORTED=!!(TL&&TL.declFile);['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();}
+// A4: import per-week Declines (Expiring outflow) from a CSV/TXT and subtract from the ASU count.
+// Accepts lines like "FW,value" (FW = 2027-W01 or 27-W01) or a bare value column (assigned to forecast
+// weeks in order). Values land in OVR.asu[fw].dec, the same slot the manual Decline cell edit uses.
+function importDeclines(file){
+  if(!file)return;
+  if(ASU_LOCKED){var s0=document.getElementById('declStatus');if(s0)s0.textContent='Unlock ASU to import';return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var txt=''+(e.target.result||''),lines=txt.split(/\r?\n/),fc=TL.fcStart,n=0;
+    var map={},i;for(i=0;i<TL.fw.length;i++){map[TL.fw[i]]=i;map[shortFW(TL.fw[i])]=i;}
+    var seq=[];for(i=fc;i<TL.fw.length;i++)seq.push(i);var sp=0;
+    lines.forEach(function(ln){
+      ln=(''+ln).trim();if(!ln)return;
+      var parts=ln.split(/[,\t;]/);
+      var raw=(parts[parts.length-1]||'').replace(/[^0-9.\-]/g,'');
+      var num=parseFloat(raw);if(!isFinite(num))return;                 // skip headers / blanks
+      var key=(parts[0]||'').trim(),idx=null;
+      if(map[key]!=null)idx=map[key];
+      else if(key.length>2&&map[key.slice(2)]!=null)idx=map[key.slice(2)];
+      if(idx==null){if(sp<seq.length)idx=seq[sp++];else return;}
+      if(idx<fc)return;                                                  // forecast weeks only
+      OVR.asu[TL.fw[idx]]=OVR.asu[TL.fw[idx]]||{};OVR.asu[TL.fw[idx]].dec=Math.round(num);n++;
+    });
+    if(n>0)DECL_IMPORTED=true;
+    var st=document.getElementById('declStatus');if(st)st.textContent=n?('Imported '+n+' week'+(n>1?'s':'')):'No rows matched';
+    renderAsu();renderRate(DISP);renderRate(SR);
+  };
+  reader.readAsText(file);
+}
+// Controls card collapses like the filter rail: card hides, chart goes full width, a floating ⚙ button reopens it.
+function toggleControls(btn){
+  var c=btn.closest('.card');if(!c)return;
+  c.classList.add('collapsed');
+  var row=c.closest('.row');if(row)row.classList.add('ctl-collapsed');
+  updateCtlReopen();reflowActiveCharts();
+}
+function expandControls(){
+  var view=document.querySelector('.view.on');if(!view)return;
+  view.querySelectorAll('.card.ctl.collapsed').forEach(function(c){c.classList.remove('collapsed');});
+  view.querySelectorAll('.row.ctl-collapsed').forEach(function(r){r.classList.remove('ctl-collapsed');});
+  updateCtlReopen();reflowActiveCharts();
+}
+function updateCtlReopen(){
+  var b=document.getElementById('ctlReopen');if(!b)return;
+  var view=document.querySelector('.view.on');
+  b.style.display=(view&&view.querySelector('.card.ctl.collapsed'))?'flex':'none';
+}
+function reflowActiveCharts(){setTimeout(function(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});},80);}
+// ---------- step model (Step 1 ASU → Step 2 Disp/SR → Step 3 Publish), gated by locks ----------
+var STEP=1;
+// Step order (switched): 1 = SRs & Dispatches → 2 = ASU driver → 3 = Publish.
+function maxStep(){ if(DISP_LOCKED&&SR_LOCKED&&ASU_LOCKED)return 3; if(DISP_LOCKED&&SR_LOCKED)return 2; return 1; }
+function activeTab(){var t=document.querySelector('.tab.on');return t?t.getAttribute('data-v'):'sr';}
+function setStep(n){
+  n=Math.max(1,Math.min(3,n));
+  if(n>maxStep())return;                       // gated: can't advance past the locked-in progress
+  STEP=n;
+  updateTabVisibility();
+  if(n===1){var a=activeTab();go((a==='disp')?'disp':'sr');}   // Step 1 = SRs/Dispatches (SRs default)
+  else if(n===2)go('asu');                                     // Step 2 = ASU driver
+  else go('pub');
+  updateStepper();
+}
+function navStep(dir){setStep(STEP+dir);}
+function updateTabVisibility(){
+  document.querySelectorAll('.tab').forEach(function(t){
+    var v=t.getAttribute('data-v');
+    t.style.display=((STEP===1&&(v==='disp'||v==='sr'))||(STEP===2&&v==='asu')||(STEP===3&&v==='pub'))?'block':'none';
+  });
+}
+function setDispLockUI(){
+  ['dS','dI'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=DISP_LOCKED;});
+  document.querySelectorAll('#tDisp input.ec').forEach(function(e){e.disabled=DISP_LOCKED;});
+  var btn=document.getElementById('dispLockBtn');
+  if(btn){btn.textContent=DISP_LOCKED?'🔓 Unlock to revise':'🔒 Lock forecast';btn.className='btn '+(DISP_LOCKED?'dis':'pub');}
+}
+function setSrLockUI(){
+  ['sS','sI'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=SR_LOCKED;});
+  document.querySelectorAll('#tSr input.ec').forEach(function(e){e.disabled=SR_LOCKED;});
+  var btn=document.getElementById('srLockBtn');
+  if(btn){btn.textContent=SR_LOCKED?'🔓 Unlock to revise':'🔒 Lock forecast';btn.className='btn '+(SR_LOCKED?'dis':'pub');}
+}
+function toggleDispLock(){
+  DISP_LOCKED=!DISP_LOCKED;PUB.disp=DISP_LOCKED;         // lock == finalize for downstream/export
+  if(!DISP_LOCKED&&STEP>1)setStep(1);                    // un-finalizing Step 1 drops back to Step 1
+  setDispLockUI();updateExportBtn();updateStepper();
+}
+function toggleSrLock(){
+  SR_LOCKED=!SR_LOCKED;PUB.sr=SR_LOCKED;
+  if(!SR_LOCKED&&STEP>1)setStep(1);
+  setSrLockUI();updateExportBtn();updateStepper();
 }
 function setLockUI(){
-  ['ncS','ncI','apS','apI','shS','shI'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=ASU_LOCKED;});
+  ['ncS','ncI','apS','apI','declBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=ASU_LOCKED;});
   document.querySelectorAll('#tAsu input.ec').forEach(function(e){e.disabled=ASU_LOCKED;});
   var btn=document.getElementById('asuLockBtn');
   if(btn){btn.textContent=ASU_LOCKED?'🔓 Unlock to revise':'🔒 Lock forecast';btn.className='btn '+(ASU_LOCKED?'dis':'pub');}
-  setGates();updateStepper();
+  updateStepper();
 }
 function toggleLock(){
-  ASU_LOCKED=!ASU_LOCKED;
-  if(!ASU_LOCKED){PUB.disp=false;PUB.sr=false;updateExportBtn();}  // revising the driver invalidates downstream publishes
-  setLockUI();
+  ASU_LOCKED=!ASU_LOCKED;                                 // ASU is now Step 2 (decoupled from Disp/SR values)
+  if(!ASU_LOCKED&&STEP>2)setStep(2);                      // un-finalizing ASU drops back out of Publish
+  setLockUI();updateStepper();
 }
-// ---------- P3: stage stepper ----------
+// ---------- stepper + step-nav buttons ----------
 function updateStepper(){
   var s1=document.getElementById('st1'),s2=document.getElementById('st2'),s3=document.getElementById('st3');
-  if(!s1)return;var pubbed=PUB.disp&&PUB.sr;
-  s1.className='step'+(ASU_LOCKED?' done':' on');
-  s2.className='step'+(ASU_LOCKED?(pubbed?' done':' on'):'');
-  s3.className='step'+(pubbed?' done':(ASU_LOCKED?' on':''));
+  if(!s1)return;
+  var bothDS=DISP_LOCKED&&SR_LOCKED;
+  s1.className='step'+(STEP===1?' on':(bothDS?' done':''));         // Step 1 = SRs/Dispatches
+  s2.className='step'+(STEP===2?' on':(ASU_LOCKED?' done':''));      // Step 2 = ASU
+  s3.className='step'+(STEP===3?' on':'');
+  refreshNav();
 }
-// ---------- publish (disp/SR only → UMS) + P5 allocation preview ----------
-function pub(which){
-  if(which!=='disp'&&which!=='sr')return;
-  if(!ASU_LOCKED){alert('Lock the ASU forecast (Step 1) first — it drives Dispatches & SRs.');return;}
-  PUB[which]=true;updateExportBtn();updateStepper();
-  var C=which==='disp'?DISP:SR,vis=C._vis||[],tot=0;
-  vis.forEach(function(i){if(i>=TL.fcStart&&C._adj)tot+=C._adj[i];});
-  showAlloc(which,tot);
+function refreshNav(){
+  var bothDS=DISP_LOCKED&&SR_LOCKED;
+  // Step-1 (Disp/SR) panels: "Go to Step 2 (ASU)" once both are locked
+  ['goStep3Disp','goStep3Sr'].forEach(function(id){var b=document.getElementById(id);if(b)b.style.display=bothDS?'inline-flex':'none';});
+  // Step-2 (ASU) panel: "Go to Step 3 (Publish)" once ASU is locked
+  var b2=document.getElementById('goStep2');if(b2)b2.style.display=ASU_LOCKED?'inline-flex':'none';
+  var prev=document.getElementById('prevStep'),next=document.getElementById('nextStep');
+  if(prev)prev.disabled=STEP<=1;
+  if(next)next.disabled=STEP>=maxStep();
 }
 function showAlloc(which,totalUnits){
   var a=TL.alloc,metric=which==='disp'?'Dispatches':'SRs',titles={region:'Region',coreupsell:'Core / Upsell',service:'Service Type'};
@@ -767,17 +1087,25 @@ function showAlloc(which,totalUnits){
     Object.keys(a[dk]).forEach(function(v){var w=a[dk][v];h+='<tr><td class="l">'+v+'</td><td>'+(w*100).toFixed(1)+'%</td><td>'+fmt(Math.round(totalUnits*w))+'</td></tr>';});
     h+='</tbody></table></div>';
   });}
-  document.getElementById('allocTitle').textContent='Published '+metric+' → UMS allocation';
+  document.getElementById('allocTitle').textContent='Published '+metric+' allocation';
   document.getElementById('allocBody').innerHTML=h;
   document.getElementById('allocModal').classList.add('on');
 }
 function closeAlloc(){document.getElementById('allocModal').classList.remove('on');}
-function updateExportBtn(){var b=document.getElementById('exportbtn');if(b)b.style.display=(PUB.disp&&PUB.sr)?'inline-flex':'none';}
+function updateExportBtn(){
+  var currentTab=document.querySelector('.tab.on').getAttribute('data-v');
+  var b=document.getElementById('exportbtn');
+  var bp=document.getElementById('exportBtnPage');
+  var bothPub=PUB.disp&&PUB.sr;
+  if(b)b.style.display=(currentTab==='pub'&&bothPub)?'inline-flex':'none';
+  if(bp)bp.disabled=!bothPub;
+  var g=document.getElementById('pubGate');if(g)g.style.display=bothPub?'none':'flex';
+}
 var _outDir=null;   // remembered outputs/ directory handle (File System Access API) — picked once, reused
 function _exportCsv(){
-  var vis=visIdx(),rows=[['FW','ASU_Base','ASU_Adj','Disp_DS','Disp_Adj','SR_DS','SR_Adj']];
+  var vis=visIdx(),rows=[['FW','ASU_Base','ASU_Adj','SR_DS','SR_Adj','Disp_DS','Disp_Adj']];
   vis.forEach(function(i){var ar=ASU_ROWS[i]||{};
-    rows.push([TL.fw[i],ar.base,ar.adj,TL.disp[i],(DISP._adj?DISP._adj[i]:''),TL.sr[i],(SR._adj?SR._adj[i]:'')]);});
+    rows.push([TL.fw[i],ar.base,ar.adj,TL.sr[i],(SR._adj?SR._adj[i]:''),TL.disp[i],(DISP._adj?DISP._adj[i]:'')]);});
   return rows.map(function(r){return r.join(',');}).join('\n');
 }
 async function exportPublished(){
@@ -790,12 +1118,86 @@ async function exportPublished(){
       if(!_outDir)_outDir=await window.showDirectoryPicker({id:'btc-outputs',mode:'readwrite'});
       var fh=await _outDir.getFileHandle(name,{create:true}),w=await fh.createWritable();
       await w.write(csv);await w.close();
-      alert('Saved '+name+' to the selected outputs folder.');return;
+      await syncPassFromDir();                       // Pass# = existing export files in folder + 1
+      alert('Saved '+name+' — now on Pass '+PASS_COUNT+'.');return;
     }catch(e){if(e&&e.name==='AbortError')return;}   // any other failure → fall through to plain download
   }
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();
+  bumpPass();                                        // no folder handle → increment + persist locally
 }
-function go(v){['Disp','Asu','Sr'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v)});document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-v')===v)})}
+// ---------- Pass counter (4.3.1): reads the outputs/ folder when available, else localStorage ----------
+async function syncPassFromDir(){
+  if(!_outDir){bumpPass();return;}
+  var c=0;
+  try{for await(var e of _outDir.values()){if(e.kind==='file'&&/^btc-published.*\.csv$/i.test(e.name))c++;}}catch(err){}
+  PASS_COUNT=c+1;persistPass();updateCycleLabel();
+}
+function bumpPass(){PASS_COUNT++;persistPass();updateCycleLabel();}
+function persistPass(){try{localStorage.setItem('btc_pass_count',PASS_COUNT);}catch(e){}}
+function loadPass(){try{var v=parseInt(localStorage.getItem('btc_pass_count'),10);if(isFinite(v)&&v>0)PASS_COUNT=v;}catch(e){}}
+function updateCycleLabel(){
+  var f=document.getElementById('cycleFY');if(f&&TL)f.textContent=TL.fy[TL.fcStart];
+  var q=document.getElementById('cycleFQ');if(q&&TL){var fq=TL.fq[TL.fcStart];q.textContent=(''+fq).indexOf('-')>=0?fq.split('-')[1]:fq;}
+  var p=document.getElementById('passCount');if(p)p.textContent='Pass '+PASS_COUNT;
+}
+function renderPub(){
+  if(!TL||!(PUB.disp&&PUB.sr))return;
+  var fc=TL.fcStart,vis=visIdx().filter(function(i){return i>=fc;});
+  var fyLbl=TL.fy[TL.fcStart];
+  if(!vis.length){document.getElementById('kPub').innerHTML='';document.getElementById('tPub').innerHTML='';['cPubAsu','cPubSr','cPubDisp','cPubDecline'].forEach(function(c){svgChart(c,[],[]);});return;}
+  var rows=computeAsuRows();
+  var fASU=0,aASU=0,fDisp=0,aDisp=0,fSR=0,aSR=0,fDec=0,aDec=0;
+  vis.forEach(function(i){
+    fASU+=rows[i].base;aASU+=rows[i].adj;
+    fDisp+=TL.disp[i];aDisp+=DISP._adj?DISP._adj[i]:0;
+    fSR+=TL.sr[i];aSR+=SR._adj?SR._adj[i]:0;
+    fDec+=rows[i].exp;aDec+=rows[i].adjDec;
+  });
+  // row 1 = forecast (ASU/SRs/Dispatches/Declines), row 2 = adjusted below each
+  document.getElementById('kPub').innerHTML=
+    kpi('ASU Forecast ('+fyLbl+')',fmt(fASU),'')+
+    kpi('SRs Forecast ('+fyLbl+')',fmt(fSR),'')+
+    kpi('Dispatches Forecast ('+fyLbl+')',fmt(fDisp),'')+
+    kpi('Declines Forecast ('+fyLbl+')',fmt(fDec),'')+
+    kpi('Adjusted ASU ('+fyLbl+')',fmt(aASU),'','color:#ea580c')+
+    kpi('Adjusted SRs ('+fyLbl+')',fmt(aSR),'','color:#ea580c')+
+    kpi('Adjusted Dispatches ('+fyLbl+')',fmt(aDisp),'','color:#ea580c')+
+    kpi('Adjusted Declines ('+fyLbl+')',fmt(aDec),'','color:#ea580c');
+  var tb='';
+  vis.forEach(function(i){
+    tb+='<tr><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(rows[i].adj)+'</td><td>'+(SR._adj?fmt(SR._adj[i]):'—')+'</td><td>'+(DISP._adj?fmt(DISP._adj[i]):'—')+'</td><td>'+fmt(rows[i].adjDec)+'</td></tr>';
+  });
+  document.getElementById('tPub').innerHTML=tb;
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
+  svgChart('cPubAsu',lbl,[
+    {color:'#3a6ef0',fcColor:'#3a6ef0',name:'ASU Forecast',data:vis.map(function(i){return rows[i].base;})},
+    {color:'#ea580c',fcColor:'#ea580c',name:'Adj ASU',data:vis.map(function(i){return rows[i].adj;})}
+  ],function(v){return fmt(v);});
+  svgChart('cPubSr',lbl,[
+    {color:'#6d28d9',fcColor:'#6d28d9',name:'SR Forecast',data:vis.map(function(i){return TL.sr[i];})},
+    {color:'#ea580c',fcColor:'#ea580c',name:'Adj SR',data:vis.map(function(i){return SR._adj?SR._adj[i]:0;})}
+  ],function(v){return fmt(v);});
+  svgChart('cPubDisp',lbl,[
+    {color:'#16a34a',fcColor:'#16a34a',name:'Disp Forecast',data:vis.map(function(i){return TL.disp[i];})},
+    {color:'#ea580c',fcColor:'#ea580c',name:'Adj Disp',data:vis.map(function(i){return DISP._adj?DISP._adj[i]:0;})}
+  ],function(v){return fmt(v);});
+  svgChart('cPubDecline',lbl,[
+    {color:'#0d9488',fcColor:'#0d9488',name:'Decline Forecast',data:vis.map(function(i){return rows[i].exp;})},
+    {color:'#ea580c',fcColor:'#ea580c',name:'Adj Decline',data:vis.map(function(i){return rows[i].adjDec;})}
+  ],function(v){return fmt(v);});
+}
+var _lastTab=null;
+function go(v){
+  ['Disp','Asu','Sr','Pub'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v);});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-v')===v);});
+  if(v==='pub'){pruneToForecast();renderRail();renderCtx();renderPub();}
+  else if(_lastTab==='pub'){F.fy=['FY26','FY27'];F.quarter=[];F.week=[];renderRail();applyFilters();}  // Steps 1&2 default back to FY26+FY27
+  else renderRail();                                     // task 7: refresh which filters are hidden for this tab's segment
+  renderCtx();
+  updateExportBtn();
+  updateCtlReopen();
+  _lastTab=v;
+}
 function toggleTheme(){
   var dark=document.body.getAttribute('data-theme')==='dark';
   document.body.setAttribute('data-theme',dark?'light':'dark');
@@ -820,8 +1222,8 @@ function aggLob(keys){
   var all=Object.keys(BTC);keys=(keys&&keys.length)?keys:all;if(!keys.length)return null;var f=BTC[keys[0]],N=f.fw.length;
   function z(){var a=[];for(var i=0;i<N;i++)a.push(0);return a;}
   var g={lob:(keys.length>=all.length?'All LOBs':keys.length+' LOBs'),category:'All',fcStart:f.fcStart,fw:f.fw.slice(),fy:f.fy.slice(),fq:f.fq.slice(),series:f.series.slice(),
-    asu:z(),disp:z(),sr:z(),nc:z(),apos:z(),exp:z(),ships:z(),dispTarget:0,srTarget:0,dispTargetN:0,srTargetN:0};
-  keys.forEach(function(k){var d=BTC[k];for(var i=0;i<N;i++){g.asu[i]+=d.asu[i];g.disp[i]+=d.disp[i];g.sr[i]+=d.sr[i];g.nc[i]+=d.nc[i];g.apos[i]+=d.apos[i];g.exp[i]+=d.exp[i];g.ships[i]+=(d.ships?d.ships[i]:d.nc[i]);}});
+    asu:z(),disp:z(),sr:z(),nc:z(),apos:z(),dispTarget:0,srTarget:0,dispTargetN:0,srTargetN:0};   // exp dropped — declines come from declFile
+  keys.forEach(function(k){var d=BTC[k];for(var i=0;i<N;i++){g.asu[i]+=d.asu[i];g.disp[i]+=d.disp[i];g.sr[i]+=d.sr[i];g.nc[i]+=d.nc[i];g.apos[i]+=d.apos[i];}});
   var sd=0,ss=0,sa=0;for(var i=g.fcStart;i<N;i++){sd+=g.disp[i];ss+=g.sr[i];sa+=g.asu[i];}
   g.dispTarget=sa?(sd/sa)*0.92:0;g.srTarget=sa?(ss/sa)*0.92:0;g.dispTargetN=Math.round(sd*0.92);g.srTargetN=Math.round(ss*0.92);
   // P5: ASU-weighted merge of per-LOB allocation weights across the selection
@@ -837,15 +1239,24 @@ function loadLob(){
   var sel=currentLobs();if(!sel.length)return;
   TL=(sel.length===1)?BTC[sel[0]]:aggLob(sel);if(!TL)return;
   SPLIT_FW=shortFW(TL.fw[TL.fcStart-1]);   // forecast recolor starts exactly where the modifier bend starts (fcStart)
-  OVR={disp:{},sr:{},asu:{}};PUB={disp:false,sr:false};ASU_LOCKED=false;updateExportBtn();
-  ['dS','dI','sS','sI','ncS','ncI','apS','apI','shS','shI'].forEach(function(id){var e=document.getElementById(id);if(e){e.value=0;e.disabled=false;}});
+  OVR={disp:{},sr:{},asu:{}};   // absolute per-week edits don't carry across a data change; slider %s + locks/step DO
+  // task 2: pull declines from the dummy file (input/declines_dummy.js) if present, aggregated across selection
+  if(DECL_FILE){var dN=TL.fw.length,df=[];for(var di=0;di<dN;di++)df.push(0);
+    sel.forEach(function(k){var a=DECL_FILE[k];if(a)for(var dj=0;dj<dN;dj++)df[dj]+=(a[dj]||0);});TL.declFile=df;}
+  else TL.declFile=null;
+  DECL_IMPORTED=!!TL.declFile;
   renderRail();renderCtx();
   renderRate(DISP);renderRate(SR);renderAsu();
-  setLockUI();   // resets Step-1 gate, button label, stepper
+  setLockUI();setDispLockUI();setSrLockUI();   // reflect preserved lock state on the new render
+  updateCycleLabel();                          // set cycle FY + FQ + pass label for this LOB
+  updateTabVisibility();updateStepper();updateExportBtn();
+  go(activeTab());                             // re-render current tab — stay where you were (no jump back to ASU)
 }
 // ---------- boot: fetch the dataset ----------
 function boot(payload){
   applySavedTheme();
+  loadPass();
+  DECL_FILE=(typeof window!=='undefined'&&window.BTC_DECLINES)?window.BTC_DECLINES:null;   // auto-pull declines if present
   BTC=payload.data||{};
   var lobs=payload.lobs||Object.keys(BTC);
   var opts=payload.opts||{};
@@ -854,6 +1265,7 @@ function boot(payload){
   cfgOf('week').opts   =['All'].concat(opts.week||[]);
   cfgOf('lob').opts    =['All'].concat(lobs);
   F.lob=[];
+  F.fy=['FY26','FY27'];
   renderRail();
   loadLob();
   initLegends();

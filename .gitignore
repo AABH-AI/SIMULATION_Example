@@ -47,3 +47,13 @@ template_ui/IMP_DOCS/day 4.txt
 template_ui/IMP_DOCS/BTC Guide — Forecast Copilot.html
 template_ui/IMP_DOCS/adjustment flow.png
 template_ui/IMP_DOCS/TEMPLATE_UI_SOURCE.md
+
+# Reference-docs working folder (new structure) — local only, never commit.
+template_ui/ref_docs/
+
+# Compliance: KT-derived BTC guide + its gap-analysis carry real client names/process — keep local, NEVER publish.
+template_ui/IMP_DOCS/BTC_GUIDE.md
+template_ui/IMP_DOCS/BTC_GUIDE_VS_SIMULATOR_DIFF.md
+
+# Local dummy workbook.
+template_ui/input/Dummy.xlsx
