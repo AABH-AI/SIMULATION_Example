@@ -19,7 +19,7 @@ function writeManifest(manifest) {
 
 function gatherHtmlFiles(dir) {
   return fs.readdirSync(dir)
-    .filter(f => f.endsWith('.html') && f !== 'index.html' && fs.statSync(path.join(dir, f)).isFile());
+    .filter(f => f.toLowerCase().endsWith('.html') && f.toLowerCase() !== 'index.html' && fs.statSync(path.join(dir, f)).isFile());
 }
 
 function getLatestAutoPage(autoPages) {
