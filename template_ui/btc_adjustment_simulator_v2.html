@@ -175,7 +175,7 @@
   *::-webkit-scrollbar{width:0;height:0;display:none}
   /* control-collapse reopen gear, pinned inside the chart/table card */
   .row > .card:first-child{position:relative}
-  .ctlgear{position:absolute;top:12px;right:12px;z-index:6;display:none}
+  .ctlgear{position:absolute;top:12px;right:48px;z-index:6;display:none}   /* sits left of the expand button */
   .row.ctl-collapsed .ctlgear{display:flex}
   /* filter rail: collapsible "More filters" group */
   .morehdr{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;color:var(--t1);cursor:pointer;padding:9px 0 7px;border-top:1px solid var(--bd);margin:2px 0 4px}
@@ -183,6 +183,18 @@
   .morehdr .cr{font-size:9px;color:var(--t3)}
   .moreblk{display:none}
   .moreblk.open{display:block}
+  /* Publish page charts grid (NC, APOS, ASU, Declines, SR, Dispatch) */
+  .pubcharts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:12px}
+  .pubcharts .card{position:relative}
+  /* focus/expand overlay — one chart card, or a chart+controls row, promoted over a 40% dim backdrop */
+  #expandBackdrop{display:none;position:fixed;inset:0;background:rgba(13,16,32,.4);z-index:84}
+  body.expanding #expandBackdrop{display:block}
+  .expanded{position:fixed!important;inset:24px;z-index:85;overflow:auto;box-shadow:0 20px 60px rgba(13,16,32,.4)}
+  .expanded .cw{height:calc(96vh - 190px);min-height:280px}
+  .expandbtn{position:absolute;top:12px;right:12px;z-index:6}
+  /* adjusted values "pop out" once a modifier is changed (one-shot reveal, no per-drag flicker) */
+  @keyframes popIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
+  .pop{animation:popIn .32s cubic-bezier(.4,0,.2,1)}
 </style>
 </head>
 <body class="rail-open">
@@ -216,8 +228,8 @@
     <div class="segbar" id="segDisp"></div>
     <div class="kr kr6" id="kDisp"></div>
     <div class="row">
-      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
-        <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span class="adj-lg"><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cDisp"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div>
       </div>
@@ -243,22 +255,22 @@
   <div class="view" id="vAsu">
     <div class="kr kr5" id="kAsu"></div>
     <div class="row">
-      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span><i style="background:#ea580c"></i>Adj ASU</span><span><i style="background:#0891b2"></i>Adj NC</span><span><i style="background:#ac4073"></i>Adj APOS</span><span class="decl-lg"><i style="background:#0d9488"></i>Decline Actuals</span><span class="decl-lg"><i style="background:#d97706"></i>Adj Decline</span></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span class="adjasu-lg"><i style="background:#ea580c"></i>Adj ASU</span><span class="adjnc-lg"><i style="background:#0891b2"></i>Adj NC</span><span class="adjap-lg"><i style="background:#ac4073"></i>Adj APOS</span><span class="decl-lg"><i style="background:#0d9488"></i>Declines</span></div>
         <div class="cw" id="cAsu"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Decline Actuals</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th style="color:#0d9488">Adj Decline</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
+        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th style="color:#0d9488">Declines</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="aReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
-        <div class="mb blue"><h4 style="color:var(--ac)">New Contract</h4>
+        <div class="mb blue"><h4 style="color:var(--ac)">New Contracts</h4>
           <div class="sl sl-b"><input type="range" id="ncS" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
-        <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewal</h4>
+        <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewals</h4>
           <div class="sl sl-p"><input type="range" id="apS" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
         </div>
         <div class="mb" style="border-color:rgba(13,148,136,.35)"><h4 style="color:#0d9488">Declines</h4>
           <input type="file" id="declFile" accept=".csv,.txt" style="display:none" onchange="importDeclines(this.files[0]);this.value='';">
-          <div style="display:flex;align-items:center;gap:8px"><button class="btn dis" style="flex:0 0 auto;padding:6px 12px" id="declBtn" onclick="document.getElementById('declFile').click()">⇧ Import declines</button><span id="declStatus" class="ks"></span></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button class="btn dis" style="flex:0 0 auto;padding:6px 12px" id="declBtn" onclick="document.getElementById('declFile').click()">⇧ Import declines</button><button class="btn dis" style="flex:0 0 auto;padding:6px 12px;display:none" id="declRemoveBtn" onclick="removeDeclines()">✕ Remove file</button><span id="declStatus" class="ks"></span></div>
         </div>
         <h4 style="font-size:10px;margin-bottom:8px">ASU vs Base (end of window)</h4>
         <div class="gap"><span>Base ASU</span><b id="aBase">0</b></div>
@@ -276,8 +288,8 @@
     <div class="segbar" id="segSr"></div>
     <div class="kr kr6" id="kSr"></div>
     <div class="row">
-      <div class="card"><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
-        <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span class="adj-lg"><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cSr"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div>
       </div>
@@ -302,24 +314,30 @@
   <!-- PUBLISH PAGE (Step 3) -->
   <div class="view" id="vPub">
     <div class="gate" id="pubGate"><span>🔒</span><span>Lock SRs &amp; Dispatches (Step&nbsp;1) and ASU (Step&nbsp;2) to enable export.</span></div>
-    <div class="kr kr4" id="kPub"></div>
-    <div class="kr kr4" style="margin-bottom:12px">
-      <div class="card"><h3>ASU — Forecast vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#3a6ef0"></i>ASU Forecast</span><span><i style="background:#ea580c"></i>Adj ASU</span></div>
+    <div class="kr" id="kPub"></div>
+    <div class="pubcharts">
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>New Contracts — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>NC Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj NC</span></div>
+        <div class="cw" id="cPubNc"></div></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>APOS Renewals — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#6d28d9"></i>APOS Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj APOS</span></div>
+        <div class="cw" id="cPubApos"></div></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>ASU — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>ASU Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj ASU</span></div>
         <div class="cw" id="cPubAsu"></div></div>
-      <div class="card"><h3>SRs — Forecast vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#6d28d9"></i>SR Forecast</span><span><i style="background:#ea580c"></i>Adj SR</span></div>
-        <div class="cw" id="cPubSr"></div></div>
-      <div class="card"><h3>Dispatches — Forecast vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#16a34a"></i>Disp Forecast</span><span><i style="background:#ea580c"></i>Adj Disp</span></div>
-        <div class="cw" id="cPubDisp"></div></div>
-      <div class="card"><h3>Declines — Forecast vs Adjusted</h3>
-        <div class="lg"><span><i style="background:#0d9488"></i>Decline Forecast</span><span><i style="background:#ea580c"></i>Adj Decline</span></div>
+      <div class="card" id="cardPubDecline"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>Declines — Forecast</h3>
+        <div class="lg"><span><i style="background:#0d9488"></i>Declines</span></div>
         <div class="cw" id="cPubDecline"></div></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>SRs — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#db2777"></i>SR Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj SR</span></div>
+        <div class="cw" id="cPubSr"></div></div>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>Dispatches — Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#ca8a04"></i>Disp Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj Disp</span></div>
+        <div class="cw" id="cPubDisp"></div></div>
     </div>
     <div class="row">
       <div class="card"><h3>Published Forecast Summary</h3>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU_Adj</th><th>SR_Adj</th><th>Disp_Adj</th><th>Decline_Adj</th></tr></thead><tbody id="tPub"></tbody></table></div>
+        <div class="tw"><table><thead><tr id="tPubHead"></tr></thead><tbody id="tPub"></tbody></table></div>
       </div>
       <div class="card">
         <h3>Export</h3>
@@ -337,6 +355,7 @@
   <button class="freset" onclick="resetFilters()">↺ Reset filters</button>
   <div id="frailBody"></div>
 </aside>
+<div id="expandBackdrop" onclick="collapseExpand()"></div>
 <div class="modal" id="allocModal">
   <div class="modalcard">
     <div class="mh"><h3 id="allocTitle">Allocation</h3><button class="mx" onclick="closeAlloc()">×</button></div>
@@ -358,8 +377,9 @@ var SR  ={kind:'sr',  mI:'sI',kEl:'kSr',  tEl:'tSr',  cEl:'cSr',  kpiId:'kSr', t
 var ASU_ROWS=[];
 var OVR={disp:{},sr:{},asu:{}};   // manual per-week overrides on the adjusted values
 var TGT_OVR={disp:null,sr:null};  // manual MDR-% target override per metric (null = auto baseline×0.92)
-var DECL_IMPORTED=false;          // declines shown once pulled from the dummy file or manually imported
-var DECL_FILE=null;               // window.BTC_DECLINES (per-LOB declines) loaded from input/declines_dummy.js
+var DECL_IMPORTED=false;          // declines are shown ONLY after a manual file import — no auto-reveal
+var DECL_FILE=null;               // window.BTC_DECLINES (per-LOB declines) from input/declines_dummy.js (import-convenience data source)
+var DECL_VALS={};                 // imported per-week decline values {fw:value} (forecast weeks). Declines are display-only, forecast-only, never adjusted.
 var PASS_COUNT=1;   // adjustment cycle pass counter
 var PUB={disp:false,sr:false};   // publish state — export unlocks when disp+sr both true (ASU is intermediate, not published)
 var ASU_LOCKED=false;            // Step-1 gate: ASU forecast must be locked before disp/SR can publish
@@ -373,6 +393,12 @@ function kpi(l,v,s,st,pct){
   var badge='';
   if(pct!=null&&isFinite(pct)){var up=pct>=0,col=up?'var(--gn)':'var(--rd)',ar=up?'▲':'▼';badge='<div class="kchg" style="color:'+col+'">'+ar+' '+(up?'+':'')+pct.toFixed(1)+'%</div>';}
   return '<div class="kp"><div class="kl">'+l+'</div><div class="kv"'+(st?' style="'+st+'"':'')+'>'+v+'</div>'+badge+'<div class="ks">'+s+'</div></div>';
+}
+// one-shot "pop out" reveal: fire the animation only on the hidden→shown transition (not on every slider tick)
+var _admShown={asu:false,sr:false,disp:false,pub:false};
+function popReveal(kind,showAdj,els){
+  if(showAdj&&!_admShown[kind]){_admShown[kind]=true;els.forEach(function(e){if(e){e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop');}});}
+  else if(!showAdj){_admShown[kind]=false;els.forEach(function(e){if(e)e.classList.remove('pop');});}
 }
 // ================= FILTER ENGINE =================
 // FY / FQ / FW / LOB slice the timeline data. The remaining dims have no per-week series in the
@@ -609,7 +635,24 @@ function symSvg(sym,col){
   else shape='<circle cx="5" cy="5" r="4.3"/>';
   return '<svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle;flex:0 0 auto" fill="'+col+'">'+shape+'</svg>';
 }
-function svgChart(elId,labels,series,yfmt){
+// x-axis LABEL thinning (data points untouched): given timeline indices in order, return a parallel array of
+// tick-label strings — '' hides that tick. Short span (≤8 quarters): starting week + each quarter-ending week
+// (week labels). Longer span (>8 quarters): starting quarter + ending quarter only (quarter labels).
+function axisLabels(idx){
+  var out=idx.map(function(){return '';});
+  if(!idx.length||!TL)return out;
+  var qs=[],lastPos={};
+  idx.forEach(function(ti,pos){var q=TL.fq[ti];if(qs.indexOf(q)<0)qs.push(q);lastPos[q]=pos;});
+  if(qs.length>8){
+    out[0]=(''+TL.fq[idx[0]]).slice(2);
+    out[idx.length-1]=(''+TL.fq[idx[idx.length-1]]).slice(2);
+  }else{
+    out[0]=shortFW(TL.fw[idx[0]]);
+    qs.forEach(function(q){out[lastPos[q]]=shortFW(TL.fw[idx[lastPos[q]]]);});
+  }
+  return out;
+}
+function svgChart(elId,labels,series,yfmt,xlab){
   var el=document.getElementById(elId);if(!el)return;
   yfmt=yfmt||function(v){return fmt(v);};
   var hasData=series&&series.length&&labels.length&&series.some(function(s){return s.data&&s.data.length;});
@@ -640,7 +683,7 @@ function svgChart(elId,labels,series,yfmt){
   var allV=[];hcSeries.forEach(function(s){s.data.forEach(function(v){if(v!=null&&isFinite(v))allV.push(v);});});
   var yMin=null,yMax=null;
   if(allV.length){var mn=Math.min.apply(null,allV),mx=Math.max.apply(null,allV);if(mn===mx){mn-=1;mx+=1;}var pd=(mx-mn)*0.06;yMin=mn-pd;yMax=mx+pd;if(mn>=0)yMin=Math.max(0,yMin);}
-  var sig=n+'|'+splitPos+'|'+series.map(function(s){return (s.name||'')+(s.seg||'')+(s.dash?'d':'');}).join(',');
+  var sig=n+'|'+splitPos+'|'+series.map(function(s){return (s.name||'')+(s.seg||'')+(s.dash?'d':'');}).join(',')+'|'+(xlab?xlab.join(''):'');
   if(HC[elId]&&HC[elId].sig===sig){                         // same shape → instant in-place update (no anim = live slider tracking)
     var ch=HC[elId].chart;
     ch.xAxis[0].setCategories(labels,false);
@@ -656,9 +699,12 @@ function svgChart(elId,labels,series,yfmt){
   var chart=Highcharts.chart(elId,{
     chart:{type:'line',backgroundColor:'transparent',style:{fontFamily:"'Plus Jakarta Sans',sans-serif"},spacing:[8,6,4,4],animation:{duration:300}},
     title:{text:null},credits:{enabled:false},legend:{enabled:false},
-    xAxis:{categories:labels,lineColor:T.line,tickColor:T.line,tickLength:4,
-      labels:{style:{color:T.axis,fontSize:'9px'},step:Math.max(1,Math.ceil(n/8))},
-      crosshair:{width:1,color:T.div,dashStyle:'Dash'},plotLines:plotLines},
+    xAxis:(function(){
+      var lb={style:{color:T.axis,fontSize:'9px'}},cfg={categories:labels,lineColor:T.line,tickColor:T.line,tickLength:4,crosshair:{width:1,color:T.div,dashStyle:'Dash'},plotLines:plotLines};
+      if(xlab){var tp=[];for(var q=0;q<xlab.length;q++)if(xlab[q]!=='')tp.push(q);cfg.tickPositions=tp;lb.formatter=function(){return xlab[this.pos]||'';};}
+      else lb.step=Math.max(1,Math.ceil(n/8));
+      cfg.labels=lb;return cfg;
+    })(),
     yAxis:{title:{text:null},gridLineColor:T.grid,startOnTick:false,endOnTick:false,min:yMin,max:yMax,
       labels:{formatter:function(){return yfmt(this.value);},style:{color:T.axis,fontSize:'9px',fontFamily:"'IBM Plex Mono',monospace"}}},
     tooltip:{shared:true,useHTML:true,backgroundColor:'#0d1020',borderWidth:0,borderRadius:6,shadow:false,padding:9,
@@ -787,6 +833,9 @@ function renderRate(C){
   var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
   function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
   var actualsOnly=vis.every(function(i){return i<fc});
+  // req 1: adjusted cards/line/columns stay hidden until the modifier is actually changed (or a manual per-week edit exists)
+  var adjActive=(+document.getElementById(C.mI).value!==100)||Object.keys(OVR[C.kind]).length>0;
+  var showAdj=!actualsOnly&&adjActive;
   // v1 six-card set: DS Forecast, BTC Adjusted, AOP Target, MDR Rate, Adjusted Rate, Gap
   // MDR (per adjustment template): metric_FY / avgASU_FY / 52. frate/arate/target below carry that rate
   // (legacy internal scale); the display multiplies by 100 so it reads as a real percentage
@@ -797,15 +846,15 @@ function renderRate(C){
   var u=C.kind==='disp'?'Disp':'SR';
   document.getElementById(C.kpiId).innerHTML=
     kpi(u+' DS Forecast',fmt(tBase),'',null,CB('base'))+
-    (actualsOnly?'':kpi(u+' BTC Adjusted',fmt(tAdj),'','color:var(--ac)',CB('adj')))+
+    (showAdj?kpi(u+' BTC Adjusted',fmt(tAdj),'','color:var(--ac)',CB('adj')):'')+
     kpi('AOP Target',fmt(tgtN),'')+
     kpi('MDR Rate',(frate*100).toFixed(2)+'%','')+
-    (actualsOnly?'':kpi('Adjusted Rate',(arate*100).toFixed(2)+'%','','color:'+gc))+
-    (actualsOnly?'':kpi('Gap',(gapN>=0?'+':'')+fmt(gapN),'','color:'+gc));
+    (showAdj?kpi('Adjusted Rate',(arate*100).toFixed(2)+'%','','color:'+gc):'')+
+    (showAdj?kpi('Gap',(gapN>=0?'+':'')+fmt(gapN),'','color:'+gc):'');
   var tb='';vis.forEach(function(i){var isA=i<fc;
     var valCell=isA?'—':(sw!==1?fmt(adjs[i]):'<input class="ec" value="'+fmt(adjs[i])+'" onchange="editRate(\''+C.kind+'\',\''+TL.fw[i]+'\',this.value)">');
     var delta=isA?'—':fmt(adjs[i]-nds[i]);
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(nds[i])+'</td>'+(actualsOnly?'':'<td style="color:#ea580c">'+valCell+'</td><td>'+(delta>=0?'+':'')+delta+'</td>')+'</tr>';
+    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(nds[i])+'</td>'+(showAdj?'<td style="color:#ea580c">'+valCell+'</td><td>'+(delta>=0?'+':'')+delta+'</td>':'')+'</tr>';
   });
   document.getElementById(C.tabId).innerHTML=tb;
   // hide the modifier slider block when the view has no forecast weeks
@@ -813,7 +862,7 @@ function renderRate(C){
   // Update table header to hide adjusted columns when actuals-only
   var thead=document.querySelector('#'+C.tabId).parentElement.querySelector('thead tr');
   if(thead){
-    if(actualsOnly){
+    if(!showAdj){
       thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th>';
     }else{
       thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th><th>Adj '+(C.kind==='disp'?'Disp':'SRs')+'</th><th>Delta</th>';
@@ -832,41 +881,42 @@ function renderRate(C){
   }
   var asuTotal=0;vis.forEach(function(i){asuTotal+=adjAsus[i];});
   var tgtWeekly=vis.length?Math.round(target/100*(asuTotal/vis.length)):0;
-  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
   svgChart(C.cEl,lbl,[
     {color:'#16a34a',fcColor:'#16a34a',name:C.dsName,data:vis.map(function(i){return nds[i];})},               // green throughout
-    {color:'#ea580c',name:C.adjName,seg:'forecast',data:vis.map(function(i){return adjs[i];})},                // orange, forecast only
+    {color:'#ea580c',name:C.adjName,seg:'forecast',data:showAdj?vis.map(function(i){return adjs[i];}):[]},      // orange, forecast only — hidden until adjusted
     {color:'#b45309',dash:true,name:'AOP Target',data:lbl.map(function(){return tgtWeekly;})}
-  ],function(v){return fmt(v);});
+  ],function(v){return fmt(v);},xlab);
+  // adjusted legend entry + one-shot pop reveal of the KPI row and table when the adjusted view first appears
+  document.querySelectorAll('#'+(C.kind==='disp'?'vDisp':'vSr')+' .adj-lg').forEach(function(e){e.style.display=showAdj?'':'none';});
+  var _tw=document.getElementById(C.tabId);popReveal(C.kind,showAdj,[document.getElementById(C.kpiId),_tw&&_tw.closest('.tw')]);
   C._adj=adj;C._vis=vis;
   if(C.kind==='disp')setDispLockUI();
   if(C.kind==='sr')setSrLockUI();
 }
 function editAsu(fw,which,val){var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];renderAsu();renderRate(DISP);renderRate(SR);}
 // ---------- ASU chain — pure compute (shared by renderAsu + the disp/SR driver) ----------
-// New Contracts (blue), APOS Renewal (purple), Declines/Expiring (teal) outflow component + cumulative Adjusted (orange).
+// New Contracts (blue), APOS Renewals (purple) drive the cumulative Adjusted ASU (orange).
+// Declines are DECOUPLED — a display-only, forecast-only series from a manual import; they never enter the ASU math.
 function computeAsuRows(){
   if(!TL)return [];
   // sliders 60–150, 100 = neutral; mult = value/100
   var ncM=(+document.getElementById('ncI').value)/100,
       apM=(+document.getElementById('apI').value)/100;
-  // Declines are NOT sourced from btc_data.js in v3 — they come from the dummy declines file (TL.declFile,
-  // loaded from input/declines_dummy.js) or a manual import (OVR.asu[fw].dec). Either way SUBTRACTED from ASU.
-  var DF=TL.declFile||null;function baseDec(i){return DF?(DF[i]||0):0;}
-  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,decCum=0,ov=OVR.asu;
+  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ov=OVR.asu;
   for(var i=0;i<N;i++){
-    var base=TL.asu[i],bd=baseDec(i),an,ba,dec,adjV,ncV,renV,decV;
-    if(i<fc){an=TL.nc[i];ba=TL.apos[i];dec=bd;adjV=base;ncV=base;renV=base;decV=base;}
+    var base=TL.asu[i],an,ba,adjV,ncV,renV;
+    var decl=(i>=fc&&DECL_IMPORTED)?(DECL_VALS[TL.fw[i]]||0):null;   // forecast-only display decline; null on actuals weeks
+    if(i<fc){an=TL.nc[i];ba=TL.apos[i];adjV=base;ncV=base;renV=base;}
     else{
       var o=ov[TL.fw[i]]||{};
       an=(o.an!=null)?o.an:Math.round(TL.nc[i]*ncM);
       ba=(o.ba!=null)?o.ba:Math.round(TL.apos[i]*apM);
-      dec=(o.dec!=null)?o.dec:bd;
-      ncCum+=(an-TL.nc[i]);renCum+=(ba-TL.apos[i]);decCum+=(dec-bd);
-      ncV=base+ncCum;renV=base+renCum;decV=base+decCum;adjV=base+ncCum+renCum-decCum;
+      ncCum+=(an-TL.nc[i]);renCum+=(ba-TL.apos[i]);declCum+=(decl||0);   // declines subtract from the running adjusted ASU (never adjusted themselves)
+      ncV=base+ncCum;renV=base+renCum;adjV=base+ncCum+renCum-declCum;
     }
-    rows.push({fw:TL.fw[i],base:base,exp:bd,nc:TL.nc[i],apos:TL.apos[i],
-               adjNew:an,btcApos:ba,adjDec:dec,adj:adjV,ncLine:ncV,renLine:renV,decLine:decV});
+    rows.push({fw:TL.fw[i],base:base,decl:decl,nc:TL.nc[i],apos:TL.apos[i],
+               adjNew:an,btcApos:ba,adj:adjV,ncLine:ncV,renLine:renV});
   }
   return rows;
 }
@@ -874,65 +924,75 @@ function renderAsu(){
   var fc=TL.fcStart,rows=computeAsuRows();
   var vis=visIdx();
   if(!vis.length){document.getElementById('kAsu').innerHTML='';document.getElementById('tAsu').innerHTML='';svgChart('cAsu',[],[]);ASU_ROWS=rows;return;}
-  var last=rows[vis[vis.length-1]],tE=0,tAN=0,tBA=0,tNC=0,tAP=0,tADEC=0;vis.forEach(function(i){tE+=rows[i].exp;tAN+=rows[i].adjNew;tBA+=rows[i].btcApos;tNC+=rows[i].nc;tAP+=rows[i].apos;tADEC+=rows[i].adjDec;});
+  var last=rows[vis[vis.length-1]],tAN=0,tBA=0,tNC=0,tAP=0,tDecl=0;vis.forEach(function(i){tAN+=rows[i].adjNew;tBA+=rows[i].btcApos;tNC+=rows[i].nc;tAP+=rows[i].apos;if(rows[i].decl!=null)tDecl+=rows[i].decl;});
   var cp=chgPeriods();
-  function ap2(idxs){var e=0,an=0,ba=0,nc=0,ap=0;idxs.forEach(function(i){e+=rows[i].exp;an+=rows[i].adjNew;ba+=rows[i].btcApos;nc+=rows[i].nc;ap+=rows[i].apos;});var li=idxs[idxs.length-1];return{base:rows[li].base,adj:rows[li].adj,exp:e,adjNew:an,btcApos:ba,nc:nc,apos:ap};}
+  function ap2(idxs){var an=0,ba=0,nc=0,ap=0;idxs.forEach(function(i){an+=rows[i].adjNew;ba+=rows[i].btcApos;nc+=rows[i].nc;ap+=rows[i].apos;});var li=idxs[idxs.length-1];return{base:rows[li].base,adj:rows[li].adj,adjNew:an,btcApos:ba,nc:nc,apos:ap};}
   var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
   function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
   var actualsOnly=vis.every(function(i){return i<fc});
+  // req 1 + 3.2: per-metric reveal — show ONLY the adjusted line/card/column whose own modifier changed.
+  // Adj NC ← NC slider/edit; Adj APOS ← APOS slider/edit; Adj ASU ← any of NC/APOS OR imported declines (they subtract from ASU).
+  var ncM=+document.getElementById('ncI').value,apM=+document.getElementById('apI').value,ovAn=false,ovBa=false;
+  Object.keys(OVR.asu).forEach(function(fw){var o=OVR.asu[fw]||{};if(o.an!=null)ovAn=true;if(o.ba!=null)ovBa=true;});
+  var ncAdj=!actualsOnly&&(ncM!==100||ovAn),apAdj=!actualsOnly&&(apM!==100||ovBa);
+  var asuAdj=!actualsOnly&&(ncAdj||apAdj||DECL_IMPORTED),anyAdj=asuAdj;
   var kEl=document.getElementById('kAsu');kEl.className='kr '+(DECL_IMPORTED?'kr4':'kr5');   // 4 cols when declines shown
+  var ph='<div class="kp" style="visibility:hidden"></div>';   // placeholder keeps forecast/adjusted columns aligned
   kEl.innerHTML=
-    // row 1: actuals (+ Decline Actuals right of APOS when imported)
+    // row 1: actuals (+ Declines right of APOS when imported — forecast-only, no adjusted variant)
     kpi('ASU Actuals',fmt(last.base),'',null,CB('base'))+
     kpi('NC Actuals',fmt(tNC),'','color:var(--ac)',CB('nc'))+
     kpi('APOS Actuals',fmt(tAP),'','color:var(--pu)',CB('apos'))+
-    (DECL_IMPORTED?kpi('Decline Actuals',fmt(tE),'','color:#0d9488',CB('exp')):'')+
-    // row 2: adjusted (directly below each actuals card; Adj Decline right of Adj APOS when imported)
-    (actualsOnly?'':kpi('Adjusted ASU',fmt(last.adj),'','color:#ea580c',CB('adj')))+
-    (actualsOnly?'':kpi('Adj NC',fmt(tAN),'','color:#0891b2',CB('adjNew')))+
-    (actualsOnly?'':kpi('Adj APOS',fmt(tBA),'','color:#ac4073',CB('btcApos')))+
-    (actualsOnly||!DECL_IMPORTED?'':kpi('Adj Decline',fmt(tADEC),'','color:#d97706',null));
+    (DECL_IMPORTED?kpi('Declines',fmt(tDecl),'','color:#0d9488',null):'')+
+    // row 2: only the adjusted metric(s) whose modifier changed; placeholders hold the rest of the grid in place
+    (anyAdj?
+      (asuAdj?kpi('Adjusted ASU',fmt(last.adj),'','color:#ea580c',CB('adj')):ph)+
+      (ncAdj?kpi('Adj NC',fmt(tAN),'','color:#0891b2',CB('adjNew')):ph)+
+      (apAdj?kpi('Adj APOS',fmt(tBA),'','color:#ac4073',CB('btcApos')):ph)+
+      (DECL_IMPORTED?ph:'')
+     :'');
   var tb='';vis.forEach(function(i){var r=rows[i],isA=i<fc;
     var anCell=isA?'—':'<input class="ec" value="'+r.adjNew+'" onchange="editAsu(\''+r.fw+'\',\'an\',this.value)">';
     var baCell=isA?'—':'<input class="ec" value="'+r.btcApos+'" onchange="editAsu(\''+r.fw+'\',\'ba\',this.value)">';
-    var decCell=isA?'—':'<input class="ec" value="'+r.adjDec+'" onchange="editAsu(\''+r.fw+'\',\'dec\',this.value)">';
     var adjAsuCell=isA?'—':fmt(r.adj);
-    var declAct=DECL_IMPORTED?'<td style="color:#0d9488">'+fmt(r.exp)+'</td>':'';
-    var declAdj=DECL_IMPORTED?'<td style="color:#0d9488">'+decCell+'</td>':'';
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declAct+(actualsOnly?'':'<td style="color:var(--ac)">'+anCell+'</td><td style="color:var(--pu)">'+baCell+'</td>'+declAdj+'<td>'+adjAsuCell+'</td>')+'</tr>';});
+    var declCol=DECL_IMPORTED?'<td style="color:#0d9488">'+((isA||r.decl==null)?'—':fmt(r.decl))+'</td>':'';   // forecast-only, not editable
+    var adjCols=(ncAdj?'<td style="color:var(--ac)">'+anCell+'</td>':'')+(apAdj?'<td style="color:var(--pu)">'+baCell+'</td>':'')+(asuAdj?'<td>'+adjAsuCell+'</td>':'');
+    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declCol+adjCols+'</tr>';});
   document.getElementById('tAsu').innerHTML=tb;
   // sliders are meaningless with no forecast weeks in view → hide them for actuals-only periods
   document.querySelectorAll('#vAsu .mb').forEach(function(e){e.style.display=actualsOnly?'none':'';});
-  // Update table header to hide adjusted columns when actuals-only
+  // Table header mirrors the per-metric adjusted columns above
   var thead=document.querySelector('#tAsu').parentElement.querySelector('thead tr');
   if(thead){
-    var dA=DECL_IMPORTED?'<th>Decline Actuals</th>':'',dAj=DECL_IMPORTED?'<th style="color:#0d9488">Adj Decline</th>':'';
-    if(actualsOnly){
-      thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA;
-    }else{
-      thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA+'<th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th>'+dAj+'<th>Adj ASU</th>';
-    }
+    var dA=DECL_IMPORTED?'<th style="color:#0d9488">Declines</th>':'';
+    thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA
+      +(ncAdj?'<th style="color:var(--ac)">Adj NC</th>':'')+(apAdj?'<th style="color:var(--pu)">Adj APOS</th>':'')+(asuAdj?'<th>Adj ASU</th>':'');
   }
   document.getElementById('aBase').textContent=fmt(last.base);
   document.getElementById('aAdj').textContent=fmt(last.adj);
   var lift=last.adj-last.base;var lEl=document.getElementById('aLift');lEl.textContent=(lift>=0?'+':'')+fmt(lift);lEl.style.color=lift>=0?'var(--gn)':'var(--rd)';
   document.getElementById('aBar').style.width=Math.max(4,Math.min(100,last.adj?last.base/last.adj*100:0))+'%';
-  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
-  // actuals baselines + adjusted lines; Declines (2 series) appended last and only when imported
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
+  // actuals baselines + adjusted lines (idx 3,4,5 carry empty data until an ASU modifier is changed — series slots
+  // stay in place so legend indices remain aligned). Declines: one forecast-only line, appended last, only when imported.
+  // Adj ASU (weekly composition) subtracts the week's declines so the line reflects the outflow; each Adj line
+  // shows only when its own metric changed (idx slots stay in place with empty data so legend indices align).
   var aser=[
-    {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos-rows[i].exp;})},
+    {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos;})},
     {color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Actuals',  data:vis.map(function(i){return rows[i].nc;})},
     {color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Actuals',data:vis.map(function(i){return rows[i].apos;})},
-    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-rows[i].adjDec;})},
-    {color:'#0891b2',name:'Adj NC',  seg:'forecast',       data:vis.map(function(i){return rows[i].adjNew;})},
-    {color:'#ac4073',name:'Adj APOS',seg:'forecast',       data:vis.map(function(i){return rows[i].btcApos;})}
+    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:asuAdj?vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-(rows[i].decl||0);}):[]},
+    {color:'#0891b2',name:'Adj NC',  seg:'forecast',       data:ncAdj?vis.map(function(i){return rows[i].adjNew;}):[]},
+    {color:'#ac4073',name:'Adj APOS',seg:'forecast',       data:apAdj?vis.map(function(i){return rows[i].btcApos;}):[]}
   ];
-  if(DECL_IMPORTED){
-    aser.push({color:'#0d9488',fcColor:'#0d9488',name:'Decline Actuals',data:vis.map(function(i){return rows[i].exp;})});
-    aser.push({color:'#d97706',name:'Adj Decline',seg:'forecast',data:vis.map(function(i){return rows[i].adjDec;})});
-  }
-  svgChart('cAsu',lbl,aser,function(v){return fmt(v);});
-  document.querySelectorAll('#vAsu .decl-lg').forEach(function(e){e.style.display=DECL_IMPORTED?'':'none';});
+  if(DECL_IMPORTED)aser.push({color:'#0d9488',fcColor:'#0d9488',name:'Declines',seg:'forecast',data:vis.map(function(i){return rows[i].decl;})});
+  svgChart('cAsu',lbl,aser,function(v){return fmt(v);},xlab);
+  document.querySelectorAll('#vAsu .decl-lg').forEach(function(e){e.style.display=DECL_IMPORTED?'':'none';});   // Declines (forecast-only) — shown only when imported
+  document.querySelectorAll('#vAsu .adjasu-lg').forEach(function(e){e.style.display=asuAdj?'':'none';});
+  document.querySelectorAll('#vAsu .adjnc-lg').forEach(function(e){e.style.display=ncAdj?'':'none';});
+  document.querySelectorAll('#vAsu .adjap-lg').forEach(function(e){e.style.display=apAdj?'':'none';});
+  var rmBtn=document.getElementById('declRemoveBtn');if(rmBtn)rmBtn.style.display=DECL_IMPORTED?'':'none';
+  var _twA=document.getElementById('tAsu');popReveal('asu',anyAdj,[kEl,_twA&&_twA.closest('.tw')]);
   ASU_ROWS=rows;
   if(ASU_LOCKED)document.querySelectorAll('#tAsu input.ec').forEach(function(e){e.disabled=true;});   // keep Step-1 lock after re-render
 }
@@ -952,16 +1012,15 @@ function sReset(){OVR.sr={};TGT_OVR.sr=null;clearTgtBox('sTR');sSync(100);}
 function _asuRender(){renderAsu();renderRate(DISP);renderRate(SR);}
 function ncSync(v){v=clampM(v);setPair('ncS','ncI',v);schedule(_asuRender);}
 function apSync(v){v=clampM(v);setPair('apS','apI',v);schedule(_asuRender);}
-function aReset(){OVR.asu={};DECL_IMPORTED=!!(TL&&TL.declFile);['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();}
-// A4: import per-week Declines (Expiring outflow) from a CSV/TXT and subtract from the ASU count.
-// Accepts lines like "FW,value" (FW = 2027-W01 or 27-W01) or a bare value column (assigned to forecast
-// weeks in order). Values land in OVR.asu[fw].dec, the same slot the manual Decline cell edit uses.
+function aReset(){OVR.asu={};DECL_VALS={};DECL_IMPORTED=false;['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();if(activeTab()==='pub')renderPub();}
+// Import per-week Declines (forecast, expiring outflow) from a CSV/TXT — display-only, forecast-only, never adjusted.
+// Accepts "FW,value" (FW = 2027-W01 or 27-W01) or a bare value column (assigned to forecast weeks in order).
+// Values land in DECL_VALS[fw]; declines are shown only after this import.
 function importDeclines(file){
   if(!file)return;
-  if(ASU_LOCKED){var s0=document.getElementById('declStatus');if(s0)s0.textContent='Unlock ASU to import';return;}
   var reader=new FileReader();
   reader.onload=function(e){
-    var txt=''+(e.target.result||''),lines=txt.split(/\r?\n/),fc=TL.fcStart,n=0;
+    var txt=''+(e.target.result||''),lines=txt.split(/\r?\n/),fc=TL.fcStart,n=0,vals={};
     var map={},i;for(i=0;i<TL.fw.length;i++){map[TL.fw[i]]=i;map[shortFW(TL.fw[i])]=i;}
     var seq=[];for(i=fc;i<TL.fw.length;i++)seq.push(i);var sp=0;
     lines.forEach(function(ln){
@@ -974,13 +1033,19 @@ function importDeclines(file){
       else if(key.length>2&&map[key.slice(2)]!=null)idx=map[key.slice(2)];
       if(idx==null){if(sp<seq.length)idx=seq[sp++];else return;}
       if(idx<fc)return;                                                  // forecast weeks only
-      OVR.asu[TL.fw[idx]]=OVR.asu[TL.fw[idx]]||{};OVR.asu[TL.fw[idx]].dec=Math.round(num);n++;
+      vals[TL.fw[idx]]=Math.round(num);n++;
     });
-    if(n>0)DECL_IMPORTED=true;
+    if(n>0){DECL_VALS=vals;DECL_IMPORTED=true;}
     var st=document.getElementById('declStatus');if(st)st.textContent=n?('Imported '+n+' week'+(n>1?'s':'')):'No rows matched';
-    renderAsu();renderRate(DISP);renderRate(SR);
+    renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();   // declines feed the ASU→MDR/ICR denominators
   };
   reader.readAsText(file);
+}
+// task 3.1: drop the imported declines file (returns ASU + downstream to no-declines state)
+function removeDeclines(){
+  DECL_VALS={};DECL_IMPORTED=false;
+  var st=document.getElementById('declStatus');if(st)st.textContent='';
+  renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();
 }
 // Controls card collapses like the filter rail: card hides, chart goes full width, a floating ⚙ button reopens it.
 function toggleControls(btn){
@@ -1046,7 +1111,7 @@ function toggleSrLock(){
   setSrLockUI();updateExportBtn();updateStepper();
 }
 function setLockUI(){
-  ['ncS','ncI','apS','apI','declBtn'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=ASU_LOCKED;});
+  ['ncS','ncI','apS','apI'].forEach(function(id){var e=document.getElementById(id);if(e)e.disabled=ASU_LOCKED;});   // declines are independent of the ASU lock
   document.querySelectorAll('#tAsu input.ec').forEach(function(e){e.disabled=ASU_LOCKED;});
   var btn=document.getElementById('asuLockBtn');
   if(btn){btn.textContent=ASU_LOCKED?'🔓 Unlock to revise':'🔒 Lock forecast';btn.className='btn '+(ASU_LOCKED?'dis':'pub');}
@@ -1144,48 +1209,78 @@ function renderPub(){
   if(!TL||!(PUB.disp&&PUB.sr))return;
   var fc=TL.fcStart,vis=visIdx().filter(function(i){return i>=fc;});
   var fyLbl=TL.fy[TL.fcStart];
-  if(!vis.length){document.getElementById('kPub').innerHTML='';document.getElementById('tPub').innerHTML='';['cPubAsu','cPubSr','cPubDisp','cPubDecline'].forEach(function(c){svgChart(c,[],[]);});return;}
+  var declCard=document.getElementById('cardPubDecline');if(declCard)declCard.style.display=DECL_IMPORTED?'':'none';
+  if(!vis.length){document.getElementById('kPub').innerHTML='';document.getElementById('tPub').innerHTML='';document.getElementById('tPubHead').innerHTML='';['cPubNc','cPubApos','cPubAsu','cPubDecline','cPubSr','cPubDisp'].forEach(function(c){svgChart(c,[],[]);});return;}
   var rows=computeAsuRows();
-  var fASU=0,aASU=0,fDisp=0,aDisp=0,fSR=0,aSR=0,fDec=0,aDec=0;
+  // req 1 (all pages): adjusted cards/lines stay hidden until a modifier is changed (any page's modifier, or a manual edit)
+  var showAdj=[+document.getElementById('ncI').value,+document.getElementById('apI').value,+document.getElementById('dI').value,+document.getElementById('sI').value].some(function(v){return v!==100;})||Object.keys(OVR.asu).length>0||Object.keys(OVR.disp).length>0||Object.keys(OVR.sr).length>0;
+  var fNC=0,aNC=0,fAP=0,aAP=0,fASU=0,aASU=0,fDisp=0,aDisp=0,fSR=0,aSR=0,fDecl=0;
   vis.forEach(function(i){
+    fNC+=TL.nc[i];aNC+=rows[i].adjNew;
+    fAP+=TL.apos[i];aAP+=rows[i].btcApos;
     fASU+=rows[i].base;aASU+=rows[i].adj;
     fDisp+=TL.disp[i];aDisp+=DISP._adj?DISP._adj[i]:0;
     fSR+=TL.sr[i];aSR+=SR._adj?SR._adj[i]:0;
-    fDec+=rows[i].exp;aDec+=rows[i].adjDec;
+    if(rows[i].decl!=null)fDecl+=rows[i].decl;
   });
-  // row 1 = forecast (ASU/SRs/Dispatches/Declines), row 2 = adjusted below each
+  // order NC, APOS, ASU, Declines(if imported), SR, Dispatch — row 1 forecast, row 2 adjusted below each.
+  document.getElementById('kPub').style.gridTemplateColumns='repeat('+(DECL_IMPORTED?6:5)+',minmax(0,1fr))';
   document.getElementById('kPub').innerHTML=
-    kpi('ASU Forecast ('+fyLbl+')',fmt(fASU),'')+
-    kpi('SRs Forecast ('+fyLbl+')',fmt(fSR),'')+
-    kpi('Dispatches Forecast ('+fyLbl+')',fmt(fDisp),'')+
-    kpi('Declines Forecast ('+fyLbl+')',fmt(fDec),'')+
-    kpi('Adjusted ASU ('+fyLbl+')',fmt(aASU),'','color:#ea580c')+
-    kpi('Adjusted SRs ('+fyLbl+')',fmt(aSR),'','color:#ea580c')+
-    kpi('Adjusted Dispatches ('+fyLbl+')',fmt(aDisp),'','color:#ea580c')+
-    kpi('Adjusted Declines ('+fyLbl+')',fmt(aDec),'','color:#ea580c');
+    kpi('New Contracts ('+fyLbl+')',fmt(fNC),'','color:var(--ac)')+
+    kpi('APOS Renewals ('+fyLbl+')',fmt(fAP),'','color:var(--pu)')+
+    kpi('ASU ('+fyLbl+')',fmt(fASU),'')+
+    (DECL_IMPORTED?kpi('Declines ('+fyLbl+')',fmt(fDecl),'','color:#0d9488'):'')+
+    kpi('SRs ('+fyLbl+')',fmt(fSR),'')+
+    kpi('Dispatches ('+fyLbl+')',fmt(fDisp),'')+
+    (showAdj?
+      kpi('Adj New Contracts ('+fyLbl+')',fmt(aNC),'','color:#ea580c')+
+      kpi('Adj APOS Renewals ('+fyLbl+')',fmt(aAP),'','color:#ea580c')+
+      kpi('Adjusted ASU ('+fyLbl+')',fmt(aASU),'','color:#ea580c')+
+      (DECL_IMPORTED?'<div class="kp" style="visibility:hidden"></div>':'')+
+      kpi('Adjusted SRs ('+fyLbl+')',fmt(aSR),'','color:#ea580c')+
+      kpi('Adjusted Dispatches ('+fyLbl+')',fmt(aDisp),'','color:#ea580c')
+      :'');
+  // summary table: same order — adjusted values (Declines = forecast, not adjusted)
+  document.getElementById('tPubHead').innerHTML='<th class="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>'+(DECL_IMPORTED?'<th style="color:#0d9488">Declines</th>':'')+'<th>SR_Adj</th><th>Disp_Adj</th>';
   var tb='';
   vis.forEach(function(i){
-    tb+='<tr><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(rows[i].adj)+'</td><td>'+(SR._adj?fmt(SR._adj[i]):'—')+'</td><td>'+(DISP._adj?fmt(DISP._adj[i]):'—')+'</td><td>'+fmt(rows[i].adjDec)+'</td></tr>';
+    tb+='<tr><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(rows[i].adjNew)+'</td><td>'+fmt(rows[i].btcApos)+'</td><td>'+fmt(rows[i].adj)+'</td>'+(DECL_IMPORTED?'<td style="color:#0d9488">'+(rows[i].decl==null?'—':fmt(rows[i].decl))+'</td>':'')+'<td>'+(SR._adj?fmt(SR._adj[i]):'—')+'</td><td>'+(DISP._adj?fmt(DISP._adj[i]):'—')+'</td></tr>';
   });
   document.getElementById('tPub').innerHTML=tb;
-  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);});
-  svgChart('cPubAsu',lbl,[
-    {color:'#3a6ef0',fcColor:'#3a6ef0',name:'ASU Forecast',data:vis.map(function(i){return rows[i].base;})},
-    {color:'#ea580c',fcColor:'#ea580c',name:'Adj ASU',data:vis.map(function(i){return rows[i].adj;})}
-  ],function(v){return fmt(v);});
-  svgChart('cPubSr',lbl,[
-    {color:'#6d28d9',fcColor:'#6d28d9',name:'SR Forecast',data:vis.map(function(i){return TL.sr[i];})},
-    {color:'#ea580c',fcColor:'#ea580c',name:'Adj SR',data:vis.map(function(i){return SR._adj?SR._adj[i]:0;})}
-  ],function(v){return fmt(v);});
-  svgChart('cPubDisp',lbl,[
-    {color:'#16a34a',fcColor:'#16a34a',name:'Disp Forecast',data:vis.map(function(i){return TL.disp[i];})},
-    {color:'#ea580c',fcColor:'#ea580c',name:'Adj Disp',data:vis.map(function(i){return DISP._adj?DISP._adj[i]:0;})}
-  ],function(v){return fmt(v);});
-  svgChart('cPubDecline',lbl,[
-    {color:'#0d9488',fcColor:'#0d9488',name:'Decline Forecast',data:vis.map(function(i){return rows[i].exp;})},
-    {color:'#ea580c',fcColor:'#ea580c',name:'Adj Decline',data:vis.map(function(i){return rows[i].adjDec;})}
-  ],function(v){return fmt(v);});
+  // req 3.1: keep ALL data points; only THIN the x-axis LABELS (start week + quarter-ends, or start/end quarter for long spans)
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
+  // one spec per publish chart. ALL adjusted lines are the default orange; the FORECAST colours are what differ
+  // (NC blue, APOS purple, ASU green, Declines teal, SR pink, Disp gold — all distinct from each other).
+  var ADJ='#ea580c';
+  var specs=[
+    {key:'Nc',  title:'New Contracts — Forecast vs Adjusted', series:[{color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Forecast',data:vis.map(function(i){return TL.nc[i];})},{color:ADJ,fcColor:ADJ,name:'Adj NC',data:showAdj?vis.map(function(i){return rows[i].adjNew;}):[]}]},
+    {key:'Apos',title:'APOS Renewals — Forecast vs Adjusted',series:[{color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Forecast',data:vis.map(function(i){return TL.apos[i];})},{color:ADJ,fcColor:ADJ,name:'Adj APOS',data:showAdj?vis.map(function(i){return rows[i].btcApos;}):[]}]},
+    {key:'Asu', title:'ASU — Forecast vs Adjusted',           series:[{color:'#16a34a',fcColor:'#16a34a',name:'ASU Forecast',data:vis.map(function(i){return rows[i].base;})},{color:ADJ,fcColor:ADJ,name:'Adj ASU',data:showAdj?vis.map(function(i){return rows[i].adj;}):[]}]}
+  ];
+  if(DECL_IMPORTED)specs.push({key:'Decline',title:'Declines — Forecast',series:[{color:'#0d9488',fcColor:'#0d9488',name:'Declines',seg:'forecast',data:vis.map(function(i){return rows[i].decl;})}]});
+  specs.push({key:'Sr',  title:'SRs — Forecast vs Adjusted',        series:[{color:'#db2777',fcColor:'#db2777',name:'SR Forecast',data:vis.map(function(i){return TL.sr[i];})},{color:ADJ,fcColor:ADJ,name:'Adj SR',data:showAdj?vis.map(function(i){return SR._adj?SR._adj[i]:0;}):[]}]});
+  specs.push({key:'Disp',title:'Dispatches — Forecast vs Adjusted',series:[{color:'#ca8a04',fcColor:'#ca8a04',name:'Disp Forecast',data:vis.map(function(i){return TL.disp[i];})},{color:ADJ,fcColor:ADJ,name:'Adj Disp',data:showAdj?vis.map(function(i){return DISP._adj?DISP._adj[i]:0;}):[]}]});
+  specs.forEach(function(s){svgChart('cPub'+s.key,lbl,s.series,function(v){return fmt(v);},xlab);});
+  if(!DECL_IMPORTED)svgChart('cPubDecline',[],[]);   // ensure the (hidden) decline chart is torn down when not imported
+  document.querySelectorAll('#vPub .pub-adj-lg').forEach(function(e){e.style.display=showAdj?'':'none';});
+  popReveal('pub',showAdj,[document.getElementById('kPub'),document.getElementById('tPub').closest('.tw')]);
 }
+// ---------- focus/expand: promote a chart card (Publish) or a chart+controls row (Steps 1&2) to a 40%-dim overlay ----------
+// Uses the SAME DOM element (no clones) so all controls/sliders keep working; collapsing restores the original size.
+var _expanded=null;
+function toggleExpand(el){
+  if(!el)return;
+  if(_expanded===el){collapseExpand();return;}
+  if(_expanded)collapseExpand();
+  _expanded=el;el.classList.add('expanded');document.body.classList.add('expanding');
+  reflowActiveCharts();
+}
+function collapseExpand(){
+  if(!_expanded)return;
+  _expanded.classList.remove('expanded');_expanded=null;document.body.classList.remove('expanding');
+  reflowActiveCharts();
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')collapseExpand();});
 var _lastTab=null;
 function go(v){
   ['Disp','Asu','Sr','Pub'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v);});
@@ -1214,7 +1309,7 @@ function applySavedTheme(){
   if(t==='dark'){document.body.setAttribute('data-theme','dark');var b=document.getElementById('themebtn');if(b)b.textContent='☀';}
 }
 function csv(which){var rows;
-  if(which==='asu'){rows=[['FW','BaseASU','Expiring','NewCt','APOS','AdjNew','BTCApos','AdjASU']];ASU_ROWS.forEach(function(r){rows.push([r.fw,r.base,r.exp,r.nc,r.apos,r.adjNew,r.btcApos,r.adj]);});}
+  if(which==='asu'){rows=[['FW','BaseASU','Declines','NewCt','APOS','AdjNew','BTCApos','AdjASU']];ASU_ROWS.forEach(function(r){rows.push([r.fw,r.base,(r.decl==null?'':r.decl),r.nc,r.apos,r.adjNew,r.btcApos,r.adj]);});}
   else{var C=which==='disp'?DISP:SR,nd=seriesOf(C.kind);rows=[['FW','No IQR','Adj','Rate']];(C._vis||[]).forEach(function(i){rows.push([TL.fw[i],nd[i],C._adj[i],(TL.asu[i]?(C._adj[i]/TL.asu[i]*100).toFixed(4):'0')]);});}
   var c=rows.map(function(r){return r.join(',')}).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='btc-'+which+'.csv';a.click();}
 // ---------- LOB loader (build the active timeline TL) ----------
@@ -1222,7 +1317,7 @@ function aggLob(keys){
   var all=Object.keys(BTC);keys=(keys&&keys.length)?keys:all;if(!keys.length)return null;var f=BTC[keys[0]],N=f.fw.length;
   function z(){var a=[];for(var i=0;i<N;i++)a.push(0);return a;}
   var g={lob:(keys.length>=all.length?'All LOBs':keys.length+' LOBs'),category:'All',fcStart:f.fcStart,fw:f.fw.slice(),fy:f.fy.slice(),fq:f.fq.slice(),series:f.series.slice(),
-    asu:z(),disp:z(),sr:z(),nc:z(),apos:z(),dispTarget:0,srTarget:0,dispTargetN:0,srTargetN:0};   // exp dropped — declines come from declFile
+    asu:z(),disp:z(),sr:z(),nc:z(),apos:z(),dispTarget:0,srTarget:0,dispTargetN:0,srTargetN:0};   // declines are decoupled (imported, display-only) — not aggregated here
   keys.forEach(function(k){var d=BTC[k];for(var i=0;i<N;i++){g.asu[i]+=d.asu[i];g.disp[i]+=d.disp[i];g.sr[i]+=d.sr[i];g.nc[i]+=d.nc[i];g.apos[i]+=d.apos[i];}});
   var sd=0,ss=0,sa=0;for(var i=g.fcStart;i<N;i++){sd+=g.disp[i];ss+=g.sr[i];sa+=g.asu[i];}
   g.dispTarget=sa?(sd/sa)*0.92:0;g.srTarget=sa?(ss/sa)*0.92:0;g.dispTargetN=Math.round(sd*0.92);g.srTargetN=Math.round(ss*0.92);
@@ -1240,11 +1335,7 @@ function loadLob(){
   TL=(sel.length===1)?BTC[sel[0]]:aggLob(sel);if(!TL)return;
   SPLIT_FW=shortFW(TL.fw[TL.fcStart-1]);   // forecast recolor starts exactly where the modifier bend starts (fcStart)
   OVR={disp:{},sr:{},asu:{}};   // absolute per-week edits don't carry across a data change; slider %s + locks/step DO
-  // task 2: pull declines from the dummy file (input/declines_dummy.js) if present, aggregated across selection
-  if(DECL_FILE){var dN=TL.fw.length,df=[];for(var di=0;di<dN;di++)df.push(0);
-    sel.forEach(function(k){var a=DECL_FILE[k];if(a)for(var dj=0;dj<dN;dj++)df[dj]+=(a[dj]||0);});TL.declFile=df;}
-  else TL.declFile=null;
-  DECL_IMPORTED=!!TL.declFile;
+  DECL_VALS={};DECL_IMPORTED=false;   // declines must be re-imported after a data change (shown only when imported)
   renderRail();renderCtx();
   renderRate(DISP);renderRate(SR);renderAsu();
   setLockUI();setDispLockUI();setSrLockUI();   // reflect preserved lock state on the new render
