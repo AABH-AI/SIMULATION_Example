@@ -832,12 +832,6 @@
 
 <!-- ══════════════════════════ HOME ══════════════════════════ -->
 <div id="home-view">
-  <div class="home-status-bar">
-    <div class="pulse-dot"></div>
-    <span class="status-live">Live</span>
-    <span class="status-sep">·</span>
-    <span id="home-refresh-stamp"></span>
-  </div>
 
   <div class="home-hero">
     <div class="home-hero-inner">
@@ -932,8 +926,6 @@
       </div>
     </div>
     <div class="header-right">
-      <span class="header-stamp" id="refresh-stamp"></span>
-      <span class="ctx-badge" id="global-context">FY26 · All Regions</span>
       <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
       <button class="btn-icon" id="filter-toggle-btn" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-adjustments-horizontal"></i></button>
     </div>
@@ -962,7 +954,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Current Week</div>
               <div class="kpi-value kpi-dynamic" style="color:var(--accent)" id="ft-current-week">W22</div>
-              <div class="kpi-sub" style="color:var(--text-2)" id="ft-current-week-sub">FY26 · Actuals through here</div>
+              <div class="kpi-sub" style="color:var(--text-2)" id="ft-current-week-sub">Actuals through here</div>
             </div>
             <div class="kpi-card">
               <div class="kpi-label">ASU Forecast Accuracy</div>
@@ -1607,7 +1599,6 @@ function resetFilters() {
     if (key in DEFAULT_FILTER_STATES) cb.checked = DEFAULT_FILTER_STATES[key];
     else cb.checked = false;
   });
-  document.getElementById('global-context').innerText = 'FY26 · All Regions';
   updateFilterChips();
   triggerDataUpdate();
 }
@@ -1652,7 +1643,8 @@ function updateFilterChips() {
   const regionChecked = [...document.querySelectorAll('input[data-group="region"]:checked')].map(c=>c.value);
   const fyText = fyChecked.length ? fyChecked.join(', ') : 'All FY';
   const regionText = regionChecked.length ? regionChecked.join(', ') : 'All Regions';
-  document.getElementById('global-context').innerText = `${fyText} · ${regionText}`;
+  const gc = document.getElementById('global-context');
+  if (gc) gc.innerText = `${fyText} · ${regionText}`;   // badge removed from header; guard kept in case it's restored
 }
 
 function onFilterChange() {
@@ -1935,7 +1927,7 @@ function _ftUpdateKPIs(scaledActuals, scaledForecast, scaledAdj, errors, weeks, 
 
   const curWeekLabel = weeks[TODAY_IDX] || 'W22';
   if (elCW)    elCW.innerText    = curWeekLabel;
-  if (elCWSub) elCWSub.innerText = 'FY26 · Actuals through here';
+  if (elCWSub) elCWSub.innerText = 'Actuals through here';
 
   if (errors.length) {
     const absErr  = errors.map(Math.abs);
@@ -3619,16 +3611,6 @@ function fcDrawFinalChart(r, showPrev) {
 }
 
 
-function setRefreshStamp() {
-  const now = new Date();
-  const s = `Refreshed ${now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-  const el = document.getElementById('refresh-stamp');
-  const hel = document.getElementById('home-refresh-stamp');
-  if (el) el.innerText = s;
-  if (hel) hel.innerText = s;
-}
-setRefreshStamp();
-setInterval(setRefreshStamp, 60000);
 </script>
 </body>
 </html>
