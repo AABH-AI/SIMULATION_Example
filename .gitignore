@@ -60,3 +60,6 @@ IMP_DOCS/BTC_GUIDE_VS_SIMULATOR_DIFF.md
 
 # Local dummy workbook.
 template_ui/input/Dummy.xlsx
+
+# Local working folder — never commit.
+template_ui/workflow/
