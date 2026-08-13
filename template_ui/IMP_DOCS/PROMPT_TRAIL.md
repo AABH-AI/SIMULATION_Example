@@ -769,3 +769,12 @@ Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (cha
 - **Everything downstream followed automatically** — cards, tables, charts, per-segment modifiers, segment notes, and both CSV exports all derive from `segList().length` (the engine is count-agnostic, per recon R2). No per-tab hardcoding lived outside `segList`. The stale-`_seg` clamp in `segCur()` already resets a saved index of 4 back to All. Comments in `segCur`/`segNote`/the A9 block updated for the new count.
 - **Verified** against the real `input/btc_data.js` via Node: all 8 LOBs' 3 dispatch weights sum to exactly 1 (e.g. Server Line A `0.3812 / 0.3404 / 0.2784`); aggregate "All LOBs" carries `service` in its ASU-weighted merge, so Σ(sub-segments)==All holds. `segList` executes clean in-page, 0 console errors. Live in-app drag not exercised (the `data:` pane can't boot the dataset) — math confirmed by Node harness + branch trace.
 - **Pushed to `master`** (deploys to the live GitHub Pages site).
+
+### Session 46 — Publish page: default collapsed rail + hover box never covers lines
+**Files**: `template_ui/btc_adjustment_simulator_v2.html`, IMP_DOCS mirrors (this file).
+**Prompt**: "(1) default view for publish page: filters collapse. (2) hovering charts — make the box appear above lines so it doesn't hide them."
+
+- **Publish defaults to a collapsed filter rail**: `go('pub')` now `document.body.classList.remove('rail-open')` before rendering, so entering Step 3 always shows full-width charts. The filters are still reachable via the funnel reopen button; Steps 1&2 are unaffected.
+- **Hover tooltip no longer sits on the lines**: the positioner (req 4.1.3) already lifted the shared box *above* the plot, but a tall multi-series box with no room above fell back to tucking **inside** the plot (`plotTop+6`) — right over the lines. Fallback rewritten: prefer above → else **below the x-axis** (`plotTop+plotHeight+10`, off the lines) → last-resort pin to viewport top. `outside:true` box, so it can overlap the card header/legend area but never the plotted series.
+- **Verified**: inline-script syntax check clean (`vm.Script` over all real `<script>` blocks — 0 errors). Live hover not exercised in-pane (the `data:` snapshot can't boot the dataset); positioner uses standard Highcharts `plotTop`/`plotHeight`/`getChartPosition`.
+- **Pushed to `master`** (deploys to the live site).
