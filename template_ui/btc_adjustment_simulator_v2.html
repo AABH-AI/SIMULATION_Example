@@ -111,6 +111,13 @@
   .pub{background:#dcfce7;color:var(--gn);border-color:#86efac}.pub:hover{background:var(--gn);color:#fff}
   .dis{background:#f1f5f9;color:var(--t2);border-color:var(--bd)}.dis:hover{background:var(--t2);color:#fff}
   .tw{overflow:auto;max-height:300px;margin-top:12px}
+  /* table-only reset — pinned to the table's top-right corner (like the chart expand button), clears just the
+     per-week edits/notes for the active metric, independent of the control-panel Reset */
+  .twwrap{position:relative}
+  .twwrap .tw{padding-right:32px}   /* reserve a right gap so the reset button never overlaps a column */
+  .tblreset{position:absolute;top:14px;right:6px;z-index:7;width:24px;height:24px;font-size:0}   /* in line with the header row */
+  .expanded .tblreset{top:12px}
+  .tblreset-h{width:22px;height:22px;font-size:0}
   table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
   th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right;position:sticky;top:0}
   th.l{text-align:left}
@@ -144,9 +151,13 @@
   /* the popover is position:fixed and lives on <body>, NOT inside the cell: .tw{overflow:auto} would otherwise
      clip it. Positioned off the cell's bounding rect by cmtPos(), which flips left / clamps to the viewport. */
   .cmpop{position:fixed;z-index:200;width:300px;max-width:calc(100vw - 16px);max-height:44vh;overflow:auto;background:#fff;border:1px solid var(--bh);border-radius:8px;box-shadow:0 10px 28px rgba(13,16,32,.20);padding:9px 11px;font-family:var(--mo);font-size:11px;font-weight:600;line-height:1.55;color:var(--t1);white-space:pre-wrap;overflow-wrap:anywhere}
-  .cmpop.edit{padding:7px;max-height:none}   /* the textarea owns the scrolling in edit mode, not the box */
-  .cmpop .cm{min-height:118px;max-height:34vh;resize:vertical;display:block;line-height:1.55;font-size:11px}
-  .cmpop .hint{margin-top:5px;font-family:var(--ui);font-size:9px;font-weight:600;color:var(--t3);white-space:normal}
+  .cmpop.edit{padding:7px 7px 6px;max-height:none}   /* the textarea owns the scrolling in edit mode, not the box */
+  .cmpop .cm{min-height:118px;max-height:34vh;resize:vertical;display:block;line-height:1.55;font-size:11px;margin:0}
+  .cmpop .hint{margin-top:0;font-family:var(--ui);font-size:9px;font-weight:600;color:var(--t3);white-space:normal}
+  .cmpop .cmfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+  .cmpop .cmfoot .hint{flex:1;min-width:0}
+  .cmdel{flex-shrink:0;font-family:var(--ui);font-size:9px;font-weight:700;color:#fff;background:var(--rd);border:none;border-radius:5px;padding:4px 10px;cursor:pointer}
+  .cmdel:hover{filter:brightness(1.08)}
   .cm{width:100%;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;font-family:var(--mo);font-size:10.5px;font-weight:700;text-align:left;background:#fff;color:var(--t1)}
   .cm:focus{outline:none;border-color:var(--ac)}
   .cm::placeholder{color:var(--t3);font-weight:400}
@@ -319,7 +330,7 @@
       <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span class="adj-lg"><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cDisp"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('disp')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div></div>
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="dReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
@@ -346,7 +357,7 @@
       <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
         <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span class="adjasu-lg"><i style="background:#ea580c"></i>Adj ASU</span><span class="adjnc-lg"><i style="background:#0891b2"></i>Adj NC</span><span class="adjap-lg"><i style="background:#ac4073"></i>Adj APOS</span><span><i style="background:#b45309"></i>AOP Target</span><span class="decl-lg"><i style="background:#8b0000"></i>Declines</span></div>
         <div class="cw" id="cAsu"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Declines</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('asu')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Declines</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div></div>
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="aReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
@@ -381,7 +392,7 @@
       <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span class="adj-lg"><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cSr"></div>
-        <div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('sr')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div></div>
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="sReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
@@ -425,7 +436,7 @@
         <div class="cw" id="cPubDisp"></div></div>
     </div>
     <div class="row">
-      <div class="card"><h3>Published Forecast Summary</h3>
+      <div class="card"><h3><span>Published Forecast Summary</span><button class="ficon tblreset-h" onclick="tblReset('pub')" title="Reset all table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button></h3>
         <div class="tw"><table><thead><tr id="tPubHead"></tr></thead><tbody id="tPub"></tbody></table></div>
       </div>
       <div class="card">
@@ -567,8 +578,13 @@ function cmtOpen(el,edit){
     ta.className='cm';ta.value=full;ta.dataset.p=full;ta.placeholder='Add a note…';
     ta.onkeydown=cmtKey;
     p.appendChild(ta);
+    var foot=document.createElement('div');foot.className='cmfoot';
     var h=document.createElement('div');h.className='hint';h.textContent='Enter saves · Shift+Enter newline · Esc cancels';
-    p.appendChild(h);
+    var del=document.createElement('button');del.type='button';del.className='cmdel';del.textContent='Delete';
+    del.onmousedown=function(ev){ev.preventDefault();};        // keep the textarea from blurring before the click lands
+    del.onclick=function(ev){ev.preventDefault();ev.stopPropagation();cmtDelete();};
+    foot.appendChild(h);foot.appendChild(del);
+    p.appendChild(foot);
   }else{
     p.textContent=full;
   }
@@ -615,6 +631,12 @@ function cmtPopClose(commit){
     cmtWrite(td,v);
     if(td.parentNode)td.innerHTML=cmtInner(cmtRead(td));   // detached (mid re-render) → the rebuild reads the store
   }
+}
+// red Delete in the editor: wipe the note for this cell and close (no commit of the textarea text).
+function cmtDelete(){
+  var td=_cmTd;
+  cmtPopClose(false);
+  if(td){cmtWrite(td,'');if(td.parentNode)td.innerHTML=cmtInner(cmtRead(td));}
 }
 // close on outside click / Escape / any scroll. Scroll is captured so a scroll inside .tw (which does not bubble)
 // is caught too. Bound once — the popover is a body-level singleton, so re-renders never duplicate these.
@@ -1490,6 +1512,7 @@ function renderRate(C){
   document.querySelectorAll('#'+(C.kind==='disp'?'vDisp':'vSr')+' .adj-lg').forEach(function(e){e.style.display=showAdj?'':'none';});
   var _tw=document.getElementById(C.tabId);popReveal(C.kind,showAdj,[document.getElementById(C.kpiId),_tw&&_tw.closest('.tw')]);
   C._adj=adjFull;C._vis=vis;
+  requestAnimationFrame(positionTblResets);
 }
 // which: 'an' = Adj New Contracts, 'ba' = Adj APOS (both weekly FLOWS), 'aa' = Adj ASU (a running BALANCE — see
 // computeAsuRows). Reachable from the ASU page and from the Publish page's NC_Adj / APOS_Adj / ASU_Adj columns.
@@ -1633,6 +1656,7 @@ function renderAsu(){
   var rmBtn=document.getElementById('declRemoveBtn');if(rmBtn)rmBtn.style.display=DECL_IMPORTED?'':'none';
   var _twA=document.getElementById('tAsu');popReveal('asu',anyAdj,[kEl,_twA&&_twA.closest('.tw')]);
   ASU_ROWS=rows;
+  requestAnimationFrame(positionTblResets);
 }
 // ---------- handlers ----------
 function clampP(v){v=parseInt(v);if(isNaN(v))v=0;return Math.max(-100,Math.min(150,v));}
@@ -1661,6 +1685,28 @@ function segReset(C){
 }
 function dReset(){segReset(DISP);}
 function sReset(){segReset(SR);}
+// Table-only reset (req: separate from the control-panel Reset). Clears ONLY the per-week table edits +
+// their notes for the active metric — the BTC modifier/sliders, target rate and AOP override are left intact.
+// disp/sr respect the active segment tab exactly like segReset: a sub tab clears that segment, 'All' clears all.
+function tblReset(kind){
+  if(kind==='pub'){                                                         // Publish summary shows every metric → clear all per-week edits
+    OVR.disp={};OVR.sr={};OVR.asu={};CMT.disp={};CMT.sr={};CMT.asu={};CMT.pub={};pruneCmt();
+    renderRate(DISP);renderRate(SR);renderAsu();renderPub();
+    return;
+  }
+  if(kind==='asu'){
+    if(!Object.keys(OVR.asu).length&&!Object.keys(CMT.asu).length)return;   // nothing to clear
+    OVR.asu={};CMT.asu={};pruneCmt();
+    renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();
+    return;
+  }
+  var C=(kind==='disp')?DISP:SR,idx=segCur(C);
+  if(idx>0){delete OVR[C.kind][idx];delete CMT[C.kind][idx];}
+  else{OVR[C.kind]={};CMT[C.kind]={};}                                       // 'All' tab clears every sub-segment's edits
+  pruneCmt();
+  renderRate(C);
+  if(activeTab()==='pub')renderPub();
+}
 // ASU driver sliders — also refresh disp/SR rate denominators (MDR/ICR use the adjusted ASU)
 function _asuRender(){renderAsu();renderRate(DISP);renderRate(SR);}
 function ncSync(v){v=clampM(v);setPair('ncS','ncI',v);schedule(_asuRender);}
@@ -1717,7 +1763,32 @@ function updateCtlReopen(){
   var view=document.querySelector('.view.on');
   b.style.display=(view&&view.querySelector('.card.ctl.collapsed'))?'flex':'none';
 }
-function reflowActiveCharts(){setTimeout(function(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});},80);}
+function reflowActiveCharts(){setTimeout(function(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});positionTblResets();},80);}
+// Align each Steps table's reset button to its chart: RIGHT edge on the chart's plot-right (the rightmost
+// fiscal week), BOTTOM edge flush with the header row's bottom. Recomputed on every render / reflow / resize
+// so it survives filter changes, rail toggles and window resizes. Hidden views (0 width) are skipped and
+// repositioned when shown.
+function positionTblResets(){
+  ['cDisp','cSr','cAsu'].forEach(function(cwId){
+    var cw=document.getElementById(cwId);if(!cw)return;
+    var card=cw.closest('.card');if(!card)return;
+    var wrap=card.querySelector('.twwrap');if(!wrap)return;
+    var btn=wrap.querySelector('.tblreset');if(!btn)return;
+    var wr=wrap.getBoundingClientRect();if(!wr.width)return;
+    var hc=HC[cwId]&&HC[cwId].chart;
+    if(hc&&hc.plotWidth){
+      var cwr=cw.getBoundingClientRect();
+      var plotRightX=(cwr.left-wr.left)+hc.plotLeft+hc.plotWidth;        // px from wrap's left edge
+      var rightOff=Math.max(0,Math.round(wr.width-plotRightX));
+      btn.style.right=rightOff+'px';
+      var tw=wrap.querySelector('.tw');
+      if(tw)tw.style.paddingRight=(rightOff+btn.offsetWidth+6)+'px';     // keep the last column clear of the button
+    }
+    var hr=wrap.querySelector('thead tr');
+    if(hr){var top=Math.round(hr.getBoundingClientRect().bottom-wr.top-btn.offsetHeight);btn.style.top=Math.max(0,top)+'px';}
+  });
+}
+window.addEventListener('resize',function(){positionTblResets();});
 // ---------- step model (Step 1 ASU → Step 2 Disp/SR → Step 3 Publish), gated by locks ----------
 var STEP=1;
 // Step order: 1 = ASU driver → 2 = SRs & Dispatches → 3 = Publish. No gating — every step is always reachable.
@@ -2046,6 +2117,7 @@ function go(v){
   updateExportBtn();
   updateCtlReopen();
   _lastTab=v;
+  requestAnimationFrame(positionTblResets);   // re-align the table reset button once the target view is visible
 }
 function toggleTheme(){
   var dark=document.body.getAttribute('data-theme')==='dark';
