@@ -25,7 +25,9 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
-| `IMP_DOCS/` | This folder — always keep updated |
+| `IMP_DOCS/` | This folder — always keep updated (mirrored at repo root **and** `template_ui/`; update both) |
+| `template_ui/btc_adjustment_simulator_v2.html` | **BTC Adjustment Simulator** — active development since Session 33; 3-step flow (1 ASU driver → 2 SRs & Dispatches → 3 Publish), per-segment modifiers, editable adjusted values with per-row comments, allocation-weighted filters. Live at `…/template_ui/btc_adjustment_simulator_v2.html` |
+| `IMP_DOCS/SUBAGENT_LOG.md` | Sub-agent delegation record for the BTC simulator work (Sessions 44–44c) — orchestration rules, per-agent verification numbers, and the **outstanding edit-propagation audit brief** |
 | `forecast_copilot/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
 Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`

@@ -12,6 +12,12 @@
   body[data-theme="dark"]{--bg:#07090f;--sf:#0d1018;--cd:#111521;--chi:#161c2c;--bd:#1d2135;--bh:#2c3460;--t1:#e9ecf7;--t2:#8a92ad;--t3:#5a6180;--ac:#4c7ef8;--gn:#22d472;--rd:#f06060;--am:#f0a830;--pu:#a78bfa}
   body[data-theme="dark"] .ec{background:#2a2410;color:var(--t1);border-color:var(--bh)}
   body[data-theme="dark"] tr.act td{background:#0f1320}
+  body[data-theme="dark"] tr.edt td{background:#111a2e}
+  body[data-theme="dark"] .cm{background:#141a2a;color:var(--t1);border-color:var(--bh)}
+  body[data-theme="dark"] .cm:focus{background:#0d1018;border-color:var(--ac)}
+  body[data-theme="dark"] .cmp:hover{border-color:var(--bh);background:#141a2a}
+  body[data-theme="dark"] .cmpop{background:#141a2a;border-color:var(--bh);color:var(--t1);box-shadow:0 10px 28px rgba(0,0,0,.6)}
+  body[data-theme="dark"] .cmpop .cm{background:#0d1018;border-color:var(--bh)}
   body[data-theme="dark"] .pub{background:rgba(34,212,114,.12);border-color:rgba(34,212,114,.4)}
   body[data-theme="dark"] .dis{background:rgba(255,255,255,.05)}
   *{box-sizing:border-box;margin:0;padding:0}
@@ -111,8 +117,39 @@
   td{font-family:var(--mo);font-size:11px;padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right}
   td.l{text-align:left;color:var(--t2)}
   tr.act td{color:var(--t3);background:#f8f9fc}
+  /* req 3: a row carrying a manual override is tinted very light blue. The background sits on the TD (same
+     pattern as tr.act) and is declared AFTER .act so it wins at equal specificity — although the two can
+     never actually collide: the editable inputs are only rendered for forecast weeks (i>=fcStart), so a
+     historical `.act` row can never acquire an override and therefore never gets `.edt`. */
+  tr.edt td{background:#eef4ff}
   .ec{width:100%;max-width:78px;padding:2px 5px;border:1px solid var(--bh);border-radius:4px;font-family:var(--mo);font-size:11px;font-weight:600;text-align:right;background:#fffbeb;color:var(--t1)}
   .ec:focus{outline:none;border-color:var(--ac);background:#fff}
+  /* req 2: per-row Comment column — LAST column of every editable table. table-layout:fixed distributes the
+     width evenly with no <col>, so each renderer sets an explicit px width on its own Comment <th>; the rest
+     of the columns then share what is left. Text left-aligns (td{text-align:right} is the table default) and
+     the input has its OWN class — .ec is a right-aligned 78px mono numeric box, wrong for free text. */
+  th.cmt,td.cmt{text-align:left}
+  td.cmt{padding:3px 8px}
+  /* FW never needs more than ~6 mono chars ('27-W32'); pinning it hands the slack to the numeric columns.
+     Scoped to .tw so the allocation-modal tables (which also use th.l, for long segment names) are untouched. */
+  .tw th.l{width:66px}
+  /* the note reads as part of the data row, not as chrome: same mono face as every numeric cell
+     (td{font-family:var(--mo)}), bold, still left-aligned because it is free text, not a figure.
+     The CELL only ever holds a one-line PREVIEW — a long note is unreadable inside a 120–160px column, so
+     the full text lives in a floating popover (.cmpop) instead. text-overflow:ellipsis does the truncation
+     natively, so the preview always cuts at exactly what the current column width fits. */
+  .cmp{padding:3px 6px;border:1px solid transparent;border-radius:4px;font-family:var(--mo);font-size:10.5px;font-weight:700;text-align:left;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .cmp:hover{border-color:var(--bd);background:#fff}
+  .cmp.add{font-weight:400;color:var(--t3)}   /* edited row, no note yet — muted affordance, opens straight into edit */
+  /* the popover is position:fixed and lives on <body>, NOT inside the cell: .tw{overflow:auto} would otherwise
+     clip it. Positioned off the cell's bounding rect by cmtPos(), which flips left / clamps to the viewport. */
+  .cmpop{position:fixed;z-index:200;width:300px;max-width:calc(100vw - 16px);max-height:44vh;overflow:auto;background:#fff;border:1px solid var(--bh);border-radius:8px;box-shadow:0 10px 28px rgba(13,16,32,.20);padding:9px 11px;font-family:var(--mo);font-size:11px;font-weight:600;line-height:1.55;color:var(--t1);white-space:pre-wrap;overflow-wrap:anywhere}
+  .cmpop.edit{padding:7px;max-height:none}   /* the textarea owns the scrolling in edit mode, not the box */
+  .cmpop .cm{min-height:118px;max-height:34vh;resize:vertical;display:block;line-height:1.55;font-size:11px}
+  .cmpop .hint{margin-top:5px;font-family:var(--ui);font-size:9px;font-weight:600;color:var(--t3);white-space:normal}
+  .cm{width:100%;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;font-family:var(--mo);font-size:10.5px;font-weight:700;text-align:left;background:#fff;color:var(--t1)}
+  .cm:focus{outline:none;border-color:var(--ac)}
+  .cm::placeholder{color:var(--t3);font-weight:400}
   .neg{color:var(--gn)}.pos{color:var(--rd)}
   .foot{font-size:10px;color:var(--t3);padding:10px 18px;text-align:center}
   /* change cards (YoY/QoQ/WoW) */
@@ -434,6 +471,181 @@ var DECL_FILE=null;               // window.BTC_DECLINES (per-LOB declines) from
 var DECL_VALS={};                 // imported per-week decline values {fw:value} (forecast weeks). Declines are display-only, forecast-only, never adjusted.
 var PASS_COUNT=1;   // adjustment cycle pass counter
 // req 2: the lock/publish gate is gone — every step is reachable at any time and every page stays editable.
+// ---------- per-row comment store (req 2) ----------
+// Keyed EXACTLY like OVR: CMT.disp[segIdx][fw], CMT.sr[segIdx][fw], CMT.asu[fw].
+// PUBLISH gets its OWN key, CMT.pub[fw], instead of sharing the ASU/SR/Disp keys. A Publish row spans FIVE
+// separate override stores (asu.an / asu.ba / asu.aa / sr[0] / disp[0]), so there is no single source key a
+// shared comment could belong to — picking one would make the note surface against an unrelated metric on its
+// source page, and concatenating five notes into one cell is worse. One note per Publish WEEK reads and writes
+// unambiguously; it is pruned as soon as that week holds no override in ANY of the five stores.
+var CMT={disp:{},sr:{},asu:{},pub:{}};
+function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// "is this row edited?" — always derived from the override STORE, never from DOM state (the row builders
+// regenerate via innerHTML on every render, so any DOM-held flag would be wiped).
+// segIdx 0 ('All') no longer holds overrides of its own — an All edit is redistributed into the sub-segments
+// (see spreadAllEdit) — so the All row counts as edited when ANY sub carries an override for that week. That is
+// also what keeps the All row's comment cell rendered and its note alive across a redistribute.
+function hasRateOvr(kind,segIdx,fw){
+  if(+segIdx===0)return hasAnyRateOvr(kind,fw);
+  var m=OVR[kind]&&OVR[kind][segIdx];return !!(m&&m[fw]!=null);
+}
+function hasAsuOvr(fw){var o=OVR.asu[fw];return !!(o&&(o.an!=null||o.ba!=null||o.aa!=null));}
+// a Publish row is "edited" if ANY override touches that week — its own five cells write to asu/sr[0]/disp[0],
+// but a SUB-segment edit made on the Dispatch/SR page also moves that row's SR_Adj / Disp_Adj total, so it counts
+function hasAnyRateOvr(kind,fw){var s=OVR[kind]||{},k;for(k in s){if(s[k]&&s[k][fw]!=null)return true;}return false;}
+function hasPubOvr(fw){return hasAsuOvr(fw)||hasAnyRateOvr('sr',fw)||hasAnyRateOvr('disp',fw);}
+function getCmtRate(kind,segIdx,fw){var m=CMT[kind]&&CMT[kind][segIdx];return (m&&m[fw])||'';}
+function getCmtAsu(fw){return CMT.asu[fw]||'';}
+function getCmtPub(fw){return CMT.pub[fw]||'';}
+// comment writes are store-ONLY — deliberately no recompute/re-render, so the field is never destroyed and the
+// caret never jumps. They fire on `change` (blur / Enter), and the next render reads the value back out.
+function setCmtRate(kind,segIdx,fw,v){v=(''+v).trim();CMT[kind][segIdx]=CMT[kind][segIdx]||{};if(v)CMT[kind][segIdx][fw]=v;else delete CMT[kind][segIdx][fw];}
+function setCmtAsu(fw,v){v=(''+v).trim();if(v)CMT.asu[fw]=v;else delete CMT.asu[fw];}
+function setCmtPub(fw,v){v=(''+v).trim();if(v)CMT.pub[fw]=v;else delete CMT.pub[fw];}
+// table-layout:fixed shares the width evenly between columns, so adding the Comment column would squeeze the
+// numeric cells below what a 9-digit figure (e.g. an editable "6,000,000" ASU balance) needs. Give the table a
+// MIN width — FW 66px + 86px per numeric column + the Comment column — so the numbers stay readable and the
+// existing .tw{overflow:auto} takes over with a horizontal scroll only on the widest combinations (ASU with
+// Declines imported AND all three adjusted columns). The common layouts still fit with no scroll at all.
+function fitTable(tbodyId,numCols,cmtW){
+  var b=document.getElementById(tbodyId),t=b&&b.closest('table');if(!t)return;
+  t.style.minWidth=(66+numCols*86+(cmtW||0))+'px';
+}
+// ---------- the Comment <td>: preview in the cell, full text in a floating popover ----------
+// The cell is far too narrow to read a real note in, so it never holds the text itself. Each edited row renders a
+// one-line ELLIPSISED preview; the full note opens in a fixed-position popover anchored to the row.
+// The cell carries the store COORDINATES as data-* (type + kind + segIdx + fw) rather than a stringified onchange
+// handler, so read and write both route through cmtRead/cmtWrite — one write path, no eval, no re-escaping.
+function cmtInner(val){
+  return val
+    ? '<div class="cmp" onclick="cmtOpen(this,0)" ondblclick="cmtOpen(this,1)">'+esc(val)+'</div>'
+    : '<div class="cmp add" onclick="cmtOpen(this,1)" ondblclick="cmtOpen(this,1)">Add a note…</div>';
+}
+// `edited` rows get the preview; every other row gets an EMPTY cell so the column count still lines up with the
+// header. The column as a whole is only emitted when at least one VISIBLE row is edited — see the renderers.
+function cmtCell(edited,val,ct,ck,cs,fw){
+  if(!edited)return '<td class="cmt"></td>';
+  return '<td class="cmt" data-ct="'+ct+'" data-ck="'+ck+'" data-cs="'+cs+'" data-cf="'+esc(fw)+'">'+cmtInner(val)+'</td>';
+}
+function cmtRead(td){
+  var t=td.dataset.ct;
+  return t==='rate'?getCmtRate(td.dataset.ck,td.dataset.cs,td.dataset.cf)
+       :(t==='asu'?getCmtAsu(td.dataset.cf):getCmtPub(td.dataset.cf));
+}
+function cmtWrite(td,v){
+  var t=td.dataset.ct;
+  if(t==='rate')setCmtRate(td.dataset.ck,td.dataset.cs,td.dataset.cf,v);
+  else if(t==='asu')setCmtAsu(td.dataset.cf,v);
+  else setCmtPub(td.dataset.cf,v);
+}
+// ---------- popover: one singleton, two modes (read / edit) ----------
+var _cmPop=null,_cmTd=null,_cmEd=false,_cmAt=null;   // _cmAt = anchor rect the popover was last positioned against
+// Gesture split: single click OPENS the read popover, double click UPGRADES the same open popover to edit mode.
+// No click-delay timer — the click handler is idempotent (a second click on the already-open anchor only
+// repositions), so the dblclick's first click cannot toggle the popover shut and cannot swallow the dblclick.
+// The preview element is never replaced while the popover is open, so the browser still sees both clicks land on
+// the same node and fires dblclick normally.
+function cmtOpen(el,edit){
+  var td=el.parentNode;
+  if(_cmPop&&_cmTd===td){
+    // re-click on the open cell, or the 2nd click of a dblclick while already editing: keep what is open.
+    // Re-focus the editor — the click itself landed on the (non-focusable) preview div and blurred it.
+    if(!edit||_cmEd){cmtPos();if(_cmEd){var _t=_cmPop.firstChild;if(_t&&_t.focus)_t.focus();}return;}
+  }
+  cmtPopClose(true);                     // switching cells commits whatever was open (same as a blur)
+  var full=cmtRead(td);
+  var p=document.createElement('div');
+  p.className='cmpop'+(edit?' edit':'');
+  if(edit){
+    var ta=document.createElement('textarea');
+    ta.className='cm';ta.value=full;ta.dataset.p=full;ta.placeholder='Add a note…';
+    ta.onkeydown=cmtKey;
+    p.appendChild(ta);
+    var h=document.createElement('div');h.className='hint';h.textContent='Enter saves · Shift+Enter newline · Esc cancels';
+    p.appendChild(h);
+  }else{
+    p.textContent=full;
+  }
+  document.body.appendChild(p);
+  _cmPop=p;_cmTd=td;_cmEd=!!edit;
+  cmtPos();
+  // preventScroll: focusing the editor must not scroll an ancestor — the popover is already positioned, and a
+  // scroll here would immediately trip the close-on-scroll listener below.
+  if(edit){var t=p.firstChild;t.focus({preventScroll:true});try{t.setSelectionRange(full.length,full.length);}catch(e){}}
+}
+// place it to the RIGHT of the row; flip to the left when it would run off the right edge, then clamp both axes
+// into the viewport so a row near the bottom (or a table scrolled far right) still shows the whole box.
+function cmtPos(){
+  if(!_cmPop||!_cmTd)return;
+  var r=_cmTd.getBoundingClientRect(),p=_cmPop,M=8;
+  _cmAt=[r.top,r.left];   // remember where the row was; the scroll listener closes only once it MOVES
+  var w=p.offsetWidth,h=p.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  var x=r.right+M;
+  if(x+w>vw-M)x=r.left-w-M;                       // flip left
+  if(x<M)x=Math.max(M,Math.min(vw-w-M,r.left));   // still no room either side — clamp
+  var y=r.top-4;
+  if(y+h>vh-M)y=vh-h-M;                           // row near the bottom
+  if(y<M)y=M;
+  p.style.left=Math.round(x)+'px';p.style.top=Math.round(y)+'px';
+}
+// Enter = commit, Shift+Enter = newline (the CSV writer already quotes any field containing \r or \n, so a
+// multi-line note round-trips unchanged). Escape = cancel: restore the value the field opened with (data-p) and
+// close WITHOUT writing.
+function cmtKey(e,el){
+  el=el||e.target;
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();cmtPopClose(true);}
+  else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();el.value=(el.dataset.p!=null?el.dataset.p:'');cmtPopClose(false);}
+}
+// The single write path. commit=true stores the editor's text and refreshes the cell's preview IN PLACE — no
+// recompute, no re-render, so the caret/focus of anything else on the page is never disturbed. Idempotent, so it
+// is safe to call from every close route (Escape, outside click, scroll, re-render, switching cells).
+function cmtPopClose(commit){
+  if(!_cmPop)return;
+  var p=_cmPop,td=_cmTd,ed=_cmEd;
+  _cmPop=null;_cmTd=null;_cmEd=false;_cmAt=null;
+  var ta=ed?p.querySelector('textarea'):null,v=ta?ta.value:null;
+  if(p.parentNode)p.parentNode.removeChild(p);
+  if(ed&&commit&&td){
+    cmtWrite(td,v);
+    if(td.parentNode)td.innerHTML=cmtInner(cmtRead(td));   // detached (mid re-render) → the rebuild reads the store
+  }
+}
+// close on outside click / Escape / any scroll. Scroll is captured so a scroll inside .tw (which does not bubble)
+// is caught too. Bound once — the popover is a body-level singleton, so re-renders never duplicate these.
+document.addEventListener('mousedown',function(e){
+  if(!_cmPop)return;
+  var t=e.target;
+  if(t.closest&&(t.closest('.cmpop')||t.closest('.cmp')))return;
+  cmtPopClose(true);
+},true);
+// stopImmediatePropagation: an open popover CONSUMES its Escape. Without it the later document-level Escape
+// handler (collapseExpand) would also fire and collapse an expanded chart behind the popover in the same press.
+// This listener is registered before that one, so it wins. (In edit mode cmtKey already stops it at the textarea.)
+document.addEventListener('keydown',function(e){if(_cmPop&&e.key==='Escape'){e.stopImmediatePropagation();cmtPopClose(false);}});
+// Close on scroll — but decide from the ANCHOR, not from the event. Two scrolls are not "the page moved under
+// the popover" and must not close it: one inside the box itself (it has overflow:auto, and the textarea scrolls
+// its own content as the caret moves), and one that was already in flight when the popover opened (scroll events
+// are delivered a frame late, so a click that follows a programmatic scrollIntoView would otherwise self-close).
+// Comparing the row's current position against the position it was positioned against covers both exactly: the
+// popover closes the moment its row actually moves, and not before.
+document.addEventListener('scroll',function(){
+  if(!_cmPop||!_cmTd||!_cmAt)return;
+  var r=_cmTd.getBoundingClientRect();
+  if(Math.abs(r.top-_cmAt[0])<0.5&&Math.abs(r.left-_cmAt[1])<0.5)return;
+  cmtPopClose(true);
+},true);
+window.addEventListener('resize',function(){if(_cmPop)cmtPopClose(true);});
+// clearing a row's edit clears its comment — no orphan notes left on rows that are no longer edited
+function pruneCmt(){
+  ['disp','sr'].forEach(function(k){
+    Object.keys(CMT[k]).forEach(function(si){
+      var m=CMT[k][si]||{};                                                   // hasRateOvr handles both cases:
+      Object.keys(m).forEach(function(fw){if(!hasRateOvr(k,si,fw))delete m[fw];});   // si>0 = own override, si 0 = any sub
+    });
+  });
+  Object.keys(CMT.asu).forEach(function(fw){if(!hasAsuOvr(fw))delete CMT.asu[fw];});
+  Object.keys(CMT.pub).forEach(function(fw){if(!hasPubOvr(fw))delete CMT.pub[fw];});
+}
 // ---------- helpers ----------
 function ramp(i,N){return N>1?Math.pow(i/(N-1),8):0}
 function fmt(n){return Number(Math.round(n)).toLocaleString('en-US')}
@@ -532,8 +744,9 @@ function toggleMore(){moreOpen=!moreOpen;renderRail();}
 // task 7: when a 4-tab/2-tab segment is active, its dimension filters are redundant → hide them
 function hiddenFilters(){
   var tab=activeTab(),h={};
-  if(tab==='sr'&&(SR._seg||0)>0){h.business=1;h.service=1;}
-  else if(tab==='disp'&&(DISP._seg||0)>0){h.business=1;}
+  // dispatches = 4-way (Unit × Service Type) → both dimensions are pinned; SRs = 2-way (Unit) → only Business Unit
+  if(tab==='disp'&&(DISP._seg||0)>0){h.business=1;h.service=1;}
+  else if(tab==='sr'&&(SR._seg||0)>0){h.business=1;}
   return h;
 }
 function fitemHtml(cfg){
@@ -597,7 +810,16 @@ function toggleMulti(k,v){
   if(k==='fy')pruneByFY();                           // FY change → restrict FQ/FW to the selected FY(s)
   if(k==='quarter')pruneWeeks();                     // FQ change → restrict FW to the selected quarters
   if(k==='lob')loadLob();                            // LOB change rebuilds the timeline + re-renders
-  else{renderRail();applyFilters();}
+  else{
+    // An allocation-dimension change rescales the whole base series (allocMult), but absolute per-week edits are
+    // fixed counts sized against the PREVIOUS population, so they'd render out of scale (e.g. an edit made under
+    // Region=All shown against the EMEA share). Drop them, exactly as a LOB change does (loadLob clears OVR/CMT).
+    // FY/FQ/FW only change the VISIBLE WINDOW — per-week edits stay valid there — so they are NOT cleared.
+    // Percentage controls (segment modifiers, target RATE / TGT_OVR) are scale-invariant and are kept.
+    // AOP_OVR is a typed absolute COUNT (same scale-bound problem), so it is cleared here too → back to auto.
+    if(ALLOC_DIMS.indexOf(k)>=0){OVR={disp:{},sr:{},asu:{}};CMT={disp:{},sr:{},asu:{},pub:{}};AOP_OVR={disp:null,sr:null,asu:null};}
+    renderRail();applyFilters();
+  }
 }
 function toggleRail(){document.body.classList.toggle('rail-open');reflowActiveCharts();}   // charts resize when the rail opens/closes (incl. while expanded)
 function resetFilters(){
@@ -648,8 +870,10 @@ function renderCtx(){
   else{var p=[];if(fy)p.push(fy);if(q)p.push('Q '+q);if(w)p.push('W '+w);tp=p.join(' · ');}
   var bu=filterDisplay(cfgOf('business'));if(bu==='All')bu='All BUs';
   var tab=activeTab(),segLbl=null;   // task 7: reflect the active 4-tab/2-tab segment in the header info
-  if(tab==='sr'&&(SR._seg||0)>0)segLbl=segList('sr')[SR._seg].l;
-  else if(tab==='disp'&&(DISP._seg||0)>0)segLbl=segList('disp')[DISP._seg].l;
+  if(tab==='sr'||tab==='disp'){      // guarded — a stale _seg index must not throw here
+    var _C=(tab==='disp')?DISP:SR,_i=_C._seg||0,_L=segList(tab);
+    if(_i>0)segLbl=(_L[_i]||{}).l||null;
+  }
   document.getElementById('ctx').textContent=TL.lob+' · '+(segLbl||bu)+' · '+tp;
 }
 // keep FQ / FW representing the same window (FY is now independent — see fyBox)
@@ -737,10 +961,18 @@ function svgChart(elId,labels,series,yfmt,xlab,opts){
     return ser.data.slice();
   }
   var SYMS=['circle','diamond','square','triangle','triangle-down'];
+  var mkFlags=[];                       // per-series marker on/off, mirrored into `sig` so the fast path can't go stale
   var hcSeries=series.map(function(ser,si){
     var sym=ser.dash?'square':SYMS[si%SYMS.length];
-    var o={name:ser.name||'',data:mkData(ser),lineWidth:ser.dash?1.5:2,connectNulls:false,
-      marker:{enabled:false,symbol:sym,states:{hover:{enabled:true,radius:4,lineColor:'#fff',lineWidth:1}}},
+    var dat=mkData(ser);
+    // A line needs two adjacent non-null points to paint anything, so a series left with 1–2 rendered points
+    // (one fiscal week selected, or a seg-split series whose half collapses to the boundary week) would draw an
+    // empty plot with markers off. Decide per series from the real non-null count — dense series stay marker-less
+    // so normal multi-week views look exactly as before.
+    var _nn=0;for(var _k=0;_k<dat.length;_k++){if(dat[_k]!=null&&isFinite(dat[_k]))_nn++;}
+    var _mk=_nn>0&&_nn<=2;mkFlags.push(_mk?1:0);
+    var o={name:ser.name||'',data:dat,lineWidth:ser.dash?1.5:2,connectNulls:false,
+      marker:{enabled:_mk,radius:3.5,symbol:sym,states:{hover:{enabled:true,radius:4,lineColor:'#fff',lineWidth:1}}},
       _ac:ser.color,_fc:ser.fcColor||ser.color,_sym:sym};
     if(ser.dash){o.color=ser.color;o.dashStyle='Dash';o._fc=ser.color;return o;}   // target: dashed, single colour
     if(ser.seg){o.color=ser.color;o._fc=ser.color;return o;}                       // forecast/actual-only: single colour
@@ -749,18 +981,22 @@ function svgChart(elId,labels,series,yfmt,xlab,opts){
     else{o.color=ser.color;o.zoneAxis='x';o.zones=[{value:splitPos,color:ser.color},{color:ser.fcColor||'#ea580c'}];}
     return o;
   });
-  // tight y-range: fit exactly to the lowest/highest plotted value (+6% breathing room), no forced 0 baseline
+  // tight y-range: fit to the lowest/highest plotted value across ALL series (one shared axis), then snap to round
+  // bounds via niceScale — EVERY chart, not just Publish, so a 2–4 week view still gets human tick values and the
+  // line's variation is visible instead of being flattened. No forced 0 baseline.
   var allV=[];hcSeries.forEach(function(s){s.data.forEach(function(v){if(v!=null&&isFinite(v))allV.push(v);});});
-  var yMin=null,yMax=null,yStep=null;
+  var yMin=null,yMax=null,yStep=null,yT=opts.yTicks||5;
   if(allV.length){
-    var mn=Math.min.apply(null,allV),mx=Math.max.apply(null,allV);if(mn===mx){mn-=1;mx+=1;}
-    if(opts.yTicks){
-      var ns=niceScale(mn,mx,opts.yTicks);                 // round bounds, one tick above the peak, no extra padding
-      if(ns){yMin=ns.min;yMax=ns.max;yStep=ns.step;}
-      else{var p0=(mx-mn)*0.06;yMin=Math.max(0,mn-p0);yMax=mx+p0;}
-    }else{var pd=(mx-mn)*0.06;yMin=mn-pd;yMax=mx+pd;if(mn>=0)yMin=Math.max(0,yMin);}
+    var mn=Math.min.apply(null,allV),mx=Math.max.apply(null,allV);
+    // degenerate / dead-flat pool (a single week, or every series sitting on one value): widen PROPORTIONALLY to the
+    // magnitude — an absolute ±1 around e.g. 40,000 is a meaningless 2-unit window.
+    var mag=Math.max(Math.abs(mn),Math.abs(mx)),pos=(mn>=0);
+    if(!(mx-mn>mag*1e-4)){var c0=(mn+mx)/2,hw=(mag||1)*0.02;mn=c0-hw;mx=c0+hw;if(pos&&mn<0)mn=0;}
+    var ns=niceScale(mn,mx,yT);                            // round bounds, one tick above the peak, no extra padding
+    if(ns){yMin=ns.min;yMax=ns.max;yStep=ns.step;}
+    else{var p0=(mx-mn)*0.06;yMin=mn-p0;yMax=mx+p0;if(pos)yMin=Math.max(0,yMin);}
   }
-  var sig=n+'|'+splitPos+'|'+series.map(function(s){return (s.name||'')+(s.seg||'')+(s.dash?'d':'');}).join(',')+'|'+(xlab?xlab.join(''):'')+'|'+(opts.yTicks||0);
+  var sig=n+'|'+splitPos+'|'+series.map(function(s){return (s.name||'')+(s.seg||'')+(s.dash?'d':'');}).join(',')+'|'+(xlab?xlab.join(''):'')+'|'+(opts.yTicks||0)+'|m'+mkFlags.join('');
   if(HC[elId]&&HC[elId].sig===sig){                         // same shape → instant in-place update (no anim = live slider tracking)
     var ch=HC[elId].chart;
     ch.xAxis[0].setCategories(labels,false);
@@ -876,7 +1112,10 @@ var PUB_CHARTS=['cPubNc','cPubApos','cPubAsu','cPubSr','cPubDisp'];
 function seriesOf(kind){return SC(kind,kind==='disp'?TL.disp:TL.sr);}   // allocation-filtered
 // req 3.1: per-segment modifiers. Each segment tab (Unit A/B …) carries its OWN modifier; the 'All' tab
 // shows the SUM of the sub-segments so Σ(sub adjustments) always equals the All-tab total.
-function segModsOf(C){var L=segList(C.kind);if(!C._segMods||C._segMods.length!==L.length)C._segMods=L.map(function(){return 100;});return C._segMods;}
+// stale-index guard: C._seg / C._segMods persist on the DISP/SR config objects, so a kind whose tab list
+// shrinks (2-way vs 4-way) must never be left pointing past the end of the list — clamp back to 'All'.
+function segCur(C){var L=segList(C.kind),i=C._seg||0;if(!(i>=0&&i<L.length)){i=0;C._seg=0;}return i;}
+function segModsOf(C){var L=segList(C.kind);segCur(C);if(!C._segMods||C._segMods.length!==L.length)C._segMods=L.map(function(){return 100;});return C._segMods;}
 function subIdxs(C){var L=segList(C.kind),a=[],i;for(i=1;i<L.length;i++)a.push(i);return a;}
 // bend one segment's weighted DS series by that segment's own modifier (+ that segment's per-week overrides)
 // A2: modifier 100 = no change; below 100 bends the forecast DOWN toward target (above = up).
@@ -897,14 +1136,47 @@ function bendSeg(C,segIdx){
 }
 // the 'All'/total adjusted = sum of every sub-segment, each bent by its own modifier (Σ weights = 1)
 function sumSubs(C){var subs=subIdxs(C),out=null;subs.forEach(function(si){var s=bendSeg(C,si);if(!out)out=s.slice();else out=out.map(function(x,i){return x+s[i];});});return out||seriesOf(C.kind).slice();}
+// req 1a (revised): an 'All'-tab edit is REDISTRIBUTED DOWN into the sub-segments rather than kept as an
+// All-level absolute override. There is exactly ONE override store — OVR[kind][segIdx>0][fw] — so the All total
+// is ALWAYS Σ(sub-segments) by construction, on every week, and the sub tabs visibly carry the new numbers.
+// (The old allOvr()/sumSubsAdj() pair, which overrode the sum for display only and let Σ(subs) ≠ All, is gone.)
+//
+// Split rule: pro-rata on each sub's CURRENT ADJUSTED value for that week — not the raw segment weights — so the
+// user's per-sub modifiers and per-sub edits are preserved in the mix. Degenerate week (every sub 0, so no ratio
+// exists): fall back to the static segment weights.
+//
+// Rounding: integers only, allocated by LARGEST REMAINDER. Rounding each share independently drifts by ±1 or
+// more against the typed total (e.g. 4 subs each landing on x.5); flooring and then handing the leftover units to
+// the largest fractional parts makes Σ(sub values) EXACTLY the typed total, always.
+function allocLR(total,shares){
+  var s=0,i,out=[],fr=[],acc=0;
+  for(i=0;i<shares.length;i++)s+=shares[i];
+  if(!(s>0))s=shares.length||1;                                       // guarded by the caller; never divide by 0
+  for(i=0;i<shares.length;i++){var x=total*(shares[i]/s),f=Math.floor(x);out.push(f);fr.push({i:i,r:x-f});acc+=f;}
+  var rem=Math.round(total-acc);                                      // 0 ≤ rem < shares.length
+  fr.sort(function(a,b){return (b.r-a.r)||(a.i-b.i);});               // ties → lowest segment index first (stable)
+  for(i=0;i<rem&&i<fr.length;i++)out[fr[i].i]++;
+  return out;
+}
+// write one All-tab week's typed total down onto the sub-segments
+function spreadAllEdit(C,fw,total){
+  var subs=subIdxs(C),L=segList(C.kind),idx=TL.fw.indexOf(fw);
+  if(idx<0||!subs.length)return;
+  var cur=subs.map(function(si){return bendSeg(C,si)[idx];});         // read BEFORE writing — the ratio is the old mix
+  var sum=0;cur.forEach(function(v){sum+=v;});
+  var shares=(sum>0)?cur:subs.map(function(si){return L[si]?L[si].w:1;});
+  var alloc=allocLR(total,shares);
+  subs.forEach(function(si,k){OVR[C.kind][si]=OVR[C.kind][si]||{};OVR[C.kind][si][fw]=alloc[k];});
+}
 // unbent DS baseline for one segment / for 'All'. 'All' sums the ROUNDED per-segment shares so the DS card on
 // the All tab ties out exactly with the sub-tab cards (raw totals drift by ±1 against Σ of rounded segments).
-function segBase(C,segIdx){var nd=seriesOf(C.kind),w=segList(C.kind)[segIdx].w;return nd.map(function(v){return Math.round(v*w);});}
+function segBase(C,segIdx){var nd=seriesOf(C.kind),L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;return nd.map(function(v){return Math.round(v*w);});}
 function sumSubsBase(C){var out=null;subIdxs(C).forEach(function(si){var s=segBase(C,si);out=out?out.map(function(x,i){return x+s[i];}):s.slice();});return out||seriesOf(C.kind).slice();}
 // req 1.1.3: adjusted state is per-TAB — a segment counts as adjusted only via its OWN modifier / own per-week edits.
 function segAdjActiveAt(C,idx){
   var mods=segModsOf(C),ov=(OVR[C.kind]&&OVR[C.kind][idx])||{};
   if(idx>0)return mods[idx]!==100||Object.keys(ov).length>0;
+  // no separate All-level store to test any more — an All edit lands in the subs, so this covers it
   for(var i=1;i<mods.length;i++)if(segAdjActiveAt(C,i))return true;   // 'All' = adjusted if ANY sub is
   return false;
 }
@@ -916,19 +1188,22 @@ function compositeMod(C){
   subIdxs(C).forEach(function(si){s+=mods[si]*L[si].w;w+=L[si].w;});
   return w?Math.round((s/w)*4)/4:100;
 }
-// ---------- 4-tab storage split (A9) ----------
+// ---------- segment tab split (A9) ----------
 // The dataset has no Business-Unit dimension, so Unit A/B use a synthesized, deterministic split; the
-// Parts / Parts+Labour split reuses the real service allocation weights. Dispatches → 2 tabs (Unit A/B);
-// SRs → 4 tabs (Unit A/B × Parts / Parts+Labour). Segment weights partition the total (sum to 1).
+// Parts / Parts+Labour split reuses the real service allocation weights. A dispatch is raised against a
+// parts-only or a parts+labour entitlement, so Dispatches → 4 tabs (Unit A/B × Parts / Parts+Labour);
+// SRs have no such intersection → 2 tabs (Unit A/B). Segment weights partition the total (sum to 1)
+// for BOTH kinds: A+B = 1, and (A+B)×(parts+partsLabour) = 1.
 var SEG_BU={A:0.58,B:0.42};
 function segList(kind){
+  // Parts-Only vs Parts+Labour shares, renormalised so the pair sums to 1 (4-way branch only)
   var s=(TL&&TL.alloc&&TL.alloc.service)||{},P=s['Parts Only']||0.5,PL=s['Parts + Labour']||0.5,tot=(P+PL)||1,p2=P/tot,pl2=PL/tot;
-  if(kind==='disp')return [{l:'All',w:1},{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}];
-  return [{l:'All',w:1},
+  if(kind==='sr')return [{l:'All',w:1},{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}];
+  return [{l:'All',w:1},                                        // dispatches (and any other kind)
     {l:'Unit A · Parts',w:SEG_BU.A*p2},{l:'Unit A · Parts+Labour',w:SEG_BU.A*pl2},
     {l:'Unit B · Parts',w:SEG_BU.B*p2},{l:'Unit B · Parts+Labour',w:SEG_BU.B*pl2}];
 }
-function segWeight(C){var L=segList(C.kind),i=C._seg||0;return L[i]?L[i].w:1;}
+function segWeight(C){var L=segList(C.kind),i=segCur(C);return L[i]?L[i].w:1;}
 // ---------- allocation-weight filter engine (req 1.3 / 1.4) ----------
 // The dataset holds per-week series for FY/FQ/FW/LOB only. Every OTHER dimension exists as an allocation
 // weight, so selecting values there scales the volumes by that dimension's share of the total.
@@ -983,12 +1258,12 @@ function SC(key,arr){
 function declAt(fw){var v=DECL_VALS[fw];if(v==null)return null;var m=allocMult();return m===1?v:Math.round(v*m);}
 function renderSegTabs(C){
   var box=document.getElementById(C.kind==='disp'?'segDisp':'segSr');if(!box)return;
-  var L=segList(C.kind),cur=C._seg||0,h='';
+  var L=segList(C.kind),cur=segCur(C),h='';
   L.forEach(function(s,i){h+='<button class="segt'+(i===cur?' on':'')+'" onclick="selectSeg(\''+C.kind+'\','+i+')">'+s.l+'</button>';});
   box.innerHTML=h;
 }
 function selectSeg(kind,i){
-  var C=kind==='disp'?DISP:SR;C._seg=i;var mods=segModsOf(C);
+  var C=kind==='disp'?DISP:SR;C._seg=i;i=segCur(C);var mods=segModsOf(C);   // segCur clamps a stale/out-of-range index to 'All'
   if(i===0){var subs=subIdxs(C);if(subs.length&&subs.every(function(s){return mods[s]===mods[subs[0]];}))mods[0]=mods[subs[0]];}   // All slider mirrors the subs when they're uniform
   var rid=kind==='disp'?'dS':'sS',nid=kind==='disp'?'dI':'sI';setPair(rid,nid,mods[i]);
   renderRate(C);renderRail();renderCtx();
@@ -1070,21 +1345,39 @@ function aopSync(kind,val){
     if(activeTab()==='pub')renderPub();
   });
 }
-function editRate(kind,segIdx,fw,val){var n=parseFloat((''+val).replace(/,/g,''));var C=kind==='disp'?DISP:SR;OVR[kind][segIdx]=OVR[kind][segIdx]||{};if(isFinite(n))OVR[kind][segIdx][fw]=Math.round(n);else delete OVR[kind][segIdx][fw];renderRate(C);}
+// segIdx>0 = that sub-segment's own per-week override, stored directly.
+// segIdx 0 = an 'All'-tab total: NOT stored at level 0 — it is split across the sub-segments (spreadAllEdit) so
+// Σ(subs) == the typed total. Clearing the All cell clears that week on every sub (the exact inverse).
+// The Publish page's SR_Adj / Disp_Adj cells are All-level edits too and call in here with segIdx 0, so they take
+// the identical redistribution path. Publish is repainted when it is the active tab.
+function editRate(kind,segIdx,fw,val){
+  var n=parseFloat((''+val).replace(/,/g,''));var C=kind==='disp'?DISP:SR;segIdx=+segIdx;
+  if(segIdx===0){
+    if(isFinite(n))spreadAllEdit(C,fw,Math.round(n));
+    else subIdxs(C).forEach(function(si){if(OVR[kind][si])delete OVR[kind][si][fw];});
+  }else{
+    OVR[kind][segIdx]=OVR[kind][segIdx]||{};
+    if(isFinite(n))OVR[kind][segIdx][fw]=Math.round(n);else delete OVR[kind][segIdx][fw];
+  }
+  pruneCmt();
+  renderRate(C);
+  if(activeTab()==='pub')renderPub();   // renderRate first — renderPub reads the freshly-set C._adj
+}
 function renderRate(C){
+  cmtPopClose(true);   // the rows below are rebuilt via innerHTML — commit + drop any open popover so none orphans
   var nd=seriesOf(C.kind),fc=TL.fcStart;
   var adjAsu=computeAsuRows().map(function(r){return r.adj;});   // P1: live adjusted-ASU driver
   renderSegTabs(C);
   // req 3.1: each segment tab carries its OWN modifier. Sub-segments (Unit A/B …) bend independently;
   // the 'All' tab shows the SUM of the sub-segments, so Σ(sub adjustments) always equals the All total.
-  var segIdx=C._seg||0,segs=segModsOf(C),sw=segWeight(C);
+  var segIdx=segCur(C),segs=segModsOf(C),sw=segWeight(C);
   // slider shows this tab's own modifier; on 'All' it shows the weight-composite of the subs (unless mid-drag)
   var _nid=C.kind==='disp'?'dI':'sI',_rid=C.kind==='disp'?'dS':'sS',_ni=document.getElementById(_nid),_ri=document.getElementById(_rid);
   var shown=(segIdx===0)?compositeMod(C):segs[segIdx];
   if(segIdx===0)segs[0]=shown;
   if(_ni&&document.activeElement!==_ni&&document.activeElement!==_ri){_ni.value=shown;if(_ri)_ri.value=shown;}
   // full total (all sub-segments, each bent by its own modifier) — used by the KPIs on 'All' and by Publish/export
-  var adjFull=sumSubs(C);
+  var adjFull=sumSubs(C);   // req 1a: plain Σ(sub-segments) — All edits live IN the subs, so this IS the All total
   var nds,adjs,adjAsus;
   if(segIdx>0){nds=segBase(C,segIdx);adjs=bendSeg(C,segIdx);adjAsus=adjAsu.map(function(x){return Math.round(x*sw);});}
   else{nds=sumSubsBase(C);adjs=adjFull;adjAsus=adjAsu.slice();}
@@ -1123,10 +1416,20 @@ function renderRate(C){
     kpi('MDR Rate',(frate*100).toFixed(2)+'%','')+
     (showAdj?kpi('Adjusted Rate',(arate*100).toFixed(2)+'%','','color:'+gc):'')+
     (showAdj?kpi('Gap',(gapN>=0?'+':'')+fmt(gapN),'','color:'+gc):'');
-  var tb='';vis.forEach(function(i){var isA=i<fc;
-    var valCell=isA?'—':(segIdx>0?'<input class="ec" value="'+fmt(adjs[i])+'" onchange="editRate(\''+C.kind+'\','+segIdx+',\''+TL.fw[i]+'\',this.value)">':fmt(adjs[i]));
-    var delta=isA?'—':fmt(adjs[i]-nds[i]);
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(nds[i])+'</td>'+(showAdj?'<td style="color:#ea580c">'+valCell+'</td><td>'+(delta>=0?'+':'')+delta+'</td>':'')+'</tr>';
+  // req 2 (revised): the Comment column exists only when at least one VISIBLE row actually carries an override.
+  // Same predicate the row builder uses below, so header and cells can never disagree; with no edits in the
+  // window the column is dropped entirely and fitTable hands its width back to the numeric columns.
+  var anyEd=showAdj&&vis.some(function(i){return i>=fc&&hasRateOvr(C.kind,segIdx,TL.fw[i]);});
+  var tb='';vis.forEach(function(i){var isA=i<fc,fwK=TL.fw[i];
+    // req 1a: the Adj cell is editable on EVERY tab, 'All' (segIdx 0) included — an All edit redistributes
+    var valCell=isA?'—':'<input class="ec" value="'+fmt(adjs[i])+'" onchange="editRate(\''+C.kind+'\','+segIdx+',\''+fwK+'\',this.value)">';
+    // the SIGN comes off the NUMBER, formatting comes after. Deriving it from fmt()'s output instead made
+    // '2,565' >= 0 a NaN comparison, so every delta of 1,000 or more silently lost its leading '+'.
+    var dN=adjs[i]-nds[i];
+    var delta=isA?'—':((dN>=0?'+':'')+fmt(dN));   // fmt() keeps the '-' on negatives, so no '+-' is possible
+    var edited=!isA&&hasRateOvr(C.kind,segIdx,fwK);
+    var cCell=anyEd?cmtCell(edited,getCmtRate(C.kind,segIdx,fwK),'rate',C.kind,segIdx,fwK):'';
+    tb+='<tr'+(isA?' class="act"':(edited?' class="edt"':''))+'><td class="l">'+shortFW(fwK)+'</td><td>'+fmt(nds[i])+'</td>'+(showAdj?'<td style="color:#ea580c">'+valCell+'</td><td>'+delta+'</td>'+cCell:'')+'</tr>';
   });
   document.getElementById(C.tabId).innerHTML=tb;
   // hide the modifier slider block when the view has no forecast weeks
@@ -1136,8 +1439,12 @@ function renderRate(C){
   if(thead){
     if(!showAdj){
       thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th>';
+      fitTable(C.tabId,1,0);
     }else{
-      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th><th>Adj '+(C.kind==='disp'?'Disp':'SRs')+'</th><th>Delta</th>';
+      // header stays in lock-step with the row builder above: Comment is the LAST column, adjusted-only, and
+      // present only when some visible row is actually edited (anyEd)
+      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th><th>Adj '+(C.kind==='disp'?'Disp':'SRs')+'</th><th>Delta</th>'+(anyEd?'<th class="cmt" style="width:160px">Comment</th>':'');
+      fitTable(C.tabId,3,anyEd?160:0);
     }
   }
   if(!actualsOnly){
@@ -1162,7 +1469,16 @@ function renderRate(C){
   var _tw=document.getElementById(C.tabId);popReveal(C.kind,showAdj,[document.getElementById(C.kpiId),_tw&&_tw.closest('.tw')]);
   C._adj=adjFull;C._vis=vis;
 }
-function editAsu(fw,which,val){var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];renderAsu();renderRate(DISP);renderRate(SR);}
+// which: 'an' = Adj New Contracts, 'ba' = Adj APOS (both weekly FLOWS), 'aa' = Adj ASU (a running BALANCE — see
+// computeAsuRows). Reachable from the ASU page and from the Publish page's NC_Adj / APOS_Adj / ASU_Adj columns.
+function editAsu(fw,which,val){
+  var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};
+  if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];
+  if(!Object.keys(OVR.asu[fw]).length)delete OVR.asu[fw];   // never leave an empty entry — the showAdj gates test Object.keys(OVR.asu).length
+  pruneCmt();
+  renderAsu();renderRate(DISP);renderRate(SR);
+  if(activeTab()==='pub')renderPub();                       // renderRate first — renderPub reads SR._adj / DISP._adj
+}
 // ---------- ASU chain — pure compute (shared by renderAsu + the disp/SR driver) ----------
 // New Contracts (blue), APOS Renewals (purple) drive the cumulative Adjusted ASU (orange).
 // Declines are DECOUPLED — a display-only, forecast-only series from a manual import; they never enter the ASU math.
@@ -1171,7 +1487,7 @@ function computeAsuRows(){
   // sliders 60–150, 100 = neutral; mult = value/100
   var ncM=(+document.getElementById('ncI').value)/100,
       apM=(+document.getElementById('apI').value)/100;
-  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ov=OVR.asu;
+  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ovShift=0,ov=OVR.asu;
   var A=SC('asu',TL.asu),NC=SC('nc',TL.nc),AP=SC('apos',TL.apos);   // allocation-filtered inputs
   // req 3.1: APOS was scaled by a FLAT multiplier from week one, so its weekly delta was constant and the
   // cumulative line came out straight. Ramp it with the same smoothstep the disp/SR bends use: the change
@@ -1179,7 +1495,7 @@ function computeAsuRows(){
   var Nf=N-fc;
   function apRamp(i){var t=(Nf>1)?((i-fc)/(Nf-1)):1;return t*t*(3-2*t);}
   for(var i=0;i<N;i++){
-    var base=A[i],an,ba,adjV,ncV,renV;
+    var base=A[i],an,ba,adjV,ncV,renV,aaJump=0;
     // declines are display-only across the whole FY22–FY27 window; only forecast weeks feed declCum below
     var decl=DECL_IMPORTED?(declAt(TL.fw[i])!=null?declAt(TL.fw[i]):(i>=fc?0:null)):null;
     if(i<fc){an=NC[i];ba=AP[i];adjV=base;ncV=base;renV=base;}
@@ -1188,14 +1504,25 @@ function computeAsuRows(){
       an=(o.an!=null)?o.an:Math.round(NC[i]*ncM);
       ba=(o.ba!=null)?o.ba:Math.round(AP[i]*(1+(apM-1)*apRamp(i)));   // S-curve, not a flat scale
       ncCum+=(an-NC[i]);renCum+=(ba-AP[i]);declCum+=(decl||0);   // declines subtract from the running adjusted ASU (never adjusted themselves)
-      ncV=base+ncCum;renV=base+renCum;adjV=base+ncCum+renCum-declCum;
+      ncV=base+ncCum;renV=base+renCum;
+      // req 1b: Adj ASU is a running BALANCE, not a weekly flow. An absolute override (o.aa) RE-ANCHORS the
+      // balance at that week and every LATER week keeps running from the new level via ovShift — so the edit
+      // propagates forward by a constant delta instead of spiking for one week and snapping back. A second,
+      // later override simply re-anchors again (ovShift is recomputed against the already-shifted balance).
+      adjV=base+ncCum+renCum-declCum+ovShift;
+      // aaJump = the net inflow injected by re-anchoring the balance this week. It is exactly the amount ovShift
+      // grows by, so the ASU-page inflow chart can show the Adj-ASU edit as a one-week spike (it returns to the
+      // normal inflow next week, since the new balance carries forward automatically). Card/table/Publish keep
+      // showing the BALANCE (adj); this term only feeds the flow-scale chart line so the edit is visible there.
+      if(o.aa!=null){aaJump=o.aa-adjV;ovShift+=aaJump;adjV=o.aa;}
     }
     rows.push({fw:TL.fw[i],base:base,decl:decl,nc:NC[i],apos:AP[i],
-               adjNew:an,btcApos:ba,adj:adjV,ncLine:ncV,renLine:renV});
+               adjNew:an,btcApos:ba,adj:adjV,ncLine:ncV,renLine:renV,aaJump:aaJump});
   }
   return rows;
 }
 function renderAsu(){
+  cmtPopClose(true);   // rows are rebuilt via innerHTML below — commit + drop any open popover so none orphans
   var fc=TL.fcStart,rows=computeAsuRows();
   var vis=visIdx();
   if(!vis.length){document.getElementById('kAsu').innerHTML='';document.getElementById('tAsu').innerHTML='';svgChart('cAsu',[],[]);ASU_ROWS=rows;return;}
@@ -1207,10 +1534,10 @@ function renderAsu(){
   var actualsOnly=vis.every(function(i){return i<fc});
   // req 1 + 3.2: per-metric reveal — show ONLY the adjusted line/card/column whose own modifier changed.
   // Adj NC ← NC slider/edit; Adj APOS ← APOS slider/edit; Adj ASU ← any of NC/APOS OR imported declines (they subtract from ASU).
-  var ncM=+document.getElementById('ncI').value,apM=+document.getElementById('apI').value,ovAn=false,ovBa=false;
-  Object.keys(OVR.asu).forEach(function(fw){var o=OVR.asu[fw]||{};if(o.an!=null)ovAn=true;if(o.ba!=null)ovBa=true;});
+  var ncM=+document.getElementById('ncI').value,apM=+document.getElementById('apI').value,ovAn=false,ovBa=false,ovAa=false;
+  Object.keys(OVR.asu).forEach(function(fw){var o=OVR.asu[fw]||{};if(o.an!=null)ovAn=true;if(o.ba!=null)ovBa=true;if(o.aa!=null)ovAa=true;});
   var ncAdj=!actualsOnly&&(ncM!==100||ovAn),apAdj=!actualsOnly&&(apM!==100||ovBa);
-  var asuAdj=!actualsOnly&&(ncAdj||apAdj||DECL_IMPORTED),anyAdj=asuAdj;
+  var asuAdj=!actualsOnly&&(ncAdj||apAdj||DECL_IMPORTED||ovAa),anyAdj=asuAdj;   // req 1b: a direct Adj-ASU balance edit reveals the column too
   var kEl=document.getElementById('kAsu');kEl.className='kr '+(DECL_IMPORTED?'kr4':'kr5');   // 4 cols when declines shown
   var ph='<div class="kp" style="visibility:hidden"></div>';   // placeholder keeps forecast/adjusted columns aligned
   kEl.innerHTML=
@@ -1226,13 +1553,18 @@ function renderAsu(){
       (apAdj?kpi('Adj APOS',fmt(tBA),'','color:#ac4073',CB('btcApos')):ph)+
       (DECL_IMPORTED?ph:'')
      :'');
+  // Comment column only when some VISIBLE row actually carries an ASU override (same predicate as the row builder)
+  var anyEdA=anyAdj&&vis.some(function(i){return i>=fc&&hasAsuOvr(rows[i].fw);});
   var tb='';vis.forEach(function(i){var r=rows[i],isA=i<fc;
     var anCell=isA?'—':'<input class="ec" value="'+r.adjNew+'" onchange="editAsu(\''+r.fw+'\',\'an\',this.value)">';
     var baCell=isA?'—':'<input class="ec" value="'+r.btcApos+'" onchange="editAsu(\''+r.fw+'\',\'ba\',this.value)">';
-    var adjAsuCell=isA?'—':fmt(r.adj);
+    // req 1b: Adj ASU is now an editable absolute BALANCE override, not derived read-only text
+    var adjAsuCell=isA?'—':'<input class="ec" value="'+fmt(r.adj)+'" onchange="editAsu(\''+r.fw+'\',\'aa\',this.value)">';
     var declCol=DECL_IMPORTED?'<td>'+(r.decl==null?'—':fmt(r.decl))+'</td>':'';   // history + forecast, not editable; column stays default/black
     var adjCols=(ncAdj?'<td style="color:var(--ac)">'+anCell+'</td>':'')+(apAdj?'<td style="color:var(--pu)">'+baCell+'</td>':'')+(asuAdj?'<td>'+adjAsuCell+'</td>':'');
-    tb+='<tr'+(isA?' class="act"':'')+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declCol+adjCols+'</tr>';});
+    var edited=!isA&&hasAsuOvr(r.fw);
+    var cCell=anyEdA?cmtCell(edited,getCmtAsu(r.fw),'asu','','',r.fw):'';
+    tb+='<tr'+(isA?' class="act"':(edited?' class="edt"':''))+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declCol+adjCols+cCell+'</tr>';});
   document.getElementById('tAsu').innerHTML=tb;
   // sliders are meaningless with no forecast weeks in view → hide them for actuals-only periods
   document.querySelectorAll('#vAsu .mb:not(.mb-aop)').forEach(function(e){e.style.display=actualsOnly?'none':'';});
@@ -1241,7 +1573,9 @@ function renderAsu(){
   if(thead){
     var dA=DECL_IMPORTED?'<th>Declines</th>':'';
     thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA
-      +(ncAdj?'<th style="color:var(--ac)">Adj NC</th>':'')+(apAdj?'<th style="color:var(--pu)">Adj APOS</th>':'')+(asuAdj?'<th>Adj ASU</th>':'');
+      +(ncAdj?'<th style="color:var(--ac)">Adj NC</th>':'')+(apAdj?'<th style="color:var(--pu)">Adj APOS</th>':'')+(asuAdj?'<th>Adj ASU</th>':'')
+      +(anyEdA?'<th class="cmt" style="width:120px">Comment</th>':'');   // lock-step with the row builder: last column, adjusted-only, edits-only
+    fitTable('tAsu',3+(DECL_IMPORTED?1:0)+(ncAdj?1:0)+(apAdj?1:0)+(asuAdj?1:0),anyEdA?120:0);
   }
   document.getElementById('aBase').textContent=fmt(last.base);
   document.getElementById('aAdj').textContent=fmt(last.adj);
@@ -1254,13 +1588,14 @@ function renderAsu(){
   var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
   // actuals baselines + adjusted lines (idx 3,4,5 carry empty data until an ASU modifier is changed — series slots
   // stay in place so legend indices remain aligned). Declines: one forecast-only line, appended last, only when imported.
-  // Adj ASU (weekly composition) subtracts the week's declines so the line reflects the outflow; each Adj line
+  // Adj ASU (weekly composition) subtracts the week's declines so the line reflects the outflow, and adds aaJump
+  // so a direct Adj-ASU balance edit shows as a one-week inflow spike (card/table keep the balance); each Adj line
   // shows only when its own metric changed (idx slots stay in place with empty data so legend indices align).
   var aser=[
     {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos;})},
     {color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Actuals',  data:vis.map(function(i){return rows[i].nc;})},
     {color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Actuals',data:vis.map(function(i){return rows[i].apos;})},
-    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:asuAdj?vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-(rows[i].decl||0);}):[]},
+    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:asuAdj?vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-(rows[i].decl||0)+(rows[i].aaJump||0);}):[]},
     {color:'#0891b2',name:'Adj NC',  seg:'forecast',       data:ncAdj?vis.map(function(i){return rows[i].adjNew;}):[]},
     {color:'#ac4073',name:'Adj APOS',seg:'forecast',       data:apAdj?vis.map(function(i){return rows[i].btcApos;}):[]},
     // req 6: flat AOP target line — same slot every render (index 6) so the legend indices stay aligned
@@ -1285,20 +1620,22 @@ var _raf=0,_rafFn=null;
 function schedule(fn){_rafFn=fn;if(_raf)return;_raf=requestAnimationFrame(function(){_raf=0;var f=_rafFn;_rafFn=null;if(f)f();});}
 function setPair(a,b,v){document.getElementById(a).value=v;document.getElementById(b).value=v;}
 // req 3.1: the slider writes to the ACTIVE segment's modifier; on the 'All' tab it sets every sub uniformly (master)
-function setSegMod(C,v){var mods=segModsOf(C),idx=C._seg||0;mods[idx]=v;if(idx===0){for(var i=1;i<mods.length;i++)mods[i]=v;}}
+function setSegMod(C,v){var mods=segModsOf(C),idx=segCur(C);mods[idx]=v;if(idx===0){for(var i=1;i<mods.length;i++)mods[i]=v;}}
 function dSync(v){v=clampM(v);setPair('dS','dI',v);setSegMod(DISP,v);schedule(function(){renderRate(DISP);});}
 function sSync(v){v=clampM(v);setPair('sS','sI',v);setSegMod(SR,v);schedule(function(){renderRate(SR);});}
 function clearTgtBox(id){var e=document.getElementById(id);if(e){e.value='';}}
 // req 1.1.2: Reset is per-TAB — it clears only the active segment's modifier + per-week edits.
 // On the 'All' tab it resets every sub-segment (All is the master view).
 function segReset(C){
-  var idx=C._seg||0,mods=segModsOf(C);
-  if(idx>0){mods[idx]=100;delete OVR[C.kind][idx];}
-  else{for(var i=0;i<mods.length;i++)mods[i]=100;OVR[C.kind]={};}
+  var idx=segCur(C),mods=segModsOf(C);
+  if(idx>0){mods[idx]=100;delete OVR[C.kind][idx];delete CMT[C.kind][idx];}
+  else{for(var i=0;i<mods.length;i++)mods[i]=100;OVR[C.kind]={};CMT[C.kind]={};}   // 'All' also clears the All-level overrides + notes
+  pruneCmt();                                                                      // and any Publish note whose week is no longer edited
   TGT_OVR[C.kind]=null;clearTgtBox(C.trEl);
   AOP_OVR[C.kind]=null;
   var rid=C.kind==='disp'?'dS':'sS',nid=C.kind==='disp'?'dI':'sI';setPair(rid,nid,100);
   renderRate(C);
+  if(activeTab()==='pub')renderPub();
 }
 function dReset(){segReset(DISP);}
 function sReset(){segReset(SR);}
@@ -1306,7 +1643,7 @@ function sReset(){segReset(SR);}
 function _asuRender(){renderAsu();renderRate(DISP);renderRate(SR);}
 function ncSync(v){v=clampM(v);setPair('ncS','ncI',v);schedule(_asuRender);}
 function apSync(v){v=clampM(v);setPair('apS','apI',v);schedule(_asuRender);}
-function aReset(){OVR.asu={};DECL_VALS={};DECL_IMPORTED=false;AOP_OVR.asu=null;['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();if(activeTab()==='pub')renderPub();}
+function aReset(){OVR.asu={};CMT.asu={};pruneCmt();DECL_VALS={};DECL_IMPORTED=false;AOP_OVR.asu=null;['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();if(activeTab()==='pub')renderPub();}
 // Import per-week Declines (forecast, expiring outflow) from a CSV/TXT — display-only, forecast-only, never adjusted.
 // Accepts "FW,value" (FW = 2027-W01 or 27-W01) or a bare value column (assigned to forecast weeks in order).
 // Values land in DECL_VALS[fw]; declines are shown only after this import.
@@ -1429,12 +1766,35 @@ function updateExportBtn(){
   if(bp)bp.disabled=!bothPub;
 }
 var _outDir=null;   // remembered outputs/ directory handle (File System Access API) — picked once, reused
-function _exportCsv(){
-  var vis=visIdx(),xSR=SC('sr',TL.sr),xDisp=SC('disp',TL.disp),rows=[['FW','ASU_Base','ASU_Adj','SR_DS','SR_Adj','Disp_DS','Disp_Adj']];
-  vis.forEach(function(i){var ar=ASU_ROWS[i]||{};
-    rows.push([TL.fw[i],ar.base,ar.adj,xSR[i],(SR._adj?SR._adj[i]:''),xDisp[i],(DISP._adj?DISP._adj[i]:'')]);});
-  return rows.map(function(r){return r.join(',');}).join('\n');
+// ---------- CSV writing (single escaping path, shared by every export) ----------
+// The old exports joined raw values with commas and would have corrupted the file the moment a note contained a
+// comma, a quote or a newline. RFC-4180: quote the field when it holds any of those, and double embedded quotes.
+// Everything else is emitted bare so the numeric columns stay byte-identical to before.
+function csvCell(v){v=(v==null?'':''+v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function csvJoin(rows){return rows.map(function(r){return r.map(function(c){return csvCell(c);}).join(',');}).join('\n');}
+// SR / Dispatch notes are stored PER SEGMENT (CMT[kind][segIdx][fw]) but the export carries the All series, so one
+// cell has to represent the whole week: the All note first, then every sub-segment note that exists, each labelled
+// with its segment so the reader can tell them apart —  "All note | Unit A · Parts: sub note".
+function rateNote(kind,fw){
+  var L=segList(kind),parts=[],all=getCmtRate(kind,0,fw),i,s;
+  if(all)parts.push(all);
+  for(i=1;i<L.length;i++){s=getCmtRate(kind,i,fw);if(s)parts.push(L[i].l+': '+s);}
+  return parts.join(' | ');
 }
+// One row builder for BOTH export paths, so the two can never drift apart. Each *_Comment column sits immediately
+// right of the adjusted column it annotates; the trailing bare "Comment" is the Publish-page note for that week.
+// The columns are ALWAYS present (blank when there is no note) so downstream parsing never shifts.
+function _csvRows(){
+  var vis=visIdx(),xSR=SC('sr',TL.sr),xDisp=SC('disp',TL.disp);
+  var rows=[['FW','ASU_Base','ASU_Adj','ASU_Comment','SR_DS','SR_Adj','SR_Comment','Disp_DS','Disp_Adj','Disp_Comment','Comment']];
+  vis.forEach(function(i){var ar=ASU_ROWS[i]||{},fw=TL.fw[i];
+    rows.push([fw,ar.base,ar.adj,getCmtAsu(fw),
+               xSR[i],(SR._adj?SR._adj[i]:''),rateNote('sr',fw),
+               xDisp[i],(DISP._adj?DISP._adj[i]:''),rateNote('disp',fw),
+               getCmtPub(fw)]);});
+  return rows;
+}
+function _exportCsv(){return csvJoin(_csvRows());}
 // req 2: the "Adjustment Cycle <FY>, Pass <n>" logic is unchanged — it stays the automatic default.
 // An optional override can replace the FY and/or the pass number; the header label follows it.
 // The saved file name defaults to that cycle name (auto or overridden), or to whatever the user types.
@@ -1487,7 +1847,7 @@ async function exportPublished(){
       alert('Saved '+name+' — now on Pass '+PASS_COUNT+'.');return;
     }catch(e){if(e&&e.name==='AbortError')return;}   // any other failure → fall through to plain download
   }
-  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=name;a.click();
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();
   bumpPass();                                        // no folder handle → increment + persist locally
 }
 // ---------- Pass counter (4.3.1): reads the outputs/ folder when available, else localStorage ----------
@@ -1509,6 +1869,7 @@ function updateCycleLabel(){
 }
 function renderPub(){
   if(!TL)return;
+  cmtPopClose(true);   // rows are rebuilt via innerHTML below — commit + drop any open popover so none orphans
   var fc=TL.fcStart,vis=visIdx().filter(function(i){return i>=fc;});
   var fyLbl=TL.fy[TL.fcStart];
   // req 3.1.4: the Declines CHART is merged into the New Contracts chart, which then spans two columns so the
@@ -1563,10 +1924,30 @@ function renderPub(){
       kpi('Adjusted Dispatches ('+fyLbl+')',fmt(aDisp),'','color:#ea580c')
       :'');
   // summary table: same order — adjusted values (Declines = forecast, not adjusted)
-  document.getElementById('tPubHead').innerHTML='<th class="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>'+(DECL_IMPORTED?'<th>Declines</th>':'')+'<th>SR_Adj</th><th>Disp_Adj</th>';
+  // Comment column only when some VISIBLE Publish row actually carries an override (vis is already forecast-only)
+  var anyEdP=showAdj&&vis.some(function(i){return hasPubOvr(TL.fw[i]);});
+  document.getElementById('tPubHead').innerHTML='<th class="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>'+(DECL_IMPORTED?'<th>Declines</th>':'')+'<th>SR_Adj</th><th>Disp_Adj</th>'
+    +(anyEdP?'<th class="cmt" style="width:120px">Comment</th>':'');   // lock-step with the row builder below
+  fitTable('tPub',5+(DECL_IMPORTED?1:0),anyEdP?120:0);
+  // req 1c: every adjusted column is editable here and writes back into the SAME stores the source pages use —
+  // NC_Adj→OVR.asu[fw].an, APOS_Adj→.ba, ASU_Adj→.aa, and SR_Adj / Disp_Adj through editRate(kind,0,…) — i.e.
+  // they are All-level totals and get REDISTRIBUTED across that metric's sub-segments exactly like an edit typed
+  // on the SR/Dispatch 'All' tab. So an edit made on Publish shows up on the ASU / SR / Dispatch pages (including
+  // the individual Unit A/B … tabs) and vice-versa. Declines stay READ-ONLY:
+  // they are import-only and are never adjusted. Every row here is a forecast week (vis is filtered to i>=fc),
+  // so the "actuals are not editable" rule needs no extra guard on this page.
   var tb='';
   vis.forEach(function(i){
-    tb+='<tr><td class="l">'+shortFW(TL.fw[i])+'</td><td>'+fmt(rows[i].adjNew)+'</td><td>'+fmt(rows[i].btcApos)+'</td><td>'+fmt(rows[i].adj)+'</td>'+(DECL_IMPORTED?'<td>'+(rows[i].decl==null?'—':fmt(rows[i].decl))+'</td>':'')+'<td>'+(SR._adj?fmt(SR._adj[i]):'—')+'</td><td>'+(DISP._adj?fmt(DISP._adj[i]):'—')+'</td></tr>';
+    var fwK=TL.fw[i],r=rows[i],ed=hasPubOvr(fwK);
+    var cCell=anyEdP?cmtCell(ed,getCmtPub(fwK),'pub','','',fwK):'';
+    tb+='<tr'+(ed?' class="edt"':'')+'><td class="l">'+shortFW(fwK)+'</td>'
+      +'<td><input class="ec" value="'+fmt(r.adjNew)+'" onchange="editAsu(\''+fwK+'\',\'an\',this.value)"></td>'
+      +'<td><input class="ec" value="'+fmt(r.btcApos)+'" onchange="editAsu(\''+fwK+'\',\'ba\',this.value)"></td>'
+      +'<td><input class="ec" value="'+fmt(r.adj)+'" onchange="editAsu(\''+fwK+'\',\'aa\',this.value)"></td>'
+      +(DECL_IMPORTED?'<td>'+(r.decl==null?'—':fmt(r.decl))+'</td>':'')
+      +'<td><input class="ec" value="'+(SR._adj?fmt(SR._adj[i]):'')+'" onchange="editRate(\'sr\',0,\''+fwK+'\',this.value)"></td>'
+      +'<td><input class="ec" value="'+(DISP._adj?fmt(DISP._adj[i]):'')+'" onchange="editRate(\'disp\',0,\''+fwK+'\',this.value)"></td>'
+      +cCell+'</tr>';
   });
   document.getElementById('tPub').innerHTML=tb;
   // req 3.1: keep ALL data points; only THIN the x-axis LABELS (start week + quarter-ends, or start/end quarter for long spans)
@@ -1646,16 +2027,22 @@ function toggleTheme(){
 }
 function rethemeCharts(){                                  // destroy + rebuild so chart colours pick up the new theme
   Object.keys(HC).forEach(function(k){try{HC[k].chart.destroy();}catch(e){}});HC={};
-  if(TL){renderRate(DISP);renderRate(SR);renderAsu();}
+  // HC is wiped wholesale, so EVERY chart that was alive has to be rebuilt — including the five Publish charts.
+  // Rebuilding only Steps 1&2 left cPubNc/cPubApos/cPubAsu/cPubSr/cPubDisp destroyed and their containers empty
+  // for as long as the user stayed on Step 3 (they only came back on the next renderPub, i.e. a page revisit).
+  // renderPub last, so it reads the C._adj that the two renderRate calls above have just refreshed.
+  if(TL){renderRate(DISP);renderRate(SR);renderAsu();if(activeTab()==='pub')renderPub();}
 }
 function applySavedTheme(){
   var t;try{t=localStorage.getItem('btc_sim_theme');}catch(e){}
   if(t==='dark'){document.body.setAttribute('data-theme','dark');var b=document.getElementById('themebtn');if(b)b.textContent='☀';}
 }
-function csv(which){var rows;
-  if(which==='asu'){rows=[['FW','BaseASU','Declines','NewCt','APOS','AdjNew','BTCApos','AdjASU']];ASU_ROWS.forEach(function(r){rows.push([r.fw,r.base,(r.decl==null?'':r.decl),r.nc,r.apos,r.adjNew,r.btcApos,r.adj]);});}
-  else{var C=which==='disp'?DISP:SR,nd=seriesOf(C.kind);rows=[['FW','No IQR','Adj','Rate']];(C._vis||[]).forEach(function(i){rows.push([TL.fw[i],nd[i],C._adj[i],(SC('asu',TL.asu)[i]?(C._adj[i]/SC('asu',TL.asu)[i]*100).toFixed(4):'0')]);});}
-  var c=rows.map(function(r){return r.join(',')}).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='btc-'+which+'.csv';a.click();}
+// Direct per-page download. It emits the SAME schema as exportPublished() — same _csvRows() builder, same
+// escaping — so the two export paths cannot drift; `which` only picks the file name.
+// (It used to build its own per-metric column sets by hand with unescaped joins; that duplicate schema is gone.)
+function csv(which){
+  var c=_exportCsv(),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([c],{type:'text/csv;charset=utf-8'}));a.download='btc-'+which+'.csv';a.click();}
 // ---------- LOB loader (build the active timeline TL) ----------
 function aggLob(keys){
   var all=Object.keys(BTC);keys=(keys&&keys.length)?keys:all;if(!keys.length)return null;var f=BTC[keys[0]],N=f.fw.length;
@@ -1679,6 +2066,7 @@ function loadLob(){
   TL=(sel.length===1)?BTC[sel[0]]:aggLob(sel);if(!TL)return;
   SPLIT_FW=shortFW(TL.fw[TL.fcStart-1]);   // forecast recolor starts exactly where the modifier bend starts (fcStart)
   OVR={disp:{},sr:{},asu:{}};   // absolute per-week edits don't carry across a data change; slider %s + locks/step DO
+  CMT={disp:{},sr:{},asu:{},pub:{}};   // the notes belong to those edits — they go with them
   // req 1.2: imported declines are keyed by fiscal week, not by LOB — they SURVIVE a LOB change
   // (they are scaled to the current selection by the allocation multiplier, like every other series).
   renderRail();renderCtx();
