@@ -789,3 +789,20 @@ Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (cha
 - **Icon set (req 4)**: all 9 expand buttons (3 Steps + 6 Publish) now use a **maximize** SVG (four outward corner arrows, Tabler `arrows-maximize`); `toggleExpand`/`collapseExpand` swap it to a **minimize** SVG (four inward arrows, `arrows-minimize`) and flip the title Expand↔Collapse via `_setExpBtn()` + `IC_EXPAND`/`IC_COLLAPSE` constants. The old `⤢` glyph is gone (0 remain).
 - **Verified**: engine inline-script `vm.Script` parse OK; 9 maximize buttons + 2 icon constants present, 0 stray glyphs. Live hover/expand not exercised in-pane (`data:` snapshot won't boot the dataset).
 - **Pushed to `master`** (deploys to the live site).
+
+### Session 48 — corrections to S47 (expand icon markup, publish-scoped layout, hover box masks values)
+**Files**: `template_ui/btc_adjustment_simulator_v2.html`, IMP_DOCS mirrors (this file). **NOT pushed — local only (owner: don't push unless told).**
+**Prompt**: (1) expand button renders empty (outline only), only fills after an expand/collapse cycle; on ASU/SR/Dispatch put it back in its original position (never asked to shift it left there). (2) Publish expanded: move the filter button INTO the chart area at the exact spot the collapse button occupied. (3) hover box still masks the lines behind it (see image) — box must clear every value that falls under its own footprint, dynamically.
+
+- **Empty button — root cause**: the S47 `replace_all` that swapped `⤢` for the SVG matched `>⤢</button>` and ate the `>` that closes each `<button>` start tag, so the markup became `title="Expand chart"<svg…>` — the SVG parsed as junk attributes inside the button tag (empty outline). `_setExpBtn()` repaired it via `innerHTML`, which is why it only appeared after expand→collapse. Restored the `>` on all 9 buttons (`title="…"><svg`). Confirmed in-DOM: the button now contains a real `<svg>` on load.
+- **Button position (req 1.1)**: the left-shift is now **Publish-only** — `body.on-pub.expanding .expanded .expandbtn{right:52px}` (added an `on-pub` body class toggled in `go()`). Steps 1&2 keep the button at its original `right:8`.
+- **Filter funnel into the collapse spot (req 2)**: `body.on-pub.expanding .freopen{top:60px;right:32px}` drops the fixed funnel onto the expanded card's top-right (the collapse button's old inset), while the collapse button sits just left of it.
+- **Hover box masking (req 3)**: positioner now scans every visible series for the points whose x-pixel falls within the box's own width (`cx±w/2`), tracks the top-most (`topY`) and bottom-most (`botY`) of them, and floats the box **above `topY`** (or below `botY` when there's no room above). So it clears not just the hovered point but every neighbouring value it would otherwise cover. Recomputed per hover (cheap: ~a few hundred points).
+- **Verified**: engine `vm.Script` OK; 0 malformed buttons, 9 well-formed, `on-pub` wired (CSS ×2 + `go()`); button SVG present in the rendered DOM. Hover/expand geometry not live-tested (snapshot won't boot the dataset) — owner to eyeball on run.
+
+### Session 49 — publish expanded: collapse button follows the rail state; hover box left alone
+**Files**: `template_ui/btc_adjustment_simulator_v2.html`, IMP_DOCS mirrors (this file). **NOT pushed — local only.**
+**Prompt**: (1) publish charts: when the filters are expanded (rail open), the collapse button should sit where the filter button was. (2) hover box still not right — leave it.
+
+- **Collapse-button position (req 1)**: the left-shift is now gated on `:not(.rail-open)` — `body.on-pub.expanding:not(.rail-open) .expanded .expandbtn{right:52px}`. So while the rail is collapsed the funnel owns the card's top-right corner and the collapse button sits just left of it; when the rail is **open** (funnel hidden) the collapse button falls back to `right:8` — the same top-right corner the filter button occupied. Reactive to `body.rail-open`, so toggling the rail while expanded repositions it live.
+- **Hover box (req 2)**: left unchanged at the owner's instruction — no further edits to the tooltip positioner this session.
