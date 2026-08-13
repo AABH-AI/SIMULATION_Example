@@ -778,3 +778,14 @@ Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (cha
 - **Hover tooltip no longer sits on the lines**: the positioner (req 4.1.3) already lifted the shared box *above* the plot, but a tall multi-series box with no room above fell back to tucking **inside** the plot (`plotTop+6`) — right over the lines. Fallback rewritten: prefer above → else **below the x-axis** (`plotTop+plotHeight+10`, off the lines) → last-resort pin to viewport top. `outside:true` box, so it can overlap the card header/legend area but never the plotted series.
 - **Verified**: inline-script syntax check clean (`vm.Script` over all real `<script>` blocks — 0 errors). Live hover not exercised in-pane (the `data:` snapshot can't boot the dataset); positioner uses standard Highcharts `plotTop`/`plotHeight`/`getChartPosition`.
 - **Pushed to `master`** (deploys to the live site).
+
+### Session 47 — Hover box inside the chart + expand/collapse icon set + expanded-view button overlap
+**Files**: `template_ui/btc_adjustment_simulator_v2.html`, IMP_DOCS mirrors (this file).
+**Prompt**: (1) hover box appears way below charts — put it INSIDE the chart, above the value being read; (2) Publish expanded: the filter funnel overlaps the collapse button — shift the collapse button left, funnel in its place; (3) the hover box lingers ~2s after leaving — make it vanish immediately; (4) replace all expand/collapse chart buttons with the reference maximize/minimize icons.
+
+- **Hover box (S46 regressed it)**: the below-the-axis fallback threw the box far under tall charts. Positioner rewritten to be **point-relative and inside** the plot — `outside:false`, box floats 14px **above the hovered value** (`plotTop+pt.plotY − h − 14`), dropping just below the value only when it's near the plot top; clamped to `chartWidth/chartHeight`.
+- **Immediate hide**: `tooltip.hideDelay:0` — the box disappears the instant the pointer leaves (was the Highcharts ~500ms default reading as a lingering ghost).
+- **Expanded-view overlap**: new CSS `body.expanding .expanded .expandbtn{right:56px}` shifts the collapse button left so the fixed filter funnel (`freopen`, `right:18px`) sits clear at the card's top-right instead of overlapping.
+- **Icon set (req 4)**: all 9 expand buttons (3 Steps + 6 Publish) now use a **maximize** SVG (four outward corner arrows, Tabler `arrows-maximize`); `toggleExpand`/`collapseExpand` swap it to a **minimize** SVG (four inward arrows, `arrows-minimize`) and flip the title Expand↔Collapse via `_setExpBtn()` + `IC_EXPAND`/`IC_COLLAPSE` constants. The old `⤢` glyph is gone (0 remain).
+- **Verified**: engine inline-script `vm.Script` parse OK; 9 maximize buttons + 2 icon constants present, 0 stray glyphs. Live hover/expand not exercised in-pane (`data:` snapshot won't boot the dataset).
+- **Pushed to `master`** (deploys to the live site).
