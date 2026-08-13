@@ -270,6 +270,9 @@
   .expanded .tw{flex:0 0 auto;max-height:38vh;margin-top:10px}
   .expanded .expkpi{flex:0 0 auto;margin:0 0 10px}   /* the chart's own KPI cards, inside the expanded box */
   .expandbtn{position:absolute;top:8px;right:8px;z-index:6}   /* same inset on every page (SR/Disp/ASU + Publish) */
+  /* while expanded the fixed filter funnel (freopen) lands at the card's top-right — shift the collapse
+     button left so the funnel takes its place instead of overlapping it */
+  body.expanding .expanded .expandbtn{right:56px}
   /* adjusted values "pop out" once a modifier is changed (one-shot reveal, no per-drag flicker) */
   @keyframes popIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
   .pop{animation:popIn .32s cubic-bezier(.4,0,.2,1)}
@@ -310,7 +313,7 @@
     <div class="segbar" id="segDisp"></div>
     <div class="kr kr6" id="kDisp"></div>
     <div class="row">
-      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span class="adj-lg"><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cDisp"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div>
@@ -337,7 +340,7 @@
   <div class="view on" id="vAsu">
     <div class="kr kr5" id="kAsu"></div>
     <div class="row">
-      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
         <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span class="adjasu-lg"><i style="background:#ea580c"></i>Adj ASU</span><span class="adjnc-lg"><i style="background:#0891b2"></i>Adj NC</span><span class="adjap-lg"><i style="background:#ac4073"></i>Adj APOS</span><span><i style="background:#b45309"></i>AOP Target</span><span class="decl-lg"><i style="background:#8b0000"></i>Declines</span></div>
         <div class="cw" id="cAsu"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Declines</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div>
@@ -372,7 +375,7 @@
     <div class="segbar" id="segSr"></div>
     <div class="kr kr6" id="kSr"></div>
     <div class="row">
-      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls">⤢</button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span class="adj-lg"><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
         <div class="cw" id="cSr"></div>
         <div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div>
@@ -399,22 +402,22 @@
   <div class="view" id="vPub">
     <div class="kr" id="kPub"></div>
     <div class="pubcharts">
-      <div class="card" id="cardPubNc"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3 id="hPubNc">New Contracts - Forecast vs Adjusted</h3>
+      <div class="card" id="cardPubNc"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3 id="hPubNc">New Contracts - Forecast vs Adjusted</h3>
         <div class="lg"><span><i style="background:#3a6ef0"></i>NC Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj NC</span><span class="pub-decl-lg"><i style="background:#8b0000"></i>Declines</span></div>
         <div class="cw" id="cPubNc"></div></div>
-      <div class="card" id="cardPubApos"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>APOS Renewals - Forecast vs Adjusted</h3>
+      <div class="card" id="cardPubApos"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>APOS Renewals - Forecast vs Adjusted</h3>
         <div class="lg"><span><i style="background:#6d28d9"></i>APOS Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj APOS</span></div>
         <div class="cw" id="cPubApos"></div></div>
-      <div class="card" id="cardPubAsu"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>ASU - Forecast vs Adjusted</h3>
+      <div class="card" id="cardPubAsu"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>ASU - Forecast vs Adjusted</h3>
         <div class="lg"><span><i style="background:#16a34a"></i>ASU Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj ASU</span></div>
         <div class="cw" id="cPubAsu"></div></div>
-      <div class="card" id="cardPubDecline"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>Declines - Forecast</h3>
+      <div class="card" id="cardPubDecline"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>Declines - Forecast</h3>
         <div class="lg"><span><i style="background:#8b0000"></i>Declines</span></div>
         <div class="cw" id="cPubDecline"></div></div>
-      <div class="card" id="cardPubSr"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>SRs - Forecast vs Adjusted</h3>
+      <div class="card" id="cardPubSr"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>SRs - Forecast vs Adjusted</h3>
         <div class="lg"><span><i style="background:#38bdf8"></i>SR Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj SR</span></div>
         <div class="cw" id="cPubSr"></div></div>
-      <div class="card" id="cardPubDisp"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart">⤢</button><h3>Dispatches - Forecast vs Adjusted</h3>
+      <div class="card" id="cardPubDisp"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>Dispatches - Forecast vs Adjusted</h3>
         <div class="lg"><span><i style="background:#6b4423"></i>Disp Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj Disp</span></div>
         <div class="cw" id="cPubDisp"></div></div>
     </div>
@@ -1025,20 +1028,20 @@ function svgChart(elId,labels,series,yfmt,xlab,opts){
     yAxis:{title:{text:null},gridLineColor:T.grid,startOnTick:false,endOnTick:false,
       min:yMin,max:yMax,tickInterval:yStep||undefined,maxPadding:0,minPadding:0,
       labels:{formatter:function(){return yfmt(this.value);},style:{color:T.axis,fontSize:'9px',fontFamily:"'IBM Plex Mono',monospace"}}},
-    // req 4.1.3: the hover box is lifted clear of the plot (rendered outside the container, above the chart)
-    // so it never sits on top of the lines it is describing. When a tall shared box has no room ABOVE the plot,
-    // it drops BELOW the x-axis instead of tucking inside — either way it stays off the plotted lines.
-    tooltip:{shared:true,useHTML:true,outside:true,backgroundColor:'#0d1020',borderWidth:0,borderRadius:6,shadow:false,padding:9,
+    // req 4.1.3: the hover box sits INSIDE the chart, just ABOVE the value under the cursor (so it never
+    // covers the point being read); if that value is near the top of the plot the box drops just below it.
+    // hideDelay:0 → it vanishes the instant the pointer leaves the chart (no ~500ms lingering ghost).
+    tooltip:{shared:true,useHTML:true,outside:false,hideDelay:0,backgroundColor:'#0d1020',borderWidth:0,borderRadius:6,shadow:false,padding:9,
       style:{color:'#fff',fontFamily:"'IBM Plex Mono',monospace",fontSize:'10px'},
       positioner:function(w,h,pt){
-        var ch=this.chart,cp=(ch.pointer&&ch.pointer.getChartPosition)?ch.pointer.getChartPosition():{left:0,top:0};
-        var x=cp.left+ch.plotLeft+pt.plotX-w/2;
-        var yAbove=cp.top+ch.plotTop-h-10;                                  // preferred: clear above the plot
-        var yBelow=cp.top+ch.plotTop+(ch.plotHeight||0)+10;                 // fallback: below the axis, still off the lines
-        var vh=window.innerHeight||800;
-        var y=(yAbove>=6)?yAbove:((yBelow+h<=vh-6)?yBelow:6);              // last resort: pin to viewport top
-        var maxX=(window.innerWidth||1200)-w-6;
-        return {x:Math.max(6,Math.min(x,maxX)),y:Math.max(6,y)};
+        var ch=this.chart;
+        var px=ch.plotLeft+(pt.plotX||0), py=ch.plotTop+(pt.plotY||0);
+        var x=px-w/2;
+        var y=py-h-14;                                       // box floats just above the hovered value
+        if(y<ch.plotTop+2)y=py+16;                           // value near the top → drop just below it
+        x=Math.max(2,Math.min(x,ch.chartWidth-w-2));
+        y=Math.max(2,Math.min(y,ch.chartHeight-h-2));
+        return {x:x,y:y};
       },
       formatter:function(){
         var h='<div style="opacity:.65;margin-bottom:4px">'+this.x+'</div>';
@@ -1993,11 +1996,16 @@ function pubKpiStrip(el){
   if(head&&head.nextSibling)el.insertBefore(strip,head.nextSibling);else el.insertBefore(strip,el.firstChild);
 }
 function clearKpiStrip(){var s=document.getElementById('expKpiStrip');if(s&&s.parentNode)s.parentNode.removeChild(s);}
+// req 4: maximize (4 outward corner arrows) when collapsed, minimize (4 inward arrows) when expanded.
+var IC_EXPAND='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg>';
+var IC_COLLAPSE='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h4V5"></path><path d="M3 3l6 6"></path><path d="M5 15h4v4"></path><path d="M3 21l6 -6"></path><path d="M19 9h-4V5"></path><path d="M21 3l-6 6"></path><path d="M19 15h-4v4"></path><path d="M21 21l-6 -6"></path></svg>';
+function _setExpBtn(el,html){if(!el||!el.querySelector)return;var b=el.querySelector('.expandbtn');if(b){b.innerHTML=html;b.title=(html===IC_COLLAPSE)?'Collapse chart':'Expand chart';}}
 function toggleExpand(el){
   if(!el)return;
   if(_expanded===el){collapseExpand();return;}
   if(_expanded)collapseExpand();
   _expanded=el;el.classList.add('expanded');document.body.classList.add('expanding');
+  _setExpBtn(el,IC_COLLAPSE);
   if(el.closest&&el.closest('.pubcharts')){pubKpiStrip(el);renderPub();}   // KPI strip + all-weeks / more-ticks re-render
   reflowActiveCharts();
 }
@@ -2005,6 +2013,7 @@ function collapseExpand(){
   if(!_expanded)return;
   var wasPub=!!(_expanded.closest&&_expanded.closest('.pubcharts'));
   clearKpiStrip();
+  _setExpBtn(_expanded,IC_EXPAND);
   _expanded.classList.remove('expanded');_expanded=null;document.body.classList.remove('expanding');
   if(wasPub)renderPub();                                                   // back to thinned labels / 5 ticks
   reflowActiveCharts();
