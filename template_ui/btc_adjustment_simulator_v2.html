@@ -1239,7 +1239,7 @@ function compositeMod(C){
 // partition the total (sum to 1) for BOTH kinds: A+B = 1, and parts+partsLabour+labourOnly = 1.
 var SEG_BU={A:0.58,B:0.42};
 function segList(kind){
-  if(kind==='sr')return [{l:'All',w:1},{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}];
+  if(kind==='sr')return [{l:'All',w:1}/*,{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}*/];   // Unit A/B tabs commented out
   // dispatches (and any other kind): 3-way service split, renormalised so the trio sums to 1
   var s=(TL&&TL.alloc&&TL.alloc.service)||{},P=s['Parts Only'],PL=s['Parts + Labour'],LO=s['Labour Only'];
   if(P==null&&PL==null&&LO==null){P=PL=LO=1/3;}else{P=P||0;PL=PL||0;LO=LO||0;}   // no service data → equal thirds
