@@ -816,3 +816,12 @@ Verified: JS syntax check, confidentiality scan (0 hits), real-browser pass (cha
 - **Placement (Publish)** — a smaller button lives inside the `Published Forecast Summary` `<h3>` (already flex `space-between`), right-aligned with the title rather than over the table corner.
 - **Comment editor** — a red **Delete** button (`.cmdel`, `var(--rd)`) sits bottom-right in a compact `.cmfoot` footer next to the hint; `cmtDelete()` wipes that cell's note and closes without committing. Bottom padding tightened (hint `margin-top:0`, textarea `margin:0`, box `padding:7px 7px 6px`). `onmousedown preventDefault` stops the textarea blurring before the click lands.
 - **Verified**: engine `vm.Script` OK across all passes; `tblReset` wired on all 4 surfaces; Node harness confirms the state contract. **Not visually verified** — no live browser reachable here (Control_Chrome is macOS-only, the Browser pane blocks localhost, the Chrome extension isn't connected), so the button pixel-alignment, comment footer and padding gap need an eyeball on a real run.
+
+### Session 51 — SRs page: comment out Unit A / Unit B segment tabs
+**Files**: `template_ui/btc_adjustment_simulator_v2.html`, IMP_DOCS mirrors (this file).
+**Prompt**: SRs page — comment out the Unit A and Unit B tabs. If a direct fix, do it; else list dependencies.
+
+- **Direct fix** — the SR page segment tabs come from a single source: `segList('sr')`, which returned `[{All},{Unit A,w:SEG_BU.A},{Unit B,w:SEG_BU.B}]`. Commented out the Unit A/B entries → `[{l:'All',w:1}]`. Now the SRs rate sheet shows only the **All** tab.
+- **Safe by design** — every consumer already handles a variable-length tab list: `segCur` clamps a stale `_seg` to 0; `segModsOf` rebuilds the modifier array to `L.length`; `subIdxs` loops `1..L.length` (now empty → no per-sub-segment bends on SR); `renderSegTabs` draws from `L` (only the All button); the line-777 `SR._seg>0` business-filter pin never fires. `SEG_BU` is kept — it still feeds the Dispatch service split and the allocation-weight filter engine, independent of the SR tabs.
+- **Left as-is**: v1 `btc_adjustment_simulator.html` still carries the Unit A/B tabs (change scoped to v2 only).
+- **Verified**: engine inline-script `vm.Script` parse OK; `segList('sr')` returns 1 entry. Live tab render not exercised in-pane (snapshot won't boot the dataset).
