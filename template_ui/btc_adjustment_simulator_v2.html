@@ -335,7 +335,7 @@
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="dReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="dS" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="dS" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)" onchange="clampBox(this,dSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
           <div class="sl sl-a"><input type="range" id="dAOPS" oninput="aopSync('disp',this.value)"><input type="number" id="dAOP" oninput="aopSync('disp',this.value)"></div>
@@ -362,10 +362,10 @@
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="aReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
         <div class="mb blue"><h4 style="color:var(--ac)">New Contracts</h4>
-          <div class="sl sl-b"><input type="range" id="ncS" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="ncS" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)" onchange="clampBox(this,ncSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewals</h4>
-          <div class="sl sl-p"><input type="range" id="apS" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><span style="font-weight:700;color:var(--pu)">%</span></div>
+          <div class="sl sl-p"><input type="range" id="apS" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)" onchange="clampBox(this,apSync)"><span style="font-weight:700;color:var(--pu)">%</span></div>
         </div>
         <div class="mb" style="border-color:rgba(139,0,0,.35)"><h4 style="color:#8b0000">Declines</h4>
           <input type="file" id="declFile" accept=".csv,.txt" style="display:none" onchange="importDeclines(this.files[0]);this.value='';">
@@ -397,7 +397,7 @@
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="sReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
         <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
-          <div class="sl sl-b"><input type="range" id="sS" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+          <div class="sl sl-b"><input type="range" id="sS" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)" onchange="clampBox(this,sSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
           <div class="sl sl-a"><input type="range" id="sAOPS" oninput="aopSync('sr',this.value)"><input type="number" id="sAOP" oninput="aopSync('sr',this.value)"></div>
@@ -1161,25 +1161,36 @@ function seriesOf(kind){return SC(kind,kind==='disp'?TL.disp:TL.sr);}   // alloc
 function segCur(C){var L=segList(C.kind),i=C._seg||0;if(!(i>=0&&i<L.length)){i=0;C._seg=0;}return i;}
 function segModsOf(C){var L=segList(C.kind);segCur(C);if(!C._segMods||C._segMods.length!==L.length)C._segMods=L.map(function(){return 100;});return C._segMods;}
 function subIdxs(C){var L=segList(C.kind),a=[],i;for(i=1;i<L.length;i++)a.push(i);return a;}
+// When a kind's tab list is JUST 'All' (its sub-segment tabs are commented out, e.g. SRs Unit A/B), the 'All'
+// tab has no children to sum/compose from. In that case 'All' (idx 0) is a first-class segment in its own right:
+// its modifier bends the whole series directly (bendSeg(C,0), w=1) and its edits live in OVR[kind][0].
+function hasSubs(C){return subIdxs(C).length>0;}
 // bend one segment's weighted DS series by that segment's own modifier (+ that segment's per-week overrides)
 // A2: modifier 100 = no change; below 100 bends the forecast DOWN toward target (above = up).
 // A5: dispatch/SR VALUE is the DS forecast bent by the modifier — decoupled from adjusted ASU
 //     (ASU only drives the MDR/ICR rate denominator, computed separately in renderRate).
-// A1: the bend is INCREMENTAL — a smoothstep ramp so little changes early and it accumulates toward
-//     the back half of the window ("increment the change over time … rounding it out").
+// A1: the bend is a LINEAR "seesaw" calibrated to the real adjustment file, whose adjusted/actuals ratio runs
+//     STRAIGHT from ~0.904 at the first forecast week to ~1.150 at the last (68-week reference). So the adjusted
+//     line starts BELOW the forecast, crosses it ~39% through the window, and ends above it — the head gap and
+//     the tail gap are comparable (not "flat at the start, huge at the end"). ramp(t) is that straight line,
+//     normalised to the end lift: -BEND_DIP at t=0 → +1 at t=1. With a=vb*(1+lift*ramp) and lift=(m-100)/100,
+//     m=115 reproduces the reference exactly: ratio(0)=1+0.15*(-0.64)=0.904, ratio(1)=1+0.15*1=1.150.
+//     BEND_DIP = (1 - 0.904)/(1.150 - 1) = 0.64. Set BEND_DIP=0 to pin the start at the forecast (old behaviour).
+var BEND_DIP=0.64;
+function ramp(t){if(t<0)t=0;else if(t>1)t=1;return -BEND_DIP+(1+BEND_DIP)*t;}   // linear -0.64 → +1 across the window
 function bendSeg(C,segIdx){
   var nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;
   var m=segModsOf(C)[segIdx],r=(100-m)/100,ov=(OVR[C.kind]&&OVR[C.kind][segIdx])||{};
   return nd.map(function(v,i){
     var vb=v*w;                                                // segment share of the DS series
     if(i<fc)return Math.round(vb);                             // actuals untouched (still weighted)
-    var t=(N>1)?((i-fc)/(N-1)):1,ww=t*t*(3-2*t);              // smoothstep 0→1 across the forecast window
-    var a=Math.round(vb*(1-r*ww));                            // incremental bend, 100% = flat/no change
+    var t=(N>1)?((i-fc)/(N-1)):1,ww=ramp(t);                 // linear seesaw across the forecast window (see above)
+    var a=Math.round(vb*(1-r*ww));                            // 100% = flat/no change; head dips below, tail lifts above
     var o=ov[TL.fw[i]];return (o!=null?o:a);
   });
 }
 // the 'All'/total adjusted = sum of every sub-segment, each bent by its own modifier (Σ weights = 1)
-function sumSubs(C){var subs=subIdxs(C),out=null;subs.forEach(function(si){var s=bendSeg(C,si);if(!out)out=s.slice();else out=out.map(function(x,i){return x+s[i];});});return out||seriesOf(C.kind).slice();}
+function sumSubs(C){if(!hasSubs(C))return bendSeg(C,0);var subs=subIdxs(C),out=null;subs.forEach(function(si){var s=bendSeg(C,si);if(!out)out=s.slice();else out=out.map(function(x,i){return x+s[i];});});return out||seriesOf(C.kind).slice();}
 // req 1a (revised): an 'All'-tab edit is REDISTRIBUTED DOWN into the sub-segments rather than kept as an
 // All-level absolute override. There is exactly ONE override store — OVR[kind][segIdx>0][fw] — so the All total
 // is ALWAYS Σ(sub-segments) by construction, on every week, and the sub tabs visibly carry the new numbers.
@@ -1205,7 +1216,8 @@ function allocLR(total,shares){
 // write one All-tab week's typed total down onto the sub-segments
 function spreadAllEdit(C,fw,total){
   var subs=subIdxs(C),L=segList(C.kind),idx=TL.fw.indexOf(fw);
-  if(idx<0||!subs.length)return;
+  if(idx<0)return;
+  if(!subs.length){OVR[C.kind][0]=OVR[C.kind][0]||{};OVR[C.kind][0][fw]=total;return;}   // single-segment 'All' → its own override store
   var cur=subs.map(function(si){return bendSeg(C,si)[idx];});         // read BEFORE writing — the ratio is the old mix
   var sum=0;cur.forEach(function(v){sum+=v;});
   var shares=(sum>0)?cur:subs.map(function(si){return L[si]?L[si].w:1;});
@@ -1215,11 +1227,12 @@ function spreadAllEdit(C,fw,total){
 // unbent DS baseline for one segment / for 'All'. 'All' sums the ROUNDED per-segment shares so the DS card on
 // the All tab ties out exactly with the sub-tab cards (raw totals drift by ±1 against Σ of rounded segments).
 function segBase(C,segIdx){var nd=seriesOf(C.kind),L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;return nd.map(function(v){return Math.round(v*w);});}
-function sumSubsBase(C){var out=null;subIdxs(C).forEach(function(si){var s=segBase(C,si);out=out?out.map(function(x,i){return x+s[i];}):s.slice();});return out||seriesOf(C.kind).slice();}
+function sumSubsBase(C){if(!hasSubs(C))return segBase(C,0);var out=null;subIdxs(C).forEach(function(si){var s=segBase(C,si);out=out?out.map(function(x,i){return x+s[i];}):s.slice();});return out||seriesOf(C.kind).slice();}
 // req 1.1.3: adjusted state is per-TAB — a segment counts as adjusted only via its OWN modifier / own per-week edits.
 function segAdjActiveAt(C,idx){
   var mods=segModsOf(C),ov=(OVR[C.kind]&&OVR[C.kind][idx])||{};
   if(idx>0)return mods[idx]!==100||Object.keys(ov).length>0;
+  if(!hasSubs(C))return mods[0]!==100||Object.keys(ov).length>0;   // single-segment 'All' drives itself
   // no separate All-level store to test any more — an All edit lands in the subs, so this covers it
   for(var i=1;i<mods.length;i++)if(segAdjActiveAt(C,i))return true;   // 'All' = adjusted if ANY sub is
   return false;
@@ -1228,6 +1241,7 @@ function segAdjActive(C){return segAdjActiveAt(C,0);}
 // req 1.1.1: the 'All' slider/control panel shows the weight-composite of the sub modifiers (Σw = 1),
 // so an adjustment made on any sub tab is reflected back on All. Snapped to the slider's 0.25 step.
 function compositeMod(C){
+  if(!hasSubs(C))return segModsOf(C)[0];   // no sub-segments → the 'All' slider shows its own modifier
   var mods=segModsOf(C),L=segList(C.kind),s=0,w=0;
   subIdxs(C).forEach(function(si){s+=mods[si]*L[si].w;w+=L[si].w;});
   return w?Math.round((s/w)*4)/4:100;
@@ -1298,7 +1312,8 @@ function SC(key,arr){
   if(!_scc.map[key])_scc.map[key]=arr.map(function(v){return Math.round(v*m);});
   return _scc.map[key];
 }
-// imported declines scale with the same multiplier so they stay consistent with the filtered volumes
+// imported declines scale with the same allocation multiplier so they stay consistent with the filtered volumes.
+// (The 50% decline reduction is applied in the source data files — input/declines_dummy.js / .csv — NOT here.)
 function declAt(fw){var v=DECL_VALS[fw];if(v==null)return null;var m=allocMult();return m===1?v:Math.round(v*m);}
 function renderSegTabs(C){
   var box=document.getElementById(C.kind==='disp'?'segDisp':'segSr');if(!box)return;
@@ -1398,7 +1413,7 @@ function editRate(kind,segIdx,fw,val){
   var n=parseFloat((''+val).replace(/,/g,''));var C=kind==='disp'?DISP:SR;segIdx=+segIdx;
   if(segIdx===0){
     if(isFinite(n))spreadAllEdit(C,fw,Math.round(n));
-    else subIdxs(C).forEach(function(si){if(OVR[kind][si])delete OVR[kind][si][fw];});
+    else{if(OVR[kind][0])delete OVR[kind][0][fw];subIdxs(C).forEach(function(si){if(OVR[kind][si])delete OVR[kind][si][fw];});}
   }else{
     OVR[kind][segIdx]=OVR[kind][segIdx]||{};
     if(isFinite(n))OVR[kind][segIdx][fw]=Math.round(n);else delete OVR[kind][segIdx][fw];
@@ -1535,10 +1550,11 @@ function computeAsuRows(){
   var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ovShift=0,ov=OVR.asu;
   var A=SC('asu',TL.asu),NC=SC('nc',TL.nc),AP=SC('apos',TL.apos);   // allocation-filtered inputs
   // req 3.1: APOS was scaled by a FLAT multiplier from week one, so its weekly delta was constant and the
-  // cumulative line came out straight. Ramp it with the same smoothstep the disp/SR bends use: the change
-  // starts small and accumulates across the forecast window, giving the S-shaped curve.
+  // cumulative line came out straight. Ramp it LINEARLY 0→1 so the change accumulates across the forecast
+  // window. (Kept a plain 0→1 ramp — not the SR/Dispatch seesaw — because ASU is a cumulative balance and
+  // should not dip below its own base early.)
   var Nf=N-fc;
-  function apRamp(i){var t=(Nf>1)?((i-fc)/(Nf-1)):1;return t*t*(3-2*t);}
+  function apRamp(i){return (Nf>1)?((i-fc)/(Nf-1)):1;}
   for(var i=0;i<N;i++){
     var base=A[i],an,ba,adjV,ncV,renV,aaJump=0;
     // declines are display-only across the whole FY22–FY27 window; only forecast weeks feed declCum below
@@ -1664,7 +1680,12 @@ function clampM(v){v=parseFloat(v);if(isNaN(v))v=100;return Math.max(60,Math.min
 // coalesce rapid slider input events to one render per animation frame (smooth drag)
 var _raf=0,_rafFn=null;
 function schedule(fn){_rafFn=fn;if(_raf)return;_raf=requestAnimationFrame(function(){_raf=0;var f=_rafFn;_rafFn=null;if(f)f();});}
-function setPair(a,b,v){document.getElementById(a).value=v;document.getElementById(b).value=v;}
+// Mirror a value onto the range+number pair, but NEVER overwrite the input the user is actively editing —
+// otherwise every keystroke re-clamps the box (typing "8" → "60"), which made multi-digit entry impossible.
+function setPair(a,b,v){var ae=document.activeElement,ea=document.getElementById(a),eb=document.getElementById(b);if(ea&&ea!==ae)ea.value=v;if(eb&&eb!==ae)eb.value=v;}
+// Commit handler for the %-modifier number boxes (fires on blur / Enter): clamp + normalise the box text,
+// then apply. Live typing flows freely (setPair leaves the focused box alone); this tidies it up on commit.
+function clampBox(el,fn){el.value=clampM(el.value);fn(el.value);}
 // req 3.1: the slider writes to the ACTIVE segment's modifier; on the 'All' tab it sets every sub uniformly (master)
 function setSegMod(C,v){var mods=segModsOf(C),idx=segCur(C);mods[idx]=v;if(idx===0){for(var i=1;i<mods.length;i++)mods[i]=v;}}
 function dSync(v){v=clampM(v);setPair('dS','dI',v);setSegMod(DISP,v);schedule(function(){renderRate(DISP);});}
