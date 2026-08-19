@@ -1169,23 +1169,16 @@ function hasSubs(C){return subIdxs(C).length>0;}
 // A2: modifier 100 = no change; below 100 bends the forecast DOWN toward target (above = up).
 // A5: dispatch/SR VALUE is the DS forecast bent by the modifier — decoupled from adjusted ASU
 //     (ASU only drives the MDR/ICR rate denominator, computed separately in renderRate).
-// A1: the bend is a LINEAR "seesaw" calibrated to the real adjustment file, whose adjusted/actuals ratio runs
-//     STRAIGHT from ~0.904 at the first forecast week to ~1.150 at the last (68-week reference). So the adjusted
-//     line starts BELOW the forecast, crosses it ~39% through the window, and ends above it — the head gap and
-//     the tail gap are comparable (not "flat at the start, huge at the end"). ramp(t) is that straight line,
-//     normalised to the end lift: -BEND_DIP at t=0 → +1 at t=1. With a=vb*(1+lift*ramp) and lift=(m-100)/100,
-//     m=115 reproduces the reference exactly: ratio(0)=1+0.15*(-0.64)=0.904, ratio(1)=1+0.15*1=1.150.
-//     BEND_DIP = (1 - 0.904)/(1.150 - 1) = 0.64. Set BEND_DIP=0 to pin the start at the forecast (old behaviour).
-var BEND_DIP=0.64;
-function ramp(t){if(t<0)t=0;else if(t>1)t=1;return -BEND_DIP+(1+BEND_DIP)*t;}   // linear -0.64 → +1 across the window
+// A1: the bend is a FLAT, UNIFORM multiplier applied to EVERY forecast week — modifier/100. So 100 = no change,
+//     150 = +50% on every single forecast week, 90 = -10% on every week. No ramp, no pivot week: the adjusted
+//     line stays parallel to the forecast across the whole window (the % gap is identical at week 1 and week 52).
 function bendSeg(C,segIdx){
-  var nd=seriesOf(C.kind),fc=TL.fcStart,N=TL.fw.length-fc,L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;
-  var m=segModsOf(C)[segIdx],r=(100-m)/100,ov=(OVR[C.kind]&&OVR[C.kind][segIdx])||{};
+  var nd=seriesOf(C.kind),fc=TL.fcStart,L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;
+  var mult=segModsOf(C)[segIdx]/100,ov=(OVR[C.kind]&&OVR[C.kind][segIdx])||{};
   return nd.map(function(v,i){
     var vb=v*w;                                                // segment share of the DS series
     if(i<fc)return Math.round(vb);                             // actuals untouched (still weighted)
-    var t=(N>1)?((i-fc)/(N-1)):1,ww=ramp(t);                 // linear seesaw across the forecast window (see above)
-    var a=Math.round(vb*(1-r*ww));                            // 100% = flat/no change; head dips below, tail lifts above
+    var a=Math.round(vb*mult);                                 // FLAT uniform % across the whole forecast window
     var o=ov[TL.fw[i]];return (o!=null?o:a);
   });
 }
@@ -1549,12 +1542,8 @@ function computeAsuRows(){
       apM=(+document.getElementById('apI').value)/100;
   var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ovShift=0,ov=OVR.asu;
   var A=SC('asu',TL.asu),NC=SC('nc',TL.nc),AP=SC('apos',TL.apos);   // allocation-filtered inputs
-  // req 3.1: APOS was scaled by a FLAT multiplier from week one, so its weekly delta was constant and the
-  // cumulative line came out straight. Ramp it LINEARLY 0→1 so the change accumulates across the forecast
-  // window. (Kept a plain 0→1 ramp — not the SR/Dispatch seesaw — because ASU is a cumulative balance and
-  // should not dip below its own base early.)
-  var Nf=N-fc;
-  function apRamp(i){return (Nf>1)?((i-fc)/(Nf-1)):1;}
+  // APOS (like NC) uses a FLAT uniform multiplier on every forecast week — no ramp, no pivot week — so the
+  // adjustment is a constant % across the whole window.
   for(var i=0;i<N;i++){
     var base=A[i],an,ba,adjV,ncV,renV,aaJump=0;
     // declines are display-only across the whole FY22–FY27 window; only forecast weeks feed declCum below
@@ -1563,7 +1552,7 @@ function computeAsuRows(){
     else{
       var o=ov[TL.fw[i]]||{};
       an=(o.an!=null)?o.an:Math.round(NC[i]*ncM);
-      ba=(o.ba!=null)?o.ba:Math.round(AP[i]*(1+(apM-1)*apRamp(i)));   // S-curve, not a flat scale
+      ba=(o.ba!=null)?o.ba:Math.round(AP[i]*apM);   // FLAT uniform multiplier on every forecast week
       ncCum+=(an-NC[i]);renCum+=(ba-AP[i]);declCum+=(decl||0);   // declines subtract from the running adjusted ASU (never adjusted themselves)
       ncV=base+ncCum;renV=base+renCum;
       // req 1b: Adj ASU is a running BALANCE, not a weekly flow. An absolute override (o.aa) RE-ANCHORS the
