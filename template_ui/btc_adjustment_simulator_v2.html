@@ -334,7 +334,7 @@
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="dReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
-        <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
+        <div class="mb blue"><h4 style="color:var(--ac)">Dispatches</h4>
           <div class="sl sl-b"><input type="range" id="dS" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)" onchange="clampBox(this,dSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
@@ -396,7 +396,7 @@
       </div>
       <div class="card ctl">
         <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="sReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
-        <div class="mb blue"><h4 style="color:var(--ac)">BTC Modifier</h4>
+        <div class="mb blue"><h4 style="color:var(--ac)">SRs</h4>
           <div class="sl sl-b"><input type="range" id="sS" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)" onchange="clampBox(this,sSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
         </div>
         <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
@@ -1031,6 +1031,7 @@ function svgChart(elId,labels,series,yfmt,xlab,opts){
     // keep the range tight as the slider bends the line; tick-capped axes keep max auto so the top tick stays above the data
     if(yMin!=null)ch.yAxis[0].update({min:yMin,max:yMax,tickInterval:yStep||undefined},false);
     hcSeries.forEach(function(s,i){if(ch.series[i])ch.series[i].setData(s.data,false,false);});
+    if(LEG_ISO[elId]&&Object.keys(LEG_ISO[elId]).length)applyVisibleYScale(elId);   // keep an isolated series' tight axis while the slider bends the line
     ch.redraw(false);return;
   }
   if(HC[elId]){HC[elId].chart.destroy();}
@@ -1108,6 +1109,7 @@ function legendSelFor(cEl){return LEG_SEL[cEl]||null;}
 function legHover(cEl,idx){
   var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
   if(ch.series[idx]&&!ch.series[idx].visible)ch.series[idx].setVisible(true,false);   // preview a line hidden by isolation
+  applyVisibleYScale(cEl);   // rescale to include the previewed line — else a big line hovered while a small one is isolated runs off the top (and vice-versa)
   ch.redraw(false);
   ch.series.forEach(function(s,i){s.setState(i===idx?'hover':'inactive');});
 }
@@ -1122,12 +1124,34 @@ function applyIso(cEl){
   var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
   var iso=isoOf(cEl),any=Object.keys(iso).length>0;
   ch.series.forEach(function(s,i){s.setVisible(any?!!iso[i]:true,false);});
+  applyVisibleYScale(cEl);   // rescale the y-axis to the currently VISIBLE series (isolate APOS → axis drops to APOS's range)
   ch.redraw(false);
   var sel=legendSelFor(cEl);if(!sel)return;
   var spans=document.querySelectorAll(sel+' span');
   [].forEach.call(spans,function(sp,i){sp.style.opacity=(!any||iso[i])?'1':'0.3';});
 }
 function reapplyIso(cEl){if(LEG_ISO[cEl]&&Object.keys(LEG_ISO[cEl]).length)applyIso(cEl);}
+// The chart shares ONE y-axis across series of wildly different magnitude (ASU ~ tens of thousands, APOS tiny).
+// The build fixes min/max to the pool of ALL series, so isolating APOS leaves its line flat on the floor.
+// Recompute the axis from only the VISIBLE series (same niceScale logic as svgChart) so an isolated small
+// series fills the plot; when isolation is cleared, all series are visible again → full range restored.
+function visibleYRange(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return null;
+  var vals=[];
+  ch.series.forEach(function(s){if(!s.visible)return;(s.yData||[]).forEach(function(v){if(v!=null&&isFinite(v))vals.push(v);});});
+  if(!vals.length)return null;
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  var mag=Math.max(Math.abs(mn),Math.abs(mx)),pos=(mn>=0);
+  if(!(mx-mn>mag*1e-4)){var c0=(mn+mx)/2,hw=(mag||1)*0.02;mn=c0-hw;mx=c0+hw;if(pos&&mn<0)mn=0;}
+  var ns=niceScale(mn,mx,5);
+  if(ns)return {min:ns.min,max:ns.max,step:ns.step};
+  var p0=(mx-mn)*0.06;return {min:pos?Math.max(0,mn-p0):mn-p0,max:mx+p0,step:undefined};
+}
+function applyVisibleYScale(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
+  var r=visibleYRange(cEl);if(!r)return;
+  ch.yAxis[0].update({min:r.min,max:r.max,tickInterval:r.step||undefined},false);
+}
 // idempotent: safe to call again after the Publish charts are first built (they don't exist at boot)
 function initLegends(list){
   (list||['cAsu','cDisp','cSr']).forEach(function(cEl){
@@ -1773,7 +1797,16 @@ function updateCtlReopen(){
   var view=document.querySelector('.view.on');
   b.style.display=(view&&view.querySelector('.card.ctl.collapsed'))?'flex':'none';
 }
-function reflowActiveCharts(){setTimeout(function(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});positionTblResets();},80);}
+// Reflow the charts to the current container width, then re-align the tables (their right edge tracks the
+// chart's plot-right). Runs SYNCHRONOUSLY first so plain tab/step nav — where the width is already final —
+// expands the table instantly, with NO visible lag. A single deferred pass then catches the case where a
+// 250ms rail/width CSS transition is still animating (the sync pass would measure an interim width); by the
+// time it fires the transition has settled, so the chart fills and the table expands to match.
+function reflowActiveCharts(){
+  function pass(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});positionTblResets();}
+  pass();                 // instant — kills the delay when nothing is transitioning (e.g. Step 2 → Step 1)
+  setTimeout(pass,360);   // again after any rail/width transition finishes
+}
 // Align each Steps table's reset button to its chart: RIGHT edge on the chart's plot-right (the rightmost
 // fiscal week), BOTTOM edge flush with the header row's bottom. Recomputed on every render / reflow / resize
 // so it survives filter changes, rail toggles and window resizes. Hidden views (0 width) are skipped and
@@ -1963,8 +1996,11 @@ async function syncPassFromDir(opts){
   PASS_COUNT=c+1;persistPass();updateCycleLabel();
 }
 function bumpPass(){PASS_COUNT++;persistPass();updateCycleLabel();}
-function persistPass(){try{localStorage.setItem('btc_pass_count',PASS_COUNT);}catch(e){}}
-function loadPass(){try{var v=parseInt(localStorage.getItem('btc_pass_count'),10);if(isFinite(v)&&v>0)PASS_COUNT=v;}catch(e){}}
+// req: Pass n is ALWAYS (published files in the outputs folder) + 1. It must NOT persist across reloads —
+// a stored counter drifts upward on every export and no longer reflects the real file count. Nothing is
+// written to localStorage; the count is re-derived from the folder each time via syncPassFromDir(). The
+// no-folder download fallback still bumps in-session only, and any legacy stored value is cleared on boot.
+function persistPass(){try{localStorage.removeItem('btc_pass_count');}catch(e){}}
 function updateCycleLabel(){
   var e=document.getElementById('cycleLabel');
   if(e&&document.activeElement!==e)e.textContent=cycleLabelVal();   // don't clobber it mid-edit
@@ -2127,6 +2163,11 @@ function go(v){
   updateExportBtn();
   updateCtlReopen();
   _lastTab=v;
+  // A chart last drawn while its view was display:none renders at Highcharts' fallback width, so its table
+  // (padding/min-width derive from the chart's plotWidth) shows collapsed until something forces a reflow.
+  // Reflow the now-visible view's charts on every tab change so the table expands on first arrival — no need
+  // to bounce to another step and back. reflowActiveCharts() also re-runs positionTblResets after the reflow.
+  reflowActiveCharts();
   requestAnimationFrame(positionTblResets);   // re-align the table reset button once the target view is visible
 }
 function toggleTheme(){
@@ -2189,7 +2230,6 @@ function loadLob(){
 // ---------- boot: fetch the dataset ----------
 function boot(payload){
   applySavedTheme();
-  loadPass();
   DECL_FILE=(typeof window!=='undefined'&&window.BTC_DECLINES)?window.BTC_DECLINES:null;   // auto-pull declines if present
   BTC=payload.data||{};
   var lobs=payload.lobs||Object.keys(BTC);
