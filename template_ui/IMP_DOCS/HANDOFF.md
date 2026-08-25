@@ -18,8 +18,8 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 
 | File | Role |
 |---|---|
-| `BPA_FORCASTING_MOCK.HTML` | **Active development file, live as the "TET BPA — Forecasting Suite (Active)" card** — rebuilt version of the dashboard (sessions 14+); its `whatif` module now embeds the full Forecast Copilot suite (see Module Structure below) |
-| `index.html` | Landing page — Primary Tools grid + searchable all-modules list |
+| `BPA_FORCASTING_MOCK.HTML` | **Active development file, live as the "TET BPA — Forecasting Suite (Active)" card** — rebuilt version of the dashboard (sessions 14+); 5 home tiles: Forecast Accuracy, Actuals Profiling, Data Management, a non-clickable **What If** placeholder (Work in Progress), and **BTC Adjustment Simulator** (links out to `template_ui/btc_adjustment_simulator_v2.html` — see Module Structure below) |
+| `index.html` | Landing page — **3 Primary Tools only** (BTC Adjustments, TET BPA — Forecasting Suite, a non-clickable What-If Simulation placeholder); the searchable "All Available Modules" list and its `manifest.json`-fetching JS were removed entirely (Session 54) |
 | `AST_Forcasting.html` | Legacy main dashboard — 5 modules, stable, not under active development |
 | `TET BPA — Business Planning and Analytics.html` | **Redesign of `AST_Forcasting.html`** — 6 Actuals Profiling channels (adds Field Services & Care using previously-unused trend data), teal design system, realistic FY26 data anchors (1.47M ASU / 5.87L SR / 2.34L Dispatch). Filename follows the em-dash "Title — Suffix" convention (matches its own `<title>` tag). Renamed from `AST_Forcasting_v2.html` on 2026-06-25 |
 | `bend_the_curve.html` | Goal-first strategic planning with lever toggles |
@@ -44,7 +44,7 @@ Legacy (do not delete, just ignore): `epic_dashboard_mockup.html`
 | `demand-profiling` | Actuals Profiling | **Profiling Overview** · **Demand Trends** |
 | `demand-alerts` | Demand Planning Alerts | Alerts Log |
 | `data-raw` | Data Management | Full Raw View |
-| `whatif` | Forecast Copilot | Dashboard · ASU Simulation · Historical Performance · AI BTC Advisor · BTC Distribution · Final Forecast (fc_engine, same shared engine as `forecast_copilot/*.html`, embedded; fixed 2026-07-18 — see PROMPT_TRAIL Session 29) |
+| `whatif` | *(orphaned, Session 54)* | The embedded fc_engine Forecast Copilot module (Dashboard · ASU Simulation · Historical Performance · AI BTC Advisor · BTC Distribution · Final Forecast — fixed 2026-07-18, PROMPT_TRAIL Session 29) still exists in the DOM/JS but is no longer reachable: no tile calls `openDashboard('whatif')` anymore. The home grid's **What If** tile is a static non-clickable placeholder, and **BTC Adjustment Simulator** is a plain external link to `template_ui/btc_adjustment_simulator_v2.html` (unrelated file, unaffected by anything in this module). Dead code, kept in place — not deleted. |
 
 ---
 
