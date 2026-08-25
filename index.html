@@ -213,8 +213,7 @@
       <div class="header-inner">
         <p class="header-eyebrow">He</p>
         <h1>TET BPA <span>/ Business Planning and Analytics</span></h1>
-        <p class="header-sub">Interactive simulation demos and analytical dashboards. Open a primary tool directly or browse all available modules below.</p>
-        <div class="header-meta" id="publishedAt">Loading…</div>
+        <p class="header-sub">Interactive simulation demos and analytical dashboards. Open a primary tool below.</p>
       </div>
     </header>
 
@@ -242,198 +241,18 @@
         </div>
       </a>
 
-      <a href="TET BPA — Business Planning and Analytics.html" class="primary-card" style="--card-accent:#0d9488;">
-        <div class="card-tag">Core Platform — Redesign</div>
-        <div class="card-title">TET BPA v2 <span class="new-badge">New</span></div>
-        <div class="card-desc">Redesigned demand intelligence platform with 6 Actuals Profiling channels (incl. Field Services &amp; Care), realistic FY26 data, teal design system, and fully wired filter logic.</div>
-        <div class="card-footer">
-          <span class="card-file">TET BPA — Business Planning and Analytics.html</span>
-          <span class="card-cta">Open &#8594;</span>
-        </div>
-      </a>
-
-      <a href="AST_Forcasting.html" class="primary-card" style="--card-accent:#4c7ef8;">
-        <div class="card-tag">Core Platform</div>
-        <div class="card-title">TET BPA: Business Planning and Analytics</div>
-        <div class="card-desc">Integrated demand forecasting dashboard with Forecast Accuracy, Demand Profiling, Planning Alerts, and full raw data export across AMER · EMEA · APJ.</div>
-        <div class="card-footer">
-          <span class="card-file">AST_Forcasting.html</span>
-          <span class="card-cta">Open &#8594;</span>
-        </div>
-      </a>
-
-      <a href="enterprise_whatif_forecasting_platform.html" class="primary-card" style="--card-accent:#9d78f0;">
+      <div class="primary-card" style="--card-accent:#9d78f0; cursor:default;">
         <div class="card-tag">Scenario Planning</div>
-        <div class="card-title">What-If Simulation</div>
+        <div class="card-title">What-If Simulation <span class="new-badge">Work in Progress</span></div>
         <div class="card-desc">Slider-driven parametric exploration — adjust renewal rates, contract growth, dispatch conversion, and SR intensity to model scenario outcomes across ASU, revenue, and cost.</div>
         <div class="card-footer">
-          <span class="card-file">enterprise_whatif_forecasting_platform.html</span>
-          <span class="card-cta">Open &#8594;</span>
+          <span class="card-file">Coming soon</span>
         </div>
-      </a>
-
-      <a href="bend_the_curve.html" class="primary-card" style="--card-accent:#22d472;">
-        <div class="card-tag">Goal-First Planning</div>
-        <div class="card-title">Bend the Curve</div>
-        <div class="card-desc">Set a target ASU or revenue goal, then activate strategic levers — partner onboarding, renewals acceleration, geographic expansion — and see the forecast curve bend toward it.</div>
-        <div class="card-footer">
-          <span class="card-file">bend_the_curve.html</span>
-          <span class="card-cta">Open &#8594;</span>
-        </div>
-      </a>
-
-      <a href="animated_UI.html" class="primary-card" style="--card-accent:#0891b2;">
-        <div class="card-tag">Motion Design ✦</div>
-        <div class="card-title">Animated UI <span class="new-badge">New</span></div>
-        <div class="card-desc">Immersive animated experience — cinematic transitions, motion-led data reveals, and visual storytelling across the TET BPA platform.</div>
-        <div class="card-footer">
-          <span class="card-file">animated_UI.html</span>
-          <span class="card-cta">Open &#8594;</span>
-        </div>
-      </a>
-
-    </div>
-
-    <!-- All Modules -->
-    <p class="section-label">All Available Modules</p>
-    <div class="modules-card">
-      <div class="search-wrap">
-        <input class="search-input" type="search" id="searchInput" placeholder="Search modules…" autocomplete="off" />
       </div>
-      <div class="page-grid" id="pageList">Loading pages…</div>
+
     </div>
+
   </div>
-
-  <script>
-    const PRIMARY = new Set([
-      'template_ui/btc_adjustment_simulator.html',
-      'BPA_FORCASTING_MOCK.HTML',
-      'TET BPA — Business Planning and Analytics.html',
-      'AST_Forcasting.html',
-      'enterprise_whatif_forecasting_platform.html',
-      'bend_the_curve.html',
-      'animated_UI.html',
-    ]);
-
-    const LABELS = {
-      'template_ui/btc_adjustment_simulator.html': 'BTC Adjustments — BTC Adjustment Simulator',
-      'BPA_FORCASTING_MOCK.HTML':                     'TET BPA — Forecasting Suite (Active)',
-      'TET BPA — Business Planning and Analytics.html':                       'TET BPA v2 — Redesign',
-      'AST_Forcasting.html':                          'TET BPA: Business Planning and Analytics',
-      'enterprise_whatif_forecasting_platform.html':  'What-If Simulation',
-      'bend_the_curve.html':                          'Bend the Curve',
-      'animated_UI.html':                             'Animated UI',
-      'simulation-overview-platform.html':            'Simulation Overview Platform',
-      'executive_forecast_operational_dashboard.html':'Executive Forecast & Operational Dashboard',
-      'epic_dashboard_mockup.html':                   'Epic Dashboard Mockup',
-    };
-
-    function iconFor(file) {
-      const f = file.toLowerCase();
-      if (f.includes('ibp') || f.includes('forcasting')) return '📊';
-      if (f.includes('whatif') || f.includes('enterprise_whatif')) return '🔮';
-      if (f.includes('bend') || f.includes('curve')) return '📈';
-      if (f.includes('workflow')) return '🔄';
-      if (f.includes('dashboard')) return '🏢';
-      if (f.includes('executive')) return '🏢';
-      if (f.includes('climate')) return '🌱';
-      if (f.includes('overview')) return '🗺️';
-      if (f.includes('forecast')) return '📊';
-      return '📄';
-    }
-
-    function buildLabel(file) {
-      return LABELS[file] || file.replace(/\.html$/i, '').replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    }
-
-    function formatDateTime(iso) {
-      try {
-        return new Date(iso).toLocaleString(undefined, {
-          year: 'numeric', month: 'short', day: 'numeric',
-          hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short'
-        });
-      } catch { return iso || 'Unknown'; }
-    }
-
-    function renderRows(pages, filter) {
-      const list = document.getElementById('pageList');
-      const q = (filter || '').toLowerCase().trim();
-
-      const entries = Array.from(pages.entries())
-        .filter(([, label]) => !q || label.toLowerCase().includes(q))
-        .sort((a, b) => {
-          const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
-          if (aP !== bP) return aP ? -1 : 1;
-          if (a[0] === 'template_ui/btc_adjustment_simulator.html') return -1;
-          if (b[0] === 'template_ui/btc_adjustment_simulator.html') return 1;
-          if (a[0] === 'BPA_FORCASTING_MOCK.HTML')   return -1;
-          if (b[0] === 'BPA_FORCASTING_MOCK.HTML')   return 1;
-          if (a[0] === 'TET BPA — Business Planning and Analytics.html') return -1;
-          if (b[0] === 'TET BPA — Business Planning and Analytics.html') return 1;
-          if (a[0] === 'AST_Forcasting.html') return -1;
-          if (b[0] === 'AST_Forcasting.html') return 1;
-          return a[1].localeCompare(b[1]);
-        });
-
-      list.innerHTML = '';
-      if (!entries.length) {
-        list.innerHTML = '<div class="empty-state">No modules match your search.</div>';
-        return;
-      }
-      entries.forEach(([file, label]) => {
-        const a = document.createElement('a');
-        a.href = file;
-        a.className = 'page-row';
-        const isPrimary = PRIMARY.has(file);
-        a.innerHTML = `
-          <div class="page-icon">${iconFor(file)}</div>
-          <div style="flex:1;min-width:0;">
-            <div class="page-row-label">${label}</div>
-            <div class="page-row-file">${file}</div>
-          </div>
-          ${isPrimary ? '<span class="primary-badge">Primary</span>' : ''}
-          <span class="page-arrow">&#8594;</span>`;
-        list.appendChild(a);
-      });
-    }
-
-    async function loadManifest() {
-      try {
-        const res = await fetch('manifest.json');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-
-        const el = document.getElementById('publishedAt');
-        el.textContent = data.pagesPublishedAt
-          ? `Last published: ${formatDateTime(data.pagesPublishedAt)}`
-          : '';
-
-        const pages = new Map();
-        if (Array.isArray(data.mockups)) {
-          data.mockups.forEach(m => {
-            if (m.file && m.file !== 'index.html')
-              pages.set(m.file, m.label || buildLabel(m.file));
-          });
-        }
-        if (data.autoPages && typeof data.autoPages === 'object') {
-          Object.keys(data.autoPages).forEach(file => {
-            if (file !== 'index.html' && !pages.has(file))
-              pages.set(file, buildLabel(file));
-          });
-        }
-
-        renderRows(pages, '');
-        document.getElementById('searchInput').addEventListener('input', e => {
-          renderRows(pages, e.target.value);
-        });
-      } catch {
-        document.getElementById('publishedAt').textContent = 'Failed to load manifest.';
-        document.getElementById('pageList').textContent = 'Unable to display pages.';
-      }
-    }
-
-    loadManifest();
-  </script>
 </body>
 </html>
 
