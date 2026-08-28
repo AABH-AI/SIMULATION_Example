@@ -549,55 +549,63 @@
     .export-btn.excel { background: var(--accent-dim); color: var(--accent); border-color: rgba(76,126,248,0.3); }
     .export-btn.excel:hover { background: var(--accent); color: white; }
 
-    /* ── RIGHT PANEL ───────────────────────────────────────── */
+    /* ── FILTER BAR (moved from a 258px right-docked rail to a collapsible
+       top bar — same #right-panel id/JS, layout-only rewrite) ─────────── */
     .right-panel {
-      width: 258px; background: var(--surface);
-      border-left: 1px solid var(--border); flex-shrink: 0;
-      display: flex; flex-direction: column;
-      transition: width 0.25s ease; overflow: hidden;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0; overflow: visible;
     }
-    .right-panel.collapsed { width: 0; border: none; }
     .filter-header {
-      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
       font-weight: 700; font-size: 10px;
       letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--text-2);
-      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; user-select: none;
     }
-    .filter-search-box { padding: 10px 12px; flex-shrink: 0; }
+    .filter-header > div { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+    .filter-header > div i { font-size: 13px; }
+    #filter-collapse-icon { transition: transform 0.15s ease; flex-shrink: 0; }
+    .right-panel.collapsed #filter-collapse-icon { transform: rotate(-90deg); }
+    .filter-body { padding: 0 16px 10px; border-top: 1px solid var(--border); }
+    .right-panel.collapsed .filter-body { display: none; }
+    .filter-search-box { padding: 8px 0 6px; max-width: 240px; }
     .filter-search-input {
-      width: 100%; padding: 7px 12px;
+      width: 100%; padding: 6px 10px;
       background: var(--card); border: 1px solid var(--border);
       border-radius: 7px; color: var(--text-1);
       font-family: var(--font-ui); outline: none; font-size: 12px;
       transition: border-color 0.15s;
     }
     .filter-search-input:focus { border-color: var(--accent); }
-    .filter-list { overflow-y: auto; flex: 1; padding: 4px 12px 8px; }
-    .filter-footer { padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .filter-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-footer { padding: 8px 0 0; display: flex; justify-content: flex-end; }
     .reset-btn {
-      width: 100%; padding: 8px;
+      padding: 6px 12px;
       background: var(--red-dim); border: 1px solid rgba(240,96,96,0.3);
       border-radius: 7px; color: var(--red); cursor: pointer;
-      font-size: 12px; font-weight: 600; font-family: var(--font-ui);
+      font-size: 11.5px; font-weight: 600; font-family: var(--font-ui);
       display: flex; align-items: center; justify-content: center; gap: 6px;
       transition: all 0.15s;
     }
     .reset-btn:hover { background: var(--red); color: white; }
-    .filter-dropdown { margin-bottom: 8px; }
+    .filter-dropdown { position: relative; margin-bottom: 0; }
     .filter-dropdown-btn {
-      width: 100%; text-align: left; background: transparent;
-      border: 1px solid var(--border); padding: 8px 10px; border-radius: 7px;
+      width: auto; min-width: 116px; text-align: left; background: transparent;
+      border: 1px solid var(--border); padding: 6px 9px; border-radius: 7px;
       color: var(--text-1); cursor: pointer;
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; font-weight: 600; font-family: var(--font-ui);
+      display: flex; justify-content: space-between; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 600; font-family: var(--font-ui);
       transition: all 0.15s;
     }
     .filter-dropdown-btn:hover { border-color: var(--accent); }
     .filter-dropdown-content {
-      display: none; border: 1px solid var(--border); border-top: none;
-      background: var(--card); padding: 8px; border-radius: 0 0 7px 7px;
-      max-height: 140px; overflow-y: auto;
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 60;
+      width: 210px; border: 1px solid var(--border);
+      background: var(--card); padding: 8px; border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(15,23,42,0.14);
+      max-height: 220px; overflow-y: auto;
     }
     .filter-dropdown-content.open { display: block; }
     .filter-checkbox {
@@ -937,6 +945,123 @@
       <span class="ctx-badge" id="global-context">FY26 · All Regions</span>
       <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
       <button class="btn-icon" id="filter-toggle-btn" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-adjustments-horizontal"></i></button>
+    </div>
+  </div>
+
+  <!-- Filter bar — moved from the old right-side rail to a collapsible top bar (same #right-panel/#filter-container IDs, same toggleRightPanel()/toggleDropdown()/onFilterChange() JS, unchanged) -->
+  <div class="right-panel" id="right-panel">
+    <div class="filter-header" onclick="toggleRightPanel()">
+      <div><i class="ti ti-adjustments-horizontal"></i> Filters</div>
+      <i class="ti ti-chevron-down" id="filter-collapse-icon" style="font-size:13px;color:var(--text-2);"></i>
+    </div>
+    <div class="filter-body" id="filter-body">
+      <div class="filter-search-box">
+        <input type="text" class="filter-search-input" placeholder="Search filters…" oninput="searchFilters(this)">
+      </div>
+      <div class="filter-list" id="filter-container">
+        <div class="filter-dropdown" data-filter="fy-quarter">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Year / Quarter</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY26" checked onchange="onFilterChange()"> FY26</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY27" onchange="onFilterChange()"> FY27</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY25" onchange="onFilterChange()"> FY25</label>
+              <hr class="rule">
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q1" checked onchange="onFilterChange()"> Q1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q2" onchange="onFilterChange()"> Q2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q3" onchange="onFilterChange()"> Q3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q4" onchange="onFilterChange()"> Q4</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="month">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Month</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search month…" oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M1" onchange="onFilterChange()"> M1</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M2" onchange="onFilterChange()"> M2</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M3" onchange="onFilterChange()"> M3</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M4" onchange="onFilterChange()"> M4</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M5" onchange="onFilterChange()"> M5</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M6" onchange="onFilterChange()"> M6</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="week">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Week</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search week (W1–W52)…" oninput="filterInner(this)">
+            <div class="check-list" id="week-check-list"></div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="region">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="AMER" onchange="onFilterChange()"> AMER</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="EMEA" onchange="onFilterChange()"> EMEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APJ" onchange="onFilterChange()"> APJ</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="subregion">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Sub-Region</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="North America" onchange="onFilterChange()"> North America</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="LATAM" onchange="onFilterChange()"> LATAM</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Western Europe" onchange="onFilterChange()"> Western Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Eastern Europe" onchange="onFilterChange()"> Eastern Europe</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="SEA" onchange="onFilterChange()"> SEA</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="ANZ" onchange="onFilterChange()"> ANZ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Japan" onchange="onFilterChange()"> Japan</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="lob">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Product Group</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TET" onchange="onFilterChange()"> TET</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TES" onchange="onFilterChange()"> TES</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="THS" onchange="onFilterChange()"> THS</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="location">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Location Name</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <input type="text" class="inner-search" placeholder="Search location…" oninput="filterInner(this)">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="New York Hub" onchange="onFilterChange()"> New York Hub</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="London HQ" onchange="onFilterChange()"> London HQ</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Tokyo Base" onchange="onFilterChange()"> Tokyo Base</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Austin DC" onchange="onFilterChange()"> Austin DC</label>
+            </div>
+          </div>
+        </div>
+        <div class="filter-dropdown" data-filter="queue">
+          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Queue &amp; Bus Reporting</span><i class="ti ti-chevron-down"></i></div>
+          <div class="filter-dropdown-content">
+            <div class="check-list">
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="All" checked onchange="onFilterChange()"> (All)</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Alpha" onchange="onFilterChange()"> Queue_Alpha</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Beta" onchange="onFilterChange()"> Queue_Beta</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Direct" onchange="onFilterChange()"> BR_Direct</label>
+              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Indirect" onchange="onFilterChange()"> BR_Indirect</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-footer">
+        <button class="reset-btn" onclick="resetFilters()"><i class="ti ti-refresh"></i> Reset All Filters</button>
+      </div>
     </div>
   </div>
 
@@ -1675,121 +1800,6 @@
       </div><!-- /module-whatif -->
 
     </div><!-- /main-content -->
-
-    <!-- Right Panel -->
-    <div class="right-panel" id="right-panel">
-      <div class="filter-header">
-        <div>Filters</div>
-        <i class="ti ti-x" style="cursor:pointer;font-size:14px;color:var(--text-2);" onclick="toggleRightPanel()"></i>
-      </div>
-      <div class="filter-search-box">
-        <input type="text" class="filter-search-input" placeholder="Search filters…" oninput="searchFilters(this)">
-      </div>
-      <div class="filter-list" id="filter-container">
-        <div class="filter-dropdown" data-filter="fy-quarter">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Year / Quarter</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content open">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY26" checked onchange="onFilterChange()"> FY26</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY27" onchange="onFilterChange()"> FY27</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="fy" value="FY25" onchange="onFilterChange()"> FY25</label>
-              <hr class="rule">
-              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q1" checked onchange="onFilterChange()"> Q1</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q2" onchange="onFilterChange()"> Q2</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q3" onchange="onFilterChange()"> Q3</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="quarter" value="Q4" onchange="onFilterChange()"> Q4</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="month">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Month</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search month…" oninput="filterInner(this)">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M1" onchange="onFilterChange()"> M1</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M2" onchange="onFilterChange()"> M2</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M3" onchange="onFilterChange()"> M3</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M4" onchange="onFilterChange()"> M4</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M5" onchange="onFilterChange()"> M5</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M6" onchange="onFilterChange()"> M6</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="week">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Week</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search week (W1–W52)…" oninput="filterInner(this)">
-            <div class="check-list" id="week-check-list"></div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="region">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Region</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="AMER" onchange="onFilterChange()"> AMER</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="EMEA" onchange="onFilterChange()"> EMEA</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="region" value="APJ" onchange="onFilterChange()"> APJ</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="subregion">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Sub-Region</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="North America" onchange="onFilterChange()"> North America</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="LATAM" onchange="onFilterChange()"> LATAM</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Western Europe" onchange="onFilterChange()"> Western Europe</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Eastern Europe" onchange="onFilterChange()"> Eastern Europe</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="SEA" onchange="onFilterChange()"> SEA</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="ANZ" onchange="onFilterChange()"> ANZ</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="subregion" value="Japan" onchange="onFilterChange()"> Japan</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="lob">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Product Group</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TET" onchange="onFilterChange()"> TET</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="TES" onchange="onFilterChange()"> TES</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="lob" value="THS" onchange="onFilterChange()"> THS</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="location">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Location Name</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search location…" oninput="filterInner(this)">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="New York Hub" onchange="onFilterChange()"> New York Hub</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="London HQ" onchange="onFilterChange()"> London HQ</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Tokyo Base" onchange="onFilterChange()"> Tokyo Base</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="location" value="Austin DC" onchange="onFilterChange()"> Austin DC</label>
-            </div>
-          </div>
-        </div>
-        <div class="filter-dropdown" data-filter="queue">
-          <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Queue &amp; Bus Reporting</span><i class="ti ti-chevron-down"></i></div>
-          <div class="filter-dropdown-content">
-            <div class="check-list">
-              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="All" checked onchange="onFilterChange()"> (All)</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Alpha" onchange="onFilterChange()"> Queue_Alpha</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="Queue_Beta" onchange="onFilterChange()"> Queue_Beta</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Direct" onchange="onFilterChange()"> BR_Direct</label>
-              <label class="filter-checkbox"><input type="checkbox" data-group="queue" value="BR_Indirect" onchange="onFilterChange()"> BR_Indirect</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="filter-footer">
-        <button class="reset-btn" onclick="resetFilters()"><i class="ti ti-refresh"></i> Reset All Filters</button>
-      </div>
-    </div>
   </div>
 </div>
 
