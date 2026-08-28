@@ -172,27 +172,36 @@
   /* filter rail */
   .fbtn{margin-left:auto;font-size:11px;font-weight:700;color:var(--ac);background:rgba(58,110,240,.08);border:1px solid rgba(58,110,240,.22);padding:5px 12px;border-radius:7px;cursor:pointer;font-family:var(--ui)}
   .fbtn:hover{background:var(--ac);color:#fff}
-  .frail{position:fixed;top:52px;right:0;bottom:0;width:252px;background:var(--sf);border-left:1px solid var(--bd);padding:15px 14px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s;z-index:40}
-  #frailBody{flex:1;overflow-y:auto;min-height:0}
-  body.rail-open .frail{transform:none}
-  .frail-hd{font-size:13px;font-weight:800;color:var(--t1);display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-  .ficon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer;font-size:15px;line-height:1;flex-shrink:0}
+  /* Filter rail — moved from a 252px right-side fixed overlay to a normal-
+     flow horizontal top bar (same #frail/#frailBody IDs, same toggleRail()/
+     renderRail()/ddClick()/resetFilters() JS, unchanged). Being in normal
+     flow means it pushes .tabs/.wrap down naturally when expanded — no more
+     margin-right hack needed on those elements. z-index:86 (unconditional,
+     harmless when no backdrop is present) keeps it "live" above the
+     expand-chart dim backdrop (z:84), same as the original right-rail did —
+     toggleExpand() sets --frail-h so .expanded's top offset still clears it. */
+  .frail{background:var(--sf);border-bottom:1px solid var(--bd);overflow:visible;position:relative;z-index:86}
+  #frailBody{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+  .frail-hd{font-size:11px;font-weight:800;color:var(--t1);display:flex;align-items:center;justify-content:space-between;padding:9px 18px;cursor:pointer;user-select:none}
+  .frail-hd .ficon{transition:transform .15s ease}
+  body.rail-open .frail-hd .ficon{transform:rotate(180deg)}
+  .frail-body-wrap{padding:0 18px 12px;border-top:1px solid var(--bd)}
+  body:not(.rail-open) .frail-body-wrap{display:none}
+  .ficon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer;font-size:12px;line-height:1;flex-shrink:0}
   .ficon:hover{border-color:var(--ac);color:var(--ac)}
-  .freopen{position:fixed;top:67px;right:18px;z-index:41;display:none;box-shadow:0 4px 12px rgba(15,23,42,.14)}
-  body:not(.rail-open) .freopen{display:flex}
+  .freopen{display:none} /* redundant now .frail-hd stays always visible; left in DOM/JS, never shown */
   .frail-sub{font-size:10px;color:var(--t3);margin:3px 0 10px}
-  .freset{width:100%;margin-bottom:14px;padding:6px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);font-family:var(--ui);font-size:11px;font-weight:700;cursor:pointer}
+  .freset{width:auto;margin:10px 0 0;padding:5px 12px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);font-family:var(--ui);font-size:10.5px;font-weight:700;cursor:pointer}
   .freset:hover{border-color:var(--ac);color:var(--ac)}
-  body.rail-open .tabs,body.rail-open .wrap,body.rail-open .foot,body.rail-open #loadErr{margin-right:252px;transition:margin .25s}
-  .fitem{margin-bottom:11px;position:relative}
+  .fitem{margin-bottom:0;position:relative;width:128px;flex-shrink:0}
   .flab{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
   .flab .mx{font-size:7px;color:var(--ac);background:rgba(58,110,240,.1);padding:1px 5px;border-radius:4px;letter-spacing:.03em}
-  .fval{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);font-family:var(--ui);font-size:11.5px;font-weight:600;color:var(--t1);cursor:pointer;text-align:left}
+  .fval{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 9px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);font-family:var(--ui);font-size:11px;font-weight:600;color:var(--t1);cursor:pointer;text-align:left}
   .fval:hover{border-color:var(--ac)}
   .fval .cr{font-size:9px;color:var(--t3)}
-  .fdd{display:none;margin-top:4px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);max-height:220px;overflow-y:auto;box-shadow:0 6px 18px rgba(15,23,42,.1)}
+  .fdd{display:none;position:absolute;top:calc(100% + 4px);left:0;width:200px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);max-height:220px;overflow-y:auto;box-shadow:0 6px 18px rgba(15,23,42,.1);z-index:50}
   .fdd.open{display:block}
-  .fdd.up{position:absolute;left:0;right:0;bottom:100%;margin:0 0 4px 0;z-index:50}
+  .fdd.up{position:absolute;left:0;width:200px;bottom:100%;top:auto;margin:0 0 4px 0;z-index:50}
   .fopt{padding:6px 10px;font-size:11.5px;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
   .fopt:hover{background:var(--chi);color:var(--t1)}
   .fopt.on{color:var(--ac);font-weight:700}
@@ -253,11 +262,18 @@
   .ctlgear{position:absolute;top:8px;right:42px;z-index:6;display:none}   /* sits left of the expand button, aligned with it */
   .row.ctl-collapsed .ctlgear{display:flex}
   /* filter rail: collapsible "More filters" group */
-  .morehdr{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;color:var(--t1);cursor:pointer;padding:9px 0 7px;border-top:1px solid var(--bd);margin:2px 0 4px}
-  .morehdr:hover{color:var(--ac)}
+  /* "More filters" — was styled as a vertical-rail section header (full-width
+     border-top divider above a block-stacked list). In the horizontal bar
+     that block-stacking made .moreblk very tall while still sharing a flex
+     row with the other filters, stretching the whole row to match (the
+     "disgusting" gap the owner flagged). Restyled as a compact pill button
+     matching the other .fval buttons, and .moreblk.open is now itself a
+     flex-wrap row (matches #frailBody) instead of a plain block. */
+  .morehdr{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--t2);cursor:pointer;padding:6px 10px;border:1px solid var(--bd);border-left:2px solid var(--ac);border-radius:7px;background:var(--cd);white-space:nowrap;align-self:flex-end}
+  .morehdr:hover{color:var(--ac);border-color:var(--ac)}
   .morehdr .cr{font-size:9px;color:var(--t3)}
   .moreblk{display:none}
-  .moreblk.open{display:block}
+  .moreblk.open{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
   /* Publish page charts grid (NC, APOS, ASU, Declines, SR, Dispatch) */
   /* all visible publish charts sit on ONE row (a hidden card takes no column), centred on the page */
   .pubcharts{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);justify-content:center;gap:12px;margin-bottom:12px}
@@ -267,13 +283,9 @@
   /* focus/expand overlay — one chart card, or a chart+controls row, promoted over a 40% dim backdrop */
   #expandBackdrop{display:none;position:fixed;inset:0;background:rgba(13,16,32,.3);z-index:84}
   body.expanding #expandBackdrop{display:block}
-  /* top edge sits exactly on the filter rail's top edge (the 52px header line); the other insets stay at 24px */
-  .expanded{position:fixed!important;top:52px;left:24px;right:24px;bottom:24px;z-index:85;overflow:auto;box-shadow:0 20px 60px rgba(13,16,32,.4)}
-  /* req 2: the filter rail stays live above the dim backdrop while a chart is expanded, and the expanded
-     card yields the rail's width so the two never overlap. Collapsing the rail reclaims that space. */
-  body.expanding .frail{z-index:86}
-  body.expanding .freopen{z-index:86}
-  body.rail-open.expanding .expanded{right:276px}
+  /* top edge sits below the header + filter rail (--frail-h, set by toggleExpand() from the rail's live
+     rendered height — 0 when the rail is collapsed); the other insets stay at 24px. */
+  .expanded{position:fixed!important;top:calc(52px + var(--frail-h, 0px));left:24px;right:24px;bottom:24px;z-index:85;overflow:auto;box-shadow:0 20px 60px rgba(13,16,32,.4)}
   /* the expanded card is a column: the chart FLEXES to fill whatever the table/controls leave, so there is
      never dead space at the bottom — and the table sits directly under the chart */
   .card.expanded,.row.expanded>.card{display:flex;flex-direction:column;min-height:0}
@@ -304,6 +316,14 @@
   <span class="ctx" id="ctx">—</span>
   <button class="themebtn" id="themebtn" onclick="toggleTheme()" title="Toggle dark mode">☾</button>
 </div>
+<!-- Filter rail — moved from a 252px right-side fixed overlay to a collapsible top bar (same #frail/#frailBody IDs, same toggleRail()/renderRail()/ddClick()/resetFilters() JS, unchanged) -->
+<aside class="frail" id="frail">
+  <div class="frail-hd" onclick="toggleRail()"><span>Filters</span><button class="ficon" title="Collapse filters">▾</button></div>
+  <div class="frail-body-wrap">
+    <button class="freset" onclick="resetFilters()">↺ Reset filters</button>
+    <div id="frailBody"></div>
+  </div>
+</aside>
 <div class="stepper" id="stepper">
   <button class="step-nav prev" id="prevStep" onclick="navStep(-1)" disabled>← Prev</button>
   <div class="step on" id="st1"><b>1</b> Adjust ASU <span class="sub">driver</span></div>
@@ -453,11 +473,6 @@
 
 </div>
 <button class="ficon freopen" id="freopen" onclick="toggleRail()" title="Show filters"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
-<aside class="frail" id="frail">
-  <div class="frail-hd"><span>Filters</span><button class="ficon" onclick="toggleRail()" title="Collapse filters">»</button></div>
-  <button class="freset" onclick="resetFilters()">↺ Reset filters</button>
-  <div id="frailBody"></div>
-</aside>
 <div id="expandBackdrop" onclick="collapseExpand()"></div>
 <div class="modal" id="allocModal">
   <div class="modalcard">
@@ -849,7 +864,7 @@ function toggleMulti(k,v){
     renderRail();applyFilters();
   }
 }
-function toggleRail(){document.body.classList.toggle('rail-open');reflowActiveCharts();}   // charts resize when the rail opens/closes (incl. while expanded)
+function toggleRail(){document.body.classList.toggle('rail-open');if(_expanded){var f=document.getElementById('frail');document.documentElement.style.setProperty('--frail-h',(f?f.offsetHeight:0)+'px');}reflowActiveCharts();}   // charts resize when the rail opens/closes (incl. while expanded)
 function resetFilters(){
   FILTERS.forEach(function(cfg){F[cfg.k]=[];});
   F.fy=['FY26','FY27'];                              // restore default window (forecast FY + 1 prior)
@@ -2137,6 +2152,9 @@ function toggleExpand(el){
   if(_expanded===el){collapseExpand();return;}
   if(_expanded)collapseExpand();
   _expanded=el;el.classList.add('expanded');document.body.classList.add('expanding');
+  // .expanded's top offset clears the filter rail's live rendered height (0 when collapsed) — see .frail/.expanded CSS
+  var frailEl=document.getElementById('frail');
+  document.documentElement.style.setProperty('--frail-h',(frailEl?frailEl.offsetHeight:0)+'px');
   _setExpBtn(el,IC_COLLAPSE);
   if(el.closest&&el.closest('.pubcharts')){pubKpiStrip(el);renderPub();}   // KPI strip + all-weeks / more-ticks re-render
   reflowActiveCharts();
