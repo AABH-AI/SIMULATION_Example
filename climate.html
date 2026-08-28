@@ -38,10 +38,10 @@ canvas { width:100% !important; height:280px !important; }
 </div>
 
 <div class="container">
-<div class="card"><canvas id="tempChart"></canvas></div>
-<div class="card"><canvas id="co2Chart"></canvas></div>
-<div class="card"><canvas id="seaChart"></canvas></div>
-<div class="card"><canvas id="iceChart"></canvas></div>
+<div class="card"><canvas id="Temperature"></canvas></div>
+<div class="card"><canvas id="Co2 charts"></canvas></div>
+<div class="card"><canvas id="High"></canvas></div>
+<div class="card"><canvas id="Frozenchart"></canvas></div>
 </div>
 
 <script>
@@ -69,7 +69,7 @@ function createChart(id, type, data, color) {
     type: type,
     data: {
       labels: years,
-      datasets: [{ data: data, borderColor: color, backgroundColor: color, fill:false }]
+      datasets: [{ data: data, borderColor: color, background: color, fill:false }]
     }
   });
 }
