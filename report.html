@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Filter Bar QA Report — master_html</title>
+<style>
+  :root {
+    --bg: #f0f3fc; --surface: #ffffff; --card-hi: #eef1fc;
+    --border: #dde2f4; --border-hi: #b4bde8;
+    --text-1: #0d1020; --text-2: #5a6280; --text-3: #9099be;
+    --accent: #3a6ef0; --green: #16a34a; --red: #dc2626; --amber: #b45309;
+    --font-ui: 'Segoe UI', 'Plus Jakarta Sans', sans-serif;
+    --font-mono: 'Consolas', 'IBM Plex Mono', monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text-1); font-family: var(--font-ui); font-size: 14px; line-height: 1.6; }
+  .page { max-width: 980px; margin: 0 auto; padding: 40px 24px 80px; }
+  header { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 36px; margin-bottom: 24px; }
+  h1 { margin: 0 0 8px; font-size: 1.7rem; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-2); font-size: 0.95rem; margin: 0 0 18px; }
+  .meta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: var(--card-hi); border: 1px solid var(--border); color: var(--text-2); }
+  .pill.pass { background: rgba(22,163,74,0.09); border-color: rgba(22,163,74,0.3); color: var(--green); }
+  .pill.fix { background: rgba(180,83,9,0.09); border-color: rgba(180,83,9,0.3); color: var(--amber); }
+
+  section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 26px 32px; margin-bottom: 20px; }
+  h2 { font-size: 1.15rem; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  h2 .num { font-size: 11px; font-weight: 800; background: var(--accent); color: #fff; border-radius: 6px; padding: 2px 8px; }
+  .section-sub { color: var(--text-3); font-size: 0.85rem; margin: 0 0 18px; }
+  h3 { font-size: 0.95rem; margin: 22px 0 10px; color: var(--text-1); }
+  p { margin: 0 0 12px; color: var(--text-2); }
+  code { font-family: var(--font-mono); background: var(--card-hi); padding: 1px 6px; border-radius: 4px; font-size: 0.85em; color: var(--text-1); }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 18px; font-size: 12.5px; }
+  th { text-align: left; padding: 8px 10px; background: var(--card-hi); color: var(--text-2); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-1); }
+  tr:last-child td { border-bottom: none; }
+  .ok { color: var(--green); font-weight: 700; }
+  .warn { color: var(--amber); font-weight: 700; }
+
+  .shot-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0; }
+  .shot-row.single { grid-template-columns: 1fr; }
+  figure { margin: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card-hi); }
+  figure img { width: 100%; display: block; border-bottom: 1px solid var(--border); }
+  figcaption { padding: 8px 12px; font-size: 11.5px; color: var(--text-2); }
+  figure.before figcaption { color: var(--red); font-weight: 700; }
+  figure.after figcaption { color: var(--green); font-weight: 700; }
+
+  .bug-box { background: rgba(220,38,38,0.05); border: 1px solid rgba(220,38,38,0.25); border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .bug-box h4 { margin: 0 0 6px; color: var(--red); font-size: 13px; }
+  .fix-box { background: rgba(22,163,74,0.05); border: 1px solid rgba(22,163,74,0.25); border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .fix-box h4 { margin: 0 0 6px; color: var(--green); font-size: 13px; }
+
+  .evidence-links { list-style: none; padding: 0; margin: 10px 0; }
+  .evidence-links li { padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .evidence-links li:last-child { border-bottom: none; }
+  .evidence-links .path { font-family: var(--font-mono); color: var(--text-3); font-size: 11px; display: block; margin-top: 2px; }
+
+  footer { text-align: center; color: var(--text-3); font-size: 11.5px; padding: 20px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Filter Bar QA Report</h1>
+    <p class="subtitle">Right-side rail &rarr; collapsible top bar, verified across both dashboards on branch <code>master_html</code></p>
+    <div class="meta-row">
+      <span class="pill pass">21 filter fields tested</span>
+      <span class="pill pass">2 recorded Canary sessions</span>
+      <span class="pill fix">1 layout bug found &amp; fixed</span>
+      <span class="pill pass">0 console errors</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span> What changed and why this exists</h2>
+    <p>Both dashboards' filter panels were moved from a right-side rail to a collapsible top bar &mdash; <code>BPA_FORCASTING_MOCK.HTML</code>'s <code>#right-panel</code> and <code>template_ui/btc_adjustment_simulator_v2.html</code>'s <code>#frail</code>. In both files this was a real edit to the production markup/CSS, not a rebuild: the same IDs, the same JS functions (<code>toggleRightPanel()</code>, <code>toggleDropdown()</code>, <code>toggleRail()</code>, <code>renderRail()</code>, <code>resetFilters()</code>) were kept untouched, only the layout CSS changed.</p>
+    <p>This report is the QA pass over that change: every filter field on both files, driven through a real browser (Canary), plus one bug the owner caught by eye that automated DOM-state checks had missed &mdash; found, root-caused, fixed, and re-verified below.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span> BPA_FORCASTING_MOCK.HTML — 9 filter groups</h2>
+    <p class="section-sub">Forecast Accuracy, Actuals Profiling, Data Management &mdash; same shared <code>#right-panel</code>, tested on all three</p>
+
+    <table>
+      <thead><tr><th>Filter group</th><th>data-group</th><th>Tested value</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Fiscal Year</td><td><code>fy</code></td><td>FY26 / FY27</td><td class="ok">PASS</td></tr>
+        <tr><td>Fiscal Quarter</td><td><code>quarter</code></td><td>Q1&ndash;Q4</td><td class="ok">PASS</td></tr>
+        <tr><td>Fiscal Month</td><td><code>month</code></td><td>M1</td><td class="ok">PASS</td></tr>
+        <tr><td>Fiscal Week</td><td><code>week</code></td><td>W1</td><td class="ok">PASS</td></tr>
+        <tr><td>Region</td><td><code>region</code></td><td>AMER</td><td class="ok">PASS</td></tr>
+        <tr><td>Sub-Region</td><td><code>subregion</code></td><td>North America</td><td class="ok">PASS</td></tr>
+        <tr><td>Product Group</td><td><code>lob</code></td><td>TET</td><td class="ok">PASS</td></tr>
+        <tr><td>Location Name</td><td><code>location</code></td><td>New York Hub</td><td class="ok">PASS</td></tr>
+        <tr><td>Queue &amp; Bus Reporting</td><td><code>queue</code></td><td>Queue_Alpha</td><td class="ok">PASS</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Collapse / expand, reset, cross-module consistency</h3>
+    <p>Clicking the <code>.filter-header</code> row collapses the whole filter body and re-expands it cleanly, both directions. <code>Reset All Filters</code> restores FY26/Q1 defaults with no errors. The identical bar (same position, same 8 groups) renders correctly on Forecast Accuracy, Actuals Profiling, and Data Management.</p>
+
+    <div class="shot-row">
+      <figure><img src="report_assets/bpa-forecast-accuracy.png" alt="BPA Forecast Accuracy with top filter bar"><figcaption>Forecast Accuracy &mdash; top filter bar, expanded</figcaption></figure>
+      <figure><img src="report_assets/bpa-filterbar-collapsed.png" alt="BPA filter bar collapsed"><figcaption>Same bar, collapsed to a thin header row</figcaption></figure>
+    </div>
+    <div class="shot-row">
+      <figure><img src="report_assets/bpa-actuals-profiling.png" alt="Actuals Profiling module"><figcaption>Actuals Profiling &mdash; same shared bar</figcaption></figure>
+      <figure><img src="report_assets/bpa-data-management.png" alt="Data Management module"><figcaption>Data Management &mdash; same shared bar</figcaption></figure>
+    </div>
+
+    <h3>Forecast Trend sub-page</h3>
+    <p>Its own <code>.ft-metric-btn</code> ASU/SR/Dispatch switcher and the Weekly LOB Breakdown card's dot-legend (<code>.lob-legend</code>/<code>.lob-dot</code>) both work independently of the top filter bar. The ASU-accuracy KPI correctly moves with the Fiscal Year filter (95.4% &rarr; 95.5% on FY27) and correctly does <em>not</em> move with Region &mdash; that's the real, documented formula (<code>95.4% + (fyMult-1)&times;1.8</code>), not a bug.</p>
+    <div class="shot-row single">
+      <figure><img src="report_assets/bpa-forecast-trend.png" alt="Forecast Trend page"><figcaption>Forecast Trend &mdash; metric switcher + LOB Breakdown, filters checked live</figcaption></figure>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span> btc_adjustment_simulator_v2.html — 12 filter fields</h2>
+    <p class="section-sub">ASUs / SRs / Dispatches / Publish tabs &mdash; same shared <code>#frail</code>, tested on all four</p>
+
+    <table>
+      <thead><tr><th>Filter field</th><th>Group</th><th>Tested value</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Fiscal Year</td><td rowspan="8">Main (always visible)</td><td>FY26&ndash;FY27</td><td class="ok">PASS</td></tr>
+        <tr><td>Fiscal Quarter</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>Fiscal Week</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>Region</td><td>AMERICAS</td><td class="ok">PASS</td></tr>
+        <tr><td>Global LOB</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>Business Unit</td><td>Unit A</td><td class="ok">PASS</td></tr>
+        <tr><td>Warranty Type</td><td>Premium</td><td class="ok">PASS</td></tr>
+        <tr><td>Service Type</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>Core / Upsell</td><td rowspan="4">Behind "More filters"</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>WO Type</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>FQM Flag</td><td>any</td><td class="ok">PASS</td></tr>
+        <tr><td>GCFA Type</td><td>any</td><td class="ok">PASS</td></tr>
+      </tbody>
+    </table>
+
+    <p>Selecting Region &rarr; AMERICAS live-updated the ASU Actuals KPI (6,355,461 &rarr; 3,231,116); <code>Reset filters</code> reverted it exactly. The floating funnel button (<code>#freopen</code>) correctly stays hidden now that the header row is always visible &mdash; it's redundant, not broken. The same bar renders and functions identically on all 4 tabs.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span> Bug found by the owner, missed by automated checks</h2>
+    <div class="bug-box">
+      <h4>&#10007; "More filters" stretched the whole bar into a huge dead-space column</h4>
+      <p style="margin:0">The first automated pass checked DOM/checkbox <em>state</em> (did the value toggle, did the chart update) and reported a clean pass &mdash; but never actually looked closely at the rendered <em>layout</em>. The owner caught it by eye: clicking "More filters" produced a tall, mostly-empty bar with the 4 extra fields stacked in a vertical column far to the right.</p>
+    </div>
+    <div class="shot-row">
+      <figure class="before"><img src="report_assets/btc-morefilters-BEFORE-bug.png" alt="Broken More filters layout"><figcaption>BEFORE &mdash; owner's screenshot of the bug</figcaption></figure>
+      <figure class="after"><img src="report_assets/btc-morefilters-AFTER-fix.png" alt="Fixed More filters layout"><figcaption>AFTER &mdash; fields wrap into a clean second row</figcaption></figure>
+    </div>
+
+    <h3>Root cause</h3>
+    <p><code>#frailBody</code> is a <code>display:flex; flex-wrap:wrap</code> row. The "More filters" toggle's content, <code>.moreblk</code>, was a plain <code>display:block</code> box when opened &mdash; so its 4 child <code>.fitem</code>s stacked vertically inside it (normal block flow). But <code>.moreblk</code> itself was still a flex-item <em>sibling</em> of the other 8 filters in that same row (the container was wide enough that nothing wrapped to a new line), and flexbox's default <code>align-items:stretch</code> stretched the <em>entire row</em> to match that tall sibling &mdash; leaving the 8 normal-height filters floating in a sea of dead space.</p>
+
+    <div class="fix-box">
+      <h4>&#10003; Fix: make <code>.moreblk.open</code> itself a flex-wrap row</h4>
+      <p style="margin:0">Changed <code>.moreblk.open{display:block}</code> to <code>display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end</code> &mdash; matching <code>#frailBody</code>'s own layout, so the 4 extra fields lay out horizontally and wrap onto their own compact row instead of stacking. Also restyled <code>.morehdr</code> ("More filters" itself) from a full-width section-divider header (designed for the old vertical rail) into a compact pill button matching the other filter buttons.</p>
+    </div>
+
+    <h3>Verified fix</h3>
+    <table>
+      <thead><tr><th>Check</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>4 extra fields layout</td><td class="warn">Stacked vertical column</td><td class="ok">Horizontal row, wraps under row 1</td></tr>
+        <tr><td>Panel height, expanded</td><td class="warn">250px+ (dead space)</td><td class="ok">184px (133px base + 51px for the new row)</td></tr>
+        <tr><td>Collapse afterward</td><td>&mdash;</td><td class="ok">Returns to exact original 133px, no artifacts</td></tr>
+        <tr><td>Console errors</td><td>&mdash;</td><td class="ok">None</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span> Expand-chart interaction (a real side-effect the top-bar move touched)</h2>
+    <p>The BTC file's "expand chart to fullscreen" feature had CSS hardcoded to the old right-side rail's geometry (<code>right:276px</code> to avoid the rail, a fixed <code>top:52px</code>). Moving the rail to the top would have made that geometry wrong &mdash; fixed properly (not by removing the "filters stay usable while a chart is expanded" feature) by computing the offset dynamically: <code>toggleExpand()</code>/<code>toggleRail()</code> now set a <code>--frail-h</code> CSS custom property from the rail's live rendered height, and <code>.expanded</code>'s <code>top</code> uses <code>calc(52px + var(--frail-h, 0px))</code>.</p>
+    <div class="shot-row">
+      <figure><img src="report_assets/btc-expand-chart-filters-open.png" alt="Expanded chart with filters open"><figcaption>Filters open (313px) &mdash; chart starts at top:365, clean gap</figcaption></figure>
+      <figure><img src="report_assets/btc-expand-chart-filters-collapsed.png" alt="Expanded chart with filters collapsed"><figcaption>Filters collapsed while still expanded &mdash; chart top reclaims to 93, exact delta match</figcaption></figure>
+    </div>
+    <p>Confirmed stable at 200ms, 1000ms, and 2500ms after triggering (no layout jump/flicker), and confirmed in both directions (expand-then-collapse-rail and the reverse). Zero console errors.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">6</span> Full recorded sessions (video + trace + HAR)</h2>
+    <p>Two Canary sessions recorded the systematic pass through every field above, one step per interaction, each bundled into a self-contained <code>report.html</code> with a video, Playwright trace, network HAR, and console log per step:</p>
+    <ul class="evidence-links">
+      <li>BPA &mdash; 9 filter groups, 3 modules, Forecast Trend sub-page
+        <span class="path">C:\Users\arnav.bhargava\.canary\sessions\bpa-filter-bar-qa-mtcq0nkf-c929c9\report.html</span>
+      </li>
+      <li>BTC &mdash; 12 filter fields, 4 tabs, expand-chart interaction
+        <span class="path">C:\Users\arnav.bhargava\.canary\sessions\btc-filter-bar-qa-mtcq501q-83db9c\report.html</span>
+      </li>
+    </ul>
+    <p style="font-size:12px">Open either path directly in a browser, or run <code>npx @usecanary/ui</code> to browse all recorded sessions.</p>
+  </section>
+
+  <footer>Generated during the <code>master_html</code> branch QA pass &middot; local-only, not pushed or merged</footer>
+
+</div>
+</body>
+</html>

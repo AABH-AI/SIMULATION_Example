@@ -26,7 +26,7 @@ Interactive simulation + analytics dashboards for **TET BPA: Business Planning a
 | `TODO` | Backlog for Actuals Profiling future work |
 | `CLAUDE.md` | Claude Code guidance for this repo |
 | `IMP_DOCS/` | This folder — always keep updated (mirrored at repo root **and** `template_ui/`; update both) |
-| `template_ui/btc_adjustment_simulator_v2.html` | **BTC Adjustment Simulator** — active development since Session 33; 3-step flow (1 ASU driver → 2 SRs & Dispatches → 3 Publish), per-segment modifiers, editable adjusted values with per-row comments, allocation-weighted filters. Live at `…/template_ui/btc_adjustment_simulator_v2.html` |
+| `template_ui/btc_adjustment_simulator_v2.html` | **BTC Adjustment Simulator** — active development since Session 33; 3-step flow (1 ASU driver → 2 SRs & Dispatches → 3 Publish), per-segment modifiers, editable adjusted values with per-row comments, allocation-weighted filters. Live at `…/template_ui/btc_adjustment_simulator_v2.html`. **On branch `master_html` only** (local, not merged into `master`, owner-authorized override of the standing "don't touch BTC" rule for this one task): the filter rail (`#frail`) was moved from a right-side fixed overlay to a collapsible top bar — same markup/JS, layout-only CSS change, plus a fix to the chart-expand feature's now-stale geometry. See Session 55. |
 | `IMP_DOCS/SUBAGENT_LOG.md` | Sub-agent delegation record for the BTC simulator work (Sessions 44–44c) — orchestration rules, per-agent verification numbers, and the **outstanding edit-propagation audit brief** |
 | `forecast_copilot/*.html` | **Separate product** — "Forecast Copilot" AI Planning Suite, 6 self-contained pages, light theme (teal accent). Pushed and live on GitHub Pages. See dedicated section below. |
 
