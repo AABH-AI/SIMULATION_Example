@@ -55,7 +55,7 @@
     .home-hero, .tiles-section, .kpi-card, .visual-card, .tile,
     .accordion-header, .nav-link, .btn-icon, .btn-sm,
     .filter-dropdown-btn, .filter-dropdown-content, .filter-checkbox,
-    .filter-header, .filter-search-input, .table-search,
+    .filter-header, .table-search,
     .data-table th, .data-table td, .channel-tab,
     .chip, .badge, .sev-btn, .export-btn, .reset-btn,
     .page-row, .home-banner, .home-hero::before {
@@ -570,15 +570,6 @@
     .right-panel.collapsed #filter-collapse-icon { transform: rotate(-90deg); }
     .filter-body { padding: 0 16px 10px; border-top: 1px solid var(--border); }
     .right-panel.collapsed .filter-body { display: none; }
-    .filter-search-box { padding: 8px 0 6px; max-width: 240px; }
-    .filter-search-input {
-      width: 100%; padding: 6px 10px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 7px; color: var(--text-1);
-      font-family: var(--font-ui); outline: none; font-size: 12px;
-      transition: border-color 0.15s;
-    }
-    .filter-search-input:focus { border-color: var(--accent); }
     .filter-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .filter-footer { padding: 8px 0 0; display: flex; justify-content: flex-end; }
     .reset-btn {
@@ -615,11 +606,6 @@
     }
     .filter-checkbox:hover { color: var(--text-1); }
     .filter-checkbox input { cursor: pointer; accent-color: var(--accent); }
-    .inner-search {
-      width: 100%; padding: 5px 8px; font-size: 11px; margin-bottom: 6px;
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text-1); border-radius: 4px; outline: none; font-family: var(--font-ui);
-    }
 
     /* ── BADGES ────────────────────────────────────────────── */
     .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
@@ -955,9 +941,6 @@
       <i class="ti ti-chevron-down" id="filter-collapse-icon" style="font-size:13px;color:var(--text-2);"></i>
     </div>
     <div class="filter-body" id="filter-body">
-      <div class="filter-search-box">
-        <input type="text" class="filter-search-input" placeholder="Search filters…" oninput="searchFilters(this)">
-      </div>
       <div class="filter-list" id="filter-container">
         <div class="filter-dropdown" data-filter="fy-quarter">
           <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Year / Quarter</span><i class="ti ti-chevron-down"></i></div>
@@ -977,7 +960,6 @@
         <div class="filter-dropdown" data-filter="month">
           <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Month</span><i class="ti ti-chevron-down"></i></div>
           <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search month…" oninput="filterInner(this)">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="month" value="All" checked onchange="onFilterChange()"> (All)</label>
               <label class="filter-checkbox"><input type="checkbox" data-group="month" value="M1" onchange="onFilterChange()"> M1</label>
@@ -992,7 +974,6 @@
         <div class="filter-dropdown" data-filter="week">
           <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Fiscal Week</span><i class="ti ti-chevron-down"></i></div>
           <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search week (W1–W52)…" oninput="filterInner(this)">
             <div class="check-list" id="week-check-list"></div>
           </div>
         </div>
@@ -1036,7 +1017,6 @@
         <div class="filter-dropdown" data-filter="location">
           <div class="filter-dropdown-btn" onclick="toggleDropdown(this)"><span>Location Name</span><i class="ti ti-chevron-down"></i></div>
           <div class="filter-dropdown-content">
-            <input type="text" class="inner-search" placeholder="Search location…" oninput="filterInner(this)">
             <div class="check-list">
               <label class="filter-checkbox"><input type="checkbox" data-group="location" value="All" checked onchange="onFilterChange()"> (All)</label>
               <label class="filter-checkbox"><input type="checkbox" data-group="location" value="New York Hub" onchange="onFilterChange()"> New York Hub</label>
@@ -1992,27 +1972,35 @@ function toggleAccordion(el) {
   content.classList.toggle('active');
   icon.className = content.classList.contains('active') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
 }
+// Closes every OTHER open dropdown before toggling the clicked one, and a
+// document-level click-outside handler closes whichever one is open — real
+// bug fix (previously any number of dropdowns could stay open at once with
+// no way to close them except re-clicking each one individually; became far
+// more disruptive once dropdowns became absolute popovers over a top bar
+// instead of items in a long scrolling side rail).
 function toggleDropdown(btn) {
-  btn.nextElementSibling.classList.toggle('open');
-  const icon = btn.querySelector('i');
-  icon.className = btn.nextElementSibling.classList.contains('open') ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
-}
-
-// =========================================================
-// FILTER INNER SEARCH
-// =========================================================
-function filterInner(input) {
-  const q = input.value.toUpperCase();
-  const labels = input.nextElementSibling.querySelectorAll('label');
-  labels.forEach(l => l.style.display = l.textContent.toUpperCase().includes(q) ? '' : 'none');
-}
-function searchFilters(input) {
-  const q = input.value.toUpperCase();
-  document.querySelectorAll('.filter-dropdown').forEach(dd => {
-    const label = dd.querySelector('.filter-dropdown-btn span').textContent.toUpperCase();
-    dd.style.display = label.includes(q) ? '' : 'none';
+  const content = btn.nextElementSibling;
+  const willOpen = !content.classList.contains('open');
+  document.querySelectorAll('.filter-dropdown-content.open').forEach(dd => {
+    if (dd !== content) {
+      dd.classList.remove('open');
+      const otherIcon = dd.previousElementSibling.querySelector('i');
+      if (otherIcon) otherIcon.className = 'ti ti-chevron-down';
+    }
   });
+  content.classList.toggle('open', willOpen);
+  const icon = btn.querySelector('i');
+  icon.className = willOpen ? 'ti ti-chevron-up' : 'ti ti-chevron-down';
 }
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.filter-dropdown')) {
+    document.querySelectorAll('.filter-dropdown-content.open').forEach(dd => {
+      dd.classList.remove('open');
+      const icon = dd.previousElementSibling.querySelector('i');
+      if (icon) icon.className = 'ti ti-chevron-down';
+    });
+  }
+});
 
 // =========================================================
 // WEEK CHECKBOXES
