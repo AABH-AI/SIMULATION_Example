@@ -31,7 +31,6 @@ export default function App() {
   const bootedCycle = useRef(false);
 
   useEffect(() => { boot(); applySavedTheme(); }, [boot, applySavedTheme]);
-  useEffect(() => { document.body.classList.toggle('rail-open', railOpen); }, [railOpen]);
   void version;
 
   // keep the auto label (incl. Pass #) fresh, but never clobber a live edit or a user override (caret-safe)
@@ -63,13 +62,15 @@ export default function App() {
         <button className="themebtn" onClick={toggleTheme} title="Toggle dark mode">{dark ? '☀' : '☾'}</button>
       </div>
 
+      <FilterRail open={railOpen} onToggleOpen={() => setRailOpen((o) => !o)} />
+
       <div className="stepper">
         <button className="step-nav" disabled={step <= 1} onClick={() => onStep(step - 1)}>← Prev</button>
-        <div className={'step' + (step === 1 ? ' on' : step > 1 ? ' done' : '')}><b>1</b> Adjust ASU <span className="sub">driver</span></div>
+        <div className={'step' + (step === 1 ? ' on' : step > 1 ? ' done' : '')} role="button" tabIndex={0} onClick={() => onStep(1)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(1); } }}><b>1</b> Adjust ASU <span className="sub">driver</span></div>
         <span className="arw">→</span>
-        <div className={'step' + (step === 2 ? ' on' : step > 2 ? ' done' : '')}><b>2</b> Adjust SRs &amp; Dispatches</div>
+        <div className={'step' + (step === 2 ? ' on' : step > 2 ? ' done' : '')} role="button" tabIndex={0} onClick={() => onStep(2)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(2); } }}><b>2</b> Adjust SRs &amp; Dispatches</div>
         <span className="arw">→</span>
-        <div className={'step' + (step === 3 ? ' on' : '')}><b>3</b> Publish</div>
+        <div className={'step' + (step === 3 ? ' on' : '')} role="button" tabIndex={0} onClick={() => onStep(3)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(3); } }}><b>3</b> Publish</div>
         <button className="step-nav" disabled={step >= 3} onClick={() => onStep(step + 1)}>Next →</button>
       </div>
 
@@ -85,8 +86,6 @@ export default function App() {
         {tab === 'disp' && <RateView kind="disp" dark={dark} />}
         {tab === 'pub' && <PubView dark={dark} />}
       </div>
-
-      <FilterRail open={railOpen} onToggleOpen={() => setRailOpen((o) => !o)} />
     </>
   );
 }

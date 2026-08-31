@@ -26,14 +26,13 @@ export default function FilterRail({ open, onToggleOpen }) {
 
   function Fitem({ cfg }) {
     const k = cfg.k, opts = optionsFor(cfg);
-    const up = (k === 'fqm' || k === 'gcfa'); // last rows sit at the rail bottom — open their dropdown upward
     return (
       <div className="fitem">
         <div className="flab">{cfg.label}{cfg.multi && <span className="mx">multi</span>}</div>
         <button className="fval" onClick={(e) => { e.stopPropagation(); setOpenK(openK === k ? null : k); }}>
           <span>{filterDisplay(cfg)}</span><span className="cr">▾</span>
         </button>
-        <div className={'fdd' + (up ? ' up' : '') + (openK === k ? ' open' : '')}>
+        <div className={'fdd' + (openK === k ? ' open' : '')}>
           {opts.map((o) => {
             const sel = cfg.multi ? (o === 'All' ? F[k].length === 0 : F[k].indexOf(o) >= 0) : F[k] === o;
             return (
@@ -52,19 +51,17 @@ export default function FilterRail({ open, onToggleOpen }) {
   const more = FILTERS.filter((c) => !hid[c.k] && MORE_KEYS[c.k]);
 
   return (
-    <>
-      {!open && <button className="ficon freopen" onClick={onToggleOpen} title="Show filters">⧩</button>}
-      <div className="frail" ref={rootRef}>
-        <div className="frail-hd"><span>Filters</span><span className="ficon" onClick={onToggleOpen} title="Hide filters">✕</span></div>
-        <button className="freset" onClick={resetFilters}>Reset filters</button>
-        <div id="frailBody">
-          {main.map((c) => <Fitem key={c.k} cfg={c} />)}
-          <div className="morehdr" onClick={() => setMoreOpen((v) => !v)}><span>More filters</span><span className="cr">{moreOpen ? '▴' : '▾'}</span></div>
-          <div className={'moreblk' + (moreOpen ? ' open' : '')}>
-            {more.map((c) => <Fitem key={c.k} cfg={c} />)}
-          </div>
-        </div>
+    <div className={'frail' + (open ? '' : ' collapsed')} ref={rootRef}>
+      <div className="frail-hd">
+        <span className="frail-title">Filters</span>
+        <button className="freset" onClick={resetFilters}>Reset</button>
+        <span className="ficon frail-toggle" onClick={onToggleOpen} title={open ? 'Hide filters' : 'Show filters'}>{open ? '▴' : '▾'}</span>
       </div>
-    </>
+      <div id="frailBody">
+        {main.map((c) => <Fitem key={c.k} cfg={c} />)}
+        <div className="morehdr" onClick={() => setMoreOpen((v) => !v)}><span>More</span><span className="cr">{moreOpen ? '▴' : '▾'}</span></div>
+        {moreOpen && more.map((c) => <Fitem key={c.k} cfg={c} />)}
+      </div>
+    </div>
   );
 }
