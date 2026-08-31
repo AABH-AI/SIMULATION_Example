@@ -1,0 +1,9 @@
+## Actuals Profiling — Backlog
+
+- [ ] Quarter filter: implement actual data slicing for QoQ chart (highlight/dim non-selected quarters)
+- [ ] Demand Trends: per-quarter drill-down chart (tap a QoQ bar to see weekly breakdown)
+- [ ] Quadrant charts: tooltip breakdown by Product Group when hovering
+- [ ] KPI cards: make counts filter-aware (change with Product Group / FY selection)
+- [ ] Export Demand Trends data to CSV / Excel
+- [ ] Profiling Overview: add a scatter-plot view (Occurrence % vs CV %) to show individual SKU placement in the quadrant
+- [ ] Demand Trends: add FY YoY comparison overlay (e.g., FY26 vs FY25 side-by-side)

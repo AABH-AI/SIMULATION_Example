@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+ 
+								
+</style>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dell Care · BMS Scorecard</title>
+<style>
+  html, body { margin:0; padding:0; height:100%; overflow:hidden; background:#0A0E27; font-family:'Inter', 'Segoe UI', Arial, sans-serif; }
+  * { box-sizing:border-box; }
+</style>
+</head>
+<body>
+ 
+<div id="bmsApp">
+<style>
+    /* GEN-Z PALETTE */
+    #bmsApp {
+      --bg-deep: #0A0E27;
+      --bg-card: #FFFFFF;
+      --bg-soft: #F4F6FB;
+      --ink: #0F1844;
+      --ink-mid: #4A5578;
+      --ink-soft: #8590B5;
+      --accent: #6366F1;       /* indigo */
+      --accent-2: #06B6D4;     /* cyan */
+      --accent-3: #EC4899;     /* pink */
+      --accent-4: #10B981;     /* emerald */
+      --accent-5: #F59E0B;     /* amber */
+      --glow-indigo: 0 0 24px rgba(99,102,241,0.45);
+      --glow-cyan: 0 0 24px rgba(6,182,212,0.45);
+      --glow-pink: 0 0 20px rgba(236,72,153,0.4);
+      display:flex; flex-direction:column; height:100vh; width:100vw;
+      font-family:'Inter', 'Segoe UI', Arial, sans-serif;
+      color:var(--ink); background:var(--bg-soft);
+    }
+    #bmsApp * { box-sizing:border-box; font-family:'Inter', 'Segoe UI', Arial, sans-serif; }
+ 
+    /* ============ HEADER with mesh gradient + glassmorphism ============ */
+    #bmsApp .topbar {
+      flex-shrink:0;
+      position:relative;
+      background:
+        radial-gradient(circle at 15% 50%, rgba(99,102,241,0.55) 0%, transparent 45%),
+        radial-gradient(circle at 75% 30%, rgba(236,72,153,0.4) 0%, transparent 45%),
+        radial-gradient(circle at 95% 80%, rgba(6,182,212,0.45) 0%, transparent 45%),
+        linear-gradient(135deg, #0A0E27 0%, #1E1B4B 60%, #312E81 100%);
+      color:#FFFFFF;
+      padding:14px 24px;
+      display:flex; justify-content:space-between; align-items:center;
+      gap:16px;
+      box-shadow:0 4px 30px rgba(10,14,39,0.3);
+      z-index:10;
+      min-height:74px;
+      overflow:hidden;
+    }
+    /* Floating animated blobs */
+    #bmsApp .topbar::before, #bmsApp .topbar::after {
+      content:''; position:absolute; border-radius:50%; pointer-events:none;
+      filter:blur(60px); opacity:0.4;
+    }
+    #bmsApp .topbar::before {
+      width:200px; height:200px; background:#6366F1; top:-80px; left:30%;
+      animation: blobFloat1 18s ease-in-out infinite;
+    }
+    #bmsApp .topbar::after {
+      width:160px; height:160px; background:#EC4899; bottom:-60px; right:25%;
+      animation: blobFloat2 22s ease-in-out infinite;
+    }
+    @keyframes blobFloat1 {
+      0%,100% { transform:translate(0,0); }
+      50% { transform:translate(80px,30px); }
+    }
+    @keyframes blobFloat2 {
+      0%,100% { transform:translate(0,0); }
+      50% { transform:translate(-60px,-20px); }
+    }
+ 
+    #bmsApp .brand-title {
+      font-size:24px; font-weight:800; letter-spacing:-0.3px; margin:0;
+      white-space:nowrap; position:relative; z-index:2;
+      background:linear-gradient(135deg, #FFFFFF 0%, #C7D2FE 100%);
+      -webkit-background-clip:text; background-clip:text;
+      -webkit-text-fill-color:transparent;
+      display:flex; align-items:center; gap:10px;
+    }
+    #bmsApp .brand-emoji {
+      font-size:22px; -webkit-text-fill-color:initial;
+      filter:drop-shadow(0 0 8px rgba(99,102,241,0.6));
+      animation: emojiPulse 3s ease-in-out infinite;
+    }
+    @keyframes emojiPulse {
+      0%,100% { transform:scale(1); }
+      50% { transform:scale(1.1); }
+    }
+ 
+    #bmsApp .topbar-right { display:flex; gap:10px; align-items:center; position:relative; z-index:2; }
+ 
+    /* Glassmorphism dropdown */
+    #bmsApp .region-select-wrap { position:relative; }
+    #bmsApp .region-select-wrap::after {
+      content:'▾'; position:absolute; right:14px; top:50%;
+      transform:translateY(-50%); font-size:14px; color:#A5B4FC; pointer-events:none;
+      font-weight:bold;
+    }
+    #bmsApp select.region-select {
+      font-size:13px; font-weight:700; padding:10px 36px 10px 16px;
+      border:1px solid rgba(255,255,255,0.2);
+      border-radius:12px;
+      background:rgba(255,255,255,0.1);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      color:#FFFFFF; cursor:pointer; appearance:none; -webkit-appearance:none;
+      min-width:200px; transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+      letter-spacing:0.3px;
+    }
+    #bmsApp select.region-select:hover {
+      background:rgba(255,255,255,0.18); border-color:rgba(255,255,255,0.4);
+      box-shadow:var(--glow-indigo);
+    }
+    #bmsApp select.region-select:focus {
+      outline:none; border-color:#A5B4FC;
+      box-shadow:0 0 0 3px rgba(99,102,241,0.3);
+    }
+    #bmsApp select.region-select option {
+      background:#1E1B4B; color:#FFFFFF; font-weight:600;
+    }
+ 
+    /* Glass button */
+    #bmsApp .btn {
+      font-size:13px; padding:10px 16px; border:none; border-radius:12px;
+      cursor:pointer; font-weight:700; transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+      letter-spacing:0.2px; display:inline-flex; align-items:center; gap:6px;
+      position:relative; overflow:hidden;
+    }
+    #bmsApp .btn::before {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+      transform:translateX(-100%); transition:transform 0.5s;
+    }
+    #bmsApp .btn:hover::before { transform:translateX(100%); }
+ 
+    #bmsApp .btn-ppt {
+      background:linear-gradient(135deg, #06B6D4 0%, #6366F1 100%);
+      color:#FFFFFF;
+      box-shadow:0 4px 14px rgba(99,102,241,0.4);
+    }
+    #bmsApp .btn-ppt:hover {
+      transform:translateY(-2px);
+      box-shadow:0 6px 20px rgba(99,102,241,0.6), var(--glow-cyan);
+    }
+ 
+    #bmsApp .btn-month {
+      background:rgba(255,255,255,0.1);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      color:#FFFFFF;
+      border:1px solid rgba(255,255,255,0.2);
+    }
+    #bmsApp .btn-month:hover {
+      background:rgba(255,255,255,0.2);
+      transform:translateY(-1px);
+      box-shadow:var(--glow-indigo);
+    }
+ 
+    /* ============ MONTH POPOVER ============ */
+    #bmsApp .month-popover {
+      position:absolute; top:88px; right:24px;
+      background:rgba(255,255,255,0.95);
+      backdrop-filter:blur(40px) saturate(180%); -webkit-backdrop-filter:blur(40px) saturate(180%);
+      border:1px solid rgba(99,102,241,0.2);
+      border-radius:16px;
+      box-shadow:0 20px 50px rgba(10,14,39,0.25), 0 0 0 1px rgba(255,255,255,0.5) inset;
+      padding:18px; display:none; z-index:20; min-width:400px;
+      animation: popoverIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #bmsApp .month-popover.open { display:block; }
+    @keyframes popoverIn {
+      from { opacity:0; transform:translateY(-12px) scale(0.95); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    #bmsApp .month-popover h4 {
+      margin:0 0 14px 0; font-size:12px; color:var(--accent);
+      text-transform:uppercase; letter-spacing:1px; font-weight:800;
+      display:flex; align-items:center; gap:6px;
+    }
+    #bmsApp .month-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+    #bmsApp .month-grid .field { display:flex; flex-direction:column; gap:5px; }
+    #bmsApp .month-grid label { font-size:10px; color:var(--ink-mid); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+    #bmsApp .month-grid input {
+      font-size:13px; padding:9px 11px; border:1.5px solid #E0E5F0;
+      border-radius:10px; color:var(--ink); transition:all 0.2s; font-weight:600;
+    }
+    #bmsApp .month-grid input:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+    }
+ 
+    /* ============ MAIN ============ */
+    #bmsApp .main { flex:1; display:flex; gap:14px; padding:14px; overflow:hidden; min-height:0; }
+ 
+    /* Bento card style */
+    #bmsApp .scorecard-pane {
+      flex:1.8;
+      background:#FFFFFF;
+      border-radius:20px;
+      border:1px solid rgba(99,102,241,0.08);
+      padding:18px 20px;
+      display:flex; flex-direction:column; min-width:0;
+      overflow:hidden; position:relative;
+      box-shadow:0 10px 40px rgba(10,14,39,0.06), 0 2px 6px rgba(10,14,39,0.04);
+    }
+    /* Top accent line */
+    #bmsApp .scorecard-pane::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg, #6366F1, #06B6D4, #EC4899);
+      background-size:200% 100%;
+      animation: gradientShift 4s linear infinite;
+    }
+    @keyframes gradientShift {
+      0% { background-position:0% 50%; }
+      100% { background-position:200% 50%; }
+    }
+ 
+    #bmsApp .scorecard-title-row {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:14px; flex-shrink:0;
+    }
+    #bmsApp .scorecard-title {
+      font-size:16px; font-weight:700; color:var(--ink); margin:0;
+      display:flex; align-items:center; gap:10px;
+    }
+    /* Region badge with pulsing dot */
+    #bmsApp .region-badge {
+      display:inline-flex; align-items:center; gap:8px;
+      background:linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+      color:#FFFFFF; padding:6px 16px; border-radius:20px;
+      font-size:13px; font-weight:800; letter-spacing:0.5px;
+      box-shadow:0 4px 14px rgba(99,102,241,0.4);
+      position:relative;
+    }
+    #bmsApp .region-badge::before {
+      content:''; width:8px; height:8px; border-radius:50%;
+      background:#10B981; box-shadow:0 0 0 0 rgba(16,185,129,0.7);
+      animation: livePulse 2s infinite;
+    }
+    @keyframes livePulse {
+      0% { box-shadow:0 0 0 0 rgba(16,185,129,0.7); }
+      70% { box-shadow:0 0 0 8px rgba(16,185,129,0); }
+      100% { box-shadow:0 0 0 0 rgba(16,185,129,0); }
+    }
+ 
+    #bmsApp .quarter-input {
+      font-size:12px; color:var(--accent); font-weight:800;
+      background:linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(6,182,212,0.08) 100%);
+      padding:7px 16px; border-radius:14px;
+      border:1.5px solid rgba(99,102,241,0.2); outline:none;
+      width:110px; text-align:center; cursor:pointer;
+      transition:all 0.25s; letter-spacing:0.5px;
+    }
+    #bmsApp .quarter-input:hover {
+      background:linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(6,182,212,0.15) 100%);
+      border-color:var(--accent); transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(99,102,241,0.2);
+    }
+    #bmsApp .quarter-input:focus {
+      background:#FFFFFF; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(99,102,241,0.2); cursor:text;
+    }
+ 
+    /* Animated content */
+    #bmsApp .anim-wrap {
+      flex:1; display:flex; flex-direction:column; min-height:0;
+      animation: contentEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #bmsApp .anim-wrap.exiting { animation: contentExit 0.22s ease-out forwards; }
+    @keyframes contentEnter {
+      0% { opacity:0; transform:translateY(20px) scale(0.97); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes contentExit {
+      0% { opacity:1; transform:translateY(0) scale(1); }
+      100% { opacity:0; transform:translateY(-15px) scale(0.98); }
+    }
+ 
+    /* METRIC TABLE — modern */
+    #bmsApp .table-wrap { flex:1; overflow:auto; min-height:0; border-radius:14px; border:1px solid #EEF1F8; }
+    #bmsApp .metric-table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; table-layout:fixed; }
+    #bmsApp .metric-table thead { position:sticky; top:0; z-index:5; }
+    #bmsApp .metric-table th {
+      background:linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+      color:#FFFFFF; padding:11px 8px; text-align:center;
+      font-size:11px; text-transform:uppercase; letter-spacing:0.8px;
+      font-weight:700; border:none;
+    }
+    #bmsApp .metric-table th:first-child { border-top-left-radius:14px; }
+    #bmsApp .metric-table th:last-child { border-top-right-radius:14px; }
+    #bmsApp .metric-table th.metric-col { text-align:left; padding-left:16px; width:180px; }
+    #bmsApp .metric-table th.goal-col { width:110px; }
+    #bmsApp .metric-table th.trend-col { width:120px; }
+    #bmsApp .metric-table td {
+      padding:7px 8px; border-bottom:1px solid #F0F2F8; text-align:center;
+      background:#FFFFFF; transition:background 0.2s;
+    }
+    #bmsApp .metric-table tr { animation: rowEnter 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+    #bmsApp .metric-table tbody tr:hover td { background:linear-gradient(90deg, rgba(99,102,241,0.04), rgba(6,182,212,0.04)); }
+    @keyframes rowEnter {
+      0% { opacity:0; transform:translateX(-12px); }
+      100% { opacity:1; transform:translateX(0); }
+    }
+    #bmsApp .metric-table td.metric-name {
+      background:linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+      color:#FFFFFF; font-weight:700; text-align:left;
+      padding-left:16px; font-size:12px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      width:180px; letter-spacing:0.2px;
+      position:relative;
+    }
+    #bmsApp .metric-table tbody tr:hover td.metric-name {
+      background:linear-gradient(135deg, #6366F1 0%, #06B6D4 100%);
+      box-shadow:inset 4px 0 0 #EC4899;
+    }
+    #bmsApp .metric-table input {
+      width:100%; max-width:90px; font-size:12.5px; padding:6px 7px;
+      border:1.5px solid #E5E9F2; border-radius:8px; text-align:center;
+      transition:all 0.2s; font-weight:600; color:var(--ink);
+      background:#FAFBFE;
+    }
+    #bmsApp .metric-table input:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+      transform:scale(1.04);
+      background:#FFFFFF;
+    }
+    #bmsApp .metric-table input.goal-input { max-width:95px; }
+    #bmsApp .metric-table .trend-cell {
+      width:120px; padding:4px;
+      background:linear-gradient(135deg, #FAFBFE 0%, #F4F6FB 100%);
+    }
+    #bmsApp .metric-table .trend-cell canvas { display:block; width:100%; transition:filter 0.2s; }
+    #bmsApp .metric-table .trend-cell:hover canvas { filter:drop-shadow(0 0 6px rgba(99,102,241,0.5)); }
+ 
+    /* SIDE PANELS — bento style */
+    #bmsApp .side-pane {
+      flex:1; display:flex; flex-direction:column;
+      gap:12px; min-width:0; overflow:hidden;
+    }
+    #bmsApp .panel {
+      background:#FFFFFF;
+      border:1px solid rgba(99,102,241,0.08);
+      border-radius:20px; display:flex; flex-direction:column;
+      flex:1; min-height:0; overflow:hidden;
+      box-shadow:0 10px 40px rgba(10,14,39,0.06), 0 2px 6px rgba(10,14,39,0.04);
+      position:relative;
+    }
+    #bmsApp .panel-header {
+      flex-shrink:0; padding:13px 16px;
+      font-size:12px; font-weight:800; color:#FFFFFF;
+      text-transform:uppercase; letter-spacing:1px;
+      display:flex; justify-content:space-between; align-items:center;
+      position:relative;
+    }
+    #bmsApp .panel.callouts .panel-header {
+      background:linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+      box-shadow:0 4px 14px rgba(99,102,241,0.3);
+    }
+    #bmsApp .panel.actions .panel-header {
+      background:linear-gradient(135deg, #06B6D4 0%, #10B981 100%);
+      box-shadow:0 4px 14px rgba(6,182,212,0.3);
+    }
+    #bmsApp .panel-header-title { display:flex; align-items:center; gap:8px; }
+    #bmsApp .panel-header-title::before {
+      content:''; width:8px; height:8px; border-radius:50%; background:#FFFFFF;
+      box-shadow:0 0 8px rgba(255,255,255,0.8);
+    }
+ 
+    #bmsApp .add-mini {
+      background:rgba(255,255,255,0.22); color:#FFFFFF;
+      border:1px solid rgba(255,255,255,0.4);
+      font-size:11px; padding:5px 12px; border-radius:20px;
+      cursor:pointer; font-weight:700; transition:all 0.2s;
+      backdrop-filter:blur(10px);
+    }
+    #bmsApp .add-mini:hover {
+      background:rgba(255,255,255,0.35); transform:scale(1.05);
+    }
+ 
+    #bmsApp .panel-body { flex:1; overflow:auto; padding:10px 12px; min-height:0; }
+    #bmsApp .item-list { list-style:none; padding:0; margin:0; }
+    #bmsApp .item-list li {
+      display:flex; gap:8px; align-items:flex-start;
+      margin-bottom:8px; padding:10px;
+      background:linear-gradient(135deg, #FAFBFE 0%, #F4F6FB 100%);
+      border-left:3px solid var(--accent);
+      border-radius:10px; font-size:12px;
+      animation: itemFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition:all 0.2s;
+    }
+    #bmsApp .item-list li:hover {
+      transform:translateX(2px);
+      box-shadow:0 4px 12px rgba(99,102,241,0.1);
+    }
+    @keyframes itemFadeIn {
+      from { opacity:0; transform:translateX(10px); }
+      to { opacity:1; transform:translateX(0); }
+    }
+    #bmsApp .panel.actions .item-list li { border-left-color:var(--accent-2); }
+    #bmsApp .panel.actions .item-list li:hover { box-shadow:0 4px 12px rgba(6,182,212,0.15); }
+ 
+    #bmsApp .item-list textarea {
+      flex:1; font-size:12px; padding:7px 9px;
+      border:1.5px solid #E5E9F2; border-radius:8px;
+      resize:vertical; min-height:44px; transition:all 0.2s;
+      color:var(--ink); background:#FFFFFF; font-weight:500; line-height:1.5;
+    }
+    #bmsApp .item-list textarea:focus {
+      outline:none; border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(99,102,241,0.15);
+    }
+    #bmsApp .item-list .remove-btn {
+      background:linear-gradient(135deg, #EC4899 0%, #F43F5E 100%);
+      color:#FFFFFF; border:none; border-radius:8px;
+      padding:5px 10px; font-size:12px; cursor:pointer; font-weight:700; flex-shrink:0;
+      transition:all 0.2s; box-shadow:0 2px 6px rgba(236,72,153,0.3);
+    }
+    #bmsApp .item-list .remove-btn:hover {
+      transform:scale(1.1) rotate(90deg);
+      box-shadow:0 4px 12px rgba(236,72,153,0.5);
+    }
+ 
+    /* TOAST — glass style */
+    #bmsApp .toast {
+      position:fixed; bottom:24px; right:24px;
+      background:rgba(16,185,129,0.95);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      color:#FFFFFF;
+      padding:13px 20px; border-radius:14px; font-size:13px; font-weight:600;
+      box-shadow:0 10px 30px rgba(16,185,129,0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;
+      display:none; z-index:1000;
+      animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes toastIn {
+      from { opacity:0; transform:translateY(30px) scale(0.9); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    #bmsApp .toast.show { display:block; }
+ 
+    #bmsApp .shimmer {
+      position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg, transparent, #6366F1, #EC4899, #06B6D4, transparent);
+      animation: shimmerSlide 0.7s ease-out; pointer-events:none;
+      border-radius:20px 20px 0 0;
+    }
+    @keyframes shimmerSlide {
+      0% { transform:translateX(-100%); }
+      100% { transform:translateX(100%); }
+    }
+ 
+    /* Scrollbar styling */
+    #bmsApp ::-webkit-scrollbar { width:8px; height:8px; }
+    #bmsApp ::-webkit-scrollbar-track { background:transparent; }
+    #bmsApp ::-webkit-scrollbar-thumb { background:linear-gradient(135deg, #6366F1, #06B6D4); border-radius:4px; }
+    #bmsApp ::-webkit-scrollbar-thumb:hover { background:linear-gradient(135deg, #4F46E5, #0891B2); }
+ 
+    @media (max-width: 1200px) {
+      #bmsApp .main { flex-direction:column; }
+      #bmsApp .scorecard-pane, #bmsApp .side-pane { flex:none; }
+      #bmsApp .scorecard-pane { height:60%; }
+      #bmsApp .side-pane { height:40%; flex-direction:row; }
+      #bmsApp .brand-title { font-size:18px; }
+    }
+</style>
+ 
+  <div class="topbar">
+<h1 class="brand-title">
+<span class="brand-emoji">⚡</span>
+      Dell Care · BMS Scorecard
+</h1>
+<div class="topbar-right">
+<div class="region-select-wrap">
+<select id="regionSelect" class="region-select"></select>
+</div>
+<button class="btn btn-month" id="monthBtn">📅 Months</button>
+<button class="btn btn-ppt" id="exportPptBtn">✨ Export PPT</button>
+</div>
+</div>
+ 
+  <div class="month-popover" id="monthPopover">
+<h4>🗓️ Edit Month & Quarter Labels</h4>
+<div class="month-grid">
+<div class="field"><label>Month 1</label><input type="text" id="m1Label"></div>
+<div class="field"><label>Month 2</label><input type="text" id="m2Label"></div>
+<div class="field"><label>Month 3</label><input type="text" id="m3Label"></div>
+<div class="field"><label>Quarter</label><input type="text" id="qLabelPop"></div>
+</div>
+</div>
+ 
+  <div class="main">
+<div class="scorecard-pane">
+<div class="scorecard-title-row">
+<h2 class="scorecard-title">
+<span class="region-badge" id="regionBadge">Global</span>
+</h2>
+<input type="text" class="quarter-input" id="quarterInput" value="FY27-Q2" title="Click to edit quarter">
+</div>
+<div class="anim-wrap" id="animWrap">
+<div class="table-wrap">
+<table class="metric-table">
+<thead>
+<tr>
+<th class="metric-col">Metric</th>
+<th class="goal-col">Goal/Baseline</th>
+<th id="th-m1">May</th>
+<th id="th-m2">June</th>
+<th id="th-m3">July</th>
+<th id="th-q">FY27-Q2</th>
+<th class="trend-col">Trend</th>
+</tr>
+</thead>
+<tbody id="metricBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+ 
+    <div class="side-pane">
+<div class="panel callouts">
+<div class="panel-header">
+<span class="panel-header-title">🔥 Callouts & Observations</span>
+<button class="add-mini" id="addCallout">+ Add</button>
+</div>
+<div class="panel-body">
+<ul class="item-list" id="calloutList"></ul>
+</div>
+</div>
+<div class="panel actions">
+<div class="panel-header">
+<span class="panel-header-title">🎯 Future Actions</span>
+<button class="add-mini" id="addAction">+ Add</button>
+</div>
+<div class="panel-body">
+<ul class="item-list" id="actionList"></ul>
+</div>
+</div>
+</div>
+</div>
+ 
+  <div class="toast" id="toast"></div>
+</div>
+ 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script>
+(function(){
+  const METRICS = ['Orders','Headcount','Overall SLA','Case Rate','Cases','CpSR','CRW','Contacts Offered','TCD by Contact Type'];
+ 
+  function blankMetricRow() { return { goal:'No Targets', m1:'', m2:'', m3:'', q:'' }; }
+  function blankRegion(name) {
+    const metrics = {};
+    METRICS.forEach(m => metrics[m] = blankMetricRow());
+    return {
+      name: name,
+      months: { m1:'May', m2:'June', m3:'July', q:'FY27-Q2' },
+      metrics: metrics,
+      callouts: [''],
+      actions: ['']
+    };
+  }
+ 
+  function seedDefaults() {
+    const regions = ['Global','APJ','EMEA','AMER','LATAM','NA','NA FED','NA CHANNEL','BRAZIL'].map(n => blankRegion(n));
+    const slaMap = { 'Global':89, 'APJ':91, 'EMEA':84, 'AMER':90, 'LATAM':92, 'NA':89.5, 'NA FED':91, 'NA CHANNEL':85, 'BRAZIL':90 };
+    const callouts = [
+      'Overall SLA closed at 89% — primary impact from EMEA Email (76.3%) and NA Channel Email (76.8%) due to over-offered volumes.',
+      'Channel SLA in Q1: Email 86.1%, Voice 91.6%, W2C 95.3%.',
+      'Case rate on target at 2.8% actual vs 2.8% plan.',
+      'April case volume 94%; quarterly trending 88%.',
+      'Contacts offered: Email 160% and W2C 182% above plan; Voice at 78%.',
+      'TCD within range — Q1 at 110%.'
+    ];
+    const actions = [
+      'AA Planners to gather Business Partner feedback for CpSR adjustment in upcoming plan.',
+      'Connect with business partners to understand drivers behind high contacts offered.'
+    ];
+    regions.forEach(r => {
+      r.metrics['Overall SLA'].q = slaMap[r.name] || '';
+      if (slaMap[r.name]) {
+        const base = slaMap[r.name];
+        r.metrics['Overall SLA'].m1 = (base - 2).toFixed(1);
+        r.metrics['Overall SLA'].m2 = (base - 1).toFixed(1);
+        r.metrics['Overall SLA'].m3 = base.toFixed(1);
+      }
+      r.metrics['Case Rate'].q = (r.name === 'Global') ? 2.8 : '';
+      r.metrics['Contacts Offered'].q = (r.name === 'Global') ? 160 : '';
+      r.metrics['TCD by Contact Type'].q = (r.name === 'Global') ? 110 : '';
+      r.callouts = [...callouts];
+      r.actions = [...actions];
+    });
+    return regions;
+  }
+ 
+  let STATE = { regions: seedDefaults(), activeTab: 'Global' };
+ 
+  Chart.defaults.font.family = "'Inter', 'Segoe UI', Arial, sans-serif";
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = '#4A5578';
+ 
+  const trendCharts = {};
+ 
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+ 
+  function getActive() {
+    return STATE.regions.find(r => r.name === STATE.activeTab) || STATE.regions[0];
+  }
+ 
+  function renderDropdown() {
+    const sel = document.getElementById('regionSelect');
+    sel.innerHTML = '';
+    STATE.regions.forEach(r => {
+      const o = document.createElement('option');
+      o.value = r.name; o.textContent = r.name;
+      sel.appendChild(o);
+    });
+    sel.value = STATE.activeTab;
+  }
+ 
+  function renderTrend(region, metricName) {
+    const row = region.metrics[metricName];
+    const id = 'trend_' + metricName.replace(/\s|\//g,'_');
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const vals = ['m1','m2','m3'].map(k => parseFloat(String(row[k]).replace('%','')) || null);
+    const key = region.name + '__' + metricName;
+    if (trendCharts[key]) trendCharts[key].destroy();
+ 
+    // Build gradient stroke
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    grad.addColorStop(0, '#6366F1');
+    grad.addColorStop(0.5, '#8B5CF6');
+    grad.addColorStop(1, '#06B6D4');
+    const fillGrad = ctx.createLinearGradient(0, 0, 0, 50);
+    fillGrad.addColorStop(0, 'rgba(99,102,241,0.25)');
+    fillGrad.addColorStop(1, 'rgba(99,102,241,0)');
+ 
+    trendCharts[key] = new Chart(canvas, {
+      type:'line',
+      data:{
+        labels:[region.months.m1, region.months.m2, region.months.m3],
+        datasets:[{
+          data:vals,
+          borderColor:grad,
+          backgroundColor:fillGrad,
+          pointBackgroundColor:'#6366F1',
+          pointBorderColor:'#FFFFFF',
+          pointBorderWidth:2,
+          pointRadius:4,
+          pointHoverRadius:6,
+          pointHoverBackgroundColor:'#EC4899',
+          borderWidth:2.5,
+          tension:0.4,
+          fill:true,
+          spanGaps:true
+        }]
+      },
+      options:{
+        maintainAspectRatio:false,
+        animation:{ duration:800, easing:'easeOutCubic' },
+        plugins:{
+          legend:{ display:false },
+          tooltip:{
+            titleFont:{size:11, weight:'700'}, bodyFont:{size:11, weight:'600'},
+            backgroundColor:'rgba(30,27,75,0.95)',
+            padding:10, cornerRadius:8,
+            displayColors:false,
+            borderColor:'#6366F1', borderWidth:1
+          }
+        },
+        scales:{ x:{ display:false }, y:{ display:false } }
+      }
+    });
+  }
+ 
+  function renderScorecard(animate) {
+    const region = getActive();
+    document.getElementById('regionBadge').textContent = region.name;
+    document.getElementById('quarterInput').value = region.months.q;
+    document.getElementById('th-m1').textContent = region.months.m1;
+    document.getElementById('th-m2').textContent = region.months.m2;
+    document.getElementById('th-m3').textContent = region.months.m3;
+    document.getElementById('th-q').textContent = region.months.q;
+ 
+    const tbody = document.getElementById('metricBody');
+    tbody.innerHTML = '';
+    METRICS.forEach((m, idx) => {
+      const row = region.metrics[m];
+      const tr = document.createElement('tr');
+      tr.style.animationDelay = (idx * 0.05) + 's';
+      tr.innerHTML = `
+<td class="metric-name" title="${m}">${m}</td>
+<td><input type="text" class="goal-input" data-m="${m}" data-f="goal" value="${row.goal}"></td>
+<td><input type="text" data-m="${m}" data-f="m1" value="${row.m1}"></td>
+<td><input type="text" data-m="${m}" data-f="m2" value="${row.m2}"></td>
+<td><input type="text" data-m="${m}" data-f="m3" value="${row.m3}"></td>
+<td><input type="text" data-m="${m}" data-f="q" value="${row.q}"></td>
+<td class="trend-cell"><canvas id="trend_${m.replace(/\s|\//g,'_')}" height="44"></canvas></td>
+      `;
+      tbody.appendChild(tr);
+    });
+ 
+    tbody.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const m = e.target.dataset.m, f = e.target.dataset.f;
+        region.metrics[m][f] = e.target.value;
+        if (['m1','m2','m3'].includes(f)) renderTrend(region, m);
+      });
+    });
+ 
+    setTimeout(() => { METRICS.forEach(m => renderTrend(region, m)); }, animate ? 280 : 0);
+ 
+    renderCallouts();
+    renderActions();
+ 
+    document.getElementById('m1Label').value = region.months.m1;
+    document.getElementById('m2Label').value = region.months.m2;
+    document.getElementById('m3Label').value = region.months.m3;
+    document.getElementById('qLabelPop').value = region.months.q;
+  }
+ 
+  function renderCallouts() {
+    const region = getActive();
+    const list = document.getElementById('calloutList');
+    list.innerHTML = '';
+    region.callouts.forEach((c, i) => {
+      const li = document.createElement('li');
+      li.style.animationDelay = (i * 0.04) + 's';
+      li.innerHTML = `<textarea data-i="${i}">${c}</textarea><button class="remove-btn" data-i="${i}">×</button>`;
+      list.appendChild(li);
+    });
+    list.querySelectorAll('textarea').forEach(t => {
+      t.addEventListener('input', e => { region.callouts[parseInt(e.target.dataset.i,10)] = e.target.value; });
+    });
+    list.querySelectorAll('.remove-btn').forEach(b => {
+      b.addEventListener('click', e => { region.callouts.splice(parseInt(e.target.dataset.i,10), 1); renderCallouts(); });
+    });
+  }
+ 
+  function renderActions() {
+    const region = getActive();
+    const list = document.getElementById('actionList');
+    list.innerHTML = '';
+    region.actions.forEach((a, i) => {
+      const li = document.createElement('li');
+      li.style.animationDelay = (i * 0.04) + 's';
+      li.innerHTML = `<textarea data-i="${i}">${a}</textarea><button class="remove-btn" data-i="${i}">×</button>`;
+      list.appendChild(li);
+    });
+    list.querySelectorAll('textarea').forEach(t => {
+      t.addEventListener('input', e => { region.actions[parseInt(e.target.dataset.i,10)] = e.target.value; });
+    });
+    list.querySelectorAll('.remove-btn').forEach(b => {
+      b.addEventListener('click', e => { region.actions.splice(parseInt(e.target.dataset.i,10), 1); renderActions(); });
+    });
+  }
+ 
+  function switchRegion(newName) {
+    if (newName === STATE.activeTab) return;
+    const wrap = document.getElementById('animWrap');
+    const pane = document.querySelector('#bmsApp .scorecard-pane');
+    const shimmer = document.createElement('div');
+    shimmer.className = 'shimmer';
+    pane.appendChild(shimmer);
+    setTimeout(() => shimmer.remove(), 700);
+ 
+    wrap.classList.add('exiting');
+    setTimeout(() => {
+      STATE.activeTab = newName;
+      wrap.classList.remove('exiting');
+      void wrap.offsetWidth;
+      renderScorecard(true);
+    }, 220);
+  }
+ 
+  document.getElementById('quarterInput').addEventListener('input', e => {
+    const region = getActive();
+    region.months.q = e.target.value;
+    document.getElementById('th-q').textContent = e.target.value;
+    document.getElementById('qLabelPop').value = e.target.value;
+  });
+ 
+  document.getElementById('monthBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('monthPopover').classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    const pop = document.getElementById('monthPopover');
+    if (pop.classList.contains('open') && !pop.contains(e.target) && e.target.id !== 'monthBtn' && !e.target.closest('#monthBtn')) {
+      pop.classList.remove('open');
+    }
+  });
+ 
+  ['m1','m2','m3'].forEach(k => {
+    document.getElementById(k+'Label').addEventListener('input', e => {
+      const region = getActive();
+      region.months[k] = e.target.value;
+      if (k==='m1') document.getElementById('th-m1').textContent = e.target.value;
+      if (k==='m2') document.getElementById('th-m2').textContent = e.target.value;
+      if (k==='m3') document.getElementById('th-m3').textContent = e.target.value;
+      METRICS.forEach(m => renderTrend(region, m));
+    });
+  });
+  document.getElementById('qLabelPop').addEventListener('input', e => {
+    const region = getActive();
+    region.months.q = e.target.value;
+    document.getElementById('th-q').textContent = e.target.value;
+    document.getElementById('quarterInput').value = e.target.value;
+  });
+ 
+  document.getElementById('regionSelect').addEventListener('change', e => switchRegion(e.target.value));
+  document.getElementById('addCallout').addEventListener('click', () => { getActive().callouts.push(''); renderCallouts(); });
+  document.getElementById('addAction').addEventListener('click', () => { getActive().actions.push(''); renderActions(); });
+ 
+  document.getElementById('exportPptBtn').addEventListener('click', () => {
+    if (typeof PptxGenJS === 'undefined') { showToast('PPT library not loaded'); return; }
+    showToast('✨ Generating PowerPoint...');
+    const pres = new PptxGenJS();
+    pres.layout = 'LAYOUT_WIDE';
+    pres.title = 'Dell Care · BMS Scorecard';
+ 
+    const title = pres.addSlide();
+    title.background = { color: '0A0E27' };
+    title.addText('Dell Care', { x:0.5, y:2.6, w:12, h:0.9, fontSize:54, bold:true, color:'FFFFFF', fontFace:'Arial' });
+    title.addText('BMS Scorecard', { x:0.5, y:3.6, w:12, h:0.8, fontSize:36, color:'A5B4FC', fontFace:'Arial' });
+    const qLabel = STATE.regions[0] ? STATE.regions[0].months.q : '';
+    title.addText(qLabel, { x:0.5, y:4.6, w:12, h:0.5, fontSize:24, color:'06B6D4', fontFace:'Arial' });
+    title.addText('Generated ' + new Date().toLocaleDateString(), { x:0.5, y:6.8, w:12, h:0.3, fontSize:11, color:'A5B4FC', fontFace:'Arial' });
+ 
+    STATE.regions.forEach(region => {
+      const s = pres.addSlide();
+      s.background = { color: 'F4F6FB' };
+      s.addShape(pres.ShapeType.rect, { x:0, y:0, w:13.33, h:0.7, fill:{ color:'1E1B4B' } });
+      s.addText('Dell Care · BMS Scorecard — ' + region.name, { x:0.3, y:0.1, w:9.5, h:0.5, fontSize:20, bold:true, color:'FFFFFF', fontFace:'Arial' });
+      s.addText(region.months.q, { x:10, y:0.1, w:3, h:0.5, fontSize:14, color:'A5B4FC', fontFace:'Arial', align:'right' });
+ 
+      const tableRows = [[
+        { text:'Metric', options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'left' } },
+        { text:'Goal', options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'center' } },
+        { text:region.months.m1, options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'center' } },
+        { text:region.months.m2, options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'center' } },
+        { text:region.months.m3, options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'center' } },
+        { text:region.months.q, options:{ bold:true, color:'FFFFFF', fill:{ color:'1E1B4B' }, align:'center' } }
+      ]];
+      METRICS.forEach(m => {
+        const r = region.metrics[m];
+        tableRows.push([
+          { text:m, options:{ bold:true, color:'FFFFFF', fill:{ color:'6366F1' }, align:'left' } },
+          { text:String(r.goal||''), options:{ color:'0F1844', fill:{ color:'FFFFFF' }, align:'center' } },
+          { text:String(r.m1||''),   options:{ color:'0F1844', fill:{ color:'FFFFFF' }, align:'center' } },
+          { text:String(r.m2||''),   options:{ color:'0F1844', fill:{ color:'FFFFFF' }, align:'center' } },
+          { text:String(r.m3||''),   options:{ color:'0F1844', fill:{ color:'FFFFFF' }, align:'center' } },
+          { text:String(r.q||''),    options:{ color:'0F1844', fill:{ color:'FFFFFF' }, align:'center' } }
+        ]);
+      });
+      s.addTable(tableRows, {
+        x:0.3, y:0.95, w:8.2,
+        colW:[2.0, 1.1, 1.0, 1.0, 1.0, 1.1],
+        rowH:0.4, fontSize:10, fontFace:'Arial',
+        border:{ type:'solid', color:'E0E5F0', pt:0.5 }
+      });
+ 
+      s.addShape(pres.ShapeType.rect, { x:8.7, y:0.95, w:4.3, h:0.4, fill:{ color:'6366F1' } });
+      s.addText('🔥 CALLOUTS & OBSERVATIONS', { x:8.8, y:0.97, w:4.1, h:0.35, fontSize:10, bold:true, color:'FFFFFF', fontFace:'Arial' });
+      s.addShape(pres.ShapeType.rect, { x:8.7, y:1.35, w:4.3, h:3.0, fill:{ color:'FFFFFF' }, line:{ color:'E0E5F0', width:0.5 } });
+      const calloutsText = region.callouts.filter(c => c && c.trim()).map(c => '• ' + c).join('\n\n') || '—';
+      s.addText(calloutsText, { x:8.85, y:1.45, w:4.1, h:2.85, fontSize:9, color:'0F1844', fontFace:'Arial', valign:'top' });
+ 
+      s.addShape(pres.ShapeType.rect, { x:8.7, y:4.5, w:4.3, h:0.4, fill:{ color:'06B6D4' } });
+      s.addText('🎯 FUTURE ACTIONS', { x:8.8, y:4.52, w:4.1, h:0.35, fontSize:10, bold:true, color:'FFFFFF', fontFace:'Arial' });
+      s.addShape(pres.ShapeType.rect, { x:8.7, y:4.9, w:4.3, h:2.3, fill:{ color:'FFFFFF' }, line:{ color:'E0E5F0', width:0.5 } });
+      const actionsText = region.actions.filter(a => a && a.trim()).map(a => '→ ' + a).join('\n\n') || '—';
+      s.addText(actionsText, { x:8.85, y:5.0, w:4.1, h:2.15, fontSize:9, color:'0F1844', fontFace:'Arial', valign:'top' });
+    });
+ 
+    const fname = 'Dell_Care_BMS_Scorecard_' + (STATE.regions[0]?.months.q || 'export').replace(/\s/g,'_') + '.pptx';
+    pres.writeFile({ fileName: fname }).then(() => showToast('✅ PowerPoint downloaded')).catch(err => {
+      console.error(err); showToast('Export failed');
+    });
+  });
+ 
+  renderDropdown();
+  renderScorecard(false);
+})();
+</script>
+ 
+</body>
+</html>
+ 
+							<script>
+</script>
+</body>
+</html>

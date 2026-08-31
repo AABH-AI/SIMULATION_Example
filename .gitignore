@@ -1,0 +1,10 @@
+# dependencies / build output
+node_modules/
+dist/
+
+# Excel lock / owner temp files (per BUILD_PLAN: commit the .xlsx data, ignore only locks)
+~$*.xlsx
+
+# Claude local-only
+.claude/settings.local.json
+.claude/worktrees/

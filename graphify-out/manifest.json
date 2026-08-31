@@ -1,0 +1,22 @@
+{
+  "forecast_copilot/fc_engine.js": {
+    "mtime": 1784554946.2897818,
+    "ast_hash": "a73198857ff10462f122b278fb0d8ec1",
+    "semantic_hash": "a73198857ff10462f122b278fb0d8ec1"
+  },
+  "manifest.json": {
+    "mtime": 1784214357.1251383,
+    "ast_hash": "4e94446f23f4fe0e0bb3dd4f9110a127",
+    "semantic_hash": "4e94446f23f4fe0e0bb3dd4f9110a127"
+  },
+  "package.json": {
+    "mtime": 1784214357.1338649,
+    "ast_hash": "e571a414d13ef0931e702bb26eb2b3e1",
+    "semantic_hash": "e571a414d13ef0931e702bb26eb2b3e1"
+  },
+  "scripts/updateManifest.js": {
+    "mtime": 1784214357.166377,
+    "ast_hash": "d99e7b345931570793fd1394f6e6ab8e",
+    "semantic_hash": "d99e7b345931570793fd1394f6e6ab8e"
+  }
+}

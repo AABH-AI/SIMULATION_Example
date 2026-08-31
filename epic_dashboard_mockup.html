@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supply Chain Goliath - Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <!-- Optional library for PDF export if desired later -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      /* Dark Theme */
+      --bg-main: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: #21262d;
+      --bg-hover: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --left-panel-bg: #002244;
+      --left-panel-hover: #003366;
+      --success: #3fb950;
+      --danger: #f85149;
+    }
+    
+    [data-theme="light"] {
+      --bg-main: #f3f4f6;
+      --bg-panel: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f9fafb;
+      --text-primary: #24292f;
+      --text-secondary: #57606a;
+      --border: #d0d7de;
+      --accent: #0969da;
+      --left-panel-bg: #003366; 
+      --left-panel-hover: #004080;
+      --success: #1a7f37;
+      --danger: #cf222e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; transition: background 0.3s, color 0.3s; }
+    
+    /* --- VIEW TOGGLES --- */
+    #home-view { display: flex; flex-direction: column; height: 100vh; }
+    #dashboard-view { display: none; height: 100vh; flex-direction: column; }
+    
+    /* --- HOME PAGE --- */
+    .home-banner {
+      background: linear-gradient(rgba(0,34,68,0.8), rgba(0,34,68,0.8)), url('https://images.unsplash.com/photo-1586528116311-ad8ed7c1590a?auto=format&fit=crop&q=80') center/cover;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .home-banner h1 { color: white; font-size: 3rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .company-logo { position: absolute; top: 20px; right: 30px; }
+    .company-logo img { height: 40px; }
+    
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      overflow-y: auto;
+    }
+    .tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+    }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 8px 12px rgba(0,0,0,0.15); border-color: var(--accent); }
+    .tile-icon { font-size: 32px; color: var(--accent); }
+    .tile-title { font-size: 1.2rem; font-weight: 600; }
+
+    /* --- DASHBOARD HEADER --- */
+    .dash-header {
+      height: 50px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .btn-icon { background: none; border: none; color: var(--text-primary); cursor: pointer; font-size: 18px; padding: 6px; border-radius: 4px; }
+    .btn-icon:hover { background: var(--bg-hover); }
+    
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border); color: var(--text-primary);
+      padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn-outline:hover { background: var(--bg-hover); border-color: var(--text-secondary); }
+
+    /* --- DASHBOARD LAYOUT --- */
+    .dash-body { display: flex; flex: 1; overflow: hidden; }
+    
+    /* Left Accordion Panel */
+    .left-panel {
+      width: 260px;
+      background: var(--left-panel-bg);
+      color: white;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s;
+      overflow-y: auto;
+    }
+    .left-panel.collapsed { width: 0; overflow: hidden; }
+    
+    .accordion-item { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .accordion-header {
+      padding: 14px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .accordion-header:hover { background: var(--left-panel-hover); }
+    .accordion-content { background: rgba(0,0,0,0.2); display: none; }
+    .accordion-content.active { display: block; }
+    
+    .nav-link {
+      display: block;
+      padding: 10px 20px 10px 40px;
+      color: #ccc;
+      text-decoration: none;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .nav-link:hover, .nav-link.active { color: white; background: var(--left-panel-hover); border-left: 3px solid var(--accent); }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: var(--bg-main);
+    }
+    
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+    .page-section { display: none; animation: fadeIn 0.3s; }
+    .page-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* AI Insights Banner */
+    .ai-insights-banner {
+      background: linear-gradient(90deg, rgba(47, 129, 247, 0.1), rgba(163, 113, 247, 0.1));
+      border: 1px solid rgba(163, 113, 247, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .ai-icon { color: #a371f7; font-size: 24px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    .ai-content h4 { font-size: 14px; margin-bottom: 6px; color: #a371f7; }
+    .ai-content ul { padding-left: 20px; font-size: 13px; line-height: 1.5; color: var(--text-primary); }
+    .ai-content li { margin-bottom: 4px; }
+
+    /* KPI Grid */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .kpi-card::before { content: ''; position: absolute; top:0; left:0; width:4px; height:100%; background: var(--accent); border-radius: 8px 0 0 8px; }
+    .kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; }
+    .kpi-value { font-size: 24px; font-weight: 700; transition: color 0.3s; }
+    .kpi-sub { font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 4px; }
+    
+    /* Charts & Tables */
+    .visual-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .visual-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+    .visual-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .data-table th { background: var(--bg-hover); color: var(--text-secondary); padding: 8px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap;}
+    .data-table td { padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap;}
+    .data-table tr:hover td { background: var(--bg-hover); }
+
+    /* Right Filter Panel */
+    .right-panel {
+      width: 280px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s;
+    }
+    .right-panel.collapsed { width: 0; overflow: hidden; border: none; }
+    
+    .filter-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+    
+    .filter-search-box { padding: 10px 16px; }
+    .filter-search-input {
+      width: 100%;
+      padding: 6px 30px 6px 10px;
+      background: var(--bg-main) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E") no-repeat right 8px center;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .filter-list { overflow-y: auto; flex: 1; padding: 0 16px; }
+    
+    .filter-dropdown { margin-bottom: 12px; }
+    .filter-dropdown-btn {
+      width: 100%; text-align: left; background: var(--bg-card); border: 1px solid var(--border);
+      padding: 8px 12px; border-radius: 4px; color: var(--text-primary); cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center; font-size: 12px;
+    }
+    .filter-dropdown-content {
+      display: none; border: 1px solid var(--border); border-top: none;
+      background: var(--bg-card); padding: 8px; border-radius: 0 0 4px 4px;
+      max-height: 150px; overflow-y: auto;
+    }
+    .filter-dropdown-content.open { display: block; }
+    
+    .filter-checkbox { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; cursor: pointer; }
+    .filter-checkbox input { cursor: pointer; }
+    .inner-search { width: 100%; padding: 4px 8px; font-size: 11px; margin-bottom: 8px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-primary); border-radius: 2px;}
+
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+    .badge-high { background: rgba(248,81,73,0.2); color: var(--danger); }
+    .badge-good { background: rgba(63,185,80,0.2); color: var(--success); }
+    
+  </style>
+</head>
+<body>
+
+  <!-- VIEW 1: HOME PAGE -->
+  <div id="home-view">
+    <div class="home-banner">
+      <div class="company-logo">
+        <img src="ALigned logo.png" alt="Aligned Automation Logo" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'40\'%3E%3Crect width=\'150\' height=\'40\' fill=\'none\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'white\' font-family=\'sans-serif\' font-size=\'16\'%3EAligned Logo%3C/text%3E%3C/svg%3E'">
+      </div>
+      <h1>Supply Chain Goliath</h1>
+    </div>
+    
+    <div class="tiles-grid">
+      <div class="tile" onclick="openDashboard('data-quality')">
+        <i class="ti ti-database tile-icon"></i>
+        <div class="tile-title">Data Quality</div>
+      </div>
+      <div class="tile" onclick="openDashboard('demand-profiling')">
+        <i class="ti ti-chart-line tile-icon"></i>
+        <div class="tile-title">Demand Profiling</div>
+      </div>
+      <div class="tile" onclick="openDashboard('forecast-accuracy')">
+        <i class="ti ti-target tile-icon"></i>
+        <div class="tile-title">Forecast Accuracy</div>
+      </div>
+      <div class="tile" onclick="openDashboard('demand-alerts')">
+        <i class="ti ti-alert-circle tile-icon"></i>
+        <div class="tile-title">Demand Planning Alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: DASHBOARD -->
+  <div id="dashboard-view">
+    <div class="dash-header">
+      <div class="header-left">
+        <button class="btn-icon" onclick="toggleLeftPanel()"><i class="ti ti-menu-2"></i></button>
+        <span id="dash-title" style="font-weight: 600; font-size: 16px;">Supply Chain Goliath | Forecast Accuracy</span>
+        <span class="badge" style="background:var(--accent); color:white; margin-left:10px;" id="global-context">FY26 | M1-M3 | All Regions</span>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <!-- Export Controls -->
+        <button class="btn-outline" onclick="exportToCSV()" title="Export raw data to CSV">
+          <i class="ti ti-file-spreadsheet"></i> Export CSV
+        </button>
+        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 4px;"></div>
+        
+        <button class="btn-icon" onclick="goHome()" title="Home"><i class="ti ti-home"></i></button>
+        <button class="btn-icon" onclick="toggleTheme()" title="Theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+        <button class="btn-icon" onclick="toggleRightPanel()" title="Filters"><i class="ti ti-filter"></i></button>
+      </div>
+    </div>
+    
+    <div class="dash-body">
+      <!-- Left Panel (Accordion) -->
+      <div class="left-panel" id="left-panel">
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(this)">
+            Module Sections <i class="ti ti-chevron-down"></i>
+          </div>
+          <div class="accordion-content active" id="left-nav-links">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content" id="exportable-area">
+        
+        <!-- ======================= -->
+        <!-- MODULE: FORECAST ACCURACY -->
+        <!-- ======================= -->
+        <div id="module-forecast-accuracy" class="module-section active">
+          
+          <!-- AI Insights Banner (Aggregated Logic) -->
+          <div class="ai-insights-banner">
+            <i class="ti ti-sparkles ai-icon"></i>
+            <div class="ai-content">
+              <h4>Smart Executive Insights (Generated on Filter Change)</h4>
+              <ul id="dynamic-insights">
+                <li><strong style="color:var(--danger)">Alert:</strong> Forecast Service Request variance is trending -1.5% below expected levels in AMER.</li>
+                <li><strong style="color:var(--success)">Positive:</strong> Forecast Tech ASU is outperforming last year's baseline by 4.0%.</li>
+                <li><strong>Observation:</strong> Omega Sys has the highest concentration of MDR Work Orders (850) this quarter.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- PAGE 1: Forecast Overview -->
+          <div id="fa-page-overview" class="page-section active">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Tech ASU</div>
+                <div class="kpi-value kpi-dynamic" id="kpi-tech-asu" style="color:var(--accent)">142.5K</div>
+                <div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 4.0% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Work Orders</div>
+                <div class="kpi-value kpi-dynamic">86.2K</div>
+                <div class="kpi-sub" style="color:var(--success)"><i class="ti ti-arrow-up-right"></i> 2.1% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Forecast Service Request</div>
+                <div class="kpi-value kpi-dynamic" id="kpi-srv-req">32.1K</div>
+                <div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-arrow-down-right"></i> -1.5% vs PY</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Forecast Demand SR</div>
+                <div class="kpi-value kpi-dynamic">8.4K</div>
+              </div>
+            </div>
+            
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title">Tech ASU vs Work Orders Trend</div>
+                <div style="flex:1; min-height: 250px;"><canvas id="fa-chart-overview"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title">Weekly Actuals vs Forecast (Bar)</div>
+                <div style="flex:1; min-height: 250px;"><canvas id="fa-chart-hbar"></canvas></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGE 2: Weekly Actuals & Metrics -->
+          <div id="fa-page-actuals" class="page-section">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly SR Actuals</div>
+                <div class="kpi-value kpi-dynamic" style="color:var(--success)">8.2K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Field ASU Actuals</div>
+                <div class="kpi-value kpi-dynamic">12.1K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Tech ASU</div>
+                <div class="kpi-value kpi-dynamic">14.5K</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly Forecast Demand SR Actuals</div>
+                <div class="kpi-value kpi-dynamic">8.1K</div>
+              </div>
+            </div>
+            
+            <div class="visual-card">
+              <div class="visual-title">
+                <span>Raw Data Matrix: Actuals vs Forecast</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table" id="exportable-table">
+                  <thead>
+                    <tr>
+                      <th>Region</th>
+                      <th>LOB</th>
+                      <th>Week</th>
+                      <th>Weekly SR Actuals</th>
+                      <th>Weekly Field ASU Actuals</th>
+                      <th>Weekly Tech ASU</th>
+                      <th>Forecast Demand SR Actuals</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="actuals-table-body">
+                    <!-- Populated via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAGE 3: Location & Partner View -->
+          <div id="fa-page-partner" class="page-section">
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Active Partners</div>
+                <div class="kpi-value kpi-dynamic">24</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Global Locations</div>
+                <div class="kpi-value kpi-dynamic">115</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Avg MDR Work Orders</div>
+                <div class="kpi-value kpi-dynamic">3.8K</div>
+                <div class="kpi-sub" style="color:var(--danger)"><i class="ti ti-alert-triangle"></i> Needs Attention</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Weekly AVG MDR</div>
+                <div class="kpi-value kpi-dynamic">4.5%</div>
+              </div>
+            </div>
+
+            <div class="visual-row">
+              <div class="visual-card">
+                <div class="visual-title">MDR Work Orders by Partner (Horizontal)</div>
+                <div style="flex:1; min-height: 250px;"><canvas id="fa-chart-partner"></canvas></div>
+              </div>
+              <div class="visual-card">
+                <div class="visual-title">Top Locations & Queue Names</div>
+                <div style="overflow-x:auto; flex:1;">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Location Name</th>
+                        <th>Partner Name</th>
+                        <th>Queue Name</th>
+                        <th>Bus Reporting</th>
+                        <th>Weekly AVG MDR</th>
+                      </tr>
+                    </thead>
+                    <tbody id="partner-table-body">
+                      <!-- Populated via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Panel (Filters) -->
+      <div class="right-panel" id="right-panel">
+        <div class="filter-header">
+          <div><i class="ti ti-filter"></i> Global Filters</div>
+          <i class="ti ti-x" style="cursor:pointer;" onclick="toggleRightPanel()"></i>
+        </div>
+        
+        <div class="filter-search-box">
+          <input type="text" class="filter-search-input" placeholder="Search filters...">
+        </div>
+        
+        <div class="filter-list" id="filter-container">
+          
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Fiscal Year / Quarter</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> FY26</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> FY25</label>
+                <hr style="border:0; border-top:1px solid var(--border); margin:4px 0;">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> Q1</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Q2</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Q3</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Q4</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Fiscal Month</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <input type="text" class="inner-search" placeholder="Search month..." onkeyup="filterChecks(this)">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M1</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M2</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M3</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M4</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M5</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> M6</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Fiscal Week</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <input type="text" class="inner-search" placeholder="Search week (W1-W52)..." onkeyup="filterChecks(this)">
+              <div class="check-list filter-inputs" id="week-check-list">
+                <!-- JS populated -->
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Region & Sub-Region</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate('Region')"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('AMER')"> AMER (North America)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('AMER')"> AMER (LATAM)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('EMEA')"> EMEA (Western Europe)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate('APAC')"> APAC</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-dropdown">
+            <div class="filter-dropdown-btn" onclick="toggleDropdown(this)">
+              <span>Partner Name</span> <i class="ti ti-chevron-down"></i>
+            </div>
+            <div class="filter-dropdown-content">
+              <input type="text" class="inner-search" placeholder="Search partner..." onkeyup="filterChecks(this)">
+              <div class="check-list filter-inputs">
+                <label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Alpha Tech</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Omega Sys</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Sigma Global</label>
+                <label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> Delta Services</label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <script>
+    // Theme
+    let isDark = true;
+    function toggleTheme() {
+      isDark = !isDark;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-icon').className = isDark ? 'ti ti-moon' : 'ti ti-sun';
+      Object.values(chartInstances).forEach(chart => { if(chart) chart.update(); });
+    }
+
+    // Module definitions
+    const modules = {
+      'data-quality': { title: 'Data Quality', pages: [ { id: 'dq-page-metrics', label: 'Quality Metrics' } ] },
+      'demand-profiling': { title: 'Demand Profiling', pages: [ { id: 'dp-page-overview', label: 'Profiling Overview' } ] },
+      'forecast-accuracy': { 
+        title: 'Forecast Accuracy', 
+        pages: [
+          { id: 'fa-page-overview', label: 'Forecast Overview' },
+          { id: 'fa-page-actuals', label: 'Weekly Actuals & Metrics' },
+          { id: 'fa-page-partner', label: 'Location & Partner View' }
+        ] 
+      },
+      'demand-alerts': { title: 'Demand Planning Alerts', pages: [ { id: 'da-page-log', label: 'Alerts Log' } ] }
+    };
+
+    let activeModule = '';
+
+    function openDashboard(moduleId) {
+      activeModule = moduleId;
+      document.getElementById('home-view').style.display = 'none';
+      document.getElementById('dashboard-view').style.display = 'flex';
+      document.getElementById('dash-title').innerText = `Supply Chain Goliath | ${modules[moduleId].title}`;
+      
+      document.querySelectorAll('.module-section').forEach(m => m.classList.remove('active'));
+      const activeModEl = document.getElementById('module-' + moduleId);
+      if(activeModEl) activeModEl.classList.add('active');
+
+      const navContainer = document.getElementById('left-nav-links');
+      navContainer.innerHTML = '';
+      
+      modules[moduleId].pages.forEach((page, index) => {
+        const link = document.createElement('div');
+        link.className = 'nav-link' + (index === 0 ? ' active' : '');
+        link.innerText = page.label;
+        link.onclick = () => switchPage(page.id, link, moduleId);
+        navContainer.appendChild(link);
+      });
+
+      if(modules[moduleId].pages.length > 0) {
+        switchPage(modules[moduleId].pages[0].id, navContainer.firstChild, moduleId);
+      }
+
+      setTimeout(initCharts, 100);
+    }
+    
+    function goHome() {
+      document.getElementById('dashboard-view').style.display = 'none';
+      document.getElementById('home-view').style.display = 'flex';
+    }
+
+    function toggleLeftPanel() { document.getElementById('left-panel').classList.toggle('collapsed'); }
+    function toggleRightPanel() { document.getElementById('right-panel').classList.toggle('collapsed'); }
+
+    function toggleAccordion(el) {
+      const content = el.nextElementSibling;
+      const icon = el.querySelector('i');
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+        icon.className = 'ti ti-chevron-down';
+      } else {
+        content.classList.add('active');
+        icon.className = 'ti ti-chevron-up';
+      }
+    }
+
+    function switchPage(pageId, linkEl, moduleId) {
+      const moduleEl = document.getElementById('module-' + moduleId);
+      if(!moduleEl) return;
+      moduleEl.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+      document.getElementById('left-nav-links').querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      
+      document.getElementById(pageId).classList.add('active');
+      linkEl.classList.add('active');
+    }
+
+    // Filters Dropdown Logic
+    function toggleDropdown(btn) { btn.nextElementSibling.classList.toggle('open'); }
+    function filterChecks(input) {
+      const filter = input.value.toUpperCase();
+      const labels = input.nextElementSibling.getElementsByTagName('label');
+      for (let i = 0; i < labels.length; i++) {
+        const txtValue = labels[i].textContent || labels[i].innerText;
+        labels[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1) ? "" : "none";
+      }
+    }
+
+    const weekList = document.getElementById('week-check-list');
+    let weekHtml = '<label class="filter-checkbox"><input type="checkbox" checked onchange="triggerDataUpdate()"> (All)</label>';
+    for(let i=1; i<=52; i++) { weekHtml += `<label class="filter-checkbox"><input type="checkbox" onchange="triggerDataUpdate()"> W${i}</label>`; }
+    weekList.innerHTML = weekHtml;
+
+    function generateTableData() {
+      const tbody1 = document.getElementById('actuals-table-body');
+      if(tbody1) {
+        let tableHtml = '';
+        for(let i=1; i<=8; i++) {
+          const varAmt = Math.random() * 2000;
+          const isGood = varAmt > 1000;
+          tableHtml += `
+            <tr>
+              <td>${['AMER','EMEA','APAC'][Math.floor(Math.random()*3)]}</td>
+              <td>${['Field Services','Remote Support'][Math.floor(Math.random()*2)]}</td>
+              <td>W${Math.floor(Math.random()*52)+1}</td>
+              <td>${Math.floor(Math.random()*5000 + 1000).toLocaleString()}</td>
+              <td>${Math.floor(Math.random()*8000 + 2000).toLocaleString()}</td>
+              <td>${Math.floor(Math.random()*4000 + 500).toLocaleString()}</td>
+              <td>${Math.floor(Math.random()*6000 + 1000).toLocaleString()}</td>
+              <td><span class="badge ${isGood ? 'badge-good':'badge-high'}">${isGood ? 'Within Tolerance' : 'Out of Bounds'}</span></td>
+            </tr>
+          `;
+        }
+        tbody1.innerHTML = tableHtml;
+      }
+    }
+    generateTableData();
+
+    // INTERACTIVITY: Client-side "AI" Logic & Updates
+    function triggerDataUpdate(regionHint) {
+      document.getElementById('global-context').innerText = 'Custom Filtered View';
+      
+      // Update KPIs
+      document.querySelectorAll('.kpi-dynamic').forEach(el => {
+        let currentTxt = el.innerText;
+        let isPercentage = currentTxt.includes('%');
+        let isK = currentTxt.includes('K');
+        let baseNum = parseFloat(currentTxt.replace(/[^0-9.]/g, ''));
+        let variance = 1 + ((Math.random() * 0.3) - 0.15); 
+        let newNum = baseNum * variance;
+
+        if(isPercentage) el.innerText = newNum.toFixed(1) + '%';
+        else if (isK) el.innerText = newNum.toFixed(1) + 'K';
+        else el.innerText = Math.round(newNum).toLocaleString();
+      });
+
+      generateTableData();
+
+      // Rule-based "Smart Insights" (No backend required)
+      const insightList = document.getElementById('dynamic-insights');
+      if(insightList) {
+        let techAsuVal = parseFloat(document.getElementById('kpi-tech-asu').innerText);
+        let srvReqVal = parseFloat(document.getElementById('kpi-srv-req').innerText);
+        let regionText = regionHint ? regionHint : "selected regions";
+        
+        let insightsHTML = '';
+        
+        if (techAsuVal > 140) {
+          insightsHTML += `<li><strong style="color:var(--success)">Positive:</strong> Forecast Tech ASU is performing well above the 140K benchmark across ${regionText}.</li>`;
+        } else {
+          insightsHTML += `<li><strong style="color:var(--danger)">Alert:</strong> Forecast Tech ASU has dropped below the 140K threshold. Consider adjusting capacity planning.</li>`;
+        }
+
+        if (srvReqVal < 30) {
+          insightsHTML += `<li><strong style="color:var(--danger)">Alert:</strong> Forecast Service Request is trending anomalously low (${srvReqVal}K). Check data completeness.</li>`;
+        } else {
+          insightsHTML += `<li><strong style="color:var(--success)">Stable:</strong> Service Request volumes are within normal historical bounds.</li>`;
+        }
+
+        // Random partner insight
+        const partners = ['Alpha Tech', 'Omega Sys', 'Delta Services'];
+        const randomPartner = partners[Math.floor(Math.random()*partners.length)];
+        insightsHTML += `<li><strong>Observation:</strong> Watch out for ${randomPartner} - they show the highest variation in MDR Work Orders this cycle.</li>`;
+
+        insightList.innerHTML = insightsHTML;
+      }
+
+      // Update Charts
+      if (chartInstances['fa-chart-overview']) {
+        const c = chartInstances['fa-chart-overview'];
+        c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => v * (1 + ((Math.random() * 0.4) - 0.2))); });
+        c.update();
+      }
+      if (chartInstances['fa-chart-hbar']) {
+        const c = chartInstances['fa-chart-hbar'];
+        c.data.datasets.forEach(ds => { ds.data = ds.data.map(v => Math.max(10, v * (1 + ((Math.random() * 0.4) - 0.2)))); });
+        c.update();
+      }
+    }
+
+    // CSV Export functionality (Client-Side)
+    function exportToCSV() {
+      const table = document.getElementById('exportable-table');
+      if(!table) {
+        alert("Please open a page with a data matrix to export.");
+        return;
+      }
+      
+      let csvContent = "data:text/csv;charset=utf-8,";
+      const rows = table.querySelectorAll('tr');
+      
+      rows.forEach((row) => {
+        const cols = row.querySelectorAll('th, td');
+        const rowData = Array.from(cols).map(col => {
+          // Clean text (remove newlines, escape quotes)
+          let text = col.innerText.replace(/(\r\n|\n|\r)/gm, " ").trim();
+          return `"${text}"`;
+        }).join(",");
+        csvContent += rowData + "\r\n";
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "Supply_Chain_Goliath_Export.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Charts Setup
+    Chart.defaults.color = '#8b949e';
+    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    const chartInstances = {};
+
+    function initCharts() {
+      Object.values(chartInstances).forEach(c => { if(c) c.destroy(); });
+
+      const ctxFA1 = document.getElementById('fa-chart-overview');
+      if(ctxFA1) {
+        chartInstances['fa-chart-overview'] = new Chart(ctxFA1.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: ['W1','W2','W3','W4','W5','W6'],
+            datasets: [
+              { label: 'Forecast Tech ASU', data: [120, 135, 125, 145, 155, 140], borderColor: '#2f81f7', tension:0.4 },
+              { label: 'Forecast Work Orders', data: [80, 90, 85, 95, 100, 90], borderColor: '#3fb950', tension:0.4 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      const ctxFA2 = document.getElementById('fa-chart-hbar');
+      if(ctxFA2) {
+        chartInstances['fa-chart-hbar'] = new Chart(ctxFA2.getContext('2d'), {
+          type: 'bar', 
+          data: {
+            labels: ['AMER','EMEA','APAC'],
+            datasets: [
+              { label: 'Weekly Actuals', data: [450, 300, 250], backgroundColor: '#2f81f7' },
+              { label: 'Forecast Demand', data: [420, 310, 230], backgroundColor: '#3fb950' }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+  </script>
+</body>
+</html>

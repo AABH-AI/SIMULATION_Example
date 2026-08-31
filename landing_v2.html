@@ -1,0 +1,686 @@
+﻿<title>ISG BPA — Platform</title>
+<style>
+  :root {
+    --bg:      #f2f4fb;
+    --surface: #ffffff;
+    --border:  #dde2f2;
+    --text-1:  #0c1322;
+    --text-2:  #4b5a78;
+    --text-3:  #8d9ab8;
+    --accent:  #1a46e0;
+    --mono: 'IBM Plex Mono', 'Roboto Mono', 'Courier New', monospace;
+    --ui:   'Plus Jakarta Sans', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { height: 100%; }
+  body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--ui);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    background: #0c1322;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 40px;
+    gap: 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #4b5e88;
+    letter-spacing: 0.04em;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .sb-live {
+    display: flex; align-items: center; gap: 6px;
+    color: #4ade80; margin-right: 20px;
+  }
+  .sb-live::before {
+    content: '';
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 7px rgba(74,222,128,0.7);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  @media (prefers-reduced-motion: reduce) { .sb-live::before { animation: none; } }
+  .sb-sep { margin: 0 14px; color: #1e2a44; }
+  .sb-val { color: #8ba0cc; }
+
+  /* ── Site header ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 52px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-mark {
+    width: 26px; height: 26px;
+    background: var(--accent);
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 800;
+    letter-spacing: -0.06em; flex-shrink: 0;
+  }
+  .logo-text {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-1); letter-spacing: -0.025em;
+  }
+  .logo-text span { color: var(--text-3); font-weight: 400; }
+  .header-right {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-3);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .header-right a {
+    color: var(--text-3); text-decoration: none;
+    transition: color 0.15s;
+  }
+  .header-right a:hover { color: var(--accent); }
+
+  /* ── Page ── */
+  .page { max-width: 1080px; margin: 0 auto; padding: 0 40px 64px; }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 52px 0 44px;
+    display: grid;
+    grid-template-columns: 1fr 252px;
+    gap: 40px;
+    align-items: start;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 44px;
+  }
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 18px; height: 1.5px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .hero-title {
+    font-size: clamp(2rem, 3.5vw, 3.1rem);
+    font-weight: 800;
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    color: var(--text-1);
+    margin-bottom: 18px;
+    text-wrap: balance;
+  }
+  .hero-title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-desc {
+    font-size: 13.5px;
+    color: var(--text-2);
+    line-height: 1.75;
+    max-width: 480px;
+  }
+
+  /* ── Data panel ── */
+  .data-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .dp-header {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .dp-live {
+    display: flex; align-items: center; gap: 5px;
+    color: #4ade80; font-size: 9px;
+  }
+  .dp-live::before {
+    content: '';
+    width: 4px; height: 4px; border-radius: 50%;
+    background: #4ade80;
+  }
+  .dp-body { padding: 4px 0; }
+  .dp-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dp-row:last-child { border-bottom: none; }
+  .dp-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .dp-value {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .dp-value.c-accent { color: var(--accent); }
+  .dp-value.c-green  { color: #16a34a; }
+
+  /* ── Section label ── */
+  .section-hd {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .section-rule {
+    flex: 1; height: 1px; background: var(--border);
+  }
+  .section-count {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--text-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 2px 8px;
+  }
+
+  /* ── Module grid ── */
+  .module-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 44px;
+  }
+  .mod {
+    background: var(--surface);
+    padding: 20px 18px 18px;
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: background 0.14s;
+    outline-offset: -2px;
+  }
+  .mod::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--c, var(--accent));
+    opacity: 0;
+    transition: opacity 0.14s;
+  }
+  .mod:hover { background: #f6f8fe; }
+  .mod:hover::before { opacity: 1; }
+  .mod:focus-visible { outline: 2px solid var(--accent); }
+
+  .mod-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--c, var(--accent));
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .mod-tag::before {
+    content: '';
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--c, var(--accent));
+    flex-shrink: 0;
+  }
+  .mod-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-1);
+    margin-bottom: 7px;
+    line-height: 1.3;
+    display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap;
+  }
+  .mod-desc {
+    font-size: 11.5px;
+    color: var(--text-2);
+    line-height: 1.68;
+    flex: 1;
+  }
+  .mod-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top: 1px solid var(--border);
+  }
+  .mod-file {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-3);
+  }
+  .mod-arrow {
+    font-size: 13px;
+    color: var(--text-3);
+    line-height: 1;
+    transition: color 0.14s, transform 0.14s;
+  }
+  .mod:hover .mod-arrow {
+    color: var(--c, var(--accent));
+    transform: translate(2px, -2px);
+  }
+
+  .chip-new {
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 20px;
+    background: rgba(6,182,212,0.1);
+    border: 1px solid rgba(6,182,212,0.28);
+    color: #0891b2;
+    vertical-align: middle;
+  }
+  .chip-upd {
+    font-size: 8px; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 2px 6px; border-radius: 20px;
+    background: rgba(26,70,224,0.08);
+    border: 1px solid rgba(26,70,224,0.2);
+    color: var(--accent);
+    vertical-align: middle;
+  }
+
+  /* ── All files ── */
+  .all-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .all-top {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .search {
+    flex: 1;
+    padding: 7px 12px 7px 30px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--ui);
+    color: var(--text-1);
+    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%238d9ab8' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%238d9ab8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 9px center;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .search::placeholder { color: var(--text-3); }
+  .search:focus { border-color: var(--accent); background-color: var(--surface); }
+
+  .file-list { display: flex; flex-direction: column; }
+  .frow {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text-1);
+    transition: background 0.12s;
+  }
+  .frow:last-child { border-bottom: none; }
+  .frow:hover { background: #f6f8fe; }
+  .frow:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .ficon {
+    width: 28px; height: 28px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0;
+  }
+  .finfo { flex: 1; min-width: 0; }
+  .fname { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fpath { font-family: var(--mono); font-size: 9.5px; color: var(--text-3); margin-top: 1px; }
+  .fbadge {
+    font-family: var(--mono);
+    font-size: 8.5px; font-weight: 600;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 4px;
+    background: rgba(26,70,224,0.07);
+    color: var(--accent);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .farrow {
+    color: var(--text-3); font-size: 12px; flex-shrink: 0;
+    transition: color 0.12s;
+  }
+  .frow:hover .farrow { color: var(--accent); }
+  .empty { color: var(--text-3); font-size: 13px; padding: 24px 16px; text-align: center; }
+
+  /* ── Responsive ── */
+  @media (max-width: 920px) {
+    .hero { grid-template-columns: 1fr; }
+    .data-panel { display: none; }
+    .module-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .page { padding: 0 20px 48px; }
+    .status-bar, .site-header { padding: 0 20px; }
+    .hero { padding: 36px 0 32px; }
+    .module-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<!-- ── Status bar ── -->
+<div class="status-bar">
+  <span class="sb-live">Live</span>
+  <span class="sb-val">FY26</span>
+  <span class="sb-sep">·</span>
+  <span class="sb-val">Week 22</span>
+  <span class="sb-sep">·</span>
+  <span class="sb-val">W01–W22 Actuals Confirmed</span>
+  <span class="sb-sep">·</span>
+  <span class="sb-val">AMER · EMEA · APJ</span>
+  <span class="sb-sep">·</span>
+  <span class="sb-val" id="sb-stamp">Loading…</span>
+</div>
+
+<!-- ── Header ── -->
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-mark">BPA</div>
+    <div class="logo-text">ISG BPA <span>/ Aligned Automation Services</span></div>
+  </div>
+  <div class="header-right">
+    <span id="hdr-stamp"></span>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ── Hero ── -->
+  <div class="hero">
+    <div class="hero-body">
+      <p class="hero-eyebrow">Business Planning and Analytics</p>
+      <h1 class="hero-title">Demand<br>Intelligence<br><em>Platform</em></h1>
+      <p class="hero-desc">Integrated demand forecasting, scenario analysis, and performance tracking across three global regions. Select a module to begin.</p>
+    </div>
+    <div class="data-panel">
+      <div class="dp-header">
+        <span>Platform Context</span>
+        <span class="dp-live">Live</span>
+      </div>
+      <div class="dp-body">
+        <div class="dp-row">
+          <span class="dp-label">Fiscal Year</span>
+          <span class="dp-value c-accent">FY26</span>
+        </div>
+        <div class="dp-row">
+          <span class="dp-label">Current Week</span>
+          <span class="dp-value">W22</span>
+        </div>
+        <div class="dp-row">
+          <span class="dp-label">Actuals thru</span>
+          <span class="dp-value">W01–W22</span>
+        </div>
+        <div class="dp-row">
+          <span class="dp-label">Total Records</span>
+          <span class="dp-value">1,204</span>
+        </div>
+        <div class="dp-row">
+          <span class="dp-label">Regions</span>
+          <span class="dp-value">3</span>
+        </div>
+        <div class="dp-row">
+          <span class="dp-label">Modules Active</span>
+          <span class="dp-value c-green">6</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Primary modules ── -->
+  <div class="section-hd">
+    <span class="section-label">Primary Modules</span>
+    <div class="section-rule"></div>
+    <span class="section-count">6</span>
+  </div>
+
+  <div class="module-grid">
+
+    <a href="forecast_copilot/Dashboard — Forecast Copilot.html" class="mod" style="--c:#0d9488;">
+      <div class="mod-tag">AI Planning Suite</div>
+      <div class="mod-title">Forecast Copilot <span class="chip-new">New</span></div>
+      <div class="mod-desc">Full Bend-The-Curve planning workflow — New Contracts &amp; APOS Simulation, a real 3-strategy BTC Recommendation Engine, Automatic Weekly Distribution, and Final Forecast submission. Cross-page filters and selections persist across all 6 pages.</div>
+      <div class="mod-foot">
+        <span class="mod-file">forecast_copilot/Dashboard — Forecast Copilot.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="BPA_FORCASTING_MOCK.HTML" class="mod" style="--c:#1a46e0;">
+      <div class="mod-tag">Active Development</div>
+      <div class="mod-title">ISG BPA — Forecasting Suite <span class="chip-upd">Updated</span></div>
+      <div class="mod-desc">Full forecasting dashboard with Forecast Accuracy, Actuals Profiling, demand classification, What-If Simulation, and Data Management. Filter-aware charts respond to FY and Product Group.</div>
+      <div class="mod-foot">
+        <span class="mod-file">BPA_FORCASTING_MOCK.HTML</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="ISG BPA — Business Planning and Analytics.html" class="mod" style="--c:#0891b2;">
+      <div class="mod-tag">Core Platform — Redesign</div>
+      <div class="mod-title">ISG BPA v2 <span class="chip-new">New</span></div>
+      <div class="mod-desc">Redesigned demand intelligence platform with 6 Actuals Profiling channels including Field Services and Care, realistic FY26 data, teal design system, and fully wired filter logic.</div>
+      <div class="mod-foot">
+        <span class="mod-file">ISG BPA — Business Planning and Analytics.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="IBP_Forcasting.html" class="mod" style="--c:#4338ca;">
+      <div class="mod-tag">Core Platform</div>
+      <div class="mod-title">ISG BPA: Business Planning</div>
+      <div class="mod-desc">Integrated demand forecasting dashboard with Forecast Accuracy, Demand Profiling, Planning Alerts, and full raw data export across AMER · EMEA · APJ.</div>
+      <div class="mod-foot">
+        <span class="mod-file">IBP_Forcasting.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="enterprise_whatif_forecasting_platform.html" class="mod" style="--c:#7c3aed;">
+      <div class="mod-tag">Scenario Planning</div>
+      <div class="mod-title">What-If Simulation</div>
+      <div class="mod-desc">Slider-driven parametric exploration — adjust renewal rates, contract growth, dispatch conversion, and SR intensity to model scenario outcomes across ASU, revenue, and cost.</div>
+      <div class="mod-foot">
+        <span class="mod-file">enterprise_whatif_forecasting_platform.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="bend_the_curve.html" class="mod" style="--c:#16a34a;">
+      <div class="mod-tag">Goal-First Planning</div>
+      <div class="mod-title">Bend the Curve</div>
+      <div class="mod-desc">Set a target ASU or revenue goal, then activate strategic levers — partner onboarding, renewals acceleration, geographic expansion — and see the forecast curve bend toward it.</div>
+      <div class="mod-foot">
+        <span class="mod-file">bend_the_curve.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+    <a href="animated_UI.html" class="mod" style="--c:#c2410c;">
+      <div class="mod-tag">Motion Design</div>
+      <div class="mod-title">Animated UI <span class="chip-new">New</span></div>
+      <div class="mod-desc">Immersive animated experience — cinematic transitions, motion-led data reveals, and visual storytelling across the ISG BPA platform.</div>
+      <div class="mod-foot">
+        <span class="mod-file">animated_UI.html</span>
+        <span class="mod-arrow">↗</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ── All files ── -->
+  <div class="section-hd">
+    <span class="section-label">All Available Files</span>
+    <div class="section-rule"></div>
+  </div>
+
+  <div class="all-wrap">
+    <div class="all-top">
+      <input class="search" type="search" id="searchInput" placeholder="Search modules…" autocomplete="off" />
+    </div>
+    <div class="file-list" id="pageList">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const PRIMARY = new Set([
+    'forecast_copilot/Dashboard — Forecast Copilot.html',
+    'BPA_FORCASTING_MOCK.HTML',
+    'ISG BPA — Business Planning and Analytics.html',
+    'IBP_Forcasting.html',
+    'enterprise_whatif_forecasting_platform.html',
+    'bend_the_curve.html',
+    'animated_UI.html',
+  ]);
+
+  const LABELS = {
+    'forecast_copilot/Dashboard — Forecast Copilot.html': 'Forecast Copilot — AI Planning Suite',
+    'BPA_FORCASTING_MOCK.HTML':                     'ISG BPA — Forecasting Suite (Active)',
+    'ISG BPA — Business Planning and Analytics.html':                       'ISG BPA v2 — Redesign',
+    'IBP_Forcasting.html':                          'ISG BPA: Business Planning and Analytics',
+    'enterprise_whatif_forecasting_platform.html':  'What-If Simulation',
+    'bend_the_curve.html':                          'Bend the Curve',
+    'animated_UI.html':                             'Animated UI',
+    'dell_workflow.html':                           'Dell Workflow',
+    'simulation-overview-platform.html':            'Simulation Overview Platform',
+    'executive_forecast_operational_dashboard.html':'Executive Forecast & Operational Dashboard',
+    'epic_dashboard_mockup.html':                   'Epic Dashboard Mockup',
+    'data.html':                                    'Data Management',
+    'info_BPA.html':                                'ISG BPA — Info Version',
+  };
+
+  function iconFor(f) {
+    f = f.toLowerCase();
+    if (f.includes('animated')) return '✦';
+    if (f.includes('ibp') || f.includes('forcasting') || f.includes('bpa')) return '◈';
+    if (f.includes('whatif') || f.includes('enterprise')) return '◎';
+    if (f.includes('bend') || f.includes('curve')) return '↗';
+    if (f.includes('workflow')) return '⟳';
+    if (f.includes('data')) return '⊞';
+    if (f.includes('executive')) return '⬡';
+    if (f.includes('climate')) return '◉';
+    return '◻';
+  }
+
+  function buildLabel(file) {
+    return LABELS[file] || file.replace(/\.html$/i,'').replace(/[_-]+/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+  }
+
+  function formatDT(iso) {
+    try {
+      return new Date(iso).toLocaleString(undefined,{
+        year:'numeric',month:'short',day:'numeric',
+        hour:'2-digit',minute:'2-digit',hour12:false
+      });
+    } catch { return iso || ''; }
+  }
+
+  function renderRows(pages, q) {
+    const list = document.getElementById('pageList');
+    const lq = (q||'').toLowerCase().trim();
+    const ORDER = ['forecast_copilot/Dashboard — Forecast Copilot.html','BPA_FORCASTING_MOCK.HTML','ISG BPA — Business Planning and Analytics.html','IBP_Forcasting.html',
+                   'enterprise_whatif_forecasting_platform.html','bend_the_curve.html','animated_UI.html'];
+    const entries = Array.from(pages.entries())
+      .filter(([,label]) => !lq || label.toLowerCase().includes(lq) || _[0]?.toLowerCase().includes(lq))
+      .sort((a,b) => {
+        const aP = PRIMARY.has(a[0]), bP = PRIMARY.has(b[0]);
+        if (aP !== bP) return aP ? -1 : 1;
+        const ai = ORDER.indexOf(a[0]), bi = ORDER.indexOf(b[0]);
+        if (ai !== -1 && bi !== -1) return ai - bi;
+        if (ai !== -1) return -1;
+        if (bi !== -1) return 1;
+        return a[1].localeCompare(b[1]);
+      });
+
+    list.innerHTML = '';
+    if (!entries.length) {
+      list.innerHTML = '<div class="empty">No modules match your search.</div>';
+      return;
+    }
+    entries.forEach(([file, label]) => {
+      const a = document.createElement('a');
+      a.href = file; a.className = 'frow';
+      const isP = PRIMARY.has(file);
+      a.innerHTML = `
+        <div class="ficon">${iconFor(file)}</div>
+        <div class="finfo">
+          <div class="fname">${label}</div>
+          <div class="fpath">${file}</div>
+        </div>
+        ${isP ? '<span class="fbadge">Primary</span>' : ''}
+        <span class="farrow">↗</span>`;
+      list.appendChild(a);
+    });
+  }
+
+  async function loadManifest() {
+    try {
+      const res = await fetch('manifest.json');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+
+      const stamp = data.pagesPublishedAt ? `Last published: ${formatDT(data.pagesPublishedAt)}` : '';
+      const sbEl = document.getElementById('sb-stamp');
+      const hdrEl = document.getElementById('hdr-stamp');
+      if (sbEl) sbEl.textContent = stamp;
+      if (hdrEl) hdrEl.textContent = stamp;
+
+      const pages = new Map();
+      if (Array.isArray(data.mockups))
+        data.mockups.forEach(m => { if (m.file && m.file !== 'index.html') pages.set(m.file, m.label || buildLabel(m.file)); });
+      if (data.autoPages && typeof data.autoPages === 'object')
+        Object.keys(data.autoPages).forEach(f => { if (f !== 'index.html' && !pages.has(f)) pages.set(f, buildLabel(f)); });
+
+      renderRows(pages, '');
+      document.getElementById('searchInput').addEventListener('input', e => renderRows(pages, e.target.value));
+    } catch {
+      document.getElementById('sb-stamp').textContent = '';
+      document.getElementById('pageList').innerHTML = '<div class="empty">Unable to load file list.</div>';
+    }
+  }
+
+  loadManifest();
+</script>
+

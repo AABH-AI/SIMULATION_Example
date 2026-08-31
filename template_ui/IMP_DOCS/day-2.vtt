@@ -1,0 +1,1646 @@
+WEBVTT
+
+1
+00:00:02.460 --> 00:00:05.659
+Portsmouth, NH_A02_USHKN228: Sorry, Mike, just… I just wanted to keep notes for myself, so…
+
+2
+00:00:05.660 --> 00:00:07.749
+Mike Sullivan: I gotta, now I gotta be able to invest behavior.
+
+3
+00:00:09.140 --> 00:00:11.729
+Mike Sullivan: Can AI bleak… can AI auto-bleat me?
+
+4
+00:00:12.290 --> 00:00:15.889
+Portsmouth, NH_A02_USHKN228: I can… yes, I can… I can figure that out.
+
+5
+00:00:15.890 --> 00:00:19.920
+Mike Sullivan: redact anything negative I say about Megan's team.
+
+6
+00:00:20.260 --> 00:00:26.619
+Mike Sullivan: Look, if UCR were actually Hitting its targets?
+
+7
+00:00:27.760 --> 00:00:31.080
+Mike Sullivan: it could be complicated, right?
+
+8
+00:00:31.400 --> 00:00:37.189
+Mike Sullivan: So, I want to start here, first off, right? And so, let's just… let's just talk…
+
+9
+00:00:37.890 --> 00:00:41.300
+Mike Sullivan: case categorization, right? At the top level.
+
+10
+00:00:41.440 --> 00:00:49.829
+Mike Sullivan: We've got assisted and we've got unassisted. Right. Easy peasy. Not easy peasy, because there's a half a dozen different ways to do it, right?
+
+11
+00:00:49.970 --> 00:00:58.649
+Mike Sullivan: There's a more transactional view, which is much more precise, you know, did a human actually touch a case, versus…
+
+12
+00:00:58.790 --> 00:01:08.619
+Mike Sullivan: did a human close a case, right? The way that our current demand plan functions is based off of case ownership, right? And so, it is very possible there's
+
+13
+00:01:08.960 --> 00:01:17.109
+Mike Sullivan: you know, that a case shows up as unassisted, but someone still touched it, right? Good news is that it's probably more of a… I mean, it's…
+
+14
+00:01:17.330 --> 00:01:26.790
+Mike Sullivan: Those are… Those types of scenarios are less important for remote and for the UCR conversation.
+
+15
+00:01:27.110 --> 00:01:43.130
+Mike Sullivan: auto-dispatch is the prime example, right? Where a case comes in through a dial-home channel, we've got a dispatch a part, it goes straight to SNAS, SNAS does what they gotta do, they kick it out to the field, Fields does what they're gonna do.
+
+16
+00:01:43.580 --> 00:01:52.679
+Mike Sullivan: that case stays in the ownership of a queue. SNAS never takes ownership of it, so even though they're making transactions against it, that case still shows up as unassisted.
+
+17
+00:01:53.700 --> 00:02:07.980
+Mike Sullivan: which for 8 out of our 10 use cases is perfectly okay, right? But it's, you know, so just… I'm not going to spend any more time talking about those nuances, just understand that there's different ways of looking at it, and I would tell you that depending on
+
+18
+00:02:08.240 --> 00:02:13.570
+Mike Sullivan: Depending on what we're actually trying to do, one might be appropriate versus the other.
+
+19
+00:02:13.940 --> 00:02:15.960
+Mike Sullivan: But services modernization.
+
+20
+00:02:16.100 --> 00:02:26.759
+Mike Sullivan: was built around the case ownership version of assisted, non-assisted, so typically that's where we start with, unless there's a need to deviate off of that.
+
+21
+00:02:27.070 --> 00:02:33.369
+Mike Sullivan: So, unassisted… so, you know, we got unassisted, let me blow this chart up a little bit. Actually, this one's a little better, I think.
+
+22
+00:02:33.700 --> 00:02:34.530
+Mike Sullivan: On the outside here.
+
+23
+00:02:34.880 --> 00:02:42.560
+Mike Sullivan: I built this to help educate, Megan, who is the new,
+
+24
+00:02:43.060 --> 00:02:55.299
+Mike Sullivan: She's the newer. Tomasino. She leads the unassisted team, and for the first 6 weeks that she came on board, she allowed me to meet with her
+
+25
+00:02:55.540 --> 00:02:58.249
+Mike Sullivan: You know, once every couple weeks, and we just did a bunch of…
+
+26
+00:02:58.750 --> 00:03:13.550
+Mike Sullivan: you know, kind of firehose, knowledge transfer, you know, here's what UCR means. She came from the client side, and the way the client implements UCR and the impacts that UCR has is very different on the client side than it is on the ISG side, and so…
+
+27
+00:03:13.550 --> 00:03:19.450
+Mike Sullivan: it's kind of a get-to-know ISG, here's what's different from what you're used to seeing, right? So…
+
+28
+00:03:19.860 --> 00:03:32.240
+Mike Sullivan: these are real data points, albeit they're dated, because I did this back in, you know, probably late Q2, early Q3, but I'll tell you, none of the trends have really changed, right?
+
+29
+00:03:32.610 --> 00:03:38.210
+Mike Sullivan: You know, and so, what this is showing, right, is that the…
+
+30
+00:03:43.630 --> 00:03:44.710
+Mike Sullivan: One's augmented.
+
+31
+00:03:45.830 --> 00:03:48.979
+Mike Sullivan: That's fine. You can get the idea, right? So…
+
+32
+00:03:49.540 --> 00:03:52.790
+Mike Sullivan: Could you please explain the presentation more? Oh, sorry, I thought I would,
+
+33
+00:03:54.140 --> 00:03:55.989
+Mike Sullivan: Come on, you can do it, there we go.
+
+34
+00:03:56.600 --> 00:03:57.310
+Mike Sullivan: Right.
+
+35
+00:03:58.330 --> 00:04:12.980
+Mike Sullivan: So, you know, the… this is SR volume. This is… this is just looking at our unassisted volume, and I happen to have this one cut by channel. We're gonna talk a little bit more about channel here in a bit.
+
+36
+00:04:14.420 --> 00:04:17.069
+Mike Sullivan: Let me see if I've got a chart here that's just got the aggregate.
+
+37
+00:04:25.030 --> 00:04:30.010
+Mike Sullivan: Nope, I don't, not this one. So the current definition of unassisted is…
+
+38
+00:04:30.110 --> 00:04:43.170
+Mike Sullivan: human-less closure, or… Case… case… I'm gonna, I'm gonna, I'm gonna dumb it down even more, right? It's based purely on case ownership, right? If a, if a,
+
+39
+00:04:43.570 --> 00:04:49.620
+Mike Sullivan: And… The case owner is mapped back into our epicenter hierarchy. Y'all familiar with Epicenter? Yes.
+
+40
+00:04:50.010 --> 00:04:55.590
+Mike Sullivan: Some crappy tool that we have that should go away, but…
+
+41
+00:04:55.960 --> 00:05:01.689
+Mike Sullivan: And so we, like, every single person in our organization has an attribution inside of Epicenter.
+
+42
+00:05:02.630 --> 00:05:08.810
+Mike Sullivan: If that hierarchy rolls up to a particular data value, then they are considered a human.
+
+43
+00:05:10.860 --> 00:05:17.110
+Mike Sullivan: If they are not rolling up into that epicenter hierarchy, they are not considered a human, even though they might have a pulse.
+
+44
+00:05:17.230 --> 00:05:21.499
+Mike Sullivan: Right? As far as our case categorization goes, that's all it looks at.
+
+45
+00:05:23.230 --> 00:05:36.080
+Mike Sullivan: Which created chaos at one point in time, because someone thought they were doing the business of solid, and they went and turned… they got all of our bots, and they rolled them up into that hierarchy, and all of our shit went from unassisted to assisted overnight.
+
+46
+00:05:37.170 --> 00:05:39.559
+Portsmouth, NH_A02_USHKN228: Yeah, that's another story.
+
+47
+00:05:39.560 --> 00:05:44.990
+Mike Sullivan: that I created. So, like, it doesn't know any better. It looks at a user record.
+
+48
+00:05:45.110 --> 00:05:50.400
+Mike Sullivan: And it looks to see if it sits inside of a particular epicenter structure, right?
+
+49
+00:05:50.880 --> 00:05:51.480
+Portsmouth, NH_A02_USHKN228: What?
+
+50
+00:05:51.980 --> 00:05:59.220
+Mike Sullivan: So, it's… I… yes, that is the correct approach. Yeah, that's… that's, you know, so, it is what it is,
+
+51
+00:05:59.360 --> 00:06:05.130
+Mike Sullivan: Alright, so here's the next view, right? So again, we're still, we're still talking kind of theory, right? So…
+
+52
+00:06:05.230 --> 00:06:11.800
+Mike Sullivan: What this chart is showing you, right, is there's a, you know, the expectation period over period is
+
+53
+00:06:12.640 --> 00:06:16.100
+Mike Sullivan: around an SR reduction, right?
+
+54
+00:06:16.530 --> 00:06:28.429
+Mike Sullivan: This one shows you… you see the blue line… the blue shaded area versus the hatched area, right? Shows you the relationship between assisted and unassisted and total SRs.
+
+55
+00:06:28.440 --> 00:06:36.690
+Mike Sullivan: It's not rocket science, right? A plus B equals C, right? We're good there. You guys are… you guys are smart folks, we don't need to… hopefully I don't have to explain math.
+
+56
+00:06:36.790 --> 00:06:39.249
+Mike Sullivan: Right? You'd be surprised around here.
+
+57
+00:06:40.480 --> 00:06:42.270
+Mike Sullivan: But,
+
+58
+00:06:42.380 --> 00:06:50.709
+Mike Sullivan: And so, you know, when you start looking at the assisted SRs, right, the first problem that you run into is you're in a pinch.
+
+59
+00:06:50.830 --> 00:06:59.530
+Mike Sullivan: Right, so I've got, you know, the way that our KPIs are created for services modernization, Causes us to…
+
+60
+00:07:00.650 --> 00:07:15.099
+Mike Sullivan: causes a lot of problems for us, quite honestly, right? I'm deviating a little bit off the capacity planning, but these are important nuances to understand for how… how the puzzle kind of comes together, right? There's two things that influence assisted SR demand.
+
+61
+00:07:15.480 --> 00:07:16.280
+Mike Sullivan: Right?
+
+62
+00:07:16.590 --> 00:07:22.399
+Mike Sullivan: The triads, you know, so engineering being told, you guys need to build shit that doesn't break.
+
+63
+00:07:22.820 --> 00:07:36.970
+Mike Sullivan: And they're doing a pretty good job of that, right? You know, we give them targets, and they have design criteria, you know, and that's why we've been focusing primarily on the… a lot of times you hear about the top 11, or the top 15, depending on the list, right?
+
+64
+00:07:37.120 --> 00:07:42.299
+Mike Sullivan: We focus our engineering improvements on… The products that aren't dead.
+
+65
+00:07:42.490 --> 00:08:01.860
+Mike Sullivan: Alright, so we've got a lot of old stuff that's out in the install base. There's nothing you can do to it. It's gonna break, you just gotta deal with it, right? The only way to win is for it to fall offline, right? Get replaced with newer stuff that hopefully will not break as much, right? And so, you know, this services modernization, while it's got a very narrow lens.
+
+66
+00:08:02.280 --> 00:08:10.540
+Mike Sullivan: the benefits are strategic in nature. Like, if we can, you know, so we're attacking… we're attacking engineering quality
+
+67
+00:08:11.020 --> 00:08:17.260
+Mike Sullivan: Very aggressively, because if we can move that needle, that's gonna pay dividends for the next decade, right?
+
+68
+00:08:17.800 --> 00:08:25.920
+Mike Sullivan: And they are doing a pretty good job, right? This is the first time that I've seen that they've actually been held accountable, to design quality, which is great to see.
+
+69
+00:08:26.420 --> 00:08:33.939
+Mike Sullivan: The second thing is UCR, right? So, engineering makes stuff that doesn't break, right?
+
+70
+00:08:35.270 --> 00:08:38.330
+Mike Sullivan: If there is a case, can we at least shift it to unassisted?
+
+71
+00:08:38.740 --> 00:08:44.059
+Mike Sullivan: Right? You know, this is where, this is where technology comes into play, right? Stuff that's coming in,
+
+72
+00:08:44.790 --> 00:08:50.290
+Mike Sullivan: you know, that would otherwise come into our queue. You know, when you look at it, it's like, you know, like, it takes an agent.
+
+73
+00:08:51.350 --> 00:08:55.030
+Mike Sullivan: Probably not a very complicated thing. You know, we've got all the data.
+
+74
+00:08:55.210 --> 00:09:08.930
+Mike Sullivan: kick off a dispatch, attach a knowledge article, 3… you know, it's the real easy stuff, right? You know, sends it off, and then it's like, we don't need to, we don't need to staff people for that, right? And so, you know, the whole construct is…
+
+75
+00:09:08.950 --> 00:09:19.800
+Mike Sullivan: let's, you know, leverage, you know, by hook or by crook, whether it's, whether it's bots, or, you know, changing a lot of the, you know, like, our, like, our CLM rules, and, like, we, I mean, we control…
+
+76
+00:09:19.820 --> 00:09:29.959
+Mike Sullivan: We control the gateway with all the dialogue stuff, right? And, you know, so we can, you know, we can inject some level of intelligence and some level of automation to help throttle our case volume.
+
+77
+00:09:30.020 --> 00:09:45.859
+Mike Sullivan: Right? You know, so to the extent that we can service some customers, then great. What we're finding is a lot of it's just noise, and so, you know, we're not even… we're not even automating the servicing of the customer, we're finding ways to shut down leakage, and we're just… we're killing a lot of case volume.
+
+78
+00:09:45.990 --> 00:09:46.660
+Mike Sullivan: At the rules.
+
+79
+00:09:47.470 --> 00:09:51.520
+Mike Sullivan: That, that should have never created a case in the first place.
+
+80
+00:09:51.830 --> 00:10:06.979
+Mike Sullivan: We're finding that we've got a lot of duplicated cases, you know, so there's a lot of cleanup that's just going on, right? But the first thing that's important for UCR, right, is kind of, you know, along those lines, and this is where the channels kind of come into play, is…
+
+81
+00:10:10.080 --> 00:10:11.779
+Mike Sullivan: Not all cases are created equal.
+
+82
+00:10:11.970 --> 00:10:19.929
+Mike Sullivan: Right? A case is created equal as it, you know, from point of failure, so customer, customer raises it, right? Like,
+
+83
+00:10:20.070 --> 00:10:20.980
+Mike Sullivan: you know…
+
+84
+00:10:23.240 --> 00:10:28.199
+Mike Sullivan: our automate, like, our ability to automate, like, I've got… if customers are gonna pick up the phone and call us.
+
+85
+00:10:28.480 --> 00:10:35.610
+Mike Sullivan: I got no ability to automate it, right? And, like, that's gonna go to agent all day, every day. We could turn off phone lines.
+
+86
+00:10:37.170 --> 00:10:37.870
+Mike Sullivan: heaven.
+
+87
+00:10:38.350 --> 00:10:39.350
+Mike Sullivan: We haven't done that yet.
+
+88
+00:10:39.600 --> 00:10:44.489
+Mike Sullivan: Talking about it, we haven't, we haven't, we haven't, we haven't pulled that yet, right?
+
+89
+00:10:44.620 --> 00:10:49.500
+Mike Sullivan: You know, so, in order to… Even have a chance of…
+
+90
+00:10:49.940 --> 00:10:53.959
+Mike Sullivan: of automating the case. It's gotta come in through one of our digital channels.
+
+91
+00:10:54.060 --> 00:11:11.469
+Mike Sullivan: Right? And so, from a data aspect, you know, we can look at the origin, we can look at the case source, which are the two elements that we typically pull out of USDM to categorize this volume. You know, we're looking at things that are coming in through chatbot, and through virtual assistant, and through Sprinklr, and through…
+
+92
+00:11:11.540 --> 00:11:14.429
+Mike Sullivan: I don't remember what our new chat is called.
+
+93
+00:11:15.560 --> 00:11:16.240
+Mike Sullivan: Can't remember.
+
+94
+00:11:16.510 --> 00:11:22.960
+Mike Sullivan: Basically it's everything that's not phone, legacy email, and legacy chat. You know, so there's, there's 3…
+
+95
+00:11:23.040 --> 00:11:31.309
+Mike Sullivan: you know, kind of traditional channels, like direct assist channels, and then you got everything else, right? So you can, you know, so you can smash.
+
+96
+00:11:31.320 --> 00:11:44.449
+Mike Sullivan: you can basically normalize the intake channels to basically digital versus traditional, right? And what you're seeing on here, and again, this is slightly dated, I've got recent data pulled up in the background, but I don't think we need to pivot to it yet, is
+
+97
+00:11:44.530 --> 00:11:56.270
+Mike Sullivan: you'll see that the, the number that you're looking at, that's an AHT value, or an average workload hour, right? As expected, the AHT of the digital channel is significantly less than the
+
+98
+00:11:56.440 --> 00:11:57.650
+Mike Sullivan: traditional one.
+
+99
+00:11:57.980 --> 00:12:14.140
+Mike Sullivan: Makes sense, right? Coming through digital channel, I got my tag, I got, you know, like, the customer is forced to provide some level of information, you know, so there's less, you know, there's less troubleshooting, there's some automation, there's some summarization stuffs that happen, right?
+
+100
+00:12:14.140 --> 00:12:25.549
+Mike Sullivan: Whereas the agent is having to do everything from start to finish through the direct assist. And it's also going through several, several layers. It comes in through an intake team, who books time against it, then it goes in…
+
+101
+00:12:25.610 --> 00:12:34.199
+Mike Sullivan: it gets routed to an agent, right? You know, and so it's got several, it's got several leaps to get to the right person by the time it actually gets closed, right? So…
+
+102
+00:12:34.330 --> 00:12:42.969
+Mike Sullivan: the premise is there, right? So, you know, the… when we're… when we're looking at…
+
+103
+00:12:43.570 --> 00:12:48.159
+Mike Sullivan: the unassisted volumes, right? You know, one of the tricks becomes
+
+104
+00:12:49.390 --> 00:12:54.179
+Mike Sullivan: You know, one, how much is Megan's team going to deliver?
+
+105
+00:12:54.820 --> 00:13:09.429
+Mike Sullivan: You know, and so we're constantly looking at, you know, kind of, like, what their run rate UCR projection is, right? You know, remember, you gotta remember that UCR is a mixed metric. That's all it is, right? It's not on the same or…
+
+106
+00:13:09.800 --> 00:13:14.359
+Mike Sullivan: it's not a pri… to me, it's not a primary KPI like our ICR, right?
+
+107
+00:13:14.740 --> 00:13:17.170
+Mike Sullivan: ICR is going to be influenced by UCR.
+
+108
+00:13:17.430 --> 00:13:29.629
+Mike Sullivan: Right? I, you know, the triads are completely eliminating the case, right? So it comes out of both assisted and unassisted. That's the rules of the road, right? And you just gotta assume that they're gonna play by the rules of the road.
+
+109
+00:13:30.090 --> 00:13:37.139
+Mike Sullivan: UCR shifts it from assisted to unassisted, but the case stays inside of the basis, right? So,
+
+110
+00:13:38.030 --> 00:13:45.370
+Mike Sullivan: you know, so when we start talking, you know, start pivoting over into, like, the capacity planning elements of it now, let me…
+
+111
+00:13:46.480 --> 00:13:48.710
+Mike Sullivan: doo-do-doo.
+
+112
+00:13:53.580 --> 00:13:55.369
+Mike Sullivan: Nope, didn't have the file open.
+
+113
+00:13:56.370 --> 00:14:00.759
+Mike Sullivan: there's some things that we gotta do in order to…
+
+114
+00:14:00.880 --> 00:14:08.829
+Mike Sullivan: In order to adjust, right? You know, because not all… you know, the most important thing is that the case comes out, right? You know, if you just start with a case as a case is a case.
+
+115
+00:14:09.360 --> 00:14:22.019
+Mike Sullivan: you know, that's an okay starting point, right? But, like, PowerEdge, for instance, like, we are putting a lot of our… a lot of our UCR focus in PowerEdge.
+
+116
+00:14:22.260 --> 00:14:30.060
+Mike Sullivan: you know, it's like those metrics that I showed you, right? Significant difference between digital on the PowerEdge side and traditional on the PowerEdge side.
+
+117
+00:14:35.460 --> 00:14:40.759
+Mike Sullivan: And that mix, right, is what the, like, you'll hear… you'll hear a metric called augmented.
+
+118
+00:14:40.950 --> 00:14:49.539
+Mike Sullivan: Right? That augmented metric is a secondary mix. So, of the assisted volume, what percentage of the assisted volume
+
+119
+00:14:49.710 --> 00:14:51.979
+Mike Sullivan: Is coming in through a digital channel.
+
+120
+00:14:52.230 --> 00:14:53.380
+Mike Sullivan: Versus…
+
+121
+00:14:53.620 --> 00:15:04.399
+Mike Sullivan: the direct assist traditional one, right? So it's a mix of a mix, right? People have tried to use augmented for lots of things,
+
+122
+00:15:06.050 --> 00:15:08.319
+Mike Sullivan: In theory,
+
+123
+00:15:08.560 --> 00:15:16.990
+Mike Sullivan: if someone were actually driving the augmented makeshift, there isn't a savings opportunity there, right? So, I mean, if I've got a case that's got…
+
+124
+00:15:17.240 --> 00:15:24.189
+Mike Sullivan: 5 hours booked against it, you know, on the phone. If I can get that case shifted from the phone to…
+
+125
+00:15:24.730 --> 00:15:25.970
+Mike Sullivan: digital channels.
+
+126
+00:15:26.080 --> 00:15:26.850
+Mike Sullivan: You know…
+
+127
+00:15:27.010 --> 00:15:39.239
+Mike Sullivan: I've got… there's an expectation that this 5 hours would shrink down to 3 and a half, four hours, right? So there technically would be some savings there. We… man, we tried that for 2 years. Fundamentally, no one's driving it.
+
+128
+00:15:39.430 --> 00:15:47.199
+Mike Sullivan: And so, sometimes it worked out, sometimes it didn't work out, no one could ever explain it, so I just stopped trying.
+
+129
+00:15:47.550 --> 00:15:58.819
+Mike Sullivan: Right? It is important, though, right? Because the… I'm looking for a file here, and this is where we're gonna start getting into the stuff that you guys are really gonna care about, and why…
+
+130
+00:15:58.940 --> 00:16:02.679
+Mike Sullivan: why this stuff is important. Where are you?
+
+131
+00:16:08.130 --> 00:16:10.449
+Mike Sullivan: I've got a very complicated filing system.
+
+132
+00:16:11.710 --> 00:16:13.079
+Mike Sullivan: I never remember where I put my files.
+
+133
+00:16:14.910 --> 00:16:15.640
+Mike Sullivan: Right.
+
+134
+00:16:16.520 --> 00:16:28.870
+Mike Sullivan: I did this, I did this exercise for one of our leaders, trying to have a conversation very similar to what we're having right now, right? This one, I'm really just kind of cutting to the chase.
+
+135
+00:16:29.070 --> 00:16:36.279
+Mike Sullivan: Here, the… this shows you how our capacity planning works today.
+
+136
+00:16:37.030 --> 00:16:46.700
+Mike Sullivan: very simplistically, right? Now, I picked on, we don't do capacity planning, I don't do capacity planning at the LOB level. Doesn't mean it can't be done.
+
+137
+00:16:47.570 --> 00:16:48.360
+Mike Sullivan: Sorry.
+
+138
+00:16:48.950 --> 00:16:49.760
+Mike Sullivan: This mic.
+
+139
+00:16:54.720 --> 00:16:55.640
+Mike Sullivan: Hello?
+
+140
+00:16:56.230 --> 00:16:57.000
+Mike Sullivan: Yep.
+
+141
+00:16:57.660 --> 00:16:58.370
+Mike Sullivan: TVs.
+
+142
+00:16:59.000 --> 00:16:59.760
+Mike Sullivan: Yes.
+
+143
+00:17:00.520 --> 00:17:01.390
+Mike Sullivan: tonight.
+
+144
+00:17:05.369 --> 00:17:12.339
+Mike Sullivan: Oh, my, my wife is there, I, I wasn't planning on being there until 1. But someone, someone, someone is home.
+
+145
+00:17:13.690 --> 00:17:14.460
+Mike Sullivan: Okay.
+
+146
+00:17:16.260 --> 00:17:17.880
+Mike Sullivan: Okay, sounds good. Alright, bye.
+
+147
+00:17:19.329 --> 00:17:23.500
+Mike Sullivan: the,
+
+148
+00:17:24.740 --> 00:17:31.600
+Mike Sullivan: So I built this to show them how it would work. Basically, what was happening was, people were saying, I don't have enough heads.
+
+149
+00:17:31.880 --> 00:17:37.969
+Mike Sullivan: Alright? I was like, that's a you problem, not a me problem. We allocate the heads down to…
+
+150
+00:17:38.130 --> 00:17:39.540
+Mike Sullivan: the L6 leader.
+
+151
+00:17:40.110 --> 00:17:43.319
+Mike Sullivan: I don't know, like, I don't… I don't know how they did, like, it's on them.
+
+152
+00:17:43.480 --> 00:17:47.100
+Mike Sullivan: For the distribution down to the specific queues, right?
+
+153
+00:17:47.230 --> 00:17:58.480
+Mike Sullivan: But as a favor, and really more out of sheer curiosity, I built this, just to see if it would work, and sure enough, it actually kind of banned out, right?
+
+154
+00:17:59.210 --> 00:18:04.590
+Mike Sullivan: But this is the most efficient way that I can, you know, that I can think about taking you guys through the building blocks, right?
+
+155
+00:18:06.080 --> 00:18:13.250
+Mike Sullivan: Pre-UCRSR, right, is one of the first lines that we always draw, and I'm sure you've spent a lot of time talking about that, that's probably where the…
+
+156
+00:18:13.560 --> 00:18:16.310
+Mike Sullivan: The majority of your time here has been focused.
+
+157
+00:18:16.990 --> 00:18:19.720
+Mike Sullivan: That assumes that…
+
+158
+00:18:20.620 --> 00:18:34.710
+Mike Sullivan: UCR just stays at run rate. Not flat, but at run rate, right? You know, so, you know, as engineering takes cases out, the UCR, the run rate UCR, is naturally going to drift up, right?
+
+159
+00:18:34.880 --> 00:18:38.329
+Mike Sullivan: You know, just the… they… Because they have to pull
+
+160
+00:18:38.580 --> 00:18:41.260
+Mike Sullivan: The case out of both the numerator and the denominator.
+
+161
+00:18:41.420 --> 00:18:48.019
+Mike Sullivan: it doesn't, you know, the UCR mix doesn't change at the same rate, right? So, it will naturally drift upward.
+
+162
+00:18:49.040 --> 00:18:55.459
+Mike Sullivan: the… the next layer is gonna be no OSP shifts, right? Right now, we have none, right?
+
+163
+00:18:55.940 --> 00:19:00.169
+Mike Sullivan: we've got a lot that we're talking about, right? The thing about OSP shifts are,
+
+164
+00:19:00.730 --> 00:19:06.460
+Mike Sullivan: you know, we know that there's gonna be headwinds, right? At the end of the day, our remote business is all people.
+
+165
+00:19:06.780 --> 00:19:07.550
+Mike Sullivan: We've got.
+
+166
+00:19:09.250 --> 00:19:12.650
+Mike Sullivan: 6,000… 6,500 bodies.
+
+167
+00:19:12.940 --> 00:19:26.489
+Mike Sullivan: In remote support right now, right? You know, and so it's a, it's a big pot of spend. That's, you know, and it's mostly, it's mostly badged, right? So right now, we're probably about 20…
+
+168
+00:19:26.880 --> 00:19:31.829
+Mike Sullivan: Historically, we've been about 20% partner leveraged on the remote side, right?
+
+169
+00:19:32.060 --> 00:19:37.150
+Mike Sullivan: This last year, there was some corporate actions in China.
+
+170
+00:19:37.370 --> 00:19:41.560
+Mike Sullivan: We had to… we were kind of de-risking with the whole political environment.
+
+171
+00:19:41.740 --> 00:19:49.299
+Mike Sullivan: And so we made the decision to start shifting from a badged, fixed-cost position in China to a variable.
+
+172
+00:19:49.740 --> 00:19:54.210
+Mike Sullivan: Basically, we cross-batched all of our resources to a partner, right?
+
+173
+00:19:54.850 --> 00:20:03.700
+Mike Sullivan: And so that, that shifted, so that shifted our OSP mix, up to about 25, 26%, right? So a pretty, pretty big shift.
+
+174
+00:20:03.850 --> 00:20:19.659
+Mike Sullivan: There are going to be follow-on phases of that. There's going to be other countries that we're going to be targeting, and then there's just all the other natural headwinds, right? We've got very aggressive, SR reduction targets this next year. They're not gonna hit them.
+
+175
+00:20:19.680 --> 00:20:38.880
+Mike Sullivan: That's the call that I was just on over there. You know, and so there's, you know, de-risking opportunities, right, where the, you know, if we… if the volume is supposed to come out, and it's not, I can either hold back the badged head, or I can shift more to a partner, where at least it's a variable spend.
+
+176
+00:20:38.920 --> 00:20:43.749
+Mike Sullivan: And if the volume eventually comes out, We'll catch up, right?
+
+177
+00:20:43.930 --> 00:20:48.089
+Mike Sullivan: The thing about those OSP shifts are they… they impact
+
+178
+00:20:48.880 --> 00:20:58.360
+Mike Sullivan: They impact your headcount, right, which people watch like a hawk. Heads are at a premium, right? But they don't do anything to your spend. At the end of the day, it's…
+
+179
+00:20:58.600 --> 00:20:59.600
+Mike Sullivan: Commit to the market.
+
+180
+00:21:00.230 --> 00:21:11.859
+Mike Sullivan: Yeah, exactly, right? So, you know, it's not going to help us hit our spend plan if the volume doesn't come out. But we can at least, you know, we can stay on our headcount plan, and then we can bridge it out.
+
+181
+00:21:12.060 --> 00:21:17.360
+Mike Sullivan: So, for now, there's no targeted or known OSP shifts that are happening in any of the products.
+
+182
+00:21:17.500 --> 00:21:20.180
+Mike Sullivan: They will happen, but there's none in the plan, per se.
+
+183
+00:21:20.410 --> 00:21:26.980
+Mike Sullivan: And so, on row 9 then, right, you know, all that is is a documentation of, okay, of our current
+
+184
+00:21:27.110 --> 00:21:42.849
+Mike Sullivan: of our current SR basis, and this is a pre-UCR lens for future periods, what are we looking at? So for PowerMax, what it shows is, you know, 39% is the baseline. Because I don't have any known shifts, I just have to assume that 39% is going to convey into future periods, right?
+
+185
+00:21:43.110 --> 00:21:56.740
+Mike Sullivan: I know, factually, how much is badged versus OSP, right? And so I can do that distribution between badged and OSP on rows 10 and 11, based on the 39%, and based on the pre-use CRSR volume on row 5, right?
+
+186
+00:21:57.040 --> 00:21:59.079
+Mike Sullivan: Easy peasy math, so far.
+
+187
+00:21:59.190 --> 00:22:03.620
+Mike Sullivan: Here's where it gets interesting, right? The UCR rate.
+
+188
+00:22:03.790 --> 00:22:20.739
+Mike Sullivan: Right? Now, before I vent a little bit about UCR, just take that percentage at face value, right? I don't actually use it for anything inside of this particular file, right? The value that matters is row 14. What is the post-UCR SR value?
+
+189
+00:22:21.300 --> 00:22:32.159
+Mike Sullivan: Right? And so you can see, and let's just pick on column K, Q4 of FY27, right? So there's, the SRs are coming down from 14179 to 12493.
+
+190
+00:22:32.560 --> 00:22:33.220
+Mike Sullivan: Right?
+
+191
+00:22:33.770 --> 00:22:35.489
+Mike Sullivan: What's the mental math on that? Joanna.
+
+192
+00:22:35.950 --> 00:22:37.230
+Mike Sullivan: Human calculator.
+
+193
+00:22:38.460 --> 00:22:40.280
+Mike Sullivan: It's called 2,000 cases, right?
+
+194
+00:22:40.280 --> 00:22:41.319
+Portsmouth, NH_A02_USHKN228: 2,000 cases, yeah.
+
+195
+00:22:41.320 --> 00:22:45.180
+Mike Sullivan: So, it's coming down by 2,000 cases. Where?
+
+196
+00:22:45.500 --> 00:22:49.520
+Mike Sullivan: Is that 2,000 cases coming out of Badged? Is it gonna come out of partner?
+
+197
+00:22:49.930 --> 00:22:55.849
+Mike Sullivan: Right? And this is where the augmented mix comes into play, right? And here's where there's a little bit of complexity, is…
+
+198
+00:22:55.980 --> 00:22:58.470
+Mike Sullivan: I need to… make…
+
+199
+00:22:58.870 --> 00:23:10.499
+Mike Sullivan: some sort of scientific guess as to where that volume is gonna come out, right? And the way that I do that presently is looking at the augmented mixes, right? And so if you look at row 20 and row 21,
+
+200
+00:23:10.720 --> 00:23:11.540
+Mike Sullivan: Right?
+
+201
+00:23:11.980 --> 00:23:18.720
+Mike Sullivan: I'm looking at badged and OSP in isolation, and I'm looking at just the augmented percentage.
+
+202
+00:23:18.960 --> 00:23:21.640
+Mike Sullivan: inside of those, right? And so…
+
+203
+00:23:22.150 --> 00:23:39.260
+Mike Sullivan: when I'm taking the 2,000 SRs, right, I'm looking at the 39%, right? So the, you know, the 39% is impactful, but, you know, when you look at the OSP augmented, 75% of the volume… 75% of the 39%
+
+204
+00:23:39.550 --> 00:23:45.499
+Mike Sullivan: is digital, right? Versus on the badge side, 59% of the…
+
+205
+00:23:45.840 --> 00:23:55.179
+Mike Sullivan: Man, this is upper-level math, of the, 61%… did I get that right? Whew! 61%,
+
+206
+00:23:56.010 --> 00:24:02.939
+Mike Sullivan: is… is… right? And so, you know, the, the, the bait, the, the, you know, the OSPs have
+
+207
+00:24:03.360 --> 00:24:11.479
+Mike Sullivan: smaller volume, but there's a higher probability that UCR is going to impact their volume, because
+
+208
+00:24:12.420 --> 00:24:19.490
+Mike Sullivan: of their stuff is digital, right? And so, I use the augmented mix As a basis to wait.
+
+209
+00:24:19.900 --> 00:24:34.280
+Mike Sullivan: how the UCR comes out, right? That number on row 22 is meaningless, my formulas just got… well, it's not meaningless, it's… my formulas are just getting too complicated, and I took the easy… the easy button out, and I just… I parked a temporary number there.
+
+210
+00:24:35.050 --> 00:24:41.379
+Mike Sullivan: holds no significance other than it's an interim calculation, right? And there's a lot of different ways that you could do weightings, right?
+
+211
+00:24:41.560 --> 00:24:42.469
+Mike Sullivan: But the, the, the
+
+212
+00:24:43.070 --> 00:24:48.180
+Mike Sullivan: The important piece here is that, you know, we're not just making the assumption that UCR comes out.
+
+213
+00:24:48.440 --> 00:24:51.679
+Mike Sullivan: across badged and OSP equally, right? And so…
+
+214
+00:24:51.840 --> 00:24:58.900
+Mike Sullivan: What you end up seeing then is, you know, I redistribute that 2,000 SRs that's coming out.
+
+215
+00:24:59.140 --> 00:25:04.530
+Mike Sullivan: you know, and what you'll see is the OSP mix is changing. I mean, so when you look at row 18,
+
+216
+00:25:04.910 --> 00:25:19.969
+Mike Sullivan: Right? The OSP mix is going to drift upward. If we don't… if you don't backfeed that volume, and if you're… when you're in an environment where UCR, you know, you're expecting UCR to make improvements, I expect that OSP mix to drift upward.
+
+217
+00:25:20.850 --> 00:25:25.999
+Mike Sullivan: Alright, the way that, the way that the volumes, the,
+
+218
+00:25:26.550 --> 00:25:33.800
+Mike Sullivan: The way that the volumes are gonna work out, right? So… That's probably the most complicated.
+
+219
+00:25:34.820 --> 00:25:45.370
+Mike Sullivan: concept from a, you know, from a sausage-making perspective, right? But it seems to be working pretty well. You know, and so I would, you know, I would, I would convey some…
+
+220
+00:25:46.660 --> 00:25:54.800
+Mike Sullivan: some acknowledgement of that, right? Again, I mean, the way that I do any of this stuff is not… is not rooted in stone, right? And no one's active… no one's act… like.
+
+221
+00:25:55.000 --> 00:26:03.000
+Mike Sullivan: what you're seeing right now actually isn't built into any of our… any of our DNA. We… this is… these are the… these are the things that I… I go through at the…
+
+222
+00:26:03.290 --> 00:26:11.089
+Mike Sullivan: the ISG level, I'm looking at opportunities to build this into the,
+
+223
+00:26:11.670 --> 00:26:13.140
+Mike Sullivan: a lot of the VMRs and the
+
+224
+00:26:13.450 --> 00:26:22.759
+Mike Sullivan: bottoms-up planning that we do, but it's not presently part of our process. I built this maybe 2 months ago, right? But it does work.
+
+225
+00:26:22.890 --> 00:26:27.059
+Mike Sullivan: The… the last thing I want to talk about is the UCR percentage.
+
+226
+00:26:28.180 --> 00:26:29.959
+Mike Sullivan: It would be way too easy.
+
+227
+00:26:30.220 --> 00:26:32.500
+Mike Sullivan: If we had one UCR metric.
+
+228
+00:26:33.410 --> 00:26:34.150
+Mike Sullivan: Right.
+
+229
+00:26:34.390 --> 00:26:35.510
+Mike Sullivan: So we have multiple.
+
+230
+00:26:37.930 --> 00:26:38.690
+Portsmouth, NH_A02_USHKN228: Of course.
+
+231
+00:26:38.690 --> 00:26:42.820
+Mike Sullivan: We have, we have… and… and not only are they variants, they are…
+
+232
+00:26:43.020 --> 00:26:48.100
+Mike Sullivan: Completely separate ecosystems, so they're not… they're apples and oranges, right?
+
+233
+00:26:49.130 --> 00:26:52.990
+Mike Sullivan: Megan's team has an environment that they call DMS.
+
+234
+00:26:53.380 --> 00:27:04.980
+Mike Sullivan: BMS? DMS, Delta Mike Sierra, right? It's just a massive data cube. It's built on… it's parked up in Azure, they've got a couple DBAs that maintain it.
+
+235
+00:27:05.220 --> 00:27:08.909
+Mike Sullivan: Its business logic does not.
+
+236
+00:27:09.990 --> 00:27:11.780
+Mike Sullivan: Match our business logic.
+
+237
+00:27:11.990 --> 00:27:18.940
+Mike Sullivan: Right? And so, you know, we leverage USDM tables, Julius being the wrapper around that, right?
+
+238
+00:27:20.420 --> 00:27:25.839
+Mike Sullivan: I could calculate UCR inside of Julius. It's easy. It's my assistant volume, do I have my total volume. Boom.
+
+239
+00:27:26.080 --> 00:27:28.479
+Mike Sullivan: Right? 1 minus.
+
+240
+00:27:29.640 --> 00:27:37.619
+Mike Sullivan: you will get a different number, right? And that's not because the calculation is different, it's the basis is different.
+
+241
+00:27:37.740 --> 00:27:41.260
+Mike Sullivan: DMS is… an engineered…
+
+242
+00:27:41.900 --> 00:27:56.129
+Mike Sullivan: view of volume, right? And so there, you know, the way that we've ring-fenced the denominator, what the SRs that we are isolating that are part of our total SR volume, are different on the USDM side than they are on the DMS side.
+
+243
+00:27:56.900 --> 00:27:59.190
+Mike Sullivan: And so, this creates problems.
+
+244
+00:27:59.430 --> 00:28:06.270
+Mike Sullivan: Right? You know, and the piece that you don't see inside of this is… I…
+
+245
+00:28:07.050 --> 00:28:10.980
+Mike Sullivan: have to use the DMS UCR rates.
+
+246
+00:28:12.170 --> 00:28:26.550
+Mike Sullivan: It's political, right? So anytime I show a DMS UCR rate, I am… or anytime I show a UCR rate, I am showing the DMS UCR rate. Behind this, there is a… there is a Julius UCR rate that I built, right?
+
+247
+00:28:27.730 --> 00:28:39.699
+Mike Sullivan: There's a little bit of voodoo in it. It's a whole lot of assumptions, right? You know, but it's basically, you know, simplistically, it's I start, you know, I start with the rules of the road.
+
+248
+00:28:39.730 --> 00:28:49.510
+Mike Sullivan: Alright, so if engineering says that they're gonna move, remove 1,000 cases period over period, I assume that those thousand cases are coming out of the numerator and denominator.
+
+249
+00:28:49.880 --> 00:28:59.659
+Mike Sullivan: those thousand cases that are coming out, I also assume, are going to come out of the DMS, right? So, I don't pull out a one-for-one, but I pull out the same rate.
+
+250
+00:29:00.030 --> 00:29:04.759
+Mike Sullivan: Right? And so I end up having… I project
+
+251
+00:29:05.020 --> 00:29:08.999
+Mike Sullivan: Megan's total SR volume for them. They don't do it.
+
+252
+00:29:09.450 --> 00:29:14.620
+Mike Sullivan: Right? Then I take their commitments, Right?
+
+253
+00:29:14.910 --> 00:29:25.490
+Mike Sullivan: We use their unassisted forecasts divided by the total SRs that I forecasted for them, and that's how we get the UCR targets.
+
+254
+00:29:25.540 --> 00:29:36.559
+Mike Sullivan: Then I say, okay, for every case that you guys are pulling out, has to be a one-for-one reduction on our side as well, right? And so, the Julius UCR rates, well, 9 times out of 10,
+
+255
+00:29:36.990 --> 00:29:54.959
+Mike Sullivan: almost 10 times out of 10, the UCR rates will be higher on the Julius side, right? And they're equivalent from a volume perspective, right? So if Megan's team says they're gonna pull out, you know, 1,000 SRs, Masa Menos is gonna pull, you know, we're gonna assume that they're gonna pull out 1,000 SRs on the Julius side as well.
+
+256
+00:29:55.510 --> 00:30:10.409
+Mike Sullivan: But because the basis is different, the rates are different, right? And they're not… and they don't always track equally, because, right, you know, the biggest difference in the basis is maintenance cases. I'll just tell you that, right? Like, we don't do a good job of comprehending those things still.
+
+257
+00:30:11.850 --> 00:30:19.659
+Mike Sullivan: It is what it is, right? And so, that's the sausage baking that goes between rows 13 and rows 14 on this spreadsheet.
+
+258
+00:30:19.800 --> 00:30:26.469
+Mike Sullivan: is, you know, I have to do a translation between DMS and Julius.
+
+259
+00:30:26.610 --> 00:30:35.859
+Mike Sullivan: to, to do that initial calculation as to how many… how many SRs are gonna come off of the pre-UCR Julius…
+
+260
+00:30:37.700 --> 00:30:38.420
+Portsmouth, NH_A02_USHKN228: Right.
+
+261
+00:30:38.790 --> 00:30:39.650
+Mike Sullivan: So…
+
+262
+00:30:39.810 --> 00:30:48.619
+Mike Sullivan: And that's a… that's a very… that's not overly complicated, and it's a very tactical thing, so I'm not going to spend any time going through that today.
+
+263
+00:30:48.620 --> 00:30:49.220
+Portsmouth, NH_A02_USHKN228: Yeah.
+
+264
+00:30:49.220 --> 00:30:51.680
+Mike Sullivan: kind of in a similar boat, the way I do it.
+
+265
+00:30:52.470 --> 00:30:57.140
+Mike Sullivan: not necessarily advocating it as the best way. It's…
+
+266
+00:30:58.130 --> 00:31:03.490
+Mike Sullivan: it's an okay way, right? It gets me close enough, right?
+
+267
+00:31:04.090 --> 00:31:10.709
+Mike Sullivan: if UCR was… actually delivering. I might re-engineer it to be a little more precise, but they ain't.
+
+268
+00:31:10.840 --> 00:31:12.529
+Mike Sullivan: Right? So…
+
+269
+00:31:13.320 --> 00:31:24.070
+Mike Sullivan: Anywho, so that's, you know, so kind of, kind of, that's, that's, those are the main pieces that I wanted to, that I wanted to articulate today, right? So, like, the takeaways are…
+
+270
+00:31:24.220 --> 00:31:32.099
+Mike Sullivan: You know, the… the UCR cases are going to have
+
+271
+00:31:32.280 --> 00:31:43.440
+Mike Sullivan: an unequal weighting, right? So there's, you know, we just gotta accept that, you know, typically they're gonna be lower… they're gonna have a lower EHT than the other cases.
+
+272
+00:31:43.440 --> 00:31:43.900
+Portsmouth, NH_A02_USHKN228: So…
+
+273
+00:31:43.900 --> 00:31:46.880
+Mike Sullivan: start pulling them out. It's not a one-for-one.
+
+274
+00:31:48.200 --> 00:31:56.780
+Mike Sullivan: Because they'll have a lower HT, you know. Typically for high-level planning, I tell people, just assume, you know, 30 to 40%.
+
+275
+00:31:57.000 --> 00:32:03.029
+Mike Sullivan: Is what would kind of, like, for… if a case were coming out on the ICR from engineering,
+
+276
+00:32:03.220 --> 00:32:14.040
+Mike Sullivan: you know, if the case shifting from assisted to unassisted, you're probably only gonna give about 30% of that goodness, right? And that's based off of the AHT values, right?
+
+277
+00:32:14.340 --> 00:32:18.629
+Mike Sullivan: The second thing is understanding that
+
+278
+00:32:19.180 --> 00:32:33.409
+Mike Sullivan: you gotta, you gotta understand, you gotta make a guess as to where the… as where the case is gonna come out, right? And that's where, you know, down to the augmented piece, right? And so, not only is it a lower calorie count that's gonna come out, right?
+
+279
+00:32:33.840 --> 00:32:46.029
+Mike Sullivan: it's going to… it's going to come out of your augmented volume, right? You know, you'll never… the traditional volume isn't addressable from an unassisted
+
+280
+00:32:46.030 --> 00:32:55.720
+Mike Sullivan: perspective, right? And so when you're… when you're… when you're trying to establish where the UCR impact is going to be, that's where you've got to look at the augmented mix, right?
+
+281
+00:32:55.770 --> 00:33:01.850
+Mike Sullivan: One of the things that we do poorly today is badged versus OSP.
+
+282
+00:33:01.930 --> 00:33:05.940
+Mike Sullivan: And if we ever had to rebuild our stuff.
+
+283
+00:33:06.080 --> 00:33:09.609
+Mike Sullivan: It would be a layer that we would absolutely build in.
+
+284
+00:33:11.240 --> 00:33:23.909
+Mike Sullivan: You know, so I'm kind of… that's where I'm hoping that you guys will spend a considerable more time than we did. It just wasn't a thing, right? Like, we're kind of a… we're kind of a product of…
+
+285
+00:33:24.070 --> 00:33:26.750
+Mike Sullivan: organizational changes,
+
+286
+00:33:27.060 --> 00:33:33.449
+Mike Sullivan: we used to be in quality. Like, we were part of the engineering. All we cared about was quality. We never cared about headcount.
+
+287
+00:33:33.930 --> 00:33:41.000
+Mike Sullivan: You know, then we all came over here, and Ewan's team was building forecasts.
+
+288
+00:33:41.120 --> 00:33:58.330
+Mike Sullivan: that they were building, headcount plans off of, right? And it was… it was always a problem, because we had two different versions of… we had two different forecasts, and no one never knew. Of course, they weren't the same, right? And it really came down to, you know, it…
+
+289
+00:34:01.200 --> 00:34:05.250
+Mike Sullivan: politics. Ken Ely won, who isn't here anymore.
+
+290
+00:34:05.670 --> 00:34:12.739
+Mike Sullivan: there's pros and cons to both the approaches, right? The way that Ewan's team built the forecast
+
+291
+00:34:13.070 --> 00:34:15.160
+Mike Sullivan: Was they started with people.
+
+292
+00:34:15.409 --> 00:34:21.879
+Mike Sullivan: And it was very, you know, then they threw run rate SR projections, and they used… it was very much a productivity
+
+293
+00:34:22.159 --> 00:34:26.000
+Mike Sullivan: View, which worked really, really well.
+
+294
+00:34:26.389 --> 00:34:30.180
+Mike Sullivan: The piece that didn't do well was…
+
+295
+00:34:30.670 --> 00:34:34.960
+Mike Sullivan: they only considered run-right SRs, right?
+
+296
+00:34:35.090 --> 00:34:41.399
+Mike Sullivan: Which did… it wasn't fit for use in our aggressive, cost-savings environment.
+
+297
+00:34:41.530 --> 00:34:57.630
+Mike Sullivan: Right? So, you know, we weren't going to allow the business to staff to run rate anymore. The strategic direction was the business needs to preemptively staff to our commitments. Right? And so, at the end of the day, our forecasting team went out.
+
+298
+00:34:57.770 --> 00:35:03.659
+Mike Sullivan: The guy that built Ewan's forecast isn't even with the company anymore, he didn't take it very well.
+
+299
+00:35:04.160 --> 00:35:10.849
+Mike Sullivan: You know, and so, you know, we're… we're… We're… we're left with a…
+
+300
+00:35:11.040 --> 00:35:18.620
+Mike Sullivan: View that was built for quality that we've tried to force-feed into a capacity plan, right?
+
+301
+00:35:19.810 --> 00:35:23.300
+Mike Sullivan: that's kind of where I sit. I sit somewhere between…
+
+302
+00:35:23.580 --> 00:35:36.049
+Mike Sullivan: the quality lens and the… and Ewan's team, right? You know, I kind of… I represent the financial interests on the third leg of the stool, right?
+
+303
+00:35:36.350 --> 00:35:46.320
+Mike Sullivan: You know, but that's… that's the… that's the struggles that… that I personally face in all of this stuff. The UCR is a byproduct, right? It's just a… it's just a… it's just a math puzzle, right?
+
+304
+00:35:46.640 --> 00:35:51.290
+Mike Sullivan: The bigger problem is, what are the right elements that we need to forecast?
+
+305
+00:35:51.670 --> 00:36:02.710
+Mike Sullivan: And where do we need to focus on in order to ultimately get the right staffing and the right spend, right? And that's where, you know, the best answer is to blow it up and start over.
+
+306
+00:36:02.940 --> 00:36:21.779
+Mike Sullivan: Right? We've bent all of our stuff as far as we can bend it. We've put as many band-aids on the process as we can put on it. And we're to the point now where we're smarter than we were, you know, so we can artici- we at least know what we need.
+
+307
+00:36:21.830 --> 00:36:26.929
+Mike Sullivan: But we don't have it, right? And that's where you guys come into play, right? So…
+
+308
+00:36:28.550 --> 00:36:37.070
+Mike Sullivan: But anyway, but yeah, so the ECR isn't overly complicated, right? It's just, it's just, it's just taking incremental cases out,
+
+309
+00:36:37.610 --> 00:36:42.619
+Mike Sullivan: Until Megan… for now, Megan's team has to be the quarterback.
+
+310
+00:36:44.090 --> 00:36:52.879
+Mike Sullivan: You know, and so, you know, we do facilitate a lot of their planning for them, don't ask me why, because we're super nice people. That isn't necessarily part of the.
+
+311
+00:36:52.880 --> 00:36:56.429
+Portsmouth, NH_A02_USHKN228: Yes, I think, Mike, you just… you just…
+
+312
+00:36:56.430 --> 00:37:07.949
+Mike Sullivan: You're just… you don't say no to them. Yeah, and so the, the, you know, you will, they, they will… they will, they will tell us from, you know, they will tell us what they are going to do.
+
+313
+00:37:08.210 --> 00:37:13.320
+Mike Sullivan: And we fold it into our demand plan, right?
+
+314
+00:37:13.320 --> 00:37:14.150
+Portsmouth, NH_A02_USHKN228: Yep.
+
+315
+00:37:14.150 --> 00:37:32.689
+Mike Sullivan: So, you know, the only things that you gotta worry about is ingesting what they give us. We have, we have some say in how they give us data, because we built their… we built their forecasting process. You know, and then just figuring out how it folds in, right? Which are the elements that we just talked about. So, it's not rocket science.
+
+316
+00:37:33.920 --> 00:37:42.779
+Mike Sullivan: But, the, you know, but the… it's all those, it's the other layers, right? Which is where I think you guys are gonna, are, are gonna… are gonna provide a lot of value.
+
+317
+00:37:43.210 --> 00:37:44.690
+Mike Sullivan: is building it.
+
+318
+00:37:44.860 --> 00:37:45.870
+Mike Sullivan: with the…
+
+319
+00:37:47.640 --> 00:37:57.269
+Mike Sullivan: building it knowing that it's ultimately going to be used for capacity planning, but none of our stuff was. Our stuff was built for quality. Anyhow, so…
+
+320
+00:37:58.130 --> 00:37:59.060
+Mike Sullivan: Questions?
+
+321
+00:38:02.380 --> 00:38:08.720
+Mike Sullivan: Mathematically, I think, it's all… it's all there. I think, understand where you're coming from.
+
+322
+00:38:08.950 --> 00:38:16.640
+Mike Sullivan: The operationalization of this, right? That would require us to…
+
+323
+00:38:17.080 --> 00:38:31.500
+Mike Sullivan: understand the layers of the data that you spoke, right? Particularly how and at what point we start ingesting that into the current process, because I think in the current process so far, what we have been talking about is largely…
+
+324
+00:38:32.380 --> 00:38:35.070
+Mike Sullivan: Contact in itself that results into the
+
+325
+00:38:35.250 --> 00:38:48.389
+Mike Sullivan: Right? So, we talk the ASUs, we talk the ASRs, we talk the dispatch, and the level of historicals, then seasonality, and, you know, all those goodness. It's the grain of the data, right? So, I mean, everything that we do today.
+
+326
+00:38:48.520 --> 00:38:59.359
+Mike Sullivan: is basically focused at the… it's indexed on the LOB, right? Contacts at the LOB, by LOB, by quarter, and we don't even look at region, right?
+
+327
+00:38:59.800 --> 00:39:16.990
+Mike Sullivan: we certainly don't get into badge versus OSP, right? You know, so that's where that broken handoff… And probably, at a forecasting level, I may not even consider that as a factor to get into. Maybe, right? What's interesting is what we did on the field side.
+
+328
+00:39:17.940 --> 00:39:37.930
+Mike Sullivan: Right? You know, so, I mean, the, you know, we just built out a brand new process for capacity playing on the field side, right? It's still, it's still in the works, right? But it's come a long way in the short amount of time we've been working on it, right? That was the first crack, like, we are for… like, we are forecasting at a…
+
+329
+00:39:38.160 --> 00:39:47.769
+Mike Sullivan: ridiculously low level. Time will tell if it's a good idea, right? But we're entertaining it, right? So we are, I mean, we are even building our,
+
+330
+00:39:48.050 --> 00:40:03.630
+Mike Sullivan: dispatch plan down not only to the region, down to the country, and down to the service area below that, which is a ridiculously low amount of data, right? You know, and then we're doing badge and DSP mixes on top of that.
+
+331
+00:40:03.800 --> 00:40:10.149
+Mike Sullivan: Right? So, I mean, it's interesting, right? I'm curious to see how well it works, right?
+
+332
+00:40:10.680 --> 00:40:14.720
+Mike Sullivan: You know, which, you know, but that… it's, it's that kind of conversation.
+
+333
+00:40:14.860 --> 00:40:27.170
+Mike Sullivan: you know, is where… do I think we need to go to that level of detail on the remote site? No. No. It's not needed, right, because remote is… remote is centralized into queues. It's a nuance of the field that the remote team doesn't have to deal with, right?
+
+334
+00:40:27.340 --> 00:40:37.449
+Mike Sullivan: The density problems that we have on the remote side with queue structures are very similar mechanically to the service areas on the field, but
+
+335
+00:40:37.700 --> 00:40:41.800
+Mike Sullivan: the requirements on the field are far greater. You know, if…
+
+336
+00:40:41.970 --> 00:40:51.710
+Mike Sullivan: if I'm committed to delivering because they're traveling and because they're on-site with the customer, some of the… some of the density rules are a little more rigid than…
+
+337
+00:40:52.220 --> 00:40:55.469
+Mike Sullivan: than what we see on the remote side, right? So,
+
+338
+00:40:56.040 --> 00:41:03.930
+Mike Sullivan: But the, you know, but the dynamics between determining what's badged versus OSP is exactly the same, right?
+
+339
+00:41:04.130 --> 00:41:11.890
+Mike Sullivan: So, you know, yeah, the, the, you know, simplistically though, right, I mean, it's taking, it's taking that LOB, and it's, it's…
+
+340
+00:41:11.890 --> 00:41:24.739
+Mike Sullivan: you know, it's increasing the grain on the analysis, finding what that right level is, right? Definitely need badge versus OSP. Like, I'm just gonna tell you straight up, that's definitely gonna need to be needed, right?
+
+341
+00:41:25.450 --> 00:41:29.599
+Mike Sullivan: Below it? Probably not, right?
+
+342
+00:41:30.840 --> 00:41:36.870
+Mike Sullivan: But, you know, I'll tell you that everything that I'm doing going forward has batch versus OSP in it.
+
+343
+00:41:37.450 --> 00:41:43.389
+Mike Sullivan: That makes sense. I think we are looking at the commercial part of the world right now, and I… I totally get where you're coming from.
+
+344
+00:41:43.520 --> 00:41:44.899
+Mike Sullivan: The hat that you're wearing.
+
+345
+00:41:45.450 --> 00:41:49.150
+Mike Sullivan: There is a lot of analysis going on on that particular context.
+
+346
+00:41:49.880 --> 00:41:52.010
+Mike Sullivan: We're doing that for almost a month and a half now.
+
+347
+00:41:52.240 --> 00:41:58.279
+Mike Sullivan: So, yeah, I mean, that's the way to go, we understand that. How do we bake it into the current process?
+
+348
+00:41:58.470 --> 00:42:02.190
+Mike Sullivan: Once we have taken over and replicated the current one is what we need to see.
+
+349
+00:42:03.060 --> 00:42:06.790
+Mike Sullivan: Yeah. And the good news is.
+
+350
+00:42:07.520 --> 00:42:16.790
+Mike Sullivan: no one's done it. Yeah. So, you know, we'll look at it and go, okay, or that just completely doesn't make sense, right?
+
+351
+00:42:17.860 --> 00:42:20.399
+Mike Sullivan: You know, so… but the,
+
+352
+00:42:20.840 --> 00:42:26.589
+Mike Sullivan: But yeah, I mean, I'm very interested in seeing how we do all this stuff.
+
+353
+00:42:27.610 --> 00:42:37.810
+Mike Sullivan: and the other… just for, you know, a shameless plug, right, the other thing that we gotta keep in mind as we're doing all this, and this isn't a UCR conversation per se.
+
+354
+00:42:39.730 --> 00:42:42.220
+Mike Sullivan: If no one's mentioned it yet, we are…
+
+355
+00:42:42.620 --> 00:42:49.660
+Mike Sullivan: our core volume versus our AA volume, like, we're treating those as two separate companies. Yes.
+
+356
+00:42:50.320 --> 00:42:58.799
+Mike Sullivan: Most part, right? And we are just throwing bodies, like, we are throwing bodies at AI. AI is doing a lot of unnatural things.
+
+357
+00:42:59.560 --> 00:43:02.599
+Mike Sullivan: It's good, we're making a lot of money off of it, right?
+
+358
+00:43:03.420 --> 00:43:10.250
+Mike Sullivan: don't have enough data to leverage a lot of science, right? So we were doing what Dell does, and literally.
+
+359
+00:43:10.680 --> 00:43:20.109
+Mike Sullivan: That's what we do. We're managing the crap out of the core part of the business, right? And so I would say focus on core. Get core under control.
+
+360
+00:43:20.200 --> 00:43:38.040
+Mike Sullivan: And then circle back on AI, right? I mean, the… all the business, like, the stuff that you would build for core would theoretically be the same for AI. AI has some specialized roles that we don't have to deal with on the core side of the business, for both field and remote.
+
+361
+00:43:38.210 --> 00:43:41.430
+Mike Sullivan: But man, we just don't… we do not have our business processes.
+
+362
+00:43:41.730 --> 00:43:46.190
+Mike Sullivan: under control on the AI side, and that's both a remote and a field statement.
+
+363
+00:43:46.370 --> 00:43:50.179
+Mike Sullivan: You know, so we just, you know, the more time we can give the business to kind of
+
+364
+00:43:50.590 --> 00:43:55.490
+Mike Sullivan: kind of shake that stuff out. Anything that you would do for AI right now.
+
+365
+00:43:55.490 --> 00:44:12.019
+Mike Sullivan: It's wrong. Logically, it's probably right, right? You're gonna get the wrong conclusions, because all it's gonna see is quarter-over-quarter logarithmic growth, and it's gonna say we're gonna have a frickin' billion assets in another two years, right?
+
+366
+00:44:12.130 --> 00:44:14.630
+Mike Sullivan: Anyway, I hope we do. We won't.
+
+367
+00:44:14.830 --> 00:44:24.599
+Mike Sullivan: the, but the, the pace. That's the other big thing that we struggle with, right, is…
+
+368
+00:44:24.790 --> 00:44:29.880
+Mike Sullivan: you know, we got some smart folks. You met one of them here earlier, Doug.
+
+369
+00:44:30.290 --> 00:44:36.889
+Mike Sullivan: But we… Because we've been cobbling together and, you know, kind of, you know.
+
+370
+00:44:37.420 --> 00:44:41.419
+Mike Sullivan: patching our legacy processes, they are just not agile.
+
+371
+00:44:41.790 --> 00:44:46.329
+Mike Sullivan: You know, like, we are… we are historically bound to a financial…
+
+372
+00:44:46.620 --> 00:44:51.529
+Mike Sullivan: outlook cycle. You know, so, you know, we do a plan once a year.
+
+373
+00:44:51.690 --> 00:44:58.040
+Mike Sullivan: twice a year at best, typically only once a year recently, right? We just locked that plan for FY27.
+
+374
+00:45:00.350 --> 00:45:11.700
+Mike Sullivan: we'll do, once a quarter, we'll do an Outlook cadence, right? Which is just a modification. Like, nothing ever changes the plan, but saying, okay, here's the plan, here's where we really think we're gonna hit, right?
+
+375
+00:45:12.180 --> 00:45:14.529
+Mike Sullivan: We don't have…
+
+376
+00:45:17.380 --> 00:45:21.519
+Mike Sullivan: We don't have this, like, it takes us too long to assimilate and crunch all the data.
+
+377
+00:45:21.980 --> 00:45:30.810
+Mike Sullivan: Right? Like, the, you know, the, like the, the, you've probably seen or heard of the VMR process that, that, you know, comes from Maza, you know, feeding it in, like, it's a great product.
+
+378
+00:45:30.940 --> 00:45:37.350
+Mike Sullivan: It takes us 3 weeks to build it, you know? And aspirationally, we'd love to be able to do it once a month.
+
+379
+00:45:37.410 --> 00:45:55.649
+Mike Sullivan: But, like, it becomes a full-time job. You know, by the time I produce it, I've gotta start the next… I've gotta start the next… like, there's no end in sight, right? And so… and it's clunky because it's built in Excel, right? And so, you know, thinking about, you know, all this… as we build this stuff out, just understand that, you know.
+
+380
+00:45:56.260 --> 00:46:00.780
+Mike Sullivan: We desperately need to be able to monitor the variants.
+
+381
+00:46:02.290 --> 00:46:14.309
+Mike Sullivan: and simplistically be able to categorize, because we love blaming people, right? You know, right now we've got our variants broken into three buckets. Our ASUs coming in.
+
+382
+00:46:14.870 --> 00:46:16.510
+Mike Sullivan: Off-plan, right?
+
+383
+00:46:16.950 --> 00:46:35.210
+Mike Sullivan: favorable or unfavorable, you know, if ASUs don't come in on plan, that should have a, you know, that'll have an impact to the SR volume. Then is it ICR, is it the triads? And then is it UCR, right? At least in those three areas, so we know where to lean into. We…
+
+384
+00:46:36.120 --> 00:46:44.580
+Mike Sullivan: lack a lot of operational rigor, kind of at the portfolio level, which is the other area that we struggle with historically. And again, this isn't…
+
+385
+00:46:44.780 --> 00:46:57.569
+Mike Sullivan: This isn't for y'all to go solve, but you'll need to be aware of it, right? Because you'll get… what's gonna happen is y'all are gonna get thrust in the middle of these conversations. You're gonna present something, people are gonna go, why is that? And you're going, fuck, I know. Right. Right? We have…
+
+386
+00:46:58.770 --> 00:47:05.080
+Mike Sullivan: Grisha's team, very much focused on quality. Everything they do is the LOB.
+
+387
+00:47:05.500 --> 00:47:06.350
+Mike Sullivan: Right.
+
+388
+00:47:07.630 --> 00:47:16.059
+Mike Sullivan: I've got Srinu's team, All the portfolio managers and stuff that are focused very much on capabilities, right?
+
+389
+00:47:16.470 --> 00:47:29.279
+Mike Sullivan: They talk… they build PowerPoint slides that talk about high-level shit that no one can understand, right? Can't measure it, can't understand it, don't care about it most of the time, right? And he got Christie's team, who just cares about people.
+
+390
+00:47:29.860 --> 00:47:47.979
+Mike Sullivan: Right? They don't necessarily care about the LOV, right? They're talking about cues, and bodies, and SLOs, and SLAs, right? And so we got 3 separate lenses. And no one's wrong, but everyone is speak… it's like everyone's speaking a different language, right? You know, and we don't have anyone
+
+391
+00:47:48.830 --> 00:47:53.420
+Mike Sullivan: We don't have… we… Structurally, we don't have anyone who sits
+
+392
+00:47:53.650 --> 00:48:01.270
+Mike Sullivan: In the middle of that, right? And so, like, I get asked UCR questions. When I told you, like, I stopped reporting augmented, right?
+
+393
+00:48:01.920 --> 00:48:04.250
+Mike Sullivan: just because I knew how to measure it.
+
+394
+00:48:04.400 --> 00:48:08.190
+Mike Sullivan: And set targets, and tell people if they were hitting those targets or not.
+
+395
+00:48:09.080 --> 00:48:13.159
+Mike Sullivan: I was getting the questions, why? Guys, it's like, I…
+
+396
+00:48:13.160 --> 00:48:13.680
+Portsmouth, NH_A02_USHKN228: Good evening.
+
+397
+00:48:13.680 --> 00:48:19.999
+Mike Sullivan: Not mine. And no one would ever take it, so I just stopped doing it. Problem solved, right? We're just gonna stop reporting augmented.
+
+398
+00:48:20.190 --> 00:48:20.630
+Portsmouth, NH_A02_USHKN228: Excuse me.
+
+399
+00:48:20.630 --> 00:48:28.799
+Mike Sullivan: asking me about it, right? Same thing about UCRs, the same thing about ICR. It's gonna be the same thing about all this stuff. You're gonna say, look, the volume, you know, we've got a high degree of variance in the volumes.
+
+400
+00:48:29.100 --> 00:48:45.499
+Mike Sullivan: You know, I know enough to kind of tell you, kind of categorize it for you, based on the plans, but I'm not part of the operational teams driving the capabilities, right? You know, and so, you know, figuring… and that's where we're going to have to help.
+
+401
+00:48:45.570 --> 00:48:55.779
+Mike Sullivan: figure that out, right? Is as, you know, a lot of the science goes to you guys, we are going to have to figure out how we collectively shuffle around and fill.
+
+402
+00:48:56.030 --> 00:49:11.290
+Mike Sullivan: fill that gap, to be able to add richness to the conversations, and driving accountability, where accountability needs to be driven. It's great that we can report on the gaps, but, like, the message, like, we're… I don't think we're doing a good job of driving accountability at the right level.
+
+403
+00:49:11.670 --> 00:49:20.590
+Mike Sullivan: I'm getting all of that back into the forecast, so that it can improve. Exactly. It's, you know, so, anyway. I gotta run, guys.
+
+404
+00:49:20.780 --> 00:49:26.429
+Portsmouth, NH_A02_USHKN228: Thank you, Mike. I know this is… I know this is a big crash course. That's good.
+
+405
+00:49:26.430 --> 00:49:32.160
+Mike Sullivan: I can… if any of the stuff that I… that we reviewed interests you, I mean, I can send it to you, right? It's just a bunch of…
+
+406
+00:49:32.280 --> 00:49:50.739
+Mike Sullivan: gobbledygook. But I can send you that PowerPoint for reference if you want it, if you want this. If you want this Excel file, you can have it. So I'll, I'll send, when I log back in this afternoon, I'll, I'll, I'll shoot it over to you guys. Any other questions, you know, UCR or non-UCR?
+
+407
+00:49:50.990 --> 00:49:58.559
+Mike Sullivan: headcount, spend, I dabble in pretty much all of it, at least at the ISG level.
+
+408
+00:49:59.850 --> 00:50:03.850
+Mike Sullivan: you know where to find me. Sure. So, good deal, guys. Thank you.
+
+409
+00:50:03.850 --> 00:50:04.960
+Portsmouth, NH_A02_USHKN228: Okay, thank you, Mike.
+
+410
+00:50:05.970 --> 00:50:07.960
+Mike Sullivan: Thanks for being, thanks for being flexible.
+
+411
+00:50:08.810 --> 00:50:09.650
+Portsmouth, NH_A02_USHKN228: First, thank you.
+
