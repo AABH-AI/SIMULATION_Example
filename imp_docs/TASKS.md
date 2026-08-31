@@ -128,10 +128,16 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       (40/60) + `btc_raw_dataset_segmented.csv` (real Segment column). Regenerated `btc_data.json`.
 - [x] App reads split per tab (no ratio math in code): engine `ASU_SEG` + `computeAsuRows` optional args +
       `computeAsuView` array-select + `aggLob` sums + `setAsuSeg`; `AsuView` store-driven segbar + Segment column.
-- [x] Verified live: NC/APOS split 40/60 exact, ASU constant across tabs, Segment column shows label.
-      Build green (~743 KB JS); smoke 17/17.
+- [x] Verified live: NC/APOS split 40/60 exact, Segment column shows label. Build green (~743 KB JS); smoke 17/17.
+- [x] **ASU = NC + APOS − Declines** (page-1 displays: KPIs, panel Base/Adjusted/Delta, chart line, derived
+      Adj ASU column). Engine `adj` + SR/Disp/Publish untouched. Importing declines now reduces adjusted ASU
+      (verified 5,158,979→4,858,979 for 300k declines).
+- [x] **Declines field/tech split baked INTO the files:** both declines CSVs → `FW,Declines,Segment`
+      (Tech 60% + Field 40%); `importDeclinesText` reads Segment → `DECL_SEG`; `computeAsuView` uses file values
+      (nc-fraction fallback for old files). Verified both files: 40/60 exact, field+tech==all.
 
 ---
-**Now:** P0–P5 done + 4 UX rounds. FULL parity + NC/APOS field/tech split (dataset-side). Branch `master-react_v2`, app at repo root.
+**Now:** P0–P5 done + 4 UX rounds. FULL parity + NC/APOS field/tech split (dataset + declines files) +
+ASU=NC+APOS−Declines on page 1. Branch `master-react_v2`, app at repo root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`
-to restore `npm run dev`.
+to restore `npm run dev`. Consider putting Publish's ASU_Adj on the same NC+APOS−Declines basis (page 1 only for now).

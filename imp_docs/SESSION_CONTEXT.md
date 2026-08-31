@@ -179,8 +179,8 @@ NOTE: filters auto-collapse on Publish (pre-existing `onTab('pub')`); reopen via
 
 ## UX changes (2026-08-31, round 3) — browser-verified, branch `master-react_v2`
 1. **Step-1 renamed** "Adjust ASU driver" → **"Adjust NCs, APOS renewals"** (`App.jsx`).
-2. **Page-1 sub-tabs** `All / Field / Tech` added to `AsuView.jsx` (`.segbar`, local `asuSeg`, default `All`).
-   VISUAL/selection only — no field/tech data split exists, so no data wiring.
+2. **Page-1 sub-tabs** `All / Field / Tech` added to `AsuView.jsx`. (Round 3 = visual only; **round 4 made
+   them functional** — they now drive the NC/APOS field/tech split, see the data section below.)
 3. **Page-2 Disp seg buttons** `Parts / Parts+Labour / Labour Only` **disabled** (`disabled={i>0}` in
    `RateView.jsx`), `All` stays active. Kept in DOM.
 4. **Filters-strip collapse toggle removed** (`.frail-toggle` span gone from `FilterRail.jsx`); `App.jsx`
@@ -212,10 +212,20 @@ reflects a rebuild; rebuild before checking). Fresh `vite dev` on `:5199` still 
   `computeAsuRows(ncSrc,apSrc,ncKey,apKey)` optional args (defaults=full → Publish/SR/Disp untouched);
   `computeAsuView` selects the split arrays by `ASU_SEG` + returns `seg`/`segLabel`; `aggLob` sums the 4 new
   arrays; `setAsuSeg` action; `AsuView` All/Field/Tech segbar is store-driven + has a **Segment** table column.
-  ASU level stays full (only NC/APOS split). Verified: NC/APOS split 40/60 exact, ASU constant across tabs.
+  Verified: NC/APOS split 40/60 exact.
+- **ASU = NC + APOS − Declines (page-1 display, strict):** the ASU-Actuals + Adjusted-ASU KPIs, the control-panel
+  Base/Adjusted/Delta, the chart ASU-Actuals line, and the table's Adj ASU column (now DERIVED, non-editable —
+  the old direct-`aa` edit is dropped from page 1) all use `nc+apos−decl` / `adjNew+btcApos−decl`. Importing
+  declines now visibly reduces adjusted ASU. **Engine `adj` (installed-base recursion) + SR/Disp/Publish are
+  UNCHANGED** — dispatches = ASU × rate needs the installed-base ASU, so only page-1 DISPLAYS use the identity.
+- **Declines field/tech split lives in the FILES:** `declines_dummy.csv` + `declines_dummy_alt.csv` are now
+  `FW,Declines,Segment` (Tech 60% + Field 40% rows per week; total = field+tech). `importDeclinesText` READS the
+  Declines (2nd col) + Segment (3rd col) → `DECL_VALS` (total) + `DECL_SEG {field,tech}`; `computeAsuView` uses
+  the file's `DECL_SEG` per tab (no ratio math; nc-fraction kept only as fallback for a Segment-less file).
+  Parser is backward-compatible with old 2-column declines files.
 - **src/data now:** `btc_data.json` (imported), `btc_raw_dataset.csv` + `gen_ui_from_csv.py` +
-  `btc_raw_dataset_segmented.csv` (pipeline), `declines_dummy.csv` + `declines_dummy_alt.csv` (upload fixtures).
-  Deleted earlier: `btc_data.js`, `declines_dummy.js`, `Dummy.xlsx`, `gen_btc_dataset.py`.
+  `btc_raw_dataset_segmented.csv` (pipeline), `declines_dummy.csv` + `declines_dummy_alt.csv` (split, upload
+  fixtures). Deleted earlier: `btc_data.js`, `declines_dummy.js`, `Dummy.xlsx`, `gen_btc_dataset.py`.
 - `AllocationModal.jsx` + `.modal*` CSS DELETED (commit `5d6363e`).
 
 ## Next (optional)
