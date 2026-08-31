@@ -47,6 +47,10 @@ export default function AsuView({ dark }) {
 
   if (v.empty) return <div className="card">No forecast weeks in this selection.</div>;
   const t = v.totals, cb = v.cb;
+  // ASU is strictly NC + APOS - Declines (actual and adjusted basis)
+  const asuActuals = t.nc + t.apos - t.decl;
+  const asuAdjusted = t.adjNew + t.btcApos - t.decl;
+  const asuDelta = asuAdjusted - asuActuals;
 
   function onFile(e) {
     const f = e.target.files && e.target.files[0]; e.target.value = '';
@@ -65,12 +69,12 @@ export default function AsuView({ dark }) {
       </div>
       {/* KPI row */}
       <div className={'kr ' + (v.declImported ? 'kr4' : 'kr5')}>
-        <Kpi label="ASU Actuals" value={fmt(t.nc + t.apos - t.decl)} pct={cb.base} />
+        <Kpi label="ASU Actuals" value={fmt(asuActuals)} pct={cb.base} />
         <Kpi label="NC Actuals" value={fmt(t.nc)} style={{ color: 'var(--ac)' }} pct={cb.nc} />
         <Kpi label="APOS Actuals" value={fmt(t.apos)} style={{ color: 'var(--pu)' }} pct={cb.apos} />
         {v.declImported && <Kpi label="Declines" value={fmt(t.decl)} style={{ color: '#8b0000' }} pct={cb.decl} />}
         {v.anyAdj && <>
-          {v.asuAdj ? <Kpi label="Adjusted ASU" value={fmt(t.adj)} style={{ color: '#ea580c' }} pct={cb.adj} /> : <Kpi hidden />}
+          {v.asuAdj ? <Kpi label="Adjusted ASU" value={fmt(asuAdjusted)} style={{ color: '#ea580c' }} pct={cb.adj} /> : <Kpi hidden />}
           {v.ncAdj ? <Kpi label="Adj NC" value={fmt(t.adjNew)} style={{ color: '#0891b2' }} pct={cb.adjNew} /> : <Kpi hidden />}
           {v.apAdj ? <Kpi label="Adj APOS" value={fmt(t.btcApos)} style={{ color: '#ac4073' }} pct={cb.btcApos} /> : <Kpi hidden />}
           {v.declImported && <Kpi hidden />}
@@ -106,7 +110,7 @@ export default function AsuView({ dark }) {
                       {v.declImported && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
                       {v.ncAdj && <td style={{ color: 'var(--ac)' }}>{isA ? '—' : <input className="ec" defaultValue={r.adjNew} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} />}</td>}
                       {v.apAdj && <td style={{ color: 'var(--pu)' }}>{isA ? '—' : <input className="ec" defaultValue={r.btcApos} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} />}</td>}
-                      {v.asuAdj && <td>{isA ? '—' : <input className="ec" defaultValue={fmt(r.adj)} key={'aa' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'aa', e.target.value)} onKeyDown={commitEnter} />}</td>}
+                      {v.asuAdj && <td>{isA ? '—' : fmt(r.adjNew + r.btcApos - (r.decl || 0))}</td>}
                       {v.anyEdA && <CommentCell edited={edited} read={() => getCmtAsu(r.fw)} write={(val) => setCmtAsu(r.fw, val)} />}
                     </tr>
                   );
@@ -136,11 +140,11 @@ export default function AsuView({ dark }) {
             <h4 style={{ color: 'var(--am)' }}>AOP Target</h4>
             <div className="sl sl-a"><input type="range" value={Math.min(v.aopW, aopMax)} min={0} max={aopMax} onChange={(e) => aopSync('asu', e.target.value)} /><input type="number" value={v.aopW} min={0} max={aopMax} onChange={(e) => aopSync('asu', e.target.value)} /></div>
           </div>
-          <h4 style={{ fontSize: 10, marginBottom: 8 }}>ASU vs Base (end of window)</h4>
-          <div className="gap"><span>Base ASU</span><b>{fmt(t.base)}</b></div>
-          <div className="gap"><span>Adjusted ASU</span><b style={{ color: 'var(--ac)' }}>{fmt(t.adj)}</b></div>
-          <div className="bar"><div style={{ width: Math.max(4, Math.min(100, t.adj ? t.base / t.adj * 100 : 0)) + '%' }} /></div>
-          <div className="gap"><span>Delta</span><b style={{ color: v.lift >= 0 ? 'var(--gn)' : 'var(--rd)' }}>{(v.lift >= 0 ? '+' : '') + fmt(v.lift)}</b></div>
+          <h4 style={{ fontSize: 10, marginBottom: 8 }}>ASU (NC + APOS − Declines)</h4>
+          <div className="gap"><span>Base ASU</span><b>{fmt(asuActuals)}</b></div>
+          <div className="gap"><span>Adjusted ASU</span><b style={{ color: 'var(--ac)' }}>{fmt(asuAdjusted)}</b></div>
+          <div className="bar"><div style={{ width: Math.max(4, Math.min(100, asuAdjusted ? asuActuals / asuAdjusted * 100 : 0)) + '%' }} /></div>
+          <div className="gap"><span>Delta</span><b style={{ color: asuDelta >= 0 ? 'var(--gn)' : 'var(--rd)' }}>{(asuDelta >= 0 ? '+' : '') + fmt(asuDelta)}</b></div>
           <div className="btnrow" style={{ justifyContent: 'center' }}><button className="btn pub" style={{ flex: '0 0 auto', padding: '8px 24px' }} onClick={() => stepTo(2)}>Go to Step 2 (SRs &amp; Dispatches) →</button></div>
         </div>
       </div>

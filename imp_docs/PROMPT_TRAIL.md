@@ -293,3 +293,23 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   `src/store/useBtc.js`, `src/components/AsuView.jsx`.
 - **Note:** rebuild required for `:5173`/preview to reflect data changes (`#`-path still blocks `vite dev`).
 - **Outcome:** field/tech split lives in the dataset; app reads it per tab. Pushed to `master-react_v2`.
+
+## 2026-08-31 (cont.) — ASU redefined as NC + APOS − Declines (page-1 display)
+- **Asked:** ASU must equal NC + APOS − Declines, strictly; and importing declines must affect Adjusted ASU.
+- **Root cause:** the KPI/panel "Adjusted ASU" used the engine's installed-base recursion (`t.adj` =
+  base + ncCum + renCum − declCum, ~6.36M scale). Declines DID reduce it (engine test: 6,355,461→5,202,192),
+  but on the installed-base scale, inconsistent with the new ASU-Actuals = nc+apos−decl. The installed-base ASU
+  is load-bearing for SR/Disp/Publish (dispatches = ASU × rate), so it stays in the engine — only page-1
+  DISPLAYS switch to the nc+apos−decl basis.
+- **Done (AsuView only):** added `asuActuals = t.nc+t.apos−t.decl`, `asuAdjusted = t.adjNew+t.btcApos−t.decl`,
+  `asuDelta`. ASU Actuals KPI, Adjusted ASU KPI, panel Base/Adjusted/Delta, and the chart ASU-Actuals line all
+  use this basis; the table "Adj ASU" column is now DERIVED (`adjNew+btcApos−decl`, non-editable — the old
+  direct-`aa` edit is dropped from page 1; engine `adj`/Publish untouched). Panel heading → "ASU (NC + APOS −
+  Declines)".
+- **Verified:** node — no declines: actuals==adjusted==5,158,979; with declines_dummy.csv: both 3,620,423
+  (−1,538,556). Browser — injected 300,000 forecast declines → ASU Actuals & Adjusted ASU both 5,158,979→
+  4,858,979. Build green; smoke 17/17.
+- **Files:** `src/components/AsuView.jsx`, `src/engine/btcEngine.js` (chart ASU line only).
+- **Note:** SR/Disp/Publish still use the installed-base ASU driver (unchanged); only page-1 ASU displays use
+  the nc+apos−decl identity.
+- **Outcome:** ASU = NC + APOS − Declines on page 1; declines now visibly move adjusted ASU. Pushed to `master-react_v2`.
