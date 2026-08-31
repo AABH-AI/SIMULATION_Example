@@ -434,9 +434,17 @@ export function computeAsuView() {
   const TL = state.TL, fc = TL.fcStart, vis = visIdx();
   // field/tech split: read the pre-split arrays from the dataset (no ratio math here).
   const segK = ASU_SEG_LBL[state.ASU_SEG] ? state.ASU_SEG : 'all';
-  const rows = (segK === 'field') ? computeAsuRows(TL.nc_field, TL.apos_field, 'nc_field', 'apos_field')
+  let rows = (segK === 'field') ? computeAsuRows(TL.nc_field, TL.apos_field, 'nc_field', 'apos_field')
     : (segK === 'tech') ? computeAsuRows(TL.nc_tech, TL.apos_tech, 'nc_tech', 'apos_tech')
     : computeAsuRows();
+  // imported declines have no dataset field/tech source → split them by the SAME fraction the
+  // dataset uses for NC (sum nc_field / sum nc), so per-segment ASU (= nc+apos-decl) stays consistent.
+  if (segK !== 'all' && state.DECL_IMPORTED) {
+    const segArr = segK === 'field' ? TL.nc_field : TL.nc_tech;
+    let tot = 0, seg = 0; for (let i = 0; i < TL.nc.length; i++) { tot += TL.nc[i]; seg += (segArr ? segArr[i] : 0); }
+    const frac = tot ? seg / tot : 0;
+    rows = rows.map((r) => (r.decl == null ? r : { ...r, decl: Math.round(r.decl * frac) }));
+  }
   if (!vis.length) return { empty: true, rows, seg: segK, segLabel: ASU_SEG_LBL[segK] };
   const last = rows[vis[vis.length - 1]];
   let tAN = 0, tBA = 0, tNC = 0, tAP = 0, tDecl = 0;
