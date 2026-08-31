@@ -454,7 +454,7 @@ export function computeAsuView() {
   const aopW = aopVal('asu');
   const lbl = vis.map((i) => shortFW(TL.fw[i])), xlab = axisLabels(vis);
   const aser = [
-    { color: '#4ade80', fcColor: '#4ade80', name: 'ASU Actuals', data: vis.map((i) => rows[i].nc + rows[i].apos) },
+    { color: '#4ade80', fcColor: '#4ade80', name: 'ASU Actuals', data: vis.map((i) => rows[i].nc + rows[i].apos - (rows[i].decl || 0)) },
     { color: '#3a6ef0', fcColor: '#3a6ef0', name: 'NC Actuals', data: vis.map((i) => rows[i].nc) },
     { color: '#6d28d9', fcColor: '#6d28d9', name: 'APOS Actuals', data: vis.map((i) => rows[i].apos) },
     { color: '#ea580c', name: 'Adj ASU', seg: 'forecast', data: asuAdj ? vis.map((i) => rows[i].adjNew + rows[i].btcApos - (rows[i].decl || 0) + (rows[i].aaJump || 0)) : [] },

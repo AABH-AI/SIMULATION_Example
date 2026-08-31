@@ -65,7 +65,7 @@ export default function AsuView({ dark }) {
       </div>
       {/* KPI row */}
       <div className={'kr ' + (v.declImported ? 'kr4' : 'kr5')}>
-        <Kpi label="ASU Actuals" value={fmt(t.base)} pct={cb.base} />
+        <Kpi label="ASU Actuals" value={fmt(t.nc + t.apos - t.decl)} pct={cb.base} />
         <Kpi label="NC Actuals" value={fmt(t.nc)} style={{ color: 'var(--ac)' }} pct={cb.nc} />
         <Kpi label="APOS Actuals" value={fmt(t.apos)} style={{ color: 'var(--pu)' }} pct={cb.apos} />
         {v.declImported && <Kpi label="Declines" value={fmt(t.decl)} style={{ color: '#8b0000' }} pct={cb.decl} />}
@@ -102,7 +102,7 @@ export default function AsuView({ dark }) {
                     <tr key={r.fw} className={isA ? 'act' : (edited ? 'edt' : '')}>
                       <td className="l">{shortFW(r.fw)}</td>
                       <td>{v.segLabel}</td>
-                      <td>{fmt(r.base)}</td><td>{fmt(r.nc)}</td><td>{fmt(r.apos)}</td>
+                      <td>{fmt(r.nc + r.apos - (r.decl || 0))}</td><td>{fmt(r.nc)}</td><td>{fmt(r.apos)}</td>
                       {v.declImported && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
                       {v.ncAdj && <td style={{ color: 'var(--ac)' }}>{isA ? '—' : <input className="ec" defaultValue={r.adjNew} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} />}</td>}
                       {v.apAdj && <td style={{ color: 'var(--pu)' }}>{isA ? '—' : <input className="ec" defaultValue={r.btcApos} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} />}</td>}
