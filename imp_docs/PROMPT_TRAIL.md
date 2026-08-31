@@ -313,3 +313,17 @@ Newest at bottom. One entry per session. Never rewrite past entries.
 - **Note:** SR/Disp/Publish still use the installed-base ASU driver (unchanged); only page-1 ASU displays use
   the nc+apos−decl identity.
 - **Outcome:** ASU = NC + APOS − Declines on page 1; declines now visibly move adjusted ASU. Pushed to `master-react_v2`.
+
+## 2026-08-31 (cont.) — declines field/tech split moved INTO the files
+- **Asked (blunt):** the field/tech split must live in the declines FILES (portable to another device), not be
+  computed in the engine. Update both declines CSVs with the 40/60 split.
+- **Done:** rewrote `declines_dummy.csv` + `declines_dummy_alt.csv` to `FW,Declines,Segment` — each source week
+  now has a Tech row (60%) + Field row (40%); total = field+tech. Importer `importDeclinesText` now READS the
+  Declines column (2nd) + Segment column (3rd) and stores `state.DECL_SEG={field,tech}` alongside the total
+  `DECL_VALS`. `computeAsuView` field/tech uses the file's `DECL_SEG` values directly (no ratio math); the old
+  runtime nc-fraction split remains only as a fallback for a Segment-less file. `removeDeclines` + state init
+  updated for `DECL_SEG`. Parser stays backward-compatible with old 2-column files.
+- **Verified:** both files parse (624 rows each); declines_dummy all 1,538,556 = field 615,426 (40.0%) + tech
+  923,130; alt all 2,932,345 = 1,172,939 + 1,759,406. Build green; smoke 17/17.
+- **Files:** `src/data/declines_dummy.csv`, `src/data/declines_dummy_alt.csv`, `src/engine/btcEngine.js`.
+- **Outcome:** declines field/tech split is now data-resident (in the CSVs); the app reads it. Pushed to `master-react_v2`.

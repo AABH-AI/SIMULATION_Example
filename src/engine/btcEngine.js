@@ -24,6 +24,7 @@ export const state = {
   // declines (display-only, forecast-only, imported)
   DECL_IMPORTED: false,
   DECL_VALS: {},
+  DECL_SEG: { field: {}, tech: {} }, // field/tech declines read from the imported file's Segment column
   DECL_FILE: null,
   // ASU driver modifiers (were DOM #ncI / #apI)
   ncMod: 100,
@@ -437,13 +438,19 @@ export function computeAsuView() {
   let rows = (segK === 'field') ? computeAsuRows(TL.nc_field, TL.apos_field, 'nc_field', 'apos_field')
     : (segK === 'tech') ? computeAsuRows(TL.nc_tech, TL.apos_tech, 'nc_tech', 'apos_tech')
     : computeAsuRows();
-  // imported declines have no dataset field/tech source → split them by the SAME fraction the
-  // dataset uses for NC (sum nc_field / sum nc), so per-segment ASU (= nc+apos-decl) stays consistent.
+  // field/tech declines are READ from the imported file's Segment column (state.DECL_SEG); the app
+  // does not compute the split. Fallback to the dataset NC fraction only if the file had no Segment column.
   if (segK !== 'all' && state.DECL_IMPORTED) {
-    const segArr = segK === 'field' ? TL.nc_field : TL.nc_tech;
-    let tot = 0, seg = 0; for (let i = 0; i < TL.nc.length; i++) { tot += TL.nc[i]; seg += (segArr ? segArr[i] : 0); }
-    const frac = tot ? seg / tot : 0;
-    rows = rows.map((r) => (r.decl == null ? r : { ...r, decl: Math.round(r.decl * frac) }));
+    const segMap = state.DECL_SEG && state.DECL_SEG[segK];
+    if (segMap && Object.keys(segMap).length) {
+      const m = allocMult();
+      rows = rows.map((r) => (r.decl == null ? r : { ...r, decl: Math.round((segMap[r.fw] || 0) * m) }));
+    } else {
+      const segArr = segK === 'field' ? TL.nc_field : TL.nc_tech;
+      let tot = 0, seg = 0; for (let i = 0; i < TL.nc.length; i++) { tot += TL.nc[i]; seg += (segArr ? segArr[i] : 0); }
+      const frac = tot ? seg / tot : 0;
+      rows = rows.map((r) => (r.decl == null ? r : { ...r, decl: Math.round(r.decl * frac) }));
+    }
   }
   if (!vis.length) return { empty: true, rows, seg: segK, segLabel: ASU_SEG_LBL[segK] };
   const last = rows[vis[vis.length - 1]];
@@ -671,25 +678,33 @@ export function pruneToForecast() {
   F.quarter = F.quarter.filter((q) => fcQ[q]);
   F.week = F.week.filter((w) => fcW[w]);
 }
-// declines import — accepts raw CSV/TXT text (component reads the File)
+// declines import — accepts raw CSV/TXT text (component reads the File).
+// Columns: FW, Declines[, Segment]. When a Segment column (Field/Tech) is present the field/tech
+// split is READ from the file (portable, no ratio math in code); the total per week is field+tech.
 export function importDeclinesText(txt) {
-  const TL = state.TL, fc = TL.fcStart; let n = 0; const vals = {};
+  const TL = state.TL, fc = TL.fcStart; let n = 0;
+  const vals = {}, segVals = { field: {}, tech: {} };
   const map = {}; for (let i = 0; i < TL.fw.length; i++) { map[TL.fw[i]] = i; map[shortFW(TL.fw[i])] = i; }
   const seq = []; for (let i = fc; i < TL.fw.length; i++) seq.push(i); let sp = 0;
   ('' + txt).split(/\r?\n/).forEach((ln) => {
     ln = ('' + ln).trim(); if (!ln) return;
     const parts = ln.split(/[,\t;]/);
-    const raw = (parts[parts.length - 1] || '').replace(/[^0-9.-]/g, '');
-    const num = parseFloat(raw); if (!isFinite(num)) return;
+    // Declines is the 2nd column when present, else the last; Segment (if any) is the 3rd.
+    const declRaw = (parts.length >= 2 ? parts[1] : parts[parts.length - 1]) || '';
+    const num = parseFloat(('' + declRaw).replace(/[^0-9.-]/g, '')); if (!isFinite(num)) return;
+    const seg = (parts[2] || '').trim().toLowerCase();
     const key = (parts[0] || '').trim(); let idx = null;
     if (map[key] != null) idx = map[key];
     else if (key.length > 2 && map[key.slice(2)] != null) idx = map[key.slice(2)];
     if (idx == null) { if (sp < seq.length) idx = seq[sp++]; else return; }
-    vals[TL.fw[idx]] = Math.round(num); n++;
+    const fw = TL.fw[idx], v = Math.round(num);
+    vals[fw] = (vals[fw] || 0) + v;                       // total = field + tech
+    if (seg === 'field' || seg === 'tech') segVals[seg][fw] = (segVals[seg][fw] || 0) + v;
+    n++;
   });
-  if (n > 0) { state.DECL_VALS = vals; state.DECL_IMPORTED = true; }
+  if (n > 0) { state.DECL_VALS = vals; state.DECL_SEG = segVals; state.DECL_IMPORTED = true; }
   return n;
 }
-export function removeDeclines() { state.DECL_VALS = {}; state.DECL_IMPORTED = false; }
+export function removeDeclines() { state.DECL_VALS = {}; state.DECL_SEG = { field: {}, tech: {} }; state.DECL_IMPORTED = false; }
 export function setStep(n) { state.STEP = Math.max(1, Math.min(3, n)); }
 export function setTab(v) { state.activeTab = v; }
