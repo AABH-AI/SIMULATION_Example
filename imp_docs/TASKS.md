@@ -106,7 +106,20 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
 - [x] `start.bat` → build + `vite preview` on :5173 (npm run dev broken by `#` in repo path).
 - [x] Browser-verified @ :8199 (dist): strip layout, downward multi-select dropdown, step-box nav. Build green.
 
+## UX round 3 — tab/label/publish polish (2026-08-31, branch `master-react_v2`)  ✅ DONE
+- [x] Step-1 label → "Adjust NCs, APOS renewals" (`App.jsx`).
+- [x] Page-1 `All/Field/Tech` sub-tabs in `AsuView.jsx` (visual/selection only — no data split).
+- [x] Page-2 Disp `Parts/Parts+Labour/Labour Only` seg buttons disabled (kept), `All` active (`RateView.jsx`).
+- [x] Removed filters-strip collapse toggle; dropped `railOpen`/`useState` (`FilterRail.jsx`, `App.jsx`).
+- [x] Equal tab heights (`.tab`+`.segt` = 32px) + tabs→segbar gap 24→12px (`btc.css`).
+- [x] Chart-shrink fix: `ResizeObserver`→`chart.reflow()` in `BtcChart.jsx`.
+- [x] Main tabs rounded (`.tab` radius 8px, no `border-bottom:none`).
+- [x] Publish: removed SR/Disp allocation views; Export + Back-to-Step-2 moved to right-side `.ctl` panel
+      (table+panel in `.row`); filename override input + `Saves as` preview; `exportPublished(custom)` wired;
+      export label/info/saves fonts trimmed, info line single-line (`PubView.jsx`, `useBtc.js`, `btc.css`).
+- [x] Build green (706 KB JS); browser-verified on `:5173` (vite preview of dist).
+
 ---
-**Now:** P0–P5 done + 2 UX rounds. FULL parity, **verified byte-identical** Publish CSV. On branch `master-react`, app at repo root.
-**Next (optional):** `git init` (done — repo live), README, pin `highcharts@11.4.8`, code-split 704 KB bundle,
-rename folder without `#` to restore `npm run dev`.
+**Now:** P0–P5 done + 3 UX rounds. FULL parity, **verified byte-identical** Publish CSV. Branch `master-react_v2`, app at repo root.
+**Next (optional):** delete dead `AllocationModal.jsx` (+ `.modal*` CSS), README, pin `highcharts@11.4.8`,
+code-split 706 KB bundle, rename folder without `#` to restore `npm run dev`.

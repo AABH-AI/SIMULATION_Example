@@ -6,7 +6,6 @@ import { fmt, shortFW, getCmtPub } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
 import CommentCell from './CommentCell.jsx';
-import AllocationModal from './AllocationModal.jsx';
 
 export default function PubView({ dark }) {
   const version = useBtc((s) => s.version);
@@ -16,7 +15,8 @@ export default function PubView({ dark }) {
   const exportPublished = useBtc((s) => s.exportPublished);
   const setCmtPub = useBtc((s) => s.setCmtPub);
   const stepTo = useBtc((s) => s.stepTo);
-  const [alloc, setAlloc] = useState(null);
+  const cycleBaseName = useBtc((s) => s.cycleBaseName);
+  const [fileName, setFileName] = useState('');
   void version;
   const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
 
@@ -24,20 +24,14 @@ export default function PubView({ dark }) {
   if (v.empty) return <div className="view on"><div className="card">No forecast weeks to publish.</div></div>;
   const k = v.kpi, fy = v.fyLbl, di = v.declImported;
 
-  function doExport() { exportPublished(); }
+  const sanit = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const saveName = (fileName.trim() ? (sanit(fileName) || 'published') : cycleBaseName()) + '.csv';
 
   return (
     <div className="view on">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0 12px' }}>
+      <div style={{ margin: '4px 0 12px' }}>
         <div className="ks">Publish — {fy} forecast window</div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button className="btn dis" style={{ flex: '0 0 auto', padding: '8px 14px' }} onClick={() => stepTo(2)}>← Back to Step 2</button>
-          <button className="btn dis" style={{ flex: '0 0 auto', padding: '8px 14px' }} onClick={() => setAlloc({ which: 'sr', total: v.showAdj ? k.aSR : k.fSR })}>⊞ SR allocation</button>
-          <button className="btn dis" style={{ flex: '0 0 auto', padding: '8px 14px' }} onClick={() => setAlloc({ which: 'disp', total: v.showAdj ? k.aDisp : k.fDisp })}>⊞ Disp allocation</button>
-          <button className="btn pub" style={{ flex: '0 0 auto', padding: '8px 18px' }} onClick={doExport}>⤓ Export published CSV</button>
-        </div>
       </div>
-      {alloc && <AllocationModal which={alloc.which} total={alloc.total} onClose={() => setAlloc(null)} />}
 
       {/* KPI row */}
       <div className="kr" style={{ gridTemplateColumns: `repeat(${di ? 6 : 5},minmax(0,1fr))` }}>
@@ -67,31 +61,46 @@ export default function PubView({ dark }) {
         ))}
       </div>
 
-      {/* summary table */}
-      <div className="card">
-        <h3><span>Publish summary — adjusted forecast</span><span className="hdbtns"><button className="btn dis reset-btn" onClick={() => tblReset('pub')}>Reset edits</button></span></h3>
-        <div className="tw">
-          <table>
-            <thead><tr>
-              <th className="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>
-              {di && <th>Declines</th>}<th>SR_Adj</th><th>Disp_Adj</th>
-              {v.anyEdP && <th className="cmt" style={{ width: 120 }}>Comment</th>}
-            </tr></thead>
-            <tbody>
-              {v.tableRows.map((r) => (
-                <tr key={r.fw} className={r.edited ? 'edt' : ''}>
-                  <td className="l">{shortFW(r.fw)}</td>
-                  <td><input className="ec" defaultValue={fmt(r.adjNew)} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} /></td>
-                  <td><input className="ec" defaultValue={fmt(r.btcApos)} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} /></td>
-                  <td><input className="ec" defaultValue={fmt(r.adj)} key={'aa' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'aa', e.target.value)} onKeyDown={commitEnter} /></td>
-                  {di && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
-                  <td><input className="ec" defaultValue={r.sr === '' ? '' : fmt(r.sr)} key={'sr' + r.fw + version} onBlur={(e) => editRate('sr', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
-                  <td><input className="ec" defaultValue={r.disp === '' ? '' : fmt(r.disp)} key={'dp' + r.fw + version} onBlur={(e) => editRate('disp', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
-                  {v.anyEdP && <CommentCell edited={r.edited} read={() => getCmtPub(r.fw)} write={(val) => setCmtPub(r.fw, val)} />}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* summary table + export panel */}
+      <div className="row">
+        <div className="card">
+          <h3><span>Publish summary — adjusted forecast</span><span className="hdbtns"><button className="btn dis reset-btn" onClick={() => tblReset('pub')}>Reset edits</button></span></h3>
+          <div className="tw">
+            <table>
+              <thead><tr>
+                <th className="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>
+                {di && <th>Declines</th>}<th>SR_Adj</th><th>Disp_Adj</th>
+                {v.anyEdP && <th className="cmt" style={{ width: 120 }}>Comment</th>}
+              </tr></thead>
+              <tbody>
+                {v.tableRows.map((r) => (
+                  <tr key={r.fw} className={r.edited ? 'edt' : ''}>
+                    <td className="l">{shortFW(r.fw)}</td>
+                    <td><input className="ec" defaultValue={fmt(r.adjNew)} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} /></td>
+                    <td><input className="ec" defaultValue={fmt(r.btcApos)} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} /></td>
+                    <td><input className="ec" defaultValue={fmt(r.adj)} key={'aa' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'aa', e.target.value)} onKeyDown={commitEnter} /></td>
+                    {di && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
+                    <td><input className="ec" defaultValue={r.sr === '' ? '' : fmt(r.sr)} key={'sr' + r.fw + version} onBlur={(e) => editRate('sr', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
+                    <td><input className="ec" defaultValue={r.disp === '' ? '' : fmt(r.disp)} key={'dp' + r.fw + version} onBlur={(e) => editRate('disp', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
+                    {v.anyEdP && <CommentCell edited={r.edited} read={() => getCmtPub(r.fw)} write={(val) => setCmtPub(r.fw, val)} />}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* export panel (mirrors control panel layout) */}
+        <div className="card ctl">
+          <h3><span>Export</span></h3>
+          <div className="mb blue" style={{ padding: '7px 8px' }}><p style={{ margin: 0, fontSize: 8, color: 'var(--t2)', lineHeight: 1.4, whiteSpace: 'nowrap' }}>ⓘ Export the adjusted forecast data for the forecast window ({fy}).</p></div>
+          <div style={{ marginBottom: 9 }}>
+            <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--t2)', marginBottom: 6 }}>FILE NAME <span style={{ fontWeight: 400, color: 'var(--t3)' }}>(optional — overrides the cycle-derived name)</span></label>
+            <input className="ec" style={{ width: '100%', maxWidth: 'none', boxSizing: 'border-box', textAlign: 'left' }} value={fileName} placeholder="auto (cycle name)" onChange={(e) => setFileName(e.target.value)} />
+            <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 6 }}>Saves as: <b>{saveName}</b></div>
+          </div>
+          <div className="btnrow"><button className="btn dis" style={{ flex: 1 }} onClick={() => stepTo(2)}>← Back to Step 2</button></div>
+          <div className="btnrow"><button className="btn pub" style={{ flex: 1 }} onClick={() => exportPublished(fileName)}>⤓ Export data</button></div>
         </div>
       </div>
     </div>

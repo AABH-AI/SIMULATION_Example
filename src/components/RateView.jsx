@@ -32,7 +32,7 @@ export default function RateView({ kind, dark }) {
   const segTabs = (
     <div className="segbar">
       {v.segList && v.segList.map((s, i) => (
-        <button key={s.l} className={'segt' + (i === v.segIdx ? ' on' : '')} onClick={() => selectSeg(kind, i)}>{s.l}</button>
+        <button key={s.l} className={'segt' + (i === v.segIdx ? ' on' : '')} disabled={i > 0} onClick={() => selectSeg(kind, i)}>{s.l}</button>
       ))}
     </div>
   );

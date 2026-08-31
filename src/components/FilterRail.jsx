@@ -55,7 +55,6 @@ export default function FilterRail({ open, onToggleOpen }) {
       <div className="frail-hd">
         <span className="frail-title">Filters</span>
         <button className="freset" onClick={resetFilters}>Reset</button>
-        <span className="ficon frail-toggle" onClick={onToggleOpen} title={open ? 'Hide filters' : 'Show filters'}>{open ? '▴' : '▾'}</span>
       </div>
       <div id="frailBody">
         {main.map((c) => <Fitem key={c.k} cfg={c} />)}

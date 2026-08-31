@@ -1,7 +1,7 @@
 // AsuView.jsx — Step 1 ASU driver (vertical slice). Reads computeAsuView(); sliders drive ncMod/apMod
 // through the store; edits round-trip via editAsu. Chart via <BtcChart>. (Comment popover + legend
 // isolation deferred to P4.)
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useBtc } from '../store/useBtc.js';
 import { fmt, shortFW, state, hasAsuOvr, getCmtAsu } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
@@ -35,6 +35,8 @@ export default function AsuView({ dark }) {
   const stepTo = useBtc((s) => s.stepTo);
   const tblReset = useBtc((s) => s.tblReset);
   const fileRef = useRef(null);
+  const ASU_SEGS = ['All', 'Field', 'Tech'];
+  const [asuSeg, setAsuSeg] = useState(0);
 
   // version keeps this reactive to store mutations
   void version;
@@ -56,6 +58,11 @@ export default function AsuView({ dark }) {
 
   return (
     <div className="view on">
+      <div className="segbar">
+        {ASU_SEGS.map((s, i) => (
+          <button key={s} className={'segt' + (i === asuSeg ? ' on' : '')} onClick={() => setAsuSeg(i)}>{s}</button>
+        ))}
+      </div>
       {/* KPI row */}
       <div className={'kr ' + (v.declImported ? 'kr4' : 'kr5')}>
         <Kpi label="ASU Actuals" value={fmt(t.base)} pct={cb.base} />

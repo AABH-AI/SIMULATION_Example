@@ -216,3 +216,47 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   clicking the Publish step → Step 3 (steps 1&2 marked done), clicking Adjust ASU → Step 1. Filters
   auto-collapse on Publish (pre-existing `onTab('pub')` behavior), reopen via ▾.
 - **Outcome:** both UX changes in, build green, pushed to `master-react`.
+
+## 2026-08-31 (cont.) — UX round 3: tab/label/publish polish (branch `master-react_v2`)
+- **Asked (5 rounds):** (1) rename step 1 → "Adjust NCs, APOS renewals" + add Field/Tech sub-tabs like
+  page-2 dispatch tabs; (2) page 2 disable (not remove) Parts / Parts+Labour / Labour Only seg buttons;
+  (3) remove the top filters-strip collapse button; (4) remove now-unused `railOpen`; re-add the `All`
+  seg tab (was dropped); (5) equalize the 3 tab heights across pages 1&2, shrink main-tab↔sub-tab gap
+  (equal spacing), fix page-1 chart shrinking on first All→Field/Tech switch; (6) round the main tabs'
+  bottom corners; (7) Publish page — remove SR/Disp allocation views, move Export + "Back to Step 2"
+  into a right-side panel beside the table (control-panel style, per attached mock w/ filename override);
+  (8) shrink the export label + "Saves as" + info-line fonts, force the info line onto a single line.
+- **Done:**
+  - Seg tabs on page 1: `AsuView.jsx` renders a `.segbar` with `['All','Field','Tech']` (local `asuSeg`
+    state, default `All`). **Visual/selection only** — page-1 has no field/tech data split, so no data
+    wiring (noted to user). Step-1 label in `App.jsx` → "Adjust NCs, APOS renewals" (dropped `driver` sub).
+  - `RateView.jsx` seg buttons: `disabled={i>0}` → only `All` clickable on Disp (SR already has just `All`).
+    Kept in DOM (not removed).
+  - `FilterRail.jsx`: removed the `.frail-toggle` (▴/▾) collapse span; `App.jsx` dropped `railOpen`/
+    `setRailOpen`/`onToggleOpen` + the `useState` import; `<FilterRail open={true}/>`.
+  - Tab sizing (`btc.css`): `.tab` and `.segt` both `display:inline-flex;align-items:center;
+    box-sizing:border-box;height:32px` (were 32 vs 27.2) → equal. `.segbar{margin:0}` (was `12px 0 0`)
+    → tabs→segbar gap 24px→12px, matching the stepper/tabs rhythm (12px each). Verified live: tabH=[32],
+    segH=[32,32,32], gap=12.
+  - **Chart shrink fix** (`BtcChart.jsx`): added a `ResizeObserver` on the `.cw` container →
+    `chart.reflow()`. Root cause = Highcharts first-paint sized before layout settled (oversized), and the
+    first tab switch reflowed it down. Now SVG stays 892×250 across All↔Field↔Tech. `useEffect`+`cwRef`.
+  - Tab corners (`btc.css`): `.tab` border-radius `8px 8px 0 0` → `8px`, removed `border-bottom:none`
+    (now a pill, not a folder tab). Verified `8px`.
+  - Publish restructure (`PubView.jsx`): removed `AllocationModal` import + `alloc` state + the ⊞ SR/Disp
+    allocation buttons. Summary table + a new Export panel now sit in a `.row` (table `.card` flex + Export
+    `.card.ctl` 310px). Export panel mirrors the control-panel layout + the attached mock: info box, a
+    **FILE NAME** override input (`.ec`, `maxWidth:none` to beat the 78px cap → fills to the card's right
+    edge, equal 14.8px gaps both sides), live `Saves as: <name>.csv` preview, `← Back to Step 2`,
+    `⤓ Export data`. Store `exportPublished(custom)` now sanitizes an optional name (else `cycleBaseName()`).
+  - Font trims (`PubView.jsx`): FILE NAME label + `Saves as` 11px→10px; info line 11px→8px +
+    `white-space:nowrap` + `.mb` padding `7px 8px` so it fits one line (measured overflow 0). `AllocationModal.jsx`
+    now unused (no importers) — file left in place.
+- **Run/verify:** built each round (`npm run build`, green, ~350-420ms, 706 KB JS) and DOM/pixel-verified on
+  `:5173`. IMPORTANT: `:5173` is a `vite preview` of `dist` (NOT dev/HMR) — it only reflects changes after a
+  rebuild; a stale preview served old CSS until rebuilt. A fresh `vite dev` on `:5199` failed the same way as
+  always (`UNLOADABLE_DEPENDENCY … Access is denied` from the `#` in the repo path) — build+preview is the only
+  path here. `.claude/launch.json` present locally (uncommitted; dev is broken by `#` anyway).
+- **Files:** `src/App.jsx`, `src/btc.css`, `src/components/AsuView.jsx`, `src/components/BtcChart.jsx`,
+  `src/components/FilterRail.jsx`, `src/components/PubView.jsx`, `src/components/RateView.jsx`, `src/store/useBtc.js`.
+- **Outcome:** all requests in, build green, browser-verified. Pushed to `master-react_v2`.

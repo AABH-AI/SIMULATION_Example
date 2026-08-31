@@ -5,7 +5,8 @@ _Last updated: 2026-08-31._
 ## Layout NOW (repo restructured)
 App restructured to **repo root** (commit `7ce9178` "BTC Adjustment Simulator (React) as standalone
 app at root"). Sources are at `src/`, `scripts/`, `index.html`, `start.bat` at root — NOT under `app/`.
-Older sections below that say `app/…` = read as root-relative (`app/src/X` → `src/X`). Branch: `master-react`.
+Older sections below that say `app/…` = read as root-relative (`app/src/X` → `src/X`). Branch: `master-react_v2`
+(earlier work was on `master-react`).
 
 ## How to run NOW (# path roadblock)
 `npm run dev` is BROKEN here: repo path `D:\Repos\#Git\…` contains `#`, and Vite's dep scanner errors
@@ -126,8 +127,9 @@ NOTE: editing a hook's deps mid-session logs a dev-only Fast-Refresh "deps chang
 - btc.css: expand overlay + modal styles.
 Verified: expand fills to overlay + Escape collapses; allocation modal shows 3 dims (Americas 50.8% → 193,544), × closes.
 
-## Components (9)
-AllocationModal, AsuView, BtcChart, CommentCell, ExpandableCard, FilterRail, Kpi, PubView, RateView.
+## Components (9; AllocationModal now unused)
+AllocationModal (dead since UX round 3 — no importers, file kept), AsuView, BtcChart, CommentCell,
+ExpandableCard, FilterRail, Kpi, PubView, RateView.
 Engine: `src/engine/btcEngine.js` (state+compute+actions), `src/engine/chartOptions.js` (Highcharts builder).
 Store: `src/store/useBtc.js`. Data: `src/data/btc_data.json`. Smoke: `scripts/smoke.mjs`.
 
@@ -176,8 +178,32 @@ Files: `src/App.jsx`, `src/components/FilterRail.jsx`, `src/btc.css`, `start.bat
 Verified @ :8199 (served dist): horizontal strip, FY dropdown opens down w/ multi-select, step-box nav works.
 NOTE: filters auto-collapse on Publish (pre-existing `onTab('pub')`); reopen via ▾.
 
+## UX changes (2026-08-31, round 3) — browser-verified, branch `master-react_v2`
+1. **Step-1 renamed** "Adjust ASU driver" → **"Adjust NCs, APOS renewals"** (`App.jsx`).
+2. **Page-1 sub-tabs** `All / Field / Tech` added to `AsuView.jsx` (`.segbar`, local `asuSeg`, default `All`).
+   VISUAL/selection only — no field/tech data split exists, so no data wiring.
+3. **Page-2 Disp seg buttons** `Parts / Parts+Labour / Labour Only` **disabled** (`disabled={i>0}` in
+   `RateView.jsx`), `All` stays active. Kept in DOM.
+4. **Filters-strip collapse toggle removed** (`.frail-toggle` span gone from `FilterRail.jsx`); `App.jsx`
+   dropped `railOpen`/`setRailOpen`/`onToggleOpen` + `useState` import; `<FilterRail open={true}/>`.
+5. **Equal tab heights + gap** (`btc.css`): `.tab` and `.segt` both `inline-flex`/`height:32px`
+   (were 32 vs 27.2); `.segbar{margin:0}` → tabs→segbar gap 24px→12px (matches stepper/tabs rhythm).
+6. **Chart-shrink fix** (`BtcChart.jsx`): `ResizeObserver` on `.cw` → `chart.reflow()`. Fixes page-1 chart
+   shrinking on the first All→Field/Tech switch (Highcharts oversized first paint before layout settled).
+7. **Main tabs rounded** (`btc.css`): `.tab` border-radius `8px 8px 0 0`→`8px`, dropped `border-bottom:none`.
+8. **Publish page** (`PubView.jsx`): removed ⊞ SR/Disp allocation buttons + `AllocationModal` usage. Summary
+   table + new **Export panel** now in a `.row` (table flex + `.card.ctl` 310px, control-panel style). Export
+   panel = info box, **FILE NAME** override input (`maxWidth:none` → fills to card right edge, equal gaps),
+   live `Saves as: <name>.csv`, `← Back to Step 2`, `⤓ Export data`. Store `exportPublished(custom)` sanitizes
+   an optional filename (else `cycleBaseName()`). Fonts trimmed: label + Saves-as 11→10px; info line 11→8px +
+   `white-space:nowrap` + `.mb` padding `7px 8px` → single line (overflow 0).
+Files: `App.jsx`, `btc.css`, `AsuView.jsx`, `BtcChart.jsx`, `FilterRail.jsx`, `PubView.jsx`, `RateView.jsx`,
+`useBtc.js`. Build green (706 KB JS). Verified on `:5173` = **`vite preview` of `dist`** (not dev/HMR — only
+reflects a rebuild; rebuild before checking). Fresh `vite dev` on `:5199` still fails on the `#` path.
+
 ## Next (optional)
-- git init, README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the 704 KB JS bundle (build warns >500 KB).
+- Delete dead `AllocationModal.jsx` (no importers since round 3) + its unused `.modal*` CSS.
+- README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the 706 KB JS bundle (build warns >500 KB).
 - Rename repo folder without `#` to restore `npm run dev` + hot reload.
 
 ## Open risks (see plan §5 for fixes)

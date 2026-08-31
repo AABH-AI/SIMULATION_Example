@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useBtc } from './store/useBtc.js';
 import { state } from './engine/btcEngine.js';
 import AsuView from './components/AsuView.jsx';
@@ -26,7 +26,6 @@ export default function App() {
   const cycleLabelVal = useBtc((s) => s.cycleLabelVal);
   const ctxText = useBtc((s) => s.ctxText);
 
-  const [railOpen, setRailOpen] = useState(true);
   const cycleRef = useRef(null);
   const bootedCycle = useRef(false);
 
@@ -45,8 +44,8 @@ export default function App() {
   const step = state.STEP, tab = state.activeTab, dark = state.dark;
   const tabVisible = (v) => (step === 1 && v === 'asu') || (step === 2 && (v === 'sr' || v === 'disp')) || (step === 3 && v === 'pub');
 
-  function onTab(v) { goTab(v); if (v === 'pub') setRailOpen(false); }
-  function onStep(n) { stepTo(n); if (state.activeTab === 'pub') setRailOpen(false); }
+  function onTab(v) { goTab(v); }
+  function onStep(n) { stepTo(n); }
 
   return (
     <>
@@ -62,11 +61,11 @@ export default function App() {
         <button className="themebtn" onClick={toggleTheme} title="Toggle dark mode">{dark ? '☀' : '☾'}</button>
       </div>
 
-      <FilterRail open={railOpen} onToggleOpen={() => setRailOpen((o) => !o)} />
+      <FilterRail open={true} />
 
       <div className="stepper">
         <button className="step-nav" disabled={step <= 1} onClick={() => onStep(step - 1)}>← Prev</button>
-        <div className={'step' + (step === 1 ? ' on' : step > 1 ? ' done' : '')} role="button" tabIndex={0} onClick={() => onStep(1)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(1); } }}><b>1</b> Adjust ASU <span className="sub">driver</span></div>
+        <div className={'step' + (step === 1 ? ' on' : step > 1 ? ' done' : '')} role="button" tabIndex={0} onClick={() => onStep(1)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(1); } }}><b>1</b> Adjust NCs, APOS renewals</div>
         <span className="arw">→</span>
         <div className={'step' + (step === 2 ? ' on' : step > 2 ? ' done' : '')} role="button" tabIndex={0} onClick={() => onStep(2)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStep(2); } }}><b>2</b> Adjust SRs &amp; Dispatches</div>
         <span className="arw">→</span>

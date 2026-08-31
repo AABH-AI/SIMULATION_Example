@@ -3,7 +3,7 @@
 // mirroring initLegends/legHover/legClick/applyIso from the source. Legend entries are index-aligned with
 // the series array (empty-data series keep their slot but their legend span is hidden), so isolation indices
 // stay correct on every page.
-import { useMemo, useRef, useState, useCallback } from 'react';
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import { buildChartOptions, symSvg } from '../engine/chartOptions.js';
 import { fmt, niceScale, state } from '../engine/btcEngine.js';
@@ -25,7 +25,16 @@ function visibleYRange(ch) {
 
 export default function BtcChart({ labels, series, xlab, opts, dark = false, height = 250 }) {
   const chartRef = useRef(null);
+  const cwRef = useRef(null);
   const [iso, setIso] = useState({}); // { seriesIndex: 1 } isolated set
+
+  // keep chart sized to its container (fixes oversized first paint before layout settles)
+  useEffect(() => {
+    const el = cwRef.current; if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { const ch = chartRef.current && chartRef.current.chart; if (ch) ch.reflow(); });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const options = useMemo(
     () => buildChartOptions(labels, series, (v) => fmt(v), xlab, opts, dark, state.SPLIT_FW),
@@ -76,7 +85,7 @@ export default function BtcChart({ labels, series, xlab, opts, dark = false, hei
           );
         })}
       </div>
-      <div className="cw" style={{ height }}>
+      <div className="cw" style={{ height }} ref={cwRef}>
         <HighchartsReact ref={chartRef} highcharts={Highcharts} options={options} immutable={false} containerProps={{ style: { height: '100%', width: '100%' } }} />
       </div>
     </>

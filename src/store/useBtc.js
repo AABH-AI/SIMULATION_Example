@@ -80,9 +80,10 @@ export const useBtc = create((set) => {
 
     // Export the published CSV. FS Access path (Chromium/secure ctx) writes into a picked outputs/ folder and
     // derives Pass# = (#csv in folder)+1; otherwise plain Blob download + in-session pass bump. Mirrors exportPublished().
-    exportPublished: async () => {
+    exportPublished: async (custom) => {
       const csv = E.exportCsv();
-      const name = E.cycleBaseName() + '.csv';
+      const clean = (custom || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      const name = (clean || E.cycleBaseName()) + '.csv';
       if (typeof window !== 'undefined' && window.showDirectoryPicker) {
         try {
           if (!outDir) outDir = await window.showDirectoryPicker({ id: 'btc-outputs', mode: 'readwrite' });
