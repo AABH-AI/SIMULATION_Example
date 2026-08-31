@@ -119,7 +119,19 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       export label/info/saves fonts trimmed, info line single-line (`PubView.jsx`, `useBtc.js`, `btc.css`).
 - [x] Build green (706 KB JS); browser-verified on `:5173` (vite preview of dist).
 
+## UX round 4 — data cleanup + NC/APOS field/tech split (2026-08-31)  ✅ DONE
+- [x] Audited copied `input/` files; deleted unneeded (`btc_data.js`, `declines_dummy.js`, `Dummy.xlsx`,
+      `gen_btc_dataset.py`, and initially the raw CSV/gen — later restored); kept 2 declines CSVs.
+- [x] Deleted dead `AllocationModal.jsx` + `.modal*` CSS (commit `5d6363e`).
+- [x] Restored real pipeline `btc_raw_dataset.csv → gen_ui_from_csv.py → btc_data.json` from `origin/master`.
+- [x] Field/tech split in the DATASET: `gen_ui_from_csv.py` emits `nc_field/nc_tech/apos_field/apos_tech`
+      (40/60) + `btc_raw_dataset_segmented.csv` (real Segment column). Regenerated `btc_data.json`.
+- [x] App reads split per tab (no ratio math in code): engine `ASU_SEG` + `computeAsuRows` optional args +
+      `computeAsuView` array-select + `aggLob` sums + `setAsuSeg`; `AsuView` store-driven segbar + Segment column.
+- [x] Verified live: NC/APOS split 40/60 exact, ASU constant across tabs, Segment column shows label.
+      Build green (~743 KB JS); smoke 17/17.
+
 ---
-**Now:** P0–P5 done + 3 UX rounds. FULL parity, **verified byte-identical** Publish CSV. Branch `master-react_v2`, app at repo root.
-**Next (optional):** delete dead `AllocationModal.jsx` (+ `.modal*` CSS), README, pin `highcharts@11.4.8`,
-code-split 706 KB bundle, rename folder without `#` to restore `npm run dev`.
+**Now:** P0–P5 done + 4 UX rounds. FULL parity + NC/APOS field/tech split (dataset-side). Branch `master-react_v2`, app at repo root.
+**Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`
+to restore `npm run dev`.

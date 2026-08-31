@@ -127,9 +127,8 @@ NOTE: editing a hook's deps mid-session logs a dev-only Fast-Refresh "deps chang
 - btc.css: expand overlay + modal styles.
 Verified: expand fills to overlay + Escape collapses; allocation modal shows 3 dims (Americas 50.8% → 193,544), × closes.
 
-## Components (9; AllocationModal now unused)
-AllocationModal (dead since UX round 3 — no importers, file kept), AsuView, BtcChart, CommentCell,
-ExpandableCard, FilterRail, Kpi, PubView, RateView.
+## Components (8; AllocationModal deleted)
+AsuView, BtcChart, CommentCell, ExpandableCard, FilterRail, Kpi, PubView, RateView.
 Engine: `src/engine/btcEngine.js` (state+compute+actions), `src/engine/chartOptions.js` (Highcharts builder).
 Store: `src/store/useBtc.js`. Data: `src/data/btc_data.json`. Smoke: `scripts/smoke.mjs`.
 
@@ -201,9 +200,26 @@ Files: `App.jsx`, `btc.css`, `AsuView.jsx`, `BtcChart.jsx`, `FilterRail.jsx`, `P
 `useBtc.js`. Build green (706 KB JS). Verified on `:5173` = **`vite preview` of `dist`** (not dev/HMR — only
 reflects a rebuild; rebuild before checking). Fresh `vite dev` on `:5199` still fails on the `#` path.
 
+## Data pipeline + NC/APOS field/tech split (2026-08-31, round 4) — dataset-side
+- **Pipeline:** `src/data/btc_raw_dataset.csv → src/data/gen_ui_from_csv.py → src/data/btc_data.json`.
+  Run: `cd src/data && python gen_ui_from_csv.py`. (gen_btc_dataset.py is NOT the app's generator — it reads
+  an unavailable xlsx and emits a different schema; ignore it.) Only `btc_data.json` is imported by the app.
+- **Field/tech split lives in the DATA:** `gen_ui_from_csv.py` has `FIELD_SHARE=0.40`/`TECH_SHARE=0.60`; per LOB
+  `btc_data.json` now carries `nc_field/nc_tech/apos_field/apos_tech` (field=round40%, tech=remainder → exact).
+  Also emits `btc_raw_dataset_segmented.csv` (real **Segment** column: Tech row=60% NC/APOS + full other
+  measures, Field row=40% NC/APOS + other measures zeroed so aggregation never double-counts).
+- **App reads it per tab (no ratio math in code):** engine `state.ASU_SEG` ('all'|'field'|'tech');
+  `computeAsuRows(ncSrc,apSrc,ncKey,apKey)` optional args (defaults=full → Publish/SR/Disp untouched);
+  `computeAsuView` selects the split arrays by `ASU_SEG` + returns `seg`/`segLabel`; `aggLob` sums the 4 new
+  arrays; `setAsuSeg` action; `AsuView` All/Field/Tech segbar is store-driven + has a **Segment** table column.
+  ASU level stays full (only NC/APOS split). Verified: NC/APOS split 40/60 exact, ASU constant across tabs.
+- **src/data now:** `btc_data.json` (imported), `btc_raw_dataset.csv` + `gen_ui_from_csv.py` +
+  `btc_raw_dataset_segmented.csv` (pipeline), `declines_dummy.csv` + `declines_dummy_alt.csv` (upload fixtures).
+  Deleted earlier: `btc_data.js`, `declines_dummy.js`, `Dummy.xlsx`, `gen_btc_dataset.py`.
+- `AllocationModal.jsx` + `.modal*` CSS DELETED (commit `5d6363e`).
+
 ## Next (optional)
-- Delete dead `AllocationModal.jsx` (no importers since round 3) + its unused `.modal*` CSS.
-- README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the 706 KB JS bundle (build warns >500 KB).
+- README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the ~743 KB JS bundle (build warns >500 KB).
 - Rename repo folder without `#` to restore `npm run dev` + hot reload.
 
 ## Open risks (see plan §5 for fixes)

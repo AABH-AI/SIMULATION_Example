@@ -1,7 +1,7 @@
 // AsuView.jsx — Step 1 ASU driver (vertical slice). Reads computeAsuView(); sliders drive ncMod/apMod
 // through the store; edits round-trip via editAsu. Chart via <BtcChart>. (Comment popover + legend
 // isolation deferred to P4.)
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useBtc } from '../store/useBtc.js';
 import { fmt, shortFW, state, hasAsuOvr, getCmtAsu } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
@@ -34,9 +34,9 @@ export default function AsuView({ dark }) {
   const setCmtAsu = useBtc((s) => s.setCmtAsu);
   const stepTo = useBtc((s) => s.stepTo);
   const tblReset = useBtc((s) => s.tblReset);
+  const setAsuSeg = useBtc((s) => s.setAsuSeg);
   const fileRef = useRef(null);
-  const ASU_SEGS = ['All', 'Field', 'Tech'];
-  const [asuSeg, setAsuSeg] = useState(0);
+  const ASU_SEGS = [{ k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'tech', l: 'Tech' }];
 
   // version keeps this reactive to store mutations
   void version;
@@ -59,8 +59,8 @@ export default function AsuView({ dark }) {
   return (
     <div className="view on">
       <div className="segbar">
-        {ASU_SEGS.map((s, i) => (
-          <button key={s} className={'segt' + (i === asuSeg ? ' on' : '')} onClick={() => setAsuSeg(i)}>{s}</button>
+        {ASU_SEGS.map((s) => (
+          <button key={s.k} className={'segt' + (v.seg === s.k ? ' on' : '')} onClick={() => setAsuSeg(s.k)}>{s.l}</button>
         ))}
       </div>
       {/* KPI row */}
@@ -87,7 +87,7 @@ export default function AsuView({ dark }) {
           <div className="tw">
             <table>
               <thead><tr>
-                <th className="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>
+                <th className="l">FW</th><th>Segment</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>
                 {v.declImported && <th>Declines</th>}
                 {v.ncAdj && <th style={{ color: 'var(--ac)' }}>Adj NC</th>}
                 {v.apAdj && <th style={{ color: 'var(--pu)' }}>Adj APOS</th>}
@@ -101,6 +101,7 @@ export default function AsuView({ dark }) {
                   return (
                     <tr key={r.fw} className={isA ? 'act' : (edited ? 'edt' : '')}>
                       <td className="l">{shortFW(r.fw)}</td>
+                      <td>{v.segLabel}</td>
                       <td>{fmt(r.base)}</td><td>{fmt(r.nc)}</td><td>{fmt(r.apos)}</td>
                       {v.declImported && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
                       {v.ncAdj && <td style={{ color: 'var(--ac)' }}>{isA ? '—' : <input className="ec" defaultValue={r.adjNew} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} />}</td>}

@@ -260,3 +260,36 @@ Newest at bottom. One entry per session. Never rewrite past entries.
 - **Files:** `src/App.jsx`, `src/btc.css`, `src/components/AsuView.jsx`, `src/components/BtcChart.jsx`,
   `src/components/FilterRail.jsx`, `src/components/PubView.jsx`, `src/components/RateView.jsx`, `src/store/useBtc.js`.
 - **Outcome:** all requests in, build green, browser-verified. Pushed to `master-react_v2`.
+
+## 2026-08-31 (cont.) — data cleanup + NC/APOS field/tech split (dataset-side)
+- **Asked:** (a) user copied master's `input/` files into `src/data/`; verify + list needed vs not;
+  (b) delete the unneeded ones, keep the 2 declines CSVs; (c) split NC + APOS into field/tech —
+  "1 new column, values either field or tech", **60% tech / 40% field**; the split must live in the
+  **dataset, not the app engine**; chose "regenerate raw dataset (add a real Segment column, 40/60)".
+- **Data audit:** only `btc_data.json` is imported ([useBtc.js:7]); declines are upload-only (file-picker →
+  `importDeclinesText`, [btcEngine.js]). Deleted `btc_data.js`, `declines_dummy.js`, `btc_raw_dataset.csv`,
+  `gen_btc_dataset.py`, `gen_ui_from_csv.py`, `Dummy.xlsx` (all untracked). Kept `declines_dummy.csv` +
+  `declines_dummy_alt.csv`. Also deleted dead `AllocationModal.jsx` + `.modal*` CSS (commit `5d6363e`).
+- **Pipeline recovered:** the real chain is `btc_raw_dataset.csv → gen_ui_from_csv.py → btc_data.json`
+  (NOT gen_btc_dataset.py, which reads an unavailable xlsx and emits a different schema). Restored the CSV +
+  `gen_ui_from_csv.py` from `origin/master:template_ui/input/`.
+- **Field/tech split (dataset):** `gen_ui_from_csv.py` — added `FIELD_SHARE=0.40`/`TECH_SHARE=0.60`; per LOB it
+  now emits `nc_field/nc_tech/apos_field/apos_tech` (field=round(40%), tech=remainder → field+tech==total
+  exactly). Also writes `btc_raw_dataset_segmented.csv`: a real **Segment** column, each source row split into a
+  Tech row (60% of New Contract + APOS Renewal, other measures intact) + a Field row (40%, other measures
+  zeroed so aggregation never double-counts). Regenerated `btc_data.json` (8 LOBs, 312 wks, 14,976 seg rows).
+  Verified FY27 nc split == 0.400/0.600, sums exact.
+- **App wiring (minimal — reads data, no ratio math in code):** engine `state.ASU_SEG` ('all'|'field'|'tech');
+  `computeAsuRows(ncSrc,apSrc,ncKey,apKey)` now optional (defaults = full nc/apos → Publish/SR/Disp untouched);
+  `computeAsuView` picks `TL.nc_field/nc_tech`(+apos) by `ASU_SEG`, returns `seg`/`segLabel`; `aggLob` sums the 4
+  new arrays (SC cache-safe via distinct keys); `setAsuSeg` action. `AsuView.jsx`: All/Field/Tech segbar now
+  store-driven (was local visual-only) + a new **Segment** column in the table. ASU level stays full (only
+  NC/APOS split, as asked).
+- **Verified live** (`vite preview` :5175): NC row All 22,065 = Field 8,825 + Tech 13,240 (40.0/60.0);
+  APOS 4,946 = 1,977 + 2,969; NC KPI 4,613,383 = 1,845,342 + 2,768,041; ASU Actuals constant 5,424,914 across
+  tabs; Segment column shows the active label. Build green (743 KB JS); smoke 17/17.
+- **Files:** `src/data/gen_ui_from_csv.py` (restored+edited), `src/data/btc_raw_dataset.csv` (restored),
+  `src/data/btc_raw_dataset_segmented.csv` (new), `src/data/btc_data.json` (regenerated), `src/engine/btcEngine.js`,
+  `src/store/useBtc.js`, `src/components/AsuView.jsx`.
+- **Note:** rebuild required for `:5173`/preview to reflect data changes (`#`-path still blocks `vite dev`).
+- **Outcome:** field/tech split lives in the dataset; app reads it per tab. Pushed to `master-react_v2`.

@@ -27,6 +27,7 @@ export const useBtc = create((set) => {
     // ---- mutations (each bumps version) ----
     setNcMod: wrap(E.setNcMod),
     setApMod: wrap(E.setApMod),
+    setAsuSeg: wrap(E.setAsuSeg),
     setSegMod: wrap(E.setSegMod),
     selectSeg: wrap(E.selectSeg),
     editRate: wrap(E.editRate),

@@ -28,6 +28,8 @@ export const state = {
   // ASU driver modifiers (were DOM #ncI / #apI)
   ncMod: 100,
   apMod: 100,
+  // ASU field/tech split tab ('all' | 'field' | 'tech') — selects pre-split arrays from the dataset
+  ASU_SEG: 'all',
   // per-metric segment config (element ids from original dropped)
   DISP: { kind: 'disp', _seg: 0, _segMods: null, _adj: null, _vis: null, unit: 'Dispatches', tgtLbl: 'SMOD', rateLbl: 'MDR ×100', dsName: 'DISP Actuals', adjName: 'Adj Disp' },
   SR: { kind: 'sr', _seg: 0, _segMods: null, _adj: null, _vis: null, unit: 'SRs', tgtLbl: 'ICR', rateLbl: 'ICR ×100', dsName: 'SR Actuals', adjName: 'Adj SRs' },
@@ -312,12 +314,12 @@ export function aopSliderMax(kind) {
 }
 
 // ============================ ASU CHAIN (pure) ============================
-export function computeAsuRows() {
+export function computeAsuRows(ncSrc, apSrc, ncKey, apKey) {
   const TL = state.TL; if (!TL) return [];
   const ncM = (+state.ncMod) / 100, apM = (+state.apMod) / 100;
   const fc = TL.fcStart, N = TL.fw.length, rows = [];
   let ncCum = 0, renCum = 0, declCum = 0, ovShift = 0; const ov = state.OVR.asu;
-  const A = SC('asu', TL.asu), NC = SC('nc', TL.nc), AP = SC('apos', TL.apos);
+  const A = SC('asu', TL.asu), NC = SC(ncKey || 'nc', ncSrc || TL.nc), AP = SC(apKey || 'apos', apSrc || TL.apos);
   for (let i = 0; i < N; i++) {
     const base = A[i]; let an, ba, adjV, ncV, renV, aaJump = 0;
     const decl = state.DECL_IMPORTED ? (declAt(TL.fw[i]) != null ? declAt(TL.fw[i]) : (i >= fc ? 0 : null)) : null;
@@ -426,9 +428,16 @@ export function computeRate(kind) {
 }
 
 // ASU view. Mirrors renderAsu() math; assigns ASU_ROWS via return.
+export const ASU_SEG_LBL = { all: 'All', field: 'Field', tech: 'Tech' };
+
 export function computeAsuView() {
-  const TL = state.TL, fc = TL.fcStart, rows = computeAsuRows(), vis = visIdx();
-  if (!vis.length) return { empty: true, rows };
+  const TL = state.TL, fc = TL.fcStart, vis = visIdx();
+  // field/tech split: read the pre-split arrays from the dataset (no ratio math here).
+  const segK = ASU_SEG_LBL[state.ASU_SEG] ? state.ASU_SEG : 'all';
+  const rows = (segK === 'field') ? computeAsuRows(TL.nc_field, TL.apos_field, 'nc_field', 'apos_field')
+    : (segK === 'tech') ? computeAsuRows(TL.nc_tech, TL.apos_tech, 'nc_tech', 'apos_tech')
+    : computeAsuRows();
+  if (!vis.length) return { empty: true, rows, seg: segK, segLabel: ASU_SEG_LBL[segK] };
   const last = rows[vis[vis.length - 1]];
   let tAN = 0, tBA = 0, tNC = 0, tAP = 0, tDecl = 0;
   vis.forEach((i) => { tAN += rows[i].adjNew; tBA += rows[i].btcApos; tNC += rows[i].nc; tAP += rows[i].apos; if (rows[i].decl != null) tDecl += rows[i].decl; });
@@ -460,6 +469,7 @@ export function computeAsuView() {
     totals: { base: last.base, nc: tNC, apos: tAP, decl: tDecl, adjNew: tAN, btcApos: tBA, adj: last.adj },
     cb: { base: CB('base'), nc: CB('nc'), apos: CB('apos'), decl: CB('decl'), adj: CB('adj'), adjNew: CB('adjNew'), btcApos: CB('btcApos') },
     aopW, lift, chart: { labels: lbl, xlab, series: aser },
+    seg: segK, segLabel: ASU_SEG_LBL[segK],
   };
 }
 
@@ -513,8 +523,8 @@ function aggLob(keys) {
   const all = Object.keys(state.BTC); keys = (keys && keys.length) ? keys : all; if (!keys.length) return null;
   const f = state.BTC[keys[0]], N = f.fw.length;
   const z = () => { const a = []; for (let i = 0; i < N; i++) a.push(0); return a; };
-  const g = { lob: (keys.length >= all.length ? 'All LOBs' : keys.length + ' LOBs'), category: 'All', fcStart: f.fcStart, fw: f.fw.slice(), fy: f.fy.slice(), fq: f.fq.slice(), series: f.series.slice(), asu: z(), disp: z(), sr: z(), nc: z(), apos: z(), dispTarget: 0, srTarget: 0, dispTargetN: 0, srTargetN: 0 };
-  keys.forEach((k) => { const d = state.BTC[k]; for (let i = 0; i < N; i++) { g.asu[i] += d.asu[i]; g.disp[i] += d.disp[i]; g.sr[i] += d.sr[i]; g.nc[i] += d.nc[i]; g.apos[i] += d.apos[i]; } });
+  const g = { lob: (keys.length >= all.length ? 'All LOBs' : keys.length + ' LOBs'), category: 'All', fcStart: f.fcStart, fw: f.fw.slice(), fy: f.fy.slice(), fq: f.fq.slice(), series: f.series.slice(), asu: z(), disp: z(), sr: z(), nc: z(), apos: z(), nc_field: z(), nc_tech: z(), apos_field: z(), apos_tech: z(), dispTarget: 0, srTarget: 0, dispTargetN: 0, srTargetN: 0 };
+  keys.forEach((k) => { const d = state.BTC[k]; for (let i = 0; i < N; i++) { g.asu[i] += d.asu[i]; g.disp[i] += d.disp[i]; g.sr[i] += d.sr[i]; g.nc[i] += d.nc[i]; g.apos[i] += d.apos[i]; g.nc_field[i] += (d.nc_field ? d.nc_field[i] : 0); g.nc_tech[i] += (d.nc_tech ? d.nc_tech[i] : 0); g.apos_field[i] += (d.apos_field ? d.apos_field[i] : 0); g.apos_tech[i] += (d.apos_tech ? d.apos_tech[i] : 0); } });
   let sd = 0, ss = 0, sa = 0; for (let i = g.fcStart; i < N; i++) { sd += g.disp[i]; ss += g.sr[i]; sa += g.asu[i]; }
   g.dispTarget = sa ? (sd / sa) * 0.92 : 0; g.srTarget = sa ? (ss / sa) * 0.92 : 0; g.dispTargetN = Math.round(sd * 0.92); g.srTargetN = Math.round(ss * 0.92);
   const am = {}; let tot = 0; const DIMS = ['region', 'coreupsell', 'service'];
@@ -576,6 +586,7 @@ export function cycleBaseName() { const s = cycleLabelVal().trim().toLowerCase()
 
 // ============================ MUTATION ACTIONS (DOM-free) ============================
 export function clampM(v) { v = parseFloat(v); if (isNaN(v)) v = 100; return Math.max(60, Math.min(150, v)); }
+export function setAsuSeg(seg) { state.ASU_SEG = ASU_SEG_LBL[seg] ? seg : 'all'; }
 export function setNcMod(v) { state.ncMod = clampM(v); }
 export function setApMod(v) { state.apMod = clampM(v); }
 export function setSegMod(kind, v) { const c = C(kind); v = clampM(v); const mods = segModsOf(c), idx = segCur(c); mods[idx] = v; if (idx === 0) { for (let i = 1; i < mods.length; i++) mods[i] = v; } }
