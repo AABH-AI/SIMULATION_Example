@@ -1,10 +1,24 @@
-# dependencies / build output
-node_modules/
-dist/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Excel lock / owner temp files (per BUILD_PLAN: commit the .xlsx data, ignore only locks)
-~$*.xlsx
+node_modules
+dist
+dist-ssr
+*.local
 
-# Claude local-only
-.claude/settings.local.json
-.claude/worktrees/
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
