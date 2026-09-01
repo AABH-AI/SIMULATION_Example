@@ -327,3 +327,33 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   923,130; alt all 2,932,345 = 1,172,939 + 1,759,406. Build green; smoke 17/17.
 - **Files:** `src/data/declines_dummy.csv`, `src/data/declines_dummy_alt.csv`, `src/engine/btcEngine.js`.
 - **Outcome:** declines field/tech split is now data-resident (in the CSVs); the app reads it. Pushed to `master-react_v2`.
+
+## 2026-09-01 — GitHub Pages was serving a blank page; fixed the build+deploy pipeline
+- **Asked (different session/tool - Claude Code, working from `IMP_DOCS/` on `master`/`master_html`):**
+  owner had pointed the repo's live GitHub Pages ("Deploy from a branch") at `master-react_v2`, expecting to
+  see this app live at `https://aabh-ai.github.io/SIMULATION_Example/` - it rendered blank for every visitor.
+  Asked to check this branch's `imp_docs/`, diagnose, and make it properly deployable.
+- **Root cause (confirmed, not guessed):** this branch had no `dist/` (never built for production) and no
+  `.github/workflows/` (nothing ever built it). "Deploy from a branch" serves raw files as-is - it never runs
+  `npm install && npm run build`. It was serving the raw source `index.html`, whose `<script type="module"
+  src="/src/main.jsx">` is unbuilt JSX a browser can't execute, and the absolute `/` paths would 404 under
+  the Pages project-site subpath even if it were built. `vite.config.js` had no `base` set (default `/`).
+- **Done:**
+  - `vite.config.js`: `base: './'` - relative paths so assets resolve under `/SIMULATION_Example/` (or any
+    subpath) regardless of repo name.
+  - `.github/workflows/deploy-react-pages.yml` (new) - on push to `master-react_v2`: `npm ci` → `npm run
+    build` → `actions/upload-pages-artifact` (path `./dist`) → `actions/deploy-pages`. Nothing is committed
+    back to the branch - `dist/` stays gitignored, matching this branch's own convention.
+  - Requires the repo's Pages **Source** setting changed from "Deploy from a branch" to "GitHub Actions" for
+    the workflow to actually take effect - flagged to the owner as the one live/shared-system step needing
+    explicit sign-off before doing it, same as the push itself.
+- **Verified:** `npm ci && npm run build` locally - green (743 KB JS, matches this doc's earlier bundle-size
+  note), `dist/index.html` confirmed relative (`./assets/...`). Served `dist/` via `vite preview` on :5199 and
+  browser-verified live: full render (header, filter bar, 3-step stepper, ASUs/SRs/Dispatches views, KPI
+  cards, chart, table), stepper navigation and a filter dropdown both interactive, zero console errors (one
+  benign Highcharts accessibility-module warning, not an error).
+- **Files:** `vite.config.js`, `.github/workflows/deploy-react-pages.yml` (new). No app source/logic touched.
+- **Outcome:** build+deploy pipeline fixed and verified working end-to-end locally. NOT yet pushed - owner
+  confirmation pending on the push itself and on flipping the Pages Source setting (both are live/shared-repo
+  actions the other session's own standing rules and this project's git-workflow conventions call for
+  explicit sign-off on).

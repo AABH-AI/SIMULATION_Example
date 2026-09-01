@@ -228,6 +228,16 @@ reflects a rebuild; rebuild before checking). Fresh `vite dev` on `:5199` still 
   fixtures). Deleted earlier: `btc_data.js`, `declines_dummy.js`, `Dummy.xlsx`, `gen_btc_dataset.py`.
 - `AllocationModal.jsx` + `.modal*` CSS DELETED (commit `5d6363e`).
 
+## Deployment (2026-09-01)
+Owner pointed the repo's GitHub Pages at this branch; it rendered blank (no `dist/`, no build workflow ever
+existed — "Deploy from a branch" serves raw source as-is, and the unbuilt `index.html`'s `/src/main.jsx`
+isn't valid browser JS). Fixed by a different session (Claude Code, working from repo root on `master`/
+`master_html`): `vite.config.js` → `base: './'`; added `.github/workflows/deploy-react-pages.yml` (build +
+`actions/upload-pages-artifact` + `actions/deploy-pages` on push to this branch — dist/ stays gitignored,
+nothing committed back). Verified locally (`npm run build` + `vite preview`) — full render, zero console
+errors. **Not yet pushed** — needs the repo's Pages Source flipped from "Deploy from a branch" to "GitHub
+Actions" for the workflow to take effect; both that and the push itself are pending owner sign-off.
+
 ## Next (optional)
 - README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the ~743 KB JS bundle (build warns >500 KB).
 - Rename repo folder without `#` to restore `npm run dev` + hot reload.
