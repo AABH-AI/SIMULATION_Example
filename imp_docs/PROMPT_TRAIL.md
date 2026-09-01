@@ -357,3 +357,29 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   confirmation pending on the push itself and on flipping the Pages Source setting (both are live/shared-repo
   actions the other session's own standing rules and this project's git-workflow conventions call for
   explicit sign-off on).
+
+## 2026-09-01 (follow-up, same session) — Owner confirmed; pushed, flipped Pages Source, hit a deploy race, fixed
+- **Owner confirmed both asks:** push commit `b6850be` to `origin/master-react_v2`, and flip the repo's Pages
+  Source from "Deploy from a branch" to "GitHub Actions" (`gh api -X PUT .../pages -f build_type=workflow`).
+  Re-fetched `origin/master-react_v2` first - no concurrent commits, safe to push.
+- **Pushed and flipped the setting.** The push auto-triggered the new `deploy-react-pages.yml` workflow, which
+  completed green (build + deploy jobs both ✓). Site was still blank on first browser check.
+- **Second root cause found (not assumed - confirmed via `gh run list` timestamps):** GitHub's own legacy
+  "pages build and deployment" workflow (auto-attached while Source was still "Deploy from a branch") fired
+  from the same push and raced our new workflow. Ours finished at `07:20:47`; the legacy one finished 7s later
+  at `07:20:54` and, being a "deploy from a branch" run, uploaded the raw unbuilt branch tree - overwriting
+  our correct `dist/` artifact. `curl` confirmed the live HTML had reverted to `<script src="/src/main.jsx">`
+  (the exact original bug) even though our workflow run showed all-green.
+- **Fix:** no code change needed - `build_type` was already `"workflow"` by the time this was diagnosed, so
+  the legacy runner won't fire on future pushes. Re-triggered `deploy-react-pages.yml` manually via
+  `gh workflow run ... --ref master-react_v2` (uses the `workflow_dispatch` trigger already in the workflow
+  file). This run completed alone, no legacy run alongside it.
+- **Verified live, twice:** `curl` of `https://aabh-ai.github.io/SIMULATION_Example/` now returns the built
+  HTML (`./assets/index-*.js`, `./assets/index-*.css`, relative paths). Real-browser check (fresh fetch,
+  cache-busted, post-reload) confirms full render - header, filter bar, 3-step stepper, KPI cards, Highcharts
+  chart, data table, Controls panel - zero failed requests, zero console errors (one benign Highcharts a11y
+  warning only).
+- **Outcome:** live at `https://aabh-ai.github.io/SIMULATION_Example/`, fully working, confirmed end-to-end.
+  Watch point for later: any *other* future push to this branch made while Source briefly reads as
+  "branch"-mode (e.g. right after a Settings revert) could reintroduce this exact race - the fix is
+  structural (Source now pinned to "workflow"), not a one-off patch, so this shouldn't recur under normal use.
