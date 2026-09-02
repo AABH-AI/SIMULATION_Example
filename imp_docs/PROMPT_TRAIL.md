@@ -383,3 +383,49 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   Watch point for later: any *other* future push to this branch made while Source briefly reads as
   "branch"-mode (e.g. right after a Settings revert) could reintroduce this exact race - the fix is
   structural (Source now pinned to "workflow"), not a one-off patch, so this shouldn't recur under normal use.
+
+## 2026-09-02 (follow-up) — Site only showed the BTC app; added a landing page with the other 2 tools
+- **Asked:** owner reported the deployed site "is showing only BTC ui not the other UI... we have to show
+  all the 3 tabs and it opens their respective tabs normally what was in previous branch." Initially
+  scoped this as "port the entire BPA_FORCASTING_MOCK.HTML dashboard to React" (owner said "port the other
+  UI too" when first asked) and started planning that as a multi-phase migration - but the owner's
+  follow-up message clarified the actual ask was much narrower: restore the 3-card entry point that
+  `master`'s `index.html` has (BTC Adjustments / TET BPA Forecasting Suite / What-If Simulation), "opens
+  normally" meaning real navigation like the previous branch, not a full React port of the forecasting
+  dashboard. Correctly re-scoped down before writing the large migration - avoided a lot of wasted work.
+- **Root cause:** this branch's `index.html`/`main.jsx` always rendered the BTC app directly as the app
+  root - there was never a home page, so the deployed site could only ever show BTC, matching its own
+  documented scope ("porting `template_ui/btc_adjustment_simulator_v2.html`... only" per `00_START_HERE.md`).
+  Nothing was broken; the other 2 tools were simply never wired up on this branch.
+- **Done:**
+  - `src/App.jsx` rewritten as a thin shell holding `view` state (`'home' | 'btc'`); old `App.jsx` content
+    moved verbatim to `src/BtcApp.jsx` (added an optional `onHome` prop -> "<- Home" button in its header,
+    no other internal changes).
+  - `src/Landing.jsx` + `src/landing.css` (new) - 3-card home page matching `master`'s `index.html` design
+    and copy exactly (same teal/blue/purple accents, same card text). "BTC Adjustments" card is a `<button>`
+    that flips `view` to `'btc'` (in-app, no page reload) rather than linking to the old standalone HTML.
+  - `public/BPA_FORCASTING_MOCK.HTML` and `public/template_ui/btc_adjustment_simulator_v2.html` (new,
+    copied verbatim from `master` via `git show`) - the "Forecasting Suite" card is a plain `<a href>` to
+    the static copy, served as-is by Vite's `public/` passthrough; this preserves the static file's own
+    internal BTC link too. No React port attempted for this file in this pass - out of scope for what was
+    asked; flagged as a much larger follow-on task if ever wanted.
+  - `index.html` `<title>` changed to "TET BPA - Business Planning and Analytics" (was "BTC Adjustment
+    Simulator", stale now that BTC isn't the only destination).
+  - "What-If Simulation" card left disabled/"Coming soon", matching `master`'s own placeholder state -
+    not built, since it isn't built there either.
+- **Verified:** `npm run build` green; `dist/` confirmed to contain both static HTML files at the right
+  paths; local `vite preview` + live-browser check (2 passes, first hit a session rate-limit mid-run and
+  was retried) confirmed: landing page renders all 3 cards correctly, BTC card switches view in-place with
+  zero console errors, Home button returns to landing, Forecasting Suite card does a real navigation to
+  the static file which renders (one transient, non-reproducible 404 on first load only, looked like a
+  stray favicon request, not caused by this change). Pushed (`e9aa827`), GitHub Actions workflow ran alone
+  (no legacy-runner race this time, confirming the Pages Source fix from the prior entry holds), and the
+  live site was re-verified via `curl` (title + both static routes return 200).
+- **Files:** `src/App.jsx` (rewritten), `src/BtcApp.jsx` (new, moved), `src/Landing.jsx` (new),
+  `src/landing.css` (new), `public/BPA_FORCASTING_MOCK.HTML` (new), `public/template_ui/` (new),
+  `index.html` (title only).
+- **Outcome:** live at `https://aabh-ai.github.io/SIMULATION_Example/` - all 3 primary tools reachable
+  from a home page, each opening the way it did on `master`. Full React port of
+  `BPA_FORCASTING_MOCK.HTML`'s 5-module dashboard remains undone and unstarted; revisit as its own project
+  if wanted (a research pass sized it at roughly the same effort as the original BTC migration, dominated
+  by the ~1200-line "Forecast Copilot" sub-module).
