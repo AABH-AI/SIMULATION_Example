@@ -1,0 +1,135 @@
+.landing-page {
+  font-family: 'Plus Jakarta Sans', Inter, Arial, sans-serif;
+  min-height: 100vh;
+  background: #f1f4fa;
+  color: #0c1526;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 56px;
+  -webkit-font-smoothing: antialiased;
+}
+.landing-page .page { width: min(1060px, 100%); }
+
+.landing-page header {
+  padding: 40px 40px 32px;
+  background: #ffffff;
+  border: 1px solid #e4e8f4;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(12,21,38,0.06), 0 4px 16px rgba(12,21,38,0.04);
+}
+.landing-page header::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #0d9488, rgba(13,148,136,0.3), transparent);
+  pointer-events: none;
+}
+.landing-page .header-inner { position: relative; z-index: 1; }
+.landing-page .header-eyebrow {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: #4c7ef8; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.landing-page .header-eyebrow::before {
+  content: ''; display: block;
+  width: 20px; height: 2px;
+  background: #4c7ef8; border-radius: 2px;
+}
+.landing-page h1 {
+  margin: 0 0 6px;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  color: #0c1526; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.03em;
+}
+.landing-page h1 span { color: #8090b0; font-weight: 300; }
+.landing-page .header-sub {
+  margin: 0;
+  color: #4a5578; font-size: 0.95rem; line-height: 1.7; max-width: 600px;
+}
+
+.landing-page .section-label {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: #92a0bf; margin: 0 0 14px;
+}
+.landing-page .primary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.landing-page .primary-card {
+  background: #ffffff;
+  border: 1px solid #e4e8f4;
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(12,21,38,0.05), 0 4px 12px rgba(12,21,38,0.03);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+.landing-page .primary-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--card-accent, #4c7ef8);
+  opacity: 0; transition: opacity 0.2s;
+}
+.landing-page .primary-card:hover:not(.disabled) {
+  border-color: var(--card-accent, #4c7ef8);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(12,21,38,0.08), 0 16px 40px rgba(12,21,38,0.07);
+}
+.landing-page .primary-card:hover:not(.disabled)::before { opacity: 1; }
+.landing-page .primary-card.disabled { cursor: default; }
+.landing-page .card-tag {
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--card-accent, #4c7ef8);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.landing-page .card-tag::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--card-accent, #4c7ef8);
+}
+.landing-page .card-title {
+  font-size: 1.05rem; font-weight: 700;
+  color: #0c1526; margin-bottom: 8px; line-height: 1.3;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.landing-page .card-desc { font-size: 0.85rem; color: #4a5578; line-height: 1.65; flex: 1; }
+.landing-page .card-footer {
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid #e4e8f4;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.landing-page .card-file { font-size: 0.75rem; color: #92a0bf; font-family: monospace; }
+.landing-page .card-cta {
+  font-size: 0.78rem; font-weight: 700;
+  color: var(--card-accent, #4c7ef8);
+  display: flex; align-items: center; gap: 4px;
+  transition: gap 0.15s;
+}
+.landing-page .primary-card:hover:not(.disabled) .card-cta { gap: 8px; }
+.landing-page .new-badge {
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 20px;
+  background: rgba(13,148,136,0.10);
+  border: 1px solid rgba(13,148,136,0.22);
+  color: #0d9488; white-space: nowrap;
+}

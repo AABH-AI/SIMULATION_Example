@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BTC Adjustment Simulator v2 (Adjustment Cycle) — BPA</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- cdnjs, NOT code.highcharts.com (that 403s requests without a Referer, breaks file:// + strict referrer) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.8/highcharts.min.js"></script>
+<style>
+  :root{--bg:#f0f3fc;--sf:#fff;--cd:#fff;--chi:#eef1fc;--bd:#dde2f4;--bh:#b4bde8;--t1:#0d1020;--t2:#5a6280;--t3:#9099be;--ac:#3a6ef0;--gn:#16a34a;--rd:#dc2626;--am:#b45309;--pu:#6d28d9;--ui:'Plus Jakarta Sans',sans-serif;--mo:'IBM Plex Mono',monospace}
+  body[data-theme="dark"]{--bg:#07090f;--sf:#0d1018;--cd:#111521;--chi:#161c2c;--bd:#1d2135;--bh:#2c3460;--t1:#e9ecf7;--t2:#8a92ad;--t3:#5a6180;--ac:#4c7ef8;--gn:#22d472;--rd:#f06060;--am:#f0a830;--pu:#a78bfa}
+  body[data-theme="dark"] .ec{background:#2a2410;color:var(--t1);border-color:var(--bh)}
+  body[data-theme="dark"] tr.act td{background:#0f1320}
+  body[data-theme="dark"] tr.edt td{background:#111a2e}
+  body[data-theme="dark"] .cm{background:#141a2a;color:var(--t1);border-color:var(--bh)}
+  body[data-theme="dark"] .cm:focus{background:#0d1018;border-color:var(--ac)}
+  body[data-theme="dark"] .cmp:hover{border-color:var(--bh);background:#141a2a}
+  body[data-theme="dark"] .cmpop{background:#141a2a;border-color:var(--bh);color:var(--t1);box-shadow:0 10px 28px rgba(0,0,0,.6)}
+  body[data-theme="dark"] .cmpop .cm{background:#0d1018;border-color:var(--bh)}
+  body[data-theme="dark"] .pub{background:rgba(34,212,114,.12);border-color:rgba(34,212,114,.4)}
+  body[data-theme="dark"] .dis{background:rgba(255,255,255,.05)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--t1);font-family:var(--ui);font-size:13px;min-height:100vh}
+  .hd{height:52px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 18px}
+  /* every direct child sits on the same centre line — no baseline/line-height drift between text, badges and buttons */
+  .hd>*{align-self:center;line-height:1}
+  /* text items share one 18px line box, so their top/bottom edges are flush with each other and with the
+     divider — no element overhangs its neighbours despite the differing font sizes */
+  .hd .crumb,.hd .cycle{line-height:18px}
+  /* BRAND + text group. Earlier passes centred "BPA" on the bar's own centre line, which is NOT what the eye
+     reads as aligned — two runs of different size look aligned when their BASELINES match. So the brand,
+     crumb, divider and cycle live in one flex group with align-items:baseline: the browser lines up each
+     item's first text baseline itself, whatever the font metrics are (no hand-tuned px offset). The group
+     as a whole is then vertically centred in the 52px bar. */
+  .hd .hdleft{display:flex;align-items:baseline;gap:12px;min-width:0}
+  .hd .hdleft .hdsep{align-self:center}
+  .hd .brandtile{flex:0 0 auto;margin:0}
+  .hd .brandtxt{font-weight:800;font-size:14px;line-height:1;display:block}
+  .hd .crumb{font-size:11px;color:var(--t2)}.hd .crumb b{color:var(--t1)}
+  .hd .hdsep{width:1px;height:18px;background:var(--bd);flex:0 0 auto}
+  /* the whole cycle label is editable in place: plain weight, no underline, normal click-drag text selection */
+  /* -3px margin cancels the hover-chip's left padding so the visible gap either side of the divider is equal */
+  .hd .cycle{font-size:11px;color:var(--t2);cursor:text;outline:none;white-space:nowrap;padding:0 3px;margin-left:-3px;border-radius:4px}
+  .hd .cycle:hover{background:var(--chi)}
+  .hd .cycle:focus{background:var(--chi)}
+  .hd .ctx{margin-left:auto;font-size:10px;font-weight:700;color:var(--pu);background:rgba(109,40,217,.08);border:1px solid rgba(109,40,217,.18);padding:4px 10px;border-radius:6px;display:inline-flex;align-items:center}
+  .hd .stamp{font-size:10px;color:var(--t3);font-family:var(--mo);display:inline-flex;align-items:center}
+  .hd .themebtn{margin-left:12px;width:30px;height:30px;border:1px solid var(--bd);background:var(--cd);color:var(--t2);border-radius:8px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .hd .themebtn:hover{border-color:var(--ac);color:var(--ac)}
+  .hd .expbtn{margin-right:10px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #86efac;background:#dcfce7;color:var(--gn);font-family:var(--ui);display:inline-flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0}
+  .hd .expbtn:hover{background:var(--gn);color:#fff}
+  body[data-theme="dark"] .hd .expbtn{background:rgba(34,212,114,.12);border-color:rgba(34,212,114,.4)}
+  .tabs{display:flex;gap:4px;padding:12px 18px 0}
+  .tab{padding:8px 18px;border:1px solid var(--bd);background:var(--cd);color:var(--t2);border-radius:8px 8px 0 0;font-size:12px;font-weight:600;cursor:pointer;border-bottom:none}
+  .tab.on{background:var(--ac);border-color:var(--ac);color:#fff}
+  .tab:hover:not(.on){color:var(--ac);border-color:var(--ac)}
+  .wrap{padding:0 18px 24px}
+  .view{display:none}.view.on{display:block}
+  .info{background:rgba(58,110,240,.06);border:1px solid rgba(58,110,240,.14);border-radius:9px;padding:9px 13px;font-size:11px;color:var(--t2);margin:12px 0;display:flex;gap:8px;align-items:flex-start}
+  .info b{color:var(--t1)}.info .i{color:var(--ac);font-weight:800}
+  .kr{display:grid;gap:10px;margin-bottom:12px}
+  .kr6,.kr5{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kr4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .kr2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kchg{font-family:var(--mo);font-size:10px;font-weight:600;margin-top:6px}
+  .kp{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+  .kl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+  .kv{font-family:var(--mo);font-size:19px;font-weight:600;line-height:1}
+  .ks{font-size:9px;margin-top:5px;color:var(--t3)}
+  .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,310px);gap:12px}
+  .card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px}
+  .card h3{font-size:11px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+  .card h3 .ex{font-size:10px;font-weight:600;color:var(--gn);cursor:pointer;padding:3px 8px;border:1px solid #86efac;background:#dcfce7;border-radius:5px}
+  .card h3 .ex:hover{background:var(--gn);color:#fff}
+  .lg{display:flex;gap:14px;font-size:10px;color:var(--t2);margin-bottom:6px;flex-wrap:wrap}
+  .lg span{display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:opacity .15s;user-select:none}
+  .lg span:hover{opacity:.7}
+  .lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .cw{height:250px;width:100%}
+  .cw svg{display:block}
+  .highcharts-tooltip>span{z-index:60}
+  label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);display:block;margin-bottom:6px}
+  .sl{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .sl input[type=range]{flex:0.55;height:5px;-webkit-appearance:none;border-radius:3px;outline:none;background:var(--bd)}
+  .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;cursor:pointer}
+  .sl-b input[type=range]::-webkit-slider-thumb{background:var(--ac)}
+  .sl-p input[type=range]::-webkit-slider-thumb{background:var(--pu)}
+  .sl-d input[type=range]::-webkit-slider-thumb{background:#8b0000}
+  .sl-a input[type=range]::-webkit-slider-thumb{background:var(--am)}
+  .sl-a input[type=range]::-moz-range-thumb{background:var(--am);border:none;width:15px;height:15px;border-radius:50%}
+  .sl-b input[type=range]::-moz-range-thumb{background:var(--ac);border:none;width:15px;height:15px;border-radius:50%}
+  .sl-p input[type=range]::-moz-range-thumb{background:var(--pu);border:none;width:15px;height:15px;border-radius:50%}
+  .sl-d input[type=range]::-moz-range-thumb{background:#8b0000;border:none;width:15px;height:15px;border-radius:50%}
+  .sl input[type=number]{flex:0 0 90px;width:90px;padding:5px;border:1px solid var(--bd);border-radius:5px;font-family:var(--mo);text-align:center;font-weight:600}
+  .hint{font-size:8px;color:var(--t3);display:flex;justify-content:space-between;margin-bottom:16px}
+  .mb{border:1px solid var(--bd);border-radius:8px;padding:8px 9px;margin-bottom:9px}
+  .mb.blue{border-color:rgba(58,110,240,.3)}.mb.purple{border-color:rgba(109,40,217,.3)}
+  .mb.amber{border-color:rgba(180,83,9,.3)}
+  .mb h4{font-size:10px;font-weight:700;margin-bottom:8px}
+  /* req 3.2.2: every readout row is the same shape — label hard left, value box hard right, all boxes the
+     same length — so the labels line up with each other and so do the values, whether <b> text or an input. */
+  .gap{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11px;padding:3px 0}
+  .gap b{font-family:var(--mo)}
+  .gap>b,.gap>input{flex:0 0 90px;width:90px;text-align:right}
+  .gap>input.ec{max-width:90px;width:90px}
+  .bar{height:7px;background:var(--chi);border-radius:4px;overflow:hidden;margin:6px 0 3px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--ac),var(--pu));transition:width .3s}
+  .btnrow{display:flex;gap:8px;margin-top:10px}
+  .btn{flex:1;padding:8px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid;font-family:var(--ui)}
+  .pub{background:#dcfce7;color:var(--gn);border-color:#86efac}.pub:hover{background:var(--gn);color:#fff}
+  .dis{background:#f1f5f9;color:var(--t2);border-color:var(--bd)}.dis:hover{background:var(--t2);color:#fff}
+  .tw{overflow:auto;max-height:300px;margin-top:12px}
+  /* table-only reset — pinned to the table's top-right corner (like the chart expand button), clears just the
+     per-week edits/notes for the active metric, independent of the control-panel Reset */
+  .twwrap{position:relative}
+  .twwrap .tw{padding-right:32px}   /* reserve a right gap so the reset button never overlaps a column */
+  .tblreset{position:absolute;top:14px;right:6px;z-index:7;width:24px;height:24px;font-size:0}   /* in line with the header row */
+  .expanded .tblreset{top:12px}
+  .tblreset-h{width:22px;height:22px;font-size:0}
+  table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+  th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right;position:sticky;top:0}
+  th.l{text-align:left}
+  td{font-family:var(--mo);font-size:11px;padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right}
+  td.l{text-align:left;color:var(--t2)}
+  tr.act td{color:var(--t3);background:#f8f9fc}
+  /* req 3: a row carrying a manual override is tinted very light blue. The background sits on the TD (same
+     pattern as tr.act) and is declared AFTER .act so it wins at equal specificity — although the two can
+     never actually collide: the editable inputs are only rendered for forecast weeks (i>=fcStart), so a
+     historical `.act` row can never acquire an override and therefore never gets `.edt`. */
+  tr.edt td{background:#eef4ff}
+  .ec{width:100%;max-width:78px;padding:2px 5px;border:1px solid var(--bh);border-radius:4px;font-family:var(--mo);font-size:11px;font-weight:600;text-align:right;background:#fffbeb;color:var(--t1)}
+  .ec:focus{outline:none;border-color:var(--ac);background:#fff}
+  /* req 2: per-row Comment column — LAST column of every editable table. table-layout:fixed distributes the
+     width evenly with no <col>, so each renderer sets an explicit px width on its own Comment <th>; the rest
+     of the columns then share what is left. Text left-aligns (td{text-align:right} is the table default) and
+     the input has its OWN class — .ec is a right-aligned 78px mono numeric box, wrong for free text. */
+  th.cmt,td.cmt{text-align:left}
+  td.cmt{padding:3px 8px}
+  /* FW never needs more than ~6 mono chars ('27-W32'); pinning it hands the slack to the numeric columns.
+     Scoped to .tw so the allocation-modal tables (which also use th.l, for long segment names) are untouched. */
+  .tw th.l{width:66px}
+  /* the note reads as part of the data row, not as chrome: same mono face as every numeric cell
+     (td{font-family:var(--mo)}), bold, still left-aligned because it is free text, not a figure.
+     The CELL only ever holds a one-line PREVIEW — a long note is unreadable inside a 120–160px column, so
+     the full text lives in a floating popover (.cmpop) instead. text-overflow:ellipsis does the truncation
+     natively, so the preview always cuts at exactly what the current column width fits. */
+  .cmp{padding:3px 6px;border:1px solid transparent;border-radius:4px;font-family:var(--mo);font-size:10.5px;font-weight:700;text-align:left;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .cmp:hover{border-color:var(--bd);background:#fff}
+  .cmp.add{font-weight:400;color:var(--t3)}   /* edited row, no note yet — muted affordance, opens straight into edit */
+  /* the popover is position:fixed and lives on <body>, NOT inside the cell: .tw{overflow:auto} would otherwise
+     clip it. Positioned off the cell's bounding rect by cmtPos(), which flips left / clamps to the viewport. */
+  .cmpop{position:fixed;z-index:200;width:300px;max-width:calc(100vw - 16px);max-height:44vh;overflow:auto;background:#fff;border:1px solid var(--bh);border-radius:8px;box-shadow:0 10px 28px rgba(13,16,32,.20);padding:9px 11px;font-family:var(--mo);font-size:11px;font-weight:600;line-height:1.55;color:var(--t1);white-space:pre-wrap;overflow-wrap:anywhere}
+  .cmpop.edit{padding:7px 7px 6px;max-height:none}   /* the textarea owns the scrolling in edit mode, not the box */
+  .cmpop .cm{min-height:118px;max-height:34vh;resize:vertical;display:block;line-height:1.55;font-size:11px;margin:0}
+  .cmpop .hint{margin-top:0;font-family:var(--ui);font-size:9px;font-weight:600;color:var(--t3);white-space:normal}
+  .cmpop .cmfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+  .cmpop .cmfoot .hint{flex:1;min-width:0}
+  .cmdel{flex-shrink:0;font-family:var(--ui);font-size:9px;font-weight:700;color:#fff;background:var(--rd);border:none;border-radius:5px;padding:4px 10px;cursor:pointer}
+  .cmdel:hover{filter:brightness(1.08)}
+  .cm{width:100%;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;font-family:var(--mo);font-size:10.5px;font-weight:700;text-align:left;background:#fff;color:var(--t1)}
+  .cm:focus{outline:none;border-color:var(--ac)}
+  .cm::placeholder{color:var(--t3);font-weight:400}
+  .neg{color:var(--gn)}.pos{color:var(--rd)}
+  .foot{font-size:10px;color:var(--t3);padding:10px 18px;text-align:center}
+  /* change cards (YoY/QoQ/WoW) */
+  .chgrow{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .chg{flex:1;min-width:160px;background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--bd);border-radius:10px;padding:10px 13px}
+  .chg .cl{font-size:8px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);margin-bottom:6px}
+  .chg .cv{font-family:var(--mo);font-size:18px;font-weight:600;line-height:1;display:flex;align-items:center;gap:6px}
+  .chg .cs{font-size:9px;margin-top:5px;color:var(--t3)}
+  /* filter rail */
+  .fbtn{margin-left:auto;font-size:11px;font-weight:700;color:var(--ac);background:rgba(58,110,240,.08);border:1px solid rgba(58,110,240,.22);padding:5px 12px;border-radius:7px;cursor:pointer;font-family:var(--ui)}
+  .fbtn:hover{background:var(--ac);color:#fff}
+  .frail{position:fixed;top:52px;right:0;bottom:0;width:252px;background:var(--sf);border-left:1px solid var(--bd);padding:15px 14px;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s;z-index:40}
+  #frailBody{flex:1;overflow-y:auto;min-height:0}
+  body.rail-open .frail{transform:none}
+  .frail-hd{font-size:13px;font-weight:800;color:var(--t1);display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .ficon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer;font-size:15px;line-height:1;flex-shrink:0}
+  .ficon:hover{border-color:var(--ac);color:var(--ac)}
+  .freopen{position:fixed;top:67px;right:18px;z-index:41;display:none;box-shadow:0 4px 12px rgba(15,23,42,.14)}
+  body:not(.rail-open) .freopen{display:flex}
+  .frail-sub{font-size:10px;color:var(--t3);margin:3px 0 10px}
+  .freset{width:100%;margin-bottom:14px;padding:6px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);font-family:var(--ui);font-size:11px;font-weight:700;cursor:pointer}
+  .freset:hover{border-color:var(--ac);color:var(--ac)}
+  body.rail-open .tabs,body.rail-open .wrap,body.rail-open .foot,body.rail-open #loadErr{margin-right:252px;transition:margin .25s}
+  .fitem{margin-bottom:11px;position:relative}
+  .flab{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .flab .mx{font-size:7px;color:var(--ac);background:rgba(58,110,240,.1);padding:1px 5px;border-radius:4px;letter-spacing:.03em}
+  .fval{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);font-family:var(--ui);font-size:11.5px;font-weight:600;color:var(--t1);cursor:pointer;text-align:left}
+  .fval:hover{border-color:var(--ac)}
+  .fval .cr{font-size:9px;color:var(--t3)}
+  .fdd{display:none;margin-top:4px;border:1px solid var(--bd);border-radius:7px;background:var(--cd);max-height:220px;overflow-y:auto;box-shadow:0 6px 18px rgba(15,23,42,.1)}
+  .fdd.open{display:block}
+  .fdd.up{position:absolute;left:0;right:0;bottom:100%;margin:0 0 4px 0;z-index:50}
+  .fopt{padding:6px 10px;font-size:11.5px;color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .fopt:hover{background:var(--chi);color:var(--t1)}
+  .fopt.on{color:var(--ac);font-weight:700}
+  .fopt .ck{width:12px;display:inline-block;color:var(--ac);font-weight:800}
+  .fopt .cb{width:13px;height:13px;border:1.5px solid var(--bh);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:800;flex-shrink:0}
+  .fopt .cb.on{background:var(--ac);border-color:var(--ac)}
+  /* stage stepper (P3) */
+  .stepper{display:flex;align-items:center;gap:6px;padding:12px 18px 0;flex-wrap:wrap}
+  .step{display:flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--bd);background:var(--cd);border-radius:8px;font-size:11px;font-weight:600;color:var(--t3)}
+  .step b{width:17px;height:17px;border-radius:50%;background:var(--bd);color:var(--sf);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .step .sub{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);background:var(--chi);padding:1px 5px;border-radius:4px}
+  .step.on{border-color:var(--ac);color:var(--t1)}
+  .step.on b{background:var(--ac)}
+  .step.done{border-color:#86efac;color:var(--gn)}
+  .step.done b{background:var(--gn)}
+  .stepper .arw{color:var(--t3);font-size:12px}
+  /* sequence-gate banner + locked state */
+  .gate{background:rgba(180,83,9,.08);border:1px solid rgba(180,83,9,.28);color:var(--am);border-radius:8px;padding:8px 11px;font-size:11px;font-weight:600;margin-bottom:9px;display:flex;gap:7px;align-items:center}
+  body[data-theme="dark"] .gate{background:rgba(240,168,48,.1);border-color:rgba(240,168,48,.35)}
+  .lockbadge{font-size:9px;font-weight:700;color:var(--gn);background:#dcfce7;border:1px solid #86efac;padding:2px 8px;border-radius:5px}
+  body[data-theme="dark"] .lockbadge{background:rgba(34,212,114,.12);border-color:rgba(34,212,114,.4)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  input:disabled,input[type=range]:disabled{opacity:.5;cursor:not-allowed}
+  .lockmb{border-color:rgba(22,163,74,.4)!important}
+  /* allocation modal (P5) */
+  .modal{position:fixed;inset:0;background:rgba(13,16,32,.3);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
+  .modal.on{display:flex}
+  .modalcard{background:var(--sf);border:1px solid var(--bd);border-radius:12px;max-width:560px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 20px 50px rgba(13,16,32,.35)}
+  .modalcard .mh{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--bd)}
+  .modalcard .mh h3{font-size:14px;font-weight:800}
+  .modalcard .mh .mx{cursor:pointer;font-size:20px;color:var(--t3);line-height:1;background:none;border:none}
+  .modalbody{padding:15px 18px}
+  .allocgrp{margin-bottom:16px}
+  .allocgrp h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:7px}
+  .modalbody table{width:100%}
+  .modalfoot{padding:12px 18px;border-top:1px solid var(--bd);display:flex;gap:9px;justify-content:flex-end}
+  .reset-btn{float:right;font-size:10px;padding:4px 8px;margin-left:8px}
+  .hdbtns{display:inline-flex;gap:6px;align-items:center}
+  .hdbtns .btn{float:none;margin:0}
+  .card.ctl.collapsed{display:none}
+  .row.ctl-collapsed{grid-template-columns:minmax(0,1fr)}
+  .ctlreopen{position:fixed;top:105px;right:18px;z-index:41;display:none;box-shadow:0 4px 12px rgba(15,23,42,.14)}
+  .step-nav{font-size:11px;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;color:var(--t2);cursor:pointer;transition:all .15s}
+  .step-nav:hover:not(:disabled){background:var(--chi);border-color:var(--bh);color:var(--t1)}
+  .step-nav:disabled{opacity:.4;cursor:not-allowed}
+  /* 4-tab storage segment bar */
+  .segbar{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
+  .segt{padding:6px 13px;border:1px solid var(--bd);background:var(--cd);color:var(--t2);border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--ui)}
+  .segt:hover:not(.on){border-color:var(--ac);color:var(--ac)}
+  .segt.on{background:var(--pu);border-color:var(--pu);color:#fff}
+  /* editable target box — no blinking caret */
+  .ec.tgtbox{max-width:74px;caret-color:transparent}
+  /* hide scrollbars everywhere (keep scrollability) */
+  *{scrollbar-width:none;-ms-overflow-style:none}
+  *::-webkit-scrollbar{width:0;height:0;display:none}
+  /* control-collapse reopen gear, pinned inside the chart/table card */
+  .row > .card:first-child{position:relative}
+  .ctlgear{position:absolute;top:8px;right:42px;z-index:6;display:none}   /* sits left of the expand button, aligned with it */
+  .row.ctl-collapsed .ctlgear{display:flex}
+  /* filter rail: collapsible "More filters" group */
+  .morehdr{display:flex;align-items:center;justify-content:space-between;font-size:11px;font-weight:800;color:var(--t1);cursor:pointer;padding:9px 0 7px;border-top:1px solid var(--bd);margin:2px 0 4px}
+  .morehdr:hover{color:var(--ac)}
+  .morehdr .cr{font-size:9px;color:var(--t3)}
+  .moreblk{display:none}
+  .moreblk.open{display:block}
+  /* Publish page charts grid (NC, APOS, ASU, Declines, SR, Dispatch) */
+  /* all visible publish charts sit on ONE row (a hidden card takes no column), centred on the page */
+  .pubcharts{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);justify-content:center;gap:12px;margin-bottom:12px}
+  .pubcharts .card{position:relative;min-width:0}
+  /* -20% on the plot area only — title, legend and axis labels keep their own size */
+  .pubcharts .cw{height:200px}
+  /* focus/expand overlay — one chart card, or a chart+controls row, promoted over a 40% dim backdrop */
+  #expandBackdrop{display:none;position:fixed;inset:0;background:rgba(13,16,32,.3);z-index:84}
+  body.expanding #expandBackdrop{display:block}
+  /* top edge sits exactly on the filter rail's top edge (the 52px header line); the other insets stay at 24px */
+  .expanded{position:fixed!important;top:52px;left:24px;right:24px;bottom:24px;z-index:85;overflow:auto;box-shadow:0 20px 60px rgba(13,16,32,.4)}
+  /* req 2: the filter rail stays live above the dim backdrop while a chart is expanded, and the expanded
+     card yields the rail's width so the two never overlap. Collapsing the rail reclaims that space. */
+  body.expanding .frail{z-index:86}
+  body.expanding .freopen{z-index:86}
+  body.rail-open.expanding .expanded{right:276px}
+  /* the expanded card is a column: the chart FLEXES to fill whatever the table/controls leave, so there is
+     never dead space at the bottom — and the table sits directly under the chart */
+  .card.expanded,.row.expanded>.card{display:flex;flex-direction:column;min-height:0}
+  .expanded .cw{flex:1 1 auto;height:auto;min-height:200px}
+  .expanded .tw{flex:0 0 auto;max-height:38vh;margin-top:10px}
+  .expanded .expkpi{flex:0 0 auto;margin:0 0 10px}   /* the chart's own KPI cards, inside the expanded box */
+  .expandbtn{position:absolute;top:8px;right:8px;z-index:6}   /* same inset on every page (SR/Disp/ASU + Publish) */
+  /* PUBLISH only: while a chart is expanded AND the filter rail is collapsed (funnel visible), drop the
+     funnel into the card's top-right corner and shift the collapse button left of it. When the rail is
+     OPEN (filters expanded, funnel hidden), the collapse button returns to that same top-right corner —
+     the spot the filter button occupied. Steps 1&2 keep the button at its original position (right:8). */
+  body.on-pub.expanding:not(.rail-open) .expanded .expandbtn{right:52px}
+  body.on-pub.expanding .freopen{top:60px;right:32px}
+  /* adjusted values "pop out" once a modifier is changed (one-shot reveal, no per-drag flicker) */
+  @keyframes popIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
+  .pop{animation:popIn .32s cubic-bezier(.4,0,.2,1)}
+</style>
+</head>
+<body class="rail-open">
+<div class="hd">
+  <div class="hdleft">
+    <div class="brandtile"><span class="brandtxt">BPA</span></div>
+    <span class="crumb"><b>BTC Adjustment Simulator</b></span>
+    <span class="hdsep"></span>
+    <span class="cycle" id="cycleLabel" contenteditable="true" spellcheck="false" title="Click to edit — the export file name follows this label">Adjustment Cycle FY27, Pass 1</span>
+  </div>
+  <div style="flex:1"></div>
+  <span class="ctx" id="ctx">—</span>
+  <button class="themebtn" id="themebtn" onclick="toggleTheme()" title="Toggle dark mode">☾</button>
+</div>
+<div class="stepper" id="stepper">
+  <button class="step-nav prev" id="prevStep" onclick="navStep(-1)" disabled>← Prev</button>
+  <div class="step on" id="st1"><b>1</b> Adjust ASU <span class="sub">driver</span></div>
+  <span class="arw">→</span>
+  <div class="step" id="st2"><b>2</b> Adjust SRs &amp; Dispatches</div>
+  <span class="arw">→</span>
+  <div class="step" id="st3"><b>3</b> Publish</div>
+  <button class="step-nav next" id="nextStep" onclick="navStep(1)">Next →</button>
+</div>
+<div class="tabs">
+  <div class="tab on" data-v="asu" onclick="go('asu')">ASUs</div>
+  <div class="tab" data-v="sr" onclick="go('sr')">SRs</div>
+  <div class="tab" data-v="disp" onclick="go('disp')">Dispatches</div>
+  <div class="tab" data-v="pub" onclick="go('pub')">Publish</div>
+</div>
+<div id="loadErr" style="display:none;margin:14px 18px;padding:12px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:9px;color:#b91c1c;font-size:12px;line-height:1.6"></div>
+<div class="wrap">
+
+  <!-- DISPATCHES -->
+  <div class="view" id="vDisp">
+    <div class="segbar" id="segDisp"></div>
+    <div class="kr kr6" id="kDisp"></div>
+    <div class="row">
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>Dispatches — DS vs Adjusted vs Target</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>Disp DS</span><span class="adj-lg"><i style="background:#ea580c"></i>Disp Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+        <div class="cw" id="cDisp"></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('disp')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>DISP Actuals</th><th>Adj Disp</th><th>Delta</th></tr></thead><tbody id="tDisp"></tbody></table></div></div>
+      </div>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="dReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">Dispatches</h4>
+          <div class="sl sl-b"><input type="range" id="dS" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)"><input type="number" id="dI" min="60" max="150" step="0.25" value="100" oninput="dSync(this.value)" onchange="clampBox(this,dSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+        </div>
+        <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
+          <div class="sl sl-a"><input type="range" id="dAOPS" oninput="aopSync('disp',this.value)"><input type="number" id="dAOP" oninput="aopSync('disp',this.value)"></div>
+        </div>
+        <div class="gap"><span>Adjusted rate</span><b id="dAR">0</b></div>
+        <div class="gap"><span>Target rate</span><input class="ec tgtbox" id="dTR" value="0%" onfocus="this.select()" onchange="setTarget('disp',this.value)"></div>
+        <div class="bar"><div id="dBar"></div></div>
+        <div class="gap"><span>Gap</span><b id="dGap" style="color:var(--am)">0</b></div>
+        <div class="btnrow"><button class="btn dis" onclick="go('sr')">← Switch to SRs</button></div>
+        <div class="btnrow"><button class="btn dis" onclick="setStep(1)">← Step 1 (ASU)</button><button class="btn pub" onclick="setStep(3)">Step 3 (Publish) →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTRACTS / ASU -->
+  <div class="view on" id="vAsu">
+    <div class="kr kr5" id="kAsu"></div>
+    <div class="row">
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>ASU Forecast — Base vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#4ade80"></i>ASU Actuals</span><span><i style="background:#3a6ef0"></i>NC Actuals</span><span><i style="background:#6d28d9"></i>APOS Actuals</span><span class="adjasu-lg"><i style="background:#ea580c"></i>Adj ASU</span><span class="adjnc-lg"><i style="background:#0891b2"></i>Adj NC</span><span class="adjap-lg"><i style="background:#ac4073"></i>Adj APOS</span><span><i style="background:#b45309"></i>AOP Target</span><span class="decl-lg"><i style="background:#8b0000"></i>Declines</span></div>
+        <div class="cw" id="cAsu"></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('asu')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th><th>Declines</th><th style="color:var(--ac)">Adj NC</th><th style="color:var(--pu)">Adj APOS</th><th>Adj ASU</th></tr></thead><tbody id="tAsu"></tbody></table></div></div>
+      </div>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="aReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">New Contracts</h4>
+          <div class="sl sl-b"><input type="range" id="ncS" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)"><input type="number" id="ncI" min="60" max="150" step="0.25" value="100" oninput="ncSync(this.value)" onchange="clampBox(this,ncSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+        </div>
+        <div class="mb purple"><h4 style="color:var(--pu)">APOS Renewals</h4>
+          <div class="sl sl-p"><input type="range" id="apS" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)"><input type="number" id="apI" min="60" max="150" step="0.25" value="100" oninput="apSync(this.value)" onchange="clampBox(this,apSync)"><span style="font-weight:700;color:var(--pu)">%</span></div>
+        </div>
+        <div class="mb" style="border-color:rgba(139,0,0,.35)"><h4 style="color:#8b0000">Declines</h4>
+          <input type="file" id="declFile" accept=".csv,.txt" style="display:none" onchange="importDeclines(this.files[0]);this.value='';">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button class="btn dis" style="flex:0 0 auto;padding:6px 12px" id="declBtn" onclick="document.getElementById('declFile').click()">⇧ Import declines</button><button class="btn dis" style="flex:0 0 auto;padding:6px 12px;display:none" id="declRemoveBtn" onclick="removeDeclines()">✕ Remove file</button><span id="declStatus" class="ks"></span></div>
+        </div>
+        <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
+          <div class="sl sl-a"><input type="range" id="aAOPS" oninput="aopSync('asu',this.value)"><input type="number" id="aAOP" oninput="aopSync('asu',this.value)"></div>
+        </div>
+        <h4 style="font-size:10px;margin-bottom:8px">ASU vs Base (end of window)</h4>
+        <div class="gap"><span>Base ASU</span><b id="aBase">0</b></div>
+        <div class="gap"><span>Adjusted ASU</span><b id="aAdj" style="color:var(--ac)">0</b></div>
+        <div class="bar"><div id="aBar"></div></div>
+        <div class="gap"><span>Delta</span><b id="aLift" style="color:var(--gn)">0</b></div>
+        <div class="btnrow" style="justify-content:center"><button class="btn pub" onclick="setStep(2)" style="flex:0 0 auto;padding:8px 24px">Go to Step 2 (SRs &amp; Dispatches) →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PreUCR SR -->
+  <div class="view" id="vSr">
+    <div class="segbar" id="segSr"></div>
+    <div class="kr kr6" id="kSr"></div>
+    <div class="row">
+      <div class="card"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.row'))" title="Expand chart &amp; controls"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><button class="ficon ctlgear" onclick="expandControls()" title="Show controls"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button><h3>SRs — DS vs Adjusted vs Target</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>SR DS</span><span class="adj-lg"><i style="background:#ea580c"></i>SR Adj</span><span><i style="background:#b45309"></i>Target</span></div>
+        <div class="cw" id="cSr"></div>
+        <div class="twwrap"><button class="ficon tblreset" onclick="tblReset('sr')" title="Reset table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button><div class="tw"><table><thead><tr><th class="l">FW</th><th>SR Actuals</th><th>Adj SRs</th><th>Delta</th></tr></thead><tbody id="tSr"></tbody></table></div></div>
+      </div>
+      <div class="card ctl">
+        <h3><span>Controls</span><span class="hdbtns"><button class="btn dis reset-btn" onclick="sReset()">Reset</button><button class="btn dis reset-btn" onclick="toggleControls(this)" title="Collapse controls">▾</button></span></h3>
+        <div class="mb blue"><h4 style="color:var(--ac)">SRs</h4>
+          <div class="sl sl-b"><input type="range" id="sS" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)"><input type="number" id="sI" min="60" max="150" step="0.25" value="100" oninput="sSync(this.value)" onchange="clampBox(this,sSync)"><span style="font-weight:700;color:var(--ac)">%</span></div>
+        </div>
+        <div class="mb amber mb-aop"><h4 style="color:var(--am)">AOP Target</h4>
+          <div class="sl sl-a"><input type="range" id="sAOPS" oninput="aopSync('sr',this.value)"><input type="number" id="sAOP" oninput="aopSync('sr',this.value)"></div>
+        </div>
+        <div class="gap"><span>Adjusted rate</span><b id="sAR">0</b></div>
+        <div class="gap"><span>Target rate</span><input class="ec tgtbox" id="sTR" value="0%" onfocus="this.select()" onchange="setTarget('sr',this.value)"></div>
+        <div class="bar"><div id="sBar"></div></div>
+        <div class="gap"><span>Gap</span><b id="sGap" style="color:var(--am)">0</b></div>
+        <div class="btnrow"><button class="btn dis" onclick="go('disp')">Switch to Dispatches →</button></div>
+        <div class="btnrow"><button class="btn dis" onclick="setStep(1)">← Step 1 (ASU)</button><button class="btn pub" onclick="setStep(3)">Step 3 (Publish) →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUBLISH PAGE (Step 3) -->
+  <div class="view" id="vPub">
+    <div class="kr" id="kPub"></div>
+    <div class="pubcharts">
+      <div class="card" id="cardPubNc"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3 id="hPubNc">New Contracts - Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#3a6ef0"></i>NC Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj NC</span><span class="pub-decl-lg"><i style="background:#8b0000"></i>Declines</span></div>
+        <div class="cw" id="cPubNc"></div></div>
+      <div class="card" id="cardPubApos"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>APOS Renewals - Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#6d28d9"></i>APOS Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj APOS</span></div>
+        <div class="cw" id="cPubApos"></div></div>
+      <div class="card" id="cardPubAsu"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>ASU - Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#16a34a"></i>ASU Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj ASU</span></div>
+        <div class="cw" id="cPubAsu"></div></div>
+      <div class="card" id="cardPubDecline"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>Declines - Forecast</h3>
+        <div class="lg"><span><i style="background:#8b0000"></i>Declines</span></div>
+        <div class="cw" id="cPubDecline"></div></div>
+      <div class="card" id="cardPubSr"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>SRs - Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#38bdf8"></i>SR Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj SR</span></div>
+        <div class="cw" id="cPubSr"></div></div>
+      <div class="card" id="cardPubDisp"><button class="ficon expandbtn" onclick="toggleExpand(this.closest('.card'))" title="Expand chart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg></button><h3>Dispatches - Forecast vs Adjusted</h3>
+        <div class="lg"><span><i style="background:#6b4423"></i>Disp Forecast</span><span class="pub-adj-lg"><i style="background:#ea580c"></i>Adj Disp</span></div>
+        <div class="cw" id="cPubDisp"></div></div>
+    </div>
+    <div class="row">
+      <div class="card"><h3><span>Published Forecast Summary</span><button class="ficon tblreset-h" onclick="tblReset('pub')" title="Reset all table edits"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"></path><path d="M3 4v5h5"></path></svg></button></h3>
+        <div class="tw"><table><thead><tr id="tPubHead"></tr></thead><tbody id="tPub"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Export</h3>
+        <div class="info" style="margin:12px 0"><span class="i">ⓘ</span><span>Export the adjusted forecast data for the forecast window (FY27).</span></div>
+        <label class="lab">File name <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--t3)">(optional — overrides the cycle-derived name)</span></label>
+        <input class="ec" id="exportName" style="max-width:none;width:100%;text-align:left;background:#fff;margin-bottom:10px" placeholder="auto (cycle name)" oninput="syncExportPreview()" onkeydown="if(event.key==='Enter'){event.preventDefault();syncExportPreview();this.blur();}">
+        <div class="ks" id="exportPreview" style="margin:-4px 0 10px">Saves as: <b id="exportPreviewName" style="color:var(--t2);font-family:var(--mo)">—</b></div>
+        <div class="btnrow"><button class="btn dis" onclick="setStep(2)">← Back to Step 2</button></div>
+        <div class="btnrow"><button class="btn pub" id="exportBtnPage" onclick="exportPublished()" disabled>⇩ Export data</button></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<button class="ficon freopen" id="freopen" onclick="toggleRail()" title="Show filters"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
+<aside class="frail" id="frail">
+  <div class="frail-hd"><span>Filters</span><button class="ficon" onclick="toggleRail()" title="Collapse filters">»</button></div>
+  <button class="freset" onclick="resetFilters()">↺ Reset filters</button>
+  <div id="frailBody"></div>
+</aside>
+<div id="expandBackdrop" onclick="collapseExpand()"></div>
+<div class="modal" id="allocModal">
+  <div class="modalcard">
+    <div class="mh"><h3 id="allocTitle">Allocation</h3><button class="mx" onclick="closeAlloc()">×</button></div>
+    <div class="modalbody" id="allocBody"></div>
+    <div class="modalfoot"><button class="btn dis" style="flex:0 0 auto;padding:8px 16px" onclick="closeAlloc()">Close</button></div>
+  </div>
+</div>
+<!-- data loaded from the generated file so the UI reflects the source; <script src> works from file:// -->
+<script src="input/declines_dummy.js"></script>
+<script src="input/btc_data.js"></script>
+<script>
+</script>
+<script>
+// ---------- data (window.BTC_DATA from input/btc_data.js — full FY22-FY27 timeline) ----------
+var BTC={};          // { lob: {fw,fy,fq,series,asu,disp,sr,nc,apos,exp,fcStart,...} }
+var TL=null;         // active timeline for the selected LOB
+var DISP={kind:'disp',mI:'dI',kEl:'kDisp',tEl:'tDisp',cEl:'cDisp',kpiId:'kDisp',tabId:'tDisp',chartId:'cDisp',arEl:'dAR',trEl:'dTR',aopEl:'dAOP',gapEl:'dGap',barEl:'dBar',unit:'Dispatches',tgtLbl:'SMOD',rateLbl:'MDR ×100',dsName:'DISP Actuals',adjName:'Adj Disp'};
+var SR  ={kind:'sr',  mI:'sI',kEl:'kSr',  tEl:'tSr',  cEl:'cSr',  kpiId:'kSr', tabId:'tSr', chartId:'cSr', arEl:'sAR',trEl:'sTR',aopEl:'sAOP',gapEl:'sGap',barEl:'sBar',unit:'SRs',       tgtLbl:'ICR', rateLbl:'ICR ×100',dsName:'SR Actuals',adjName:'Adj SRs'};
+var ASU_ROWS=[];
+var OVR={disp:{},sr:{},asu:{}};   // manual per-week overrides on the adjusted values
+var TGT_OVR={disp:null,sr:null};  // manual MDR-% target override per metric (null = auto baseline×0.92)
+// req 6: manual AOP-target override (per-week count) — stored at 'All'-segment scale, so switching segment
+// tabs rescales it by that segment's weight. null = auto (see autoAop: the forecast-FY average).
+var AOP_OVR={disp:null,sr:null,asu:null};
+var DECL_IMPORTED=false;          // declines are shown ONLY after a manual file import — no auto-reveal
+var DECL_FILE=null;               // window.BTC_DECLINES (per-LOB declines) from input/declines_dummy.js (import-convenience data source)
+var DECL_VALS={};                 // imported per-week decline values {fw:value} (forecast weeks). Declines are display-only, forecast-only, never adjusted.
+var PASS_COUNT=1;   // adjustment cycle pass counter
+// req 2: the lock/publish gate is gone — every step is reachable at any time and every page stays editable.
+// ---------- per-row comment store (req 2) ----------
+// Keyed EXACTLY like OVR: CMT.disp[segIdx][fw], CMT.sr[segIdx][fw], CMT.asu[fw].
+// PUBLISH gets its OWN key, CMT.pub[fw], instead of sharing the ASU/SR/Disp keys. A Publish row spans FIVE
+// separate override stores (asu.an / asu.ba / asu.aa / sr[0] / disp[0]), so there is no single source key a
+// shared comment could belong to — picking one would make the note surface against an unrelated metric on its
+// source page, and concatenating five notes into one cell is worse. One note per Publish WEEK reads and writes
+// unambiguously; it is pruned as soon as that week holds no override in ANY of the five stores.
+var CMT={disp:{},sr:{},asu:{},pub:{}};
+function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// "is this row edited?" — always derived from the override STORE, never from DOM state (the row builders
+// regenerate via innerHTML on every render, so any DOM-held flag would be wiped).
+// segIdx 0 ('All') no longer holds overrides of its own — an All edit is redistributed into the sub-segments
+// (see spreadAllEdit) — so the All row counts as edited when ANY sub carries an override for that week. That is
+// also what keeps the All row's comment cell rendered and its note alive across a redistribute.
+function hasRateOvr(kind,segIdx,fw){
+  if(+segIdx===0)return hasAnyRateOvr(kind,fw);
+  var m=OVR[kind]&&OVR[kind][segIdx];return !!(m&&m[fw]!=null);
+}
+function hasAsuOvr(fw){var o=OVR.asu[fw];return !!(o&&(o.an!=null||o.ba!=null||o.aa!=null));}
+// a Publish row is "edited" if ANY override touches that week — its own five cells write to asu/sr[0]/disp[0],
+// but a SUB-segment edit made on the Dispatch/SR page also moves that row's SR_Adj / Disp_Adj total, so it counts
+function hasAnyRateOvr(kind,fw){var s=OVR[kind]||{},k;for(k in s){if(s[k]&&s[k][fw]!=null)return true;}return false;}
+function hasPubOvr(fw){return hasAsuOvr(fw)||hasAnyRateOvr('sr',fw)||hasAnyRateOvr('disp',fw);}
+function getCmtRate(kind,segIdx,fw){var m=CMT[kind]&&CMT[kind][segIdx];return (m&&m[fw])||'';}
+function getCmtAsu(fw){return CMT.asu[fw]||'';}
+function getCmtPub(fw){return CMT.pub[fw]||'';}
+// comment writes are store-ONLY — deliberately no recompute/re-render, so the field is never destroyed and the
+// caret never jumps. They fire on `change` (blur / Enter), and the next render reads the value back out.
+function setCmtRate(kind,segIdx,fw,v){v=(''+v).trim();CMT[kind][segIdx]=CMT[kind][segIdx]||{};if(v)CMT[kind][segIdx][fw]=v;else delete CMT[kind][segIdx][fw];}
+function setCmtAsu(fw,v){v=(''+v).trim();if(v)CMT.asu[fw]=v;else delete CMT.asu[fw];}
+function setCmtPub(fw,v){v=(''+v).trim();if(v)CMT.pub[fw]=v;else delete CMT.pub[fw];}
+// table-layout:fixed shares the width evenly between columns, so adding the Comment column would squeeze the
+// numeric cells below what a 9-digit figure (e.g. an editable "6,000,000" ASU balance) needs. Give the table a
+// MIN width — FW 66px + 86px per numeric column + the Comment column — so the numbers stay readable and the
+// existing .tw{overflow:auto} takes over with a horizontal scroll only on the widest combinations (ASU with
+// Declines imported AND all three adjusted columns). The common layouts still fit with no scroll at all.
+function fitTable(tbodyId,numCols,cmtW){
+  var b=document.getElementById(tbodyId),t=b&&b.closest('table');if(!t)return;
+  t.style.minWidth=(66+numCols*86+(cmtW||0))+'px';
+}
+// ---------- the Comment <td>: preview in the cell, full text in a floating popover ----------
+// The cell is far too narrow to read a real note in, so it never holds the text itself. Each edited row renders a
+// one-line ELLIPSISED preview; the full note opens in a fixed-position popover anchored to the row.
+// The cell carries the store COORDINATES as data-* (type + kind + segIdx + fw) rather than a stringified onchange
+// handler, so read and write both route through cmtRead/cmtWrite — one write path, no eval, no re-escaping.
+function cmtInner(val){
+  return val
+    ? '<div class="cmp" onclick="cmtOpen(this,0)" ondblclick="cmtOpen(this,1)">'+esc(val)+'</div>'
+    : '<div class="cmp add" onclick="cmtOpen(this,1)" ondblclick="cmtOpen(this,1)">Add a note…</div>';
+}
+// `edited` rows get the preview; every other row gets an EMPTY cell so the column count still lines up with the
+// header. The column as a whole is only emitted when at least one VISIBLE row is edited — see the renderers.
+function cmtCell(edited,val,ct,ck,cs,fw){
+  if(!edited)return '<td class="cmt"></td>';
+  return '<td class="cmt" data-ct="'+ct+'" data-ck="'+ck+'" data-cs="'+cs+'" data-cf="'+esc(fw)+'">'+cmtInner(val)+'</td>';
+}
+function cmtRead(td){
+  var t=td.dataset.ct;
+  return t==='rate'?getCmtRate(td.dataset.ck,td.dataset.cs,td.dataset.cf)
+       :(t==='asu'?getCmtAsu(td.dataset.cf):getCmtPub(td.dataset.cf));
+}
+function cmtWrite(td,v){
+  var t=td.dataset.ct;
+  if(t==='rate')setCmtRate(td.dataset.ck,td.dataset.cs,td.dataset.cf,v);
+  else if(t==='asu')setCmtAsu(td.dataset.cf,v);
+  else setCmtPub(td.dataset.cf,v);
+}
+// ---------- popover: one singleton, two modes (read / edit) ----------
+var _cmPop=null,_cmTd=null,_cmEd=false,_cmAt=null;   // _cmAt = anchor rect the popover was last positioned against
+// Gesture split: single click OPENS the read popover, double click UPGRADES the same open popover to edit mode.
+// No click-delay timer — the click handler is idempotent (a second click on the already-open anchor only
+// repositions), so the dblclick's first click cannot toggle the popover shut and cannot swallow the dblclick.
+// The preview element is never replaced while the popover is open, so the browser still sees both clicks land on
+// the same node and fires dblclick normally.
+function cmtOpen(el,edit){
+  var td=el.parentNode;
+  if(_cmPop&&_cmTd===td){
+    // re-click on the open cell, or the 2nd click of a dblclick while already editing: keep what is open.
+    // Re-focus the editor — the click itself landed on the (non-focusable) preview div and blurred it.
+    if(!edit||_cmEd){cmtPos();if(_cmEd){var _t=_cmPop.firstChild;if(_t&&_t.focus)_t.focus();}return;}
+  }
+  cmtPopClose(true);                     // switching cells commits whatever was open (same as a blur)
+  var full=cmtRead(td);
+  var p=document.createElement('div');
+  p.className='cmpop'+(edit?' edit':'');
+  if(edit){
+    var ta=document.createElement('textarea');
+    ta.className='cm';ta.value=full;ta.dataset.p=full;ta.placeholder='Add a note…';
+    ta.onkeydown=cmtKey;
+    p.appendChild(ta);
+    var foot=document.createElement('div');foot.className='cmfoot';
+    var h=document.createElement('div');h.className='hint';h.textContent='Enter saves · Shift+Enter newline · Esc cancels';
+    var del=document.createElement('button');del.type='button';del.className='cmdel';del.textContent='Delete';
+    del.onmousedown=function(ev){ev.preventDefault();};        // keep the textarea from blurring before the click lands
+    del.onclick=function(ev){ev.preventDefault();ev.stopPropagation();cmtDelete();};
+    foot.appendChild(h);foot.appendChild(del);
+    p.appendChild(foot);
+  }else{
+    p.textContent=full;
+  }
+  document.body.appendChild(p);
+  _cmPop=p;_cmTd=td;_cmEd=!!edit;
+  cmtPos();
+  // preventScroll: focusing the editor must not scroll an ancestor — the popover is already positioned, and a
+  // scroll here would immediately trip the close-on-scroll listener below.
+  if(edit){var t=p.firstChild;t.focus({preventScroll:true});try{t.setSelectionRange(full.length,full.length);}catch(e){}}
+}
+// place it to the RIGHT of the row; flip to the left when it would run off the right edge, then clamp both axes
+// into the viewport so a row near the bottom (or a table scrolled far right) still shows the whole box.
+function cmtPos(){
+  if(!_cmPop||!_cmTd)return;
+  var r=_cmTd.getBoundingClientRect(),p=_cmPop,M=8;
+  _cmAt=[r.top,r.left];   // remember where the row was; the scroll listener closes only once it MOVES
+  var w=p.offsetWidth,h=p.offsetHeight,vw=window.innerWidth,vh=window.innerHeight;
+  var x=r.right+M;
+  if(x+w>vw-M)x=r.left-w-M;                       // flip left
+  if(x<M)x=Math.max(M,Math.min(vw-w-M,r.left));   // still no room either side — clamp
+  var y=r.top-4;
+  if(y+h>vh-M)y=vh-h-M;                           // row near the bottom
+  if(y<M)y=M;
+  p.style.left=Math.round(x)+'px';p.style.top=Math.round(y)+'px';
+}
+// Enter = commit, Shift+Enter = newline (the CSV writer already quotes any field containing \r or \n, so a
+// multi-line note round-trips unchanged). Escape = cancel: restore the value the field opened with (data-p) and
+// close WITHOUT writing.
+function cmtKey(e,el){
+  el=el||e.target;
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();cmtPopClose(true);}
+  else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();el.value=(el.dataset.p!=null?el.dataset.p:'');cmtPopClose(false);}
+}
+// The single write path. commit=true stores the editor's text and refreshes the cell's preview IN PLACE — no
+// recompute, no re-render, so the caret/focus of anything else on the page is never disturbed. Idempotent, so it
+// is safe to call from every close route (Escape, outside click, scroll, re-render, switching cells).
+function cmtPopClose(commit){
+  if(!_cmPop)return;
+  var p=_cmPop,td=_cmTd,ed=_cmEd;
+  _cmPop=null;_cmTd=null;_cmEd=false;_cmAt=null;
+  var ta=ed?p.querySelector('textarea'):null,v=ta?ta.value:null;
+  if(p.parentNode)p.parentNode.removeChild(p);
+  if(ed&&commit&&td){
+    cmtWrite(td,v);
+    if(td.parentNode)td.innerHTML=cmtInner(cmtRead(td));   // detached (mid re-render) → the rebuild reads the store
+  }
+}
+// red Delete in the editor: wipe the note for this cell and close (no commit of the textarea text).
+function cmtDelete(){
+  var td=_cmTd;
+  cmtPopClose(false);
+  if(td){cmtWrite(td,'');if(td.parentNode)td.innerHTML=cmtInner(cmtRead(td));}
+}
+// close on outside click / Escape / any scroll. Scroll is captured so a scroll inside .tw (which does not bubble)
+// is caught too. Bound once — the popover is a body-level singleton, so re-renders never duplicate these.
+document.addEventListener('mousedown',function(e){
+  if(!_cmPop)return;
+  var t=e.target;
+  if(t.closest&&(t.closest('.cmpop')||t.closest('.cmp')))return;
+  cmtPopClose(true);
+},true);
+// stopImmediatePropagation: an open popover CONSUMES its Escape. Without it the later document-level Escape
+// handler (collapseExpand) would also fire and collapse an expanded chart behind the popover in the same press.
+// This listener is registered before that one, so it wins. (In edit mode cmtKey already stops it at the textarea.)
+document.addEventListener('keydown',function(e){if(_cmPop&&e.key==='Escape'){e.stopImmediatePropagation();cmtPopClose(false);}});
+// Close on scroll — but decide from the ANCHOR, not from the event. Two scrolls are not "the page moved under
+// the popover" and must not close it: one inside the box itself (it has overflow:auto, and the textarea scrolls
+// its own content as the caret moves), and one that was already in flight when the popover opened (scroll events
+// are delivered a frame late, so a click that follows a programmatic scrollIntoView would otherwise self-close).
+// Comparing the row's current position against the position it was positioned against covers both exactly: the
+// popover closes the moment its row actually moves, and not before.
+document.addEventListener('scroll',function(){
+  if(!_cmPop||!_cmTd||!_cmAt)return;
+  var r=_cmTd.getBoundingClientRect();
+  if(Math.abs(r.top-_cmAt[0])<0.5&&Math.abs(r.left-_cmAt[1])<0.5)return;
+  cmtPopClose(true);
+},true);
+window.addEventListener('resize',function(){if(_cmPop)cmtPopClose(true);});
+// clearing a row's edit clears its comment — no orphan notes left on rows that are no longer edited
+function pruneCmt(){
+  ['disp','sr'].forEach(function(k){
+    Object.keys(CMT[k]).forEach(function(si){
+      var m=CMT[k][si]||{};                                                   // hasRateOvr handles both cases:
+      Object.keys(m).forEach(function(fw){if(!hasRateOvr(k,si,fw))delete m[fw];});   // si>0 = own override, si 0 = any sub
+    });
+  });
+  Object.keys(CMT.asu).forEach(function(fw){if(!hasAsuOvr(fw))delete CMT.asu[fw];});
+  Object.keys(CMT.pub).forEach(function(fw){if(!hasPubOvr(fw))delete CMT.pub[fw];});
+}
+// ---------- helpers ----------
+function ramp(i,N){return N>1?Math.pow(i/(N-1),8):0}
+function fmt(n){return Number(Math.round(n)).toLocaleString('en-US')}
+function shortFW(l){return (''+l).slice(2);}   // '2024-W05' -> '24-W05'
+function kpi(l,v,s,st,pct){
+  var badge='';
+  if(pct!=null&&isFinite(pct)){var up=pct>=0,col=up?'var(--gn)':'var(--rd)',ar=up?'▲':'▼';badge='<div class="kchg" style="color:'+col+'">'+ar+' '+(up?'+':'')+pct.toFixed(1)+'%</div>';}
+  return '<div class="kp"><div class="kl">'+l+'</div><div class="kv"'+(st?' style="'+st+'"':'')+'>'+v+'</div>'+badge+'<div class="ks">'+s+'</div></div>';
+}
+// one-shot "pop out" reveal: fire the animation only on the hidden→shown transition (not on every slider tick)
+var _admShown={asu:false,sr:false,disp:false,pub:false};
+function popReveal(kind,showAdj,els){
+  if(showAdj&&!_admShown[kind]){_admShown[kind]=true;els.forEach(function(e){if(e){e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop');}});}
+  else if(!showAdj){_admShown[kind]=false;els.forEach(function(e){if(e)e.classList.remove('pop');});}
+}
+// ================= FILTER ENGINE =================
+// FY / FQ / FW / LOB slice the timeline data. The remaining dims have no per-week series in the
+// dataset (they exist only as publish-time allocation weights) — they display/select but don't reshape the trend.
+var FILTERS=[
+  {k:'fy',      label:'Fiscal Year',   multi:true,  opts:['All']},
+  {k:'quarter', label:'Fiscal Quarter',multi:true,  opts:['All']},
+  {k:'week',    label:'Fiscal Week',   multi:true,  opts:['All']},
+  {k:'region',  label:'Region',        multi:true,  opts:['All','AMERICAS','EMEA','APJ']},
+  {k:'lob',     label:'Global LOB',    multi:true,  opts:[]},
+  {k:'business',label:'Business Unit', multi:true,  opts:['All','Unit A','Unit B']},
+  {k:'warranty',label:'Warranty Type', multi:true,  opts:['All','Basic','Premium','Premium Flex','Premium Plus']},
+  {k:'service', label:'Service Type',  multi:true,  opts:['All','Parts Only (Unit A)','Parts Only (Unit B)','Parts + Labour (Unit A)','Parts + Labour (Unit B)','Labour Only (Unit A)','Labour Only (Unit B)']},
+  {k:'coreupsell',label:'Core / Upsell',multi:true, opts:['All','Core','Upsell']},
+  {k:'wotype',  label:'WO Type',       multi:true,  opts:['All','Break Fix','Part/s dispatch']},
+  {k:'fqm',     label:'FQM Flag',      multi:true,  opts:['All','1','0']},
+  {k:'gcfa',    label:'GCFA Type',     multi:true,  opts:['All','GCFA','non-GCFA','Unknown']}
+];
+var F={fy:[],quarter:[],week:[],region:[],lob:[],business:[],warranty:[],service:[],coreupsell:[],wotype:[],fqm:[],gcfa:[]};
+var openK=null;
+function cfgOf(k){for(var i=0;i<FILTERS.length;i++)if(FILTERS[i].k===k)return FILTERS[i];}
+function labOf(k,o){return ((k==='week'||k==='quarter')&&o!=='All')?(''+o).slice(2):o;}
+// derive the distinct values of TL[outDim] covered by the current FQ/FW selection (in timeline order)
+function deriveDim(outDim){
+  var qS=F.quarter.length?setOf(F.quarter):null,wS=F.week.length?setOf(F.week):null,seen={},d=[],i;
+  for(i=0;i<TL.fw.length;i++){if((qS&&qS[TL.fq[i]])||(wS&&wS[TL.fw[i]])){var v=TL[outDim][i];if(!seen[v]){seen[v]=1;d.push(v);}}}
+  return d;
+}
+function filterDisplay(cfg){
+  var k=cfg.k,a=F[k];
+  // FY box mirrors FY(s) implied by FQ/FW; FQ box mirrors FQ(s) implied by FW — display only, dropdown/state untouched
+  if(!a.length&&TL){
+    var d=null;
+    if(k==='fy'&&(F.quarter.length||F.week.length))d=deriveDim('fy');
+    else if(k==='quarter'&&F.week.length)d=deriveDim('fq');
+    if(d&&d.length)return d.length===1?labOf(k,d[0]):labOf(k,d[0])+'–'+labOf(k,d[d.length-1])+' ('+d.length+')';
+  }
+  if(!a.length)return 'All';
+  if(a.length===1)return labOf(k,a[0]);
+  return labOf(k,a[0])+'–'+labOf(k,a[a.length-1])+' ('+a.length+')';
+}
+// FQ options limited to the selected FY(s); FW options limited to the selected FY(s) ∩ FQ(s). FY itself never filtered.
+// On Step 3 (Publish tab), restrict FY/Quarter/Week to forecast period only (FY27).
+function optionsFor(cfg){
+  if(!TL)return cfg.opts;
+  var currentTab=document.querySelector('.tab.on')?document.querySelector('.tab.on').getAttribute('data-v'):null;
+  var isPublishTab=currentTab==='pub';
+  if(isPublishTab){
+    if(cfg.k==='fy'){
+      var fcFY=TL.fy[TL.fcStart];
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&o===fcFY;}));
+    }
+    if(cfg.k==='quarter'){
+      var fcSet=setOf(TL.fq.slice(TL.fcStart));
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&fcSet[o];}));
+    }
+    if(cfg.k==='week'){
+      var fwSet={};
+      for(var i=TL.fcStart;i<TL.fw.length;i++)fwSet[TL.fw[i]]=1;
+      return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&fwSet[o];}));
+    }
+  }
+  if(cfg.k==='quarter'&&F.fy.length){
+    var fyS=setOf(F.fy),aq={},i;
+    for(i=0;i<TL.fw.length;i++){if(fyS[TL.fy[i]])aq[TL.fq[i]]=1;}
+    return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&aq[o];}));
+  }
+  if(cfg.k==='week'&&(F.fy.length||F.quarter.length)){
+    var fyW=F.fy.length?setOf(F.fy):null,qW=F.quarter.length?setOf(F.quarter):null,aw={},j;
+    for(j=0;j<TL.fw.length;j++){
+      if(fyW&&!fyW[TL.fy[j]])continue;
+      if(qW&&!qW[TL.fq[j]])continue;
+      aw[TL.fw[j]]=1;
+    }
+    return ['All'].concat(cfg.opts.filter(function(o){return o!=='All'&&aw[o];}));
+  }
+  return cfg.opts;
+}
+// task 9: the bottom 4 filters live under a collapsible "More filters" toggle
+var MORE_KEYS={coreupsell:1,wotype:1,fqm:1,gcfa:1},moreOpen=false;
+function toggleMore(){moreOpen=!moreOpen;renderRail();}
+// task 7: when a 4-tab/2-tab segment is active, its dimension filters are redundant → hide them
+function hiddenFilters(){
+  var tab=activeTab(),h={};
+  // dispatches = 3-way (Service Type) → only the Service filter is pinned; SRs = 2-way (Unit) → only Business Unit
+  if(tab==='disp'&&(DISP._seg||0)>0){h.service=1;}
+  else if(tab==='sr'&&(SR._seg||0)>0){h.business=1;}
+  return h;
+}
+function fitemHtml(cfg){
+  var k=cfg.k,opts=optionsFor(cfg),h='';
+  h+='<div class="fitem">';
+  h+='<div class="flab">'+cfg.label+(cfg.multi?' <span class="mx">multi</span>':'')+'</div>';
+  h+='<button class="fval" onclick="ddClick(\''+k+'\')"><span>'+filterDisplay(cfg)+'</span><span class="cr">▾</span></button>';
+  h+='<div class="fdd'+(openK===k?' open':'')+'" id="fdd-'+k+'">';
+  opts.forEach(function(o){
+    var sel=cfg.multi?(o==='All'?F[k].length===0:F[k].indexOf(o)>=0):F[k]===o;
+    var fn=cfg.multi?'toggleMulti':'selSingle';
+    h+='<div class="fopt'+(sel?' on':'')+'" onclick="'+fn+'(\''+k+'\',\''+o+'\')">'+(cfg.multi?'<span class="cb'+(sel?' on':'')+'">'+(sel?'✓':'')+'</span>':'')+labOf(k,o)+'</div>';
+  });
+  h+='</div></div>';
+  return h;
+}
+function renderRail(){
+  var prevScroll=null;                                   // preserve open-dropdown scroll across rebuild
+  if(openK!==null){var od=document.getElementById('fdd-'+openK);if(od)prevScroll=od.scrollTop;}
+  var hid=hiddenFilters(),main='',more='';
+  FILTERS.forEach(function(cfg){
+    if(hid[cfg.k])return;
+    if(MORE_KEYS[cfg.k])more+=fitemHtml(cfg);else main+=fitemHtml(cfg);
+  });
+  var h=main+'<div class="morehdr" onclick="toggleMore()"><span>More filters</span><span class="cr">'+(moreOpen?'▴':'▾')+'</span></div><div class="moreblk'+(moreOpen?' open':'')+'">'+more+'</div>';
+  var b=document.getElementById('frailBody');if(b)b.innerHTML=h;
+  if(prevScroll!=null&&openK!==null){var nd=document.getElementById('fdd-'+openK);if(nd)nd.scrollTop=prevScroll;}
+  positionDD();
+}
+// open a dropdown upward when it would overflow the bottom of the viewport
+function positionDD(){
+  if(openK===null)return;
+  var dd=document.getElementById('fdd-'+openK);if(!dd)return;
+  dd.classList.remove('up');
+  var vh=window.innerHeight;if(!vh)return;                // pane not composited → skip
+  var r=dd.getBoundingClientRect();
+  if(r.bottom>vh-8)dd.classList.add('up');
+}
+function ddClick(k){openK=(openK===k)?null:k;renderRail();}
+// drop week selections outside the currently-selected quarters
+function pruneWeeks(){
+  if(!TL||!F.quarter.length)return;
+  var q=setOf(F.quarter),allow={},i;
+  for(i=0;i<TL.fw.length;i++){if(q[TL.fq[i]])allow[TL.fw[i]]=1;}
+  F.week=F.week.filter(function(w){return allow[w];});
+}
+// FY change → drop any selected FQ/FW that fall outside the selected FY(s)
+function pruneByFY(){
+  if(!TL||!F.fy.length)return;
+  var fyS=setOf(F.fy),aq={},aw={},i;
+  for(i=0;i<TL.fw.length;i++){if(fyS[TL.fy[i]]){aq[TL.fq[i]]=1;aw[TL.fw[i]]=1;}}
+  F.quarter=F.quarter.filter(function(q){return aq[q];});
+  F.week=F.week.filter(function(w){return aw[w];});
+}
+function toggleMulti(k,v){
+  var cfg=cfgOf(k),real=cfg.opts.filter(function(o){return o!=='All';});
+  if(v==='All'){F[k]=[];}
+  else{var set={};F[k].forEach(function(x){set[x]=1;});
+    if(set[v])delete set[v];else set[v]=1;
+    F[k]=real.filter(function(x){return set[x];});} // arbitrary (non-contiguous) multi-select, kept in option order
+  if(k==='fy')pruneByFY();                           // FY change → restrict FQ/FW to the selected FY(s)
+  if(k==='quarter')pruneWeeks();                     // FQ change → restrict FW to the selected quarters
+  if(k==='lob')loadLob();                            // LOB change rebuilds the timeline + re-renders
+  else{
+    // An allocation-dimension change rescales the whole base series (allocMult), but absolute per-week edits are
+    // fixed counts sized against the PREVIOUS population, so they'd render out of scale (e.g. an edit made under
+    // Region=All shown against the EMEA share). Drop them, exactly as a LOB change does (loadLob clears OVR/CMT).
+    // FY/FQ/FW only change the VISIBLE WINDOW — per-week edits stay valid there — so they are NOT cleared.
+    // Percentage controls (segment modifiers, target RATE / TGT_OVR) are scale-invariant and are kept.
+    // AOP_OVR is a typed absolute COUNT (same scale-bound problem), so it is cleared here too → back to auto.
+    if(ALLOC_DIMS.indexOf(k)>=0){OVR={disp:{},sr:{},asu:{}};CMT={disp:{},sr:{},asu:{},pub:{}};AOP_OVR={disp:null,sr:null,asu:null};}
+    renderRail();applyFilters();
+  }
+}
+function toggleRail(){document.body.classList.toggle('rail-open');reflowActiveCharts();}   // charts resize when the rail opens/closes (incl. while expanded)
+function resetFilters(){
+  FILTERS.forEach(function(cfg){F[cfg.k]=[];});
+  F.fy=['FY26','FY27'];                              // restore default window (forecast FY + 1 prior)
+  openK=null;loadLob();                              // rebuild data + re-render; preserves step/locks (no page reload)
+}
+// Publish (Step 3): keep FY/FQ/FW selections inside the forecast window only (drop FY26 etc.)
+function pruneToForecast(){
+  if(!TL)return;
+  var fcFY=TL.fy[TL.fcStart],fcQ={},fcW={},i;
+  for(i=TL.fcStart;i<TL.fw.length;i++){fcQ[TL.fq[i]]=1;fcW[TL.fw[i]]=1;}
+  if(F.fy.length)F.fy=F.fy.filter(function(x){return x===fcFY;});
+  F.quarter=F.quarter.filter(function(q){return fcQ[q];});
+  F.week=F.week.filter(function(w){return fcW[w];});
+}
+document.addEventListener('click',function(e){if(openK!==null&&!e.target.closest('.fitem')){openK=null;renderRail();}});
+// ---------- slicing / change periods over the active timeline TL ----------
+function setOf(a){var o={};a.forEach(function(x){o[x]=1;});return o;}
+function visIdx(){
+  if(!TL)return [];
+  var fyS=F.fy.length?setOf(F.fy):null,qS=F.quarter.length?setOf(F.quarter):null,wS=F.week.length?setOf(F.week):null;
+  var out=[];
+  for(var i=0;i<TL.fw.length;i++){
+    if(fyS&&!fyS[TL.fy[i]])continue;
+    if(qS&&!qS[TL.fq[i]])continue;
+    if(wS&&!wS[TL.fw[i]])continue;
+    out.push(i);
+  }
+  return out;
+}
+function pc(a,b){return (a&&isFinite(a))?(b-a)/a*100:null;}
+// two comparison periods (index arrays) — priority WoW > QoQ > YoY
+function chgPeriods(){
+  var vis=visIdx();
+  function wd(dim,val){return vis.filter(function(i){return TL[dim][i]===val;});}
+  if(F.week.length>=2)   return {a:wd('fw',F.week[0]),   b:wd('fw',F.week[F.week.length-1])};
+  if(F.quarter.length>=2)return {a:wd('fq',F.quarter[0]),b:wd('fq',F.quarter[F.quarter.length-1])};
+  if(F.fy.length>=2)     return {a:wd('fy',F.fy[0]),     b:wd('fy',F.fy[F.fy.length-1])};
+  return null;
+}
+function applyFilters(){if(!TL)return;renderCtx();renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();}
+function renderCtx(){
+  if(!TL)return;
+  function rng(a,st){if(!a.length)return null;var lo=st?(''+a[0]).slice(2):a[0],hi=st?(''+a[a.length-1]).slice(2):a[a.length-1];return a.length===1?lo:lo+'–'+hi;}
+  var fy=rng(F.fy),q=rng(F.quarter,true),w=rng(F.week,true),tp;
+  if(!fy&&!q&&!w)tp='FY22–FY27';
+  else{var p=[];if(fy)p.push(fy);if(q)p.push('Q '+q);if(w)p.push('W '+w);tp=p.join(' · ');}
+  var bu=filterDisplay(cfgOf('business'));if(bu==='All')bu='All BUs';
+  var tab=activeTab(),segLbl=null;   // task 7: reflect the active 4-tab/2-tab segment in the header info
+  if(tab==='sr'||tab==='disp'){      // guarded — a stale _seg index must not throw here
+    var _C=(tab==='disp')?DISP:SR,_i=_C._seg||0,_L=segList(tab);
+    if(_i>0)segLbl=(_L[_i]||{}).l||null;
+  }
+  document.getElementById('ctx').textContent=TL.lob+' · '+(segLbl||bu)+' · '+tp;
+}
+// keep FQ / FW representing the same window (FY is now independent — see fyBox)
+function syncTime(k){
+  if(!TL)return;
+  if(!F[k].length){F.quarter=[];F.week=[];return;}
+  var dim=k==='quarter'?'fq':'fw';
+  var loV=F[k][0],hiV=F[k][F[k].length-1],lo=-1,hi=-1,i;
+  for(i=0;i<TL.fw.length;i++){if(TL[dim][i]===loV){lo=i;break;}}
+  for(i=TL.fw.length-1;i>=0;i--){if(TL[dim][i]===hiV){hi=i;break;}}
+  if(lo<0||hi<0||lo>hi)return;
+  var qS=[],wS=[];
+  for(i=lo;i<=hi;i++){if(qS.indexOf(TL.fq[i])<0)qS.push(TL.fq[i]);wS.push(TL.fw[i]);}
+  F.quarter=qS;F.week=wS;
+}
+// ---------- Highcharts line chart (actuals/forecast recolor via x-zones) ----------
+var SPLIT_FW='25-W25';   // solid up to & incl this fiscal week, forecast-recolored after
+var HC={};               // { elId: {chart, sig} } — cached Highcharts instances
+// keeps the svgChart(elId,labels,series,yfmt) signature so all call sites are untouched.
+// series props preserved from the SVG engine: color, fcColor (post-split recolor),
+// seg:'forecast'|'actual' (draw only that segment), dash:true (target line), name.
+function thm(){return document.body.getAttribute('data-theme')==='dark'
+  ?{grid:'#232a44',axis:'#8a94ad',line:'#2c3460',div:'#3a4470'}
+  :{grid:'#eef1fc',axis:'#9099be',line:'#dde2f4',div:'#b4bde8'};}
+// uniform 10×10 series-symbol glyph — identical in the legend and the hover box, always same size + baseline
+function symSvg(sym,col){
+  var shape;
+  if(sym==='square')shape='<rect x="1.2" y="1.2" width="7.6" height="7.6"/>';
+  else if(sym==='diamond')shape='<path d="M5 0.7L9.3 5L5 9.3L0.7 5Z"/>';
+  else if(sym==='triangle')shape='<path d="M5 1L9 8.6L1 8.6Z"/>';
+  else if(sym==='triangle-down')shape='<path d="M1 1.4L9 1.4L5 9Z"/>';
+  else shape='<circle cx="5" cy="5" r="4.3"/>';
+  return '<svg width="10" height="10" viewBox="0 0 10 10" style="vertical-align:middle;flex:0 0 auto" fill="'+col+'">'+shape+'</svg>';
+}
+// x-axis LABEL thinning (data points untouched): given timeline indices in order, return a parallel array of
+// tick-label strings — '' hides that tick. Short span (≤8 quarters): starting week + each quarter-ending week
+// (week labels). Longer span (>8 quarters): starting quarter + ending quarter only (quarter labels).
+function axisLabels(idx){
+  var out=idx.map(function(){return '';});
+  if(!idx.length||!TL)return out;
+  var qs=[],lastPos={};
+  idx.forEach(function(ti,pos){var q=TL.fq[ti];if(qs.indexOf(q)<0)qs.push(q);lastPos[q]=pos;});
+  if(qs.length>8){
+    out[0]=(''+TL.fq[idx[0]]).slice(2);
+    out[idx.length-1]=(''+TL.fq[idx[idx.length-1]]).slice(2);
+  }else{
+    out[0]=shortFW(TL.fw[idx[0]]);
+    qs.forEach(function(q){out[lastPos[q]]=shortFW(TL.fw[idx[lastPos[q]]]);});
+  }
+  return out;
+}
+// req 4.1.5: pick round axis bounds — start on a round value at/below the lowest point, end on a round value
+// strictly ABOVE the highest, using human steps (1/2/2.5/5 ×10ⁿ) and at most `maxTicks` labels.
+// e.g. 4151–9452 → 4K…10K step 2K (4 labels); max 258K → top label 300K step 50K, not 320K.
+function niceScale(mn,mx,maxTicks){
+  maxTicks=Math.max(3,maxTicks||5);
+  if(!isFinite(mn)||!isFinite(mx))return null;
+  if(mn===mx){mn=mn-Math.abs(mn||1)*0.1;mx=mx+Math.abs(mx||1)*0.1;}
+  var span=mx-mn,mags=[1,2,5,10],e0=Math.floor(Math.log(span/(maxTicks-1))/Math.LN10);
+  for(var e=e0;e<=e0+4;e++){
+    for(var i=0;i<mags.length;i++){
+      var step=mags[i]*Math.pow(10,e);if(!(step>0))continue;
+      var lo=Math.floor(mn/step+1e-9)*step,hi=Math.ceil(mx/step-1e-9)*step;
+      if(hi<=mx+step*1e-9)hi+=step;                       // always leave one tick above the top value
+      if(lo<0&&mn>=0)lo=0;                                 // never invent negative headroom under positive data
+      var n=Math.round((hi-lo)/step)+1;
+      if(n>=3&&n<=maxTicks)return {min:lo,max:hi,step:step,count:n};
+    }
+  }
+  return null;
+}
+function svgChart(elId,labels,series,yfmt,xlab,opts){
+  var el=document.getElementById(elId);if(!el)return;
+  opts=opts||{};
+  yfmt=yfmt||function(v){return fmt(v);};
+  var hasData=series&&series.length&&labels.length&&series.some(function(s){return s.data&&s.data.length;});
+  if(!hasData){if(HC[elId]){HC[elId].chart.destroy();delete HC[elId];}el.innerHTML='';return;}
+  if(typeof Highcharts==='undefined'){el.innerHTML='<div style="padding:20px;font-size:11px;color:var(--t3)">Highcharts failed to load (needs network).</div>';return;}
+  var n=labels.length,i;
+  var splitPos=-1;for(i=0;i<n;i++){if(labels[i]<=SPLIT_FW)splitPos=i;}
+  var sp=Math.max(splitPos,0);
+  function mkData(ser){
+    if(ser.seg==='forecast')return ser.data.map(function(v,i){return i<sp?null:v;});
+    if(ser.seg==='actual') return ser.data.map(function(v,i){return (splitPos>=0&&i>splitPos)?null:v;});
+    return ser.data.slice();
+  }
+  var SYMS=['circle','diamond','square','triangle','triangle-down'];
+  var mkFlags=[];                       // per-series marker on/off, mirrored into `sig` so the fast path can't go stale
+  var hcSeries=series.map(function(ser,si){
+    var sym=ser.dash?'square':SYMS[si%SYMS.length];
+    var dat=mkData(ser);
+    // A line needs two adjacent non-null points to paint anything, so a series left with 1–2 rendered points
+    // (one fiscal week selected, or a seg-split series whose half collapses to the boundary week) would draw an
+    // empty plot with markers off. Decide per series from the real non-null count — dense series stay marker-less
+    // so normal multi-week views look exactly as before.
+    var _nn=0;for(var _k=0;_k<dat.length;_k++){if(dat[_k]!=null&&isFinite(dat[_k]))_nn++;}
+    var _mk=_nn>0&&_nn<=2;mkFlags.push(_mk?1:0);
+    var o={name:ser.name||'',data:dat,lineWidth:ser.dash?1.5:2,connectNulls:false,
+      marker:{enabled:_mk,radius:3.5,symbol:sym,states:{hover:{enabled:true,radius:4,lineColor:'#fff',lineWidth:1}}},
+      _ac:ser.color,_fc:ser.fcColor||ser.color,_sym:sym};
+    if(ser.dash){o.color=ser.color;o.dashStyle='Dash';o._fc=ser.color;return o;}   // target: dashed, single colour
+    if(ser.seg){o.color=ser.color;o._fc=ser.color;return o;}                       // forecast/actual-only: single colour
+    if(splitPos<0){o.color=ser.fcColor||'#ea580c';o._ac=o._fc;}                     // all forecast
+    else if(splitPos>=n-1){o.color=ser.color;o._fc=ser.color;}                      // all actual
+    else{o.color=ser.color;o.zoneAxis='x';o.zones=[{value:splitPos,color:ser.color},{color:ser.fcColor||'#ea580c'}];}
+    return o;
+  });
+  // tight y-range: fit to the lowest/highest plotted value across ALL series (one shared axis), then snap to round
+  // bounds via niceScale — EVERY chart, not just Publish, so a 2–4 week view still gets human tick values and the
+  // line's variation is visible instead of being flattened. No forced 0 baseline.
+  var allV=[];hcSeries.forEach(function(s){s.data.forEach(function(v){if(v!=null&&isFinite(v))allV.push(v);});});
+  var yMin=null,yMax=null,yStep=null,yT=opts.yTicks||5;
+  if(allV.length){
+    var mn=Math.min.apply(null,allV),mx=Math.max.apply(null,allV);
+    // degenerate / dead-flat pool (a single week, or every series sitting on one value): widen PROPORTIONALLY to the
+    // magnitude — an absolute ±1 around e.g. 40,000 is a meaningless 2-unit window.
+    var mag=Math.max(Math.abs(mn),Math.abs(mx)),pos=(mn>=0);
+    if(!(mx-mn>mag*1e-4)){var c0=(mn+mx)/2,hw=(mag||1)*0.02;mn=c0-hw;mx=c0+hw;if(pos&&mn<0)mn=0;}
+    var ns=niceScale(mn,mx,yT);                            // round bounds, one tick above the peak, no extra padding
+    if(ns){yMin=ns.min;yMax=ns.max;yStep=ns.step;}
+    else{var p0=(mx-mn)*0.06;yMin=mn-p0;yMax=mx+p0;if(pos)yMin=Math.max(0,yMin);}
+  }
+  var sig=n+'|'+splitPos+'|'+series.map(function(s){return (s.name||'')+(s.seg||'')+(s.dash?'d':'');}).join(',')+'|'+(xlab?xlab.join(''):'')+'|'+(opts.yTicks||0)+'|m'+mkFlags.join('');
+  if(HC[elId]&&HC[elId].sig===sig){                         // same shape → instant in-place update (no anim = live slider tracking)
+    var ch=HC[elId].chart;
+    ch.xAxis[0].setCategories(labels,false);
+    // keep the range tight as the slider bends the line; tick-capped axes keep max auto so the top tick stays above the data
+    if(yMin!=null)ch.yAxis[0].update({min:yMin,max:yMax,tickInterval:yStep||undefined},false);
+    hcSeries.forEach(function(s,i){if(ch.series[i])ch.series[i].setData(s.data,false,false);});
+    if(LEG_ISO[elId]&&Object.keys(LEG_ISO[elId]).length)applyVisibleYScale(elId);   // keep an isolated series' tight axis while the slider bends the line
+    ch.redraw(false);return;
+  }
+  if(HC[elId]){HC[elId].chart.destroy();}
+  var T=thm();
+  var plotLines=[];
+  if(splitPos>=0&&splitPos<n-1)plotLines.push({value:splitPos,color:T.div,width:1,dashStyle:'Dash',zIndex:3,
+    label:{text:'forecast →',rotation:0,y:12,style:{color:T.axis,fontSize:'8px',fontFamily:"'Plus Jakarta Sans',sans-serif"}}});
+  var chart=Highcharts.chart(elId,{
+    chart:{type:'line',backgroundColor:'transparent',style:{fontFamily:"'Plus Jakarta Sans',sans-serif"},spacing:[8,6,4,4],animation:{duration:300}},
+    title:{text:null},credits:{enabled:false},legend:{enabled:false},
+    xAxis:(function(){
+      // req 4.1.4: a tick mark rises from each x label to the axis line, marking where that week sits
+      var lb={style:{color:T.axis,fontSize:'9px'}},cfg={categories:labels,lineColor:T.line,tickColor:T.div,tickLength:6,tickWidth:1,tickPosition:'outside',crosshair:{width:1,color:T.div,dashStyle:'Dash'},plotLines:plotLines};
+      if(xlab){var tp=[];for(var q=0;q<xlab.length;q++)if(xlab[q]!=='')tp.push(q);cfg.tickPositions=tp;lb.formatter=function(){return xlab[this.pos]||'';};}
+      else lb.step=Math.max(1,Math.ceil(n/8));
+      cfg.labels=lb;return cfg;
+    })(),
+    // req 4.1.5: exact round bounds from niceScale — the top tick sits just above the peak, the bottom tick
+    // just below the floor, and no extra padding is added, so there is no dead band at the top of the plot.
+    yAxis:{title:{text:null},gridLineColor:T.grid,startOnTick:false,endOnTick:false,
+      min:yMin,max:yMax,tickInterval:yStep||undefined,maxPadding:0,minPadding:0,
+      labels:{formatter:function(){return yfmt(this.value);},style:{color:T.axis,fontSize:'9px',fontFamily:"'IBM Plex Mono',monospace"}}},
+    // req 4.1.3: the hover box sits INSIDE the chart and clears EVERY value it would otherwise mask — it
+    // scans all series for the points whose x falls under the box's own width, then floats above the
+    // topmost of them (or, if there's no room above, drops below the lowest). Recomputed each hover → fast.
+    // hideDelay:0 → it vanishes the instant the pointer leaves the chart (no lingering ghost).
+    tooltip:{shared:true,useHTML:true,outside:false,hideDelay:0,backgroundColor:'#0d1020',borderWidth:0,borderRadius:6,shadow:false,padding:9,
+      style:{color:'#fff',fontFamily:"'IBM Plex Mono',monospace",fontSize:'10px'},
+      positioner:function(w,h,pt){
+        var ch=this.chart,gap=12;
+        var cx=ch.plotLeft+(pt.plotX||0);                    // cursor x in chart coords
+        var loX=cx-w/2-4, hiX=cx+w/2+4;                      // horizontal span the box will occupy
+        var topY=Infinity,botY=-Infinity;                    // extremes of every point under that span
+        ch.series.forEach(function(s){
+          if(!s.visible||!s.points)return;
+          s.points.forEach(function(p){
+            if(p.plotX==null||p.plotY==null)return;
+            var pxc=ch.plotLeft+p.plotX;
+            if(pxc>=loX&&pxc<=hiX){var pyc=ch.plotTop+p.plotY;if(pyc<topY)topY=pyc;if(pyc>botY)botY=pyc;}
+          });
+        });
+        if(!isFinite(topY)){topY=botY=ch.plotTop+(pt.plotY||0);}
+        var x=cx-w/2;
+        var y=topY-h-gap;                                    // above the highest masked value
+        if(y<ch.plotTop+2)y=botY+gap;                        // no room above → below the lowest masked value
+        x=Math.max(2,Math.min(x,ch.chartWidth-w-2));
+        y=Math.max(2,Math.min(y,ch.chartHeight-h-2));
+        return {x:x,y:y};
+      },
+      formatter:function(){
+        var h='<div style="opacity:.65;margin-bottom:4px">'+this.x+'</div>';
+        h+='<div style="display:grid;grid-template-columns:auto auto;column-gap:18px;row-gap:3px;align-items:center">';
+        this.points.forEach(function(p){
+          var uo=p.series.userOptions,col=(splitPos>=0&&p.point.x>splitPos&&uo._fc)?uo._fc:uo._ac;
+          h+='<span style="display:inline-flex;align-items:center;gap:6px">'+symSvg(uo._sym,col)+p.series.name+'</span><span style="text-align:right">'+yfmt(p.y)+'</span>';
+        });
+        return h+'</div>';
+      }},
+    plotOptions:{line:{states:{hover:{lineWidthPlus:0,halo:{size:5}}}}},
+    series:hcSeries
+  });
+  HC[elId]={chart:chart,sig:sig};
+  reapplyIso(elId);   // restore any legend isolation after a rebuild
+}
+// ---------- legend interactivity (hover-highlight + click-to-isolate) ----------
+// every chart with an HTML legend is registered here: legend container selector ← chart element id.
+// The legend spans are index-aligned with the chart's series array (hidden spans still occupy their slot),
+// so hover-highlight and click-to-isolate work identically on Steps 1&2 and on the Publish page (req 2).
+var LEG_SEL={cAsu:'#vAsu .lg',cDisp:'#vDisp .lg',cSr:'#vSr .lg',
+  cPubNc:'#cardPubNc .lg',cPubApos:'#cardPubApos .lg',cPubAsu:'#cardPubAsu .lg',
+  cPubSr:'#cardPubSr .lg',cPubDisp:'#cardPubDisp .lg'};
+var LEG_ISO={};
+function isoOf(cEl){if(!LEG_ISO[cEl])LEG_ISO[cEl]={};return LEG_ISO[cEl];}
+function legendSelFor(cEl){return LEG_SEL[cEl]||null;}
+function legHover(cEl,idx){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
+  if(ch.series[idx]&&!ch.series[idx].visible)ch.series[idx].setVisible(true,false);   // preview a line hidden by isolation
+  applyVisibleYScale(cEl);   // rescale to include the previewed line — else a big line hovered while a small one is isolated runs off the top (and vice-versa)
+  ch.redraw(false);
+  ch.series.forEach(function(s,i){s.setState(i===idx?'hover':'inactive');});
+}
+function legReset(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
+  ch.series.forEach(function(s){s.setState('');});
+  applyIso(cEl);   // restore isolation (re-hide any previewed line)
+}
+function legClick(cEl,idx){var iso=isoOf(cEl);if(iso[idx])delete iso[idx];else iso[idx]=1;applyIso(cEl);}
+function legClearIso(cEl){LEG_ISO[cEl]={};applyIso(cEl);}
+function applyIso(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
+  var iso=isoOf(cEl),any=Object.keys(iso).length>0;
+  ch.series.forEach(function(s,i){s.setVisible(any?!!iso[i]:true,false);});
+  applyVisibleYScale(cEl);   // rescale the y-axis to the currently VISIBLE series (isolate APOS → axis drops to APOS's range)
+  ch.redraw(false);
+  var sel=legendSelFor(cEl);if(!sel)return;
+  var spans=document.querySelectorAll(sel+' span');
+  [].forEach.call(spans,function(sp,i){sp.style.opacity=(!any||iso[i])?'1':'0.3';});
+}
+function reapplyIso(cEl){if(LEG_ISO[cEl]&&Object.keys(LEG_ISO[cEl]).length)applyIso(cEl);}
+// The chart shares ONE y-axis across series of wildly different magnitude (ASU ~ tens of thousands, APOS tiny).
+// The build fixes min/max to the pool of ALL series, so isolating APOS leaves its line flat on the floor.
+// Recompute the axis from only the VISIBLE series (same niceScale logic as svgChart) so an isolated small
+// series fills the plot; when isolation is cleared, all series are visible again → full range restored.
+function visibleYRange(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return null;
+  var vals=[];
+  ch.series.forEach(function(s){if(!s.visible)return;(s.yData||[]).forEach(function(v){if(v!=null&&isFinite(v))vals.push(v);});});
+  if(!vals.length)return null;
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  var mag=Math.max(Math.abs(mn),Math.abs(mx)),pos=(mn>=0);
+  if(!(mx-mn>mag*1e-4)){var c0=(mn+mx)/2,hw=(mag||1)*0.02;mn=c0-hw;mx=c0+hw;if(pos&&mn<0)mn=0;}
+  var ns=niceScale(mn,mx,5);
+  if(ns)return {min:ns.min,max:ns.max,step:ns.step};
+  var p0=(mx-mn)*0.06;return {min:pos?Math.max(0,mn-p0):mn-p0,max:mx+p0,step:undefined};
+}
+function applyVisibleYScale(cEl){
+  var ch=HC[cEl]&&HC[cEl].chart;if(!ch)return;
+  var r=visibleYRange(cEl);if(!r)return;
+  ch.yAxis[0].update({min:r.min,max:r.max,tickInterval:r.step||undefined},false);
+}
+// idempotent: safe to call again after the Publish charts are first built (they don't exist at boot)
+function initLegends(list){
+  (list||['cAsu','cDisp','cSr']).forEach(function(cEl){
+    var sel=legendSelFor(cEl);if(!sel)return;
+    var spans=document.querySelectorAll(sel+' span'),ch=HC[cEl]&&HC[cEl].chart;
+    [].forEach.call(spans,function(sp,i){
+      sp.style.cursor='pointer';
+      var ic=sp.querySelector('i');
+      if(ic){
+        var col=ic.getAttribute('data-col')||ic.style.backgroundColor||window.getComputedStyle(ic).backgroundColor;
+        ic.setAttribute('data-col',col);                     // remember the swatch colour across re-binds
+        var sym=(ch&&ch.series[i]&&ch.series[i].userOptions._sym)||'circle';
+        ic.style.background='none';ic.style.width='auto';ic.style.height='auto';ic.style.borderRadius='0';ic.style.display='inline-flex';
+        ic.innerHTML=symSvg(sym,col);   // same glyph the hover box uses
+      }
+      if(sp.getAttribute('data-legbound'))return;            // bind the handlers exactly once per span
+      sp.setAttribute('data-legbound','1');
+      sp.addEventListener('mouseenter',function(){legHover(cEl,i);});
+      sp.addEventListener('mouseleave',function(){legReset(cEl);});
+      sp.addEventListener('click',function(){legClick(cEl,i);});
+    });
+  });
+}
+var PUB_CHARTS=['cPubNc','cPubApos','cPubAsu','cPubSr','cPubDisp'];
+// ---------- rate sheet (Dispatches / SR) ----------
+function seriesOf(kind){return SC(kind,kind==='disp'?TL.disp:TL.sr);}   // allocation-filtered
+// req 3.1: per-segment modifiers. Each segment tab (Unit A/B …) carries its OWN modifier; the 'All' tab
+// shows the SUM of the sub-segments so Σ(sub adjustments) always equals the All-tab total.
+// stale-index guard: C._seg / C._segMods persist on the DISP/SR config objects, so a kind whose tab list
+// shrinks (2-way vs 3-way) must never be left pointing past the end of the list — clamp back to 'All'.
+function segCur(C){var L=segList(C.kind),i=C._seg||0;if(!(i>=0&&i<L.length)){i=0;C._seg=0;}return i;}
+function segModsOf(C){var L=segList(C.kind);segCur(C);if(!C._segMods||C._segMods.length!==L.length)C._segMods=L.map(function(){return 100;});return C._segMods;}
+function subIdxs(C){var L=segList(C.kind),a=[],i;for(i=1;i<L.length;i++)a.push(i);return a;}
+// When a kind's tab list is JUST 'All' (its sub-segment tabs are commented out, e.g. SRs Unit A/B), the 'All'
+// tab has no children to sum/compose from. In that case 'All' (idx 0) is a first-class segment in its own right:
+// its modifier bends the whole series directly (bendSeg(C,0), w=1) and its edits live in OVR[kind][0].
+function hasSubs(C){return subIdxs(C).length>0;}
+// bend one segment's weighted DS series by that segment's own modifier (+ that segment's per-week overrides)
+// A2: modifier 100 = no change; below 100 bends the forecast DOWN toward target (above = up).
+// A5: dispatch/SR VALUE is the DS forecast bent by the modifier — decoupled from adjusted ASU
+//     (ASU only drives the MDR/ICR rate denominator, computed separately in renderRate).
+// A1: the bend is a FLAT, UNIFORM multiplier applied to EVERY forecast week — modifier/100. So 100 = no change,
+//     150 = +50% on every single forecast week, 90 = -10% on every week. No ramp, no pivot week: the adjusted
+//     line stays parallel to the forecast across the whole window (the % gap is identical at week 1 and week 52).
+function bendSeg(C,segIdx){
+  var nd=seriesOf(C.kind),fc=TL.fcStart,L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;
+  var mult=segModsOf(C)[segIdx]/100,ov=(OVR[C.kind]&&OVR[C.kind][segIdx])||{};
+  return nd.map(function(v,i){
+    var vb=v*w;                                                // segment share of the DS series
+    if(i<fc)return Math.round(vb);                             // actuals untouched (still weighted)
+    var a=Math.round(vb*mult);                                 // FLAT uniform % across the whole forecast window
+    var o=ov[TL.fw[i]];return (o!=null?o:a);
+  });
+}
+// the 'All'/total adjusted = sum of every sub-segment, each bent by its own modifier (Σ weights = 1)
+function sumSubs(C){if(!hasSubs(C))return bendSeg(C,0);var subs=subIdxs(C),out=null;subs.forEach(function(si){var s=bendSeg(C,si);if(!out)out=s.slice();else out=out.map(function(x,i){return x+s[i];});});return out||seriesOf(C.kind).slice();}
+// req 1a (revised): an 'All'-tab edit is REDISTRIBUTED DOWN into the sub-segments rather than kept as an
+// All-level absolute override. There is exactly ONE override store — OVR[kind][segIdx>0][fw] — so the All total
+// is ALWAYS Σ(sub-segments) by construction, on every week, and the sub tabs visibly carry the new numbers.
+// (The old allOvr()/sumSubsAdj() pair, which overrode the sum for display only and let Σ(subs) ≠ All, is gone.)
+//
+// Split rule: pro-rata on each sub's CURRENT ADJUSTED value for that week — not the raw segment weights — so the
+// user's per-sub modifiers and per-sub edits are preserved in the mix. Degenerate week (every sub 0, so no ratio
+// exists): fall back to the static segment weights.
+//
+// Rounding: integers only, allocated by LARGEST REMAINDER. Rounding each share independently drifts by ±1 or
+// more against the typed total (e.g. 4 subs each landing on x.5); flooring and then handing the leftover units to
+// the largest fractional parts makes Σ(sub values) EXACTLY the typed total, always.
+function allocLR(total,shares){
+  var s=0,i,out=[],fr=[],acc=0;
+  for(i=0;i<shares.length;i++)s+=shares[i];
+  if(!(s>0))s=shares.length||1;                                       // guarded by the caller; never divide by 0
+  for(i=0;i<shares.length;i++){var x=total*(shares[i]/s),f=Math.floor(x);out.push(f);fr.push({i:i,r:x-f});acc+=f;}
+  var rem=Math.round(total-acc);                                      // 0 ≤ rem < shares.length
+  fr.sort(function(a,b){return (b.r-a.r)||(a.i-b.i);});               // ties → lowest segment index first (stable)
+  for(i=0;i<rem&&i<fr.length;i++)out[fr[i].i]++;
+  return out;
+}
+// write one All-tab week's typed total down onto the sub-segments
+function spreadAllEdit(C,fw,total){
+  var subs=subIdxs(C),L=segList(C.kind),idx=TL.fw.indexOf(fw);
+  if(idx<0)return;
+  if(!subs.length){OVR[C.kind][0]=OVR[C.kind][0]||{};OVR[C.kind][0][fw]=total;return;}   // single-segment 'All' → its own override store
+  var cur=subs.map(function(si){return bendSeg(C,si)[idx];});         // read BEFORE writing — the ratio is the old mix
+  var sum=0;cur.forEach(function(v){sum+=v;});
+  var shares=(sum>0)?cur:subs.map(function(si){return L[si]?L[si].w:1;});
+  var alloc=allocLR(total,shares);
+  subs.forEach(function(si,k){OVR[C.kind][si]=OVR[C.kind][si]||{};OVR[C.kind][si][fw]=alloc[k];});
+}
+// unbent DS baseline for one segment / for 'All'. 'All' sums the ROUNDED per-segment shares so the DS card on
+// the All tab ties out exactly with the sub-tab cards (raw totals drift by ±1 against Σ of rounded segments).
+function segBase(C,segIdx){var nd=seriesOf(C.kind),L=segList(C.kind),w=L[segIdx]?L[segIdx].w:1;return nd.map(function(v){return Math.round(v*w);});}
+function sumSubsBase(C){if(!hasSubs(C))return segBase(C,0);var out=null;subIdxs(C).forEach(function(si){var s=segBase(C,si);out=out?out.map(function(x,i){return x+s[i];}):s.slice();});return out||seriesOf(C.kind).slice();}
+// req 1.1.3: adjusted state is per-TAB — a segment counts as adjusted only via its OWN modifier / own per-week edits.
+function segAdjActiveAt(C,idx){
+  var mods=segModsOf(C),ov=(OVR[C.kind]&&OVR[C.kind][idx])||{};
+  if(idx>0)return mods[idx]!==100||Object.keys(ov).length>0;
+  if(!hasSubs(C))return mods[0]!==100||Object.keys(ov).length>0;   // single-segment 'All' drives itself
+  // no separate All-level store to test any more — an All edit lands in the subs, so this covers it
+  for(var i=1;i<mods.length;i++)if(segAdjActiveAt(C,i))return true;   // 'All' = adjusted if ANY sub is
+  return false;
+}
+function segAdjActive(C){return segAdjActiveAt(C,0);}
+// req 1.1.1: the 'All' slider/control panel shows the weight-composite of the sub modifiers (Σw = 1),
+// so an adjustment made on any sub tab is reflected back on All. Snapped to the slider's 0.25 step.
+function compositeMod(C){
+  if(!hasSubs(C))return segModsOf(C)[0];   // no sub-segments → the 'All' slider shows its own modifier
+  var mods=segModsOf(C),L=segList(C.kind),s=0,w=0;
+  subIdxs(C).forEach(function(si){s+=mods[si]*L[si].w;w+=L[si].w;});
+  return w?Math.round((s/w)*4)/4:100;
+}
+// ---------- segment tab split (A9) ----------
+// Dispatches split by SERVICE TYPE → 3 tabs (Parts / Parts+Labour / Labour Only), weighted by the real
+// service allocation shares (renormalised to sum to 1). SRs have no service intersection → 2 tabs
+// (Unit A/B), synthesized from SEG_BU since the dataset has no Business-Unit dimension. Segment weights
+// partition the total (sum to 1) for BOTH kinds: A+B = 1, and parts+partsLabour+labourOnly = 1.
+var SEG_BU={A:0.58,B:0.42};
+function segList(kind){
+  if(kind==='sr')return [{l:'All',w:1}/*,{l:'Unit A',w:SEG_BU.A},{l:'Unit B',w:SEG_BU.B}*/];   // Unit A/B tabs commented out
+  // dispatches (and any other kind): 3-way service split, renormalised so the trio sums to 1
+  var s=(TL&&TL.alloc&&TL.alloc.service)||{},P=s['Parts Only'],PL=s['Parts + Labour'],LO=s['Labour Only'];
+  if(P==null&&PL==null&&LO==null){P=PL=LO=1/3;}else{P=P||0;PL=PL||0;LO=LO||0;}   // no service data → equal thirds
+  var tot=(P+PL+LO)||1;
+  return [{l:'All',w:1},
+    {l:'Parts',w:P/tot},{l:'Parts+Labour',w:PL/tot},{l:'Labour Only',w:LO/tot}];
+}
+function segWeight(C){var L=segList(C.kind),i=segCur(C);return L[i]?L[i].w:1;}
+// ---------- allocation-weight filter engine (req 1.3 / 1.4) ----------
+// The dataset holds per-week series for FY/FQ/FW/LOB only. Every OTHER dimension exists as an allocation
+// weight, so selecting values there scales the volumes by that dimension's share of the total.
+// Real weights come from TL.alloc (region / coreupsell / service); the rest use deterministic synthetic splits.
+var SYNTH_ALLOC={
+  business:{'Unit A':SEG_BU.A,'Unit B':SEG_BU.B},
+  warranty:{'Basic':0.34,'Premium':0.31,'Premium Flex':0.19,'Premium Plus':0.16},
+  wotype:{'Break Fix':0.63,'Part/s dispatch':0.37},
+  fqm:{'1':0.72,'0':0.28},
+  gcfa:{'GCFA':0.55,'non-GCFA':0.38,'Unknown':0.07}
+};
+// filter-option label → weight, tolerant of the dataset's own casing/naming:
+// 'AMERICAS' (filter) vs 'Americas' (dataset); 'Parts Only (Unit A)' vs 'Parts Only' × the Unit split.
+function weightsFor(k){
+  var a=(TL&&TL.alloc)||{},out={};
+  if(k==='region'||k==='coreupsell'){
+    var src=a[k]||{};Object.keys(src).forEach(function(v){out[v.toUpperCase()]=src[v];});
+    return Object.keys(out).length?out:null;
+  }
+  if(k==='service'){
+    var s=a.service||{};
+    Object.keys(s).forEach(function(v){
+      out[(v+' (Unit A)').toUpperCase()]=s[v]*SEG_BU.A;
+      out[(v+' (Unit B)').toUpperCase()]=s[v]*SEG_BU.B;
+    });
+    return Object.keys(out).length?out:null;
+  }
+  var syn=SYNTH_ALLOC[k];if(!syn)return null;
+  Object.keys(syn).forEach(function(v){out[v.toUpperCase()]=syn[v];});
+  return out;
+}
+var ALLOC_DIMS=['region','business','warranty','service','coreupsell','wotype','fqm','gcfa'];
+function dimShare(k){
+  var sel=F[k];if(!sel||!sel.length)return 1;                       // All selected → full share
+  var w=weightsFor(k);if(!w)return 1;
+  var tot=0,s=0;
+  Object.keys(w).forEach(function(v){tot+=w[v];});
+  sel.forEach(function(v){var x=w[(''+v).toUpperCase()];if(x!=null)s+=x;});
+  return tot>0?(s/tot):1;
+}
+function allocMult(){var m=1;ALLOC_DIMS.forEach(function(k){m*=dimShare(k);});return m;}
+// scaled view of a timeline series — memoised per (multiplier, LOB) so a slider drag doesn't remap arrays
+var _scc={sig:null,map:{}};
+function SC(key,arr){
+  var m=allocMult();if(m===1||!arr)return arr;
+  var sig=m+'|'+(TL?TL.lob:'');
+  if(_scc.sig!==sig)_scc={sig:sig,map:{}};
+  if(!_scc.map[key])_scc.map[key]=arr.map(function(v){return Math.round(v*m);});
+  return _scc.map[key];
+}
+// imported declines scale with the same allocation multiplier so they stay consistent with the filtered volumes.
+// (The 50% decline reduction is applied in the source data files — input/declines_dummy.js / .csv — NOT here.)
+function declAt(fw){var v=DECL_VALS[fw];if(v==null)return null;var m=allocMult();return m===1?v:Math.round(v*m);}
+function renderSegTabs(C){
+  var box=document.getElementById(C.kind==='disp'?'segDisp':'segSr');if(!box)return;
+  var L=segList(C.kind),cur=segCur(C),h='';
+  L.forEach(function(s,i){h+='<button class="segt'+(i===cur?' on':'')+'" onclick="selectSeg(\''+C.kind+'\','+i+')">'+s.l+'</button>';});
+  box.innerHTML=h;
+}
+function selectSeg(kind,i){
+  var C=kind==='disp'?DISP:SR;C._seg=i;i=segCur(C);var mods=segModsOf(C);   // segCur clamps a stale/out-of-range index to 'All'
+  if(i===0){var subs=subIdxs(C);if(subs.length&&subs.every(function(s){return mods[s]===mods[subs[0]];}))mods[0]=mods[subs[0]];}   // All slider mirrors the subs when they're uniform
+  var rid=kind==='disp'?'dS':'sS',nid=kind==='disp'?'dI':'sI';setPair(rid,nid,mods[i]);
+  renderRate(C);renderRail();renderCtx();
+}
+function setTarget(kind,val){
+  var n=parseFloat((''+val).replace(/[^0-9.\-]/g,''));
+  TGT_OVR[kind]=isFinite(n)?n:null;
+  if(TGT_OVR[kind]!=null)AOP_OVR[kind]=null;                                          // the rate now drives the AOP count
+  var C=kind==='disp'?DISP:SR,el=document.getElementById(C.trEl);
+  if(el){el.value=(TGT_OVR[kind]!=null)?TGT_OVR[kind].toFixed(2)+'%':'';el.blur();}   // 2dp + %, or clear
+  renderRate(C);                                                                      // syncAopUI repaints the AOP slider/box
+}
+// ---------- AOP target ----------
+// ONE editable number per metric, on every Step-1 / Step-2 control panel, labelled simply "AOP Target"
+// (req 3.1.2 — no /week, /quarter or /year anywhere).
+// req 3.1.1 — it is ALWAYS the average of the FORECAST fiscal year's values (FY27), whatever period the
+// filters happen to be showing; the default view (FY26+FY27) does not drag it toward FY26.
+// req 3.1 / 3.1.3 — the AOP Target KPI and the Gap are then computed for the SELECTED time frame: the
+// target is applied across the visible weeks (aop × weeks) and Gap = BTC Adjusted − that, so the Gap moves
+// with the filters while the target itself does not.
+// default (auto) = the average of that metric's AOP-target values across the forecast fiscal year:
+//   · SRs / Dispatches → mean over the forecast FY of (target rate × that week's ASU), i.e. the flat AOP line
+//     the chart already draws, averaged over the whole forecast year rather than just the visible window;
+//   · ASU → mean over the forecast FY of the weekly ASU inflow (New Contracts + APOS Renewals), which is the
+//     quantity the ASU chart actually plots. The dataset carries no ASU SMOD target of its own.
+function autoAop(kind){
+  if(!TL)return 0;
+  var fcFY=TL.fy[TL.fcStart],idx=[],i;
+  for(i=TL.fcStart;i<TL.fw.length;i++)if(TL.fy[i]===fcFY)idx.push(i);
+  if(!idx.length)return 0;
+  if(kind==='asu'){
+    var NC=SC('nc',TL.nc),AP=SC('apos',TL.apos),sf=0;
+    idx.forEach(function(i){sf+=NC[i]+AP[i];});
+    return Math.round(sf/idx.length);
+  }
+  var C=(kind==='disp')?DISP:SR,sw=segWeight(C),A=SC('asu',TL.asu);
+  var mo=TGT_OVR[kind],rate=(mo!=null)?(mo/100):((kind==='disp'?TL.dispTarget:TL.srTarget)*100);
+  var sa=0;idx.forEach(function(i){sa+=A[i]*sw;});
+  return Math.round(rate/100*(sa/idx.length));
+}
+function aopVal(kind){
+  if(AOP_OVR[kind]==null)return autoAop(kind);
+  if(kind==='asu')return AOP_OVR.asu;
+  var C=(kind==='disp')?DISP:SR;return Math.round(AOP_OVR[kind]*segWeight(C));
+}
+// req 3.2.3: the AOP target is driven exactly like the BTC Modifier — a slider paired with a number box.
+// Its travel is ±50% of the automatic (forecast-FY average) value, widened if a typed value falls outside.
+var AOP_IDS={disp:['dAOPS','dAOP'],sr:['sAOPS','sAOP'],asu:['aAOPS','aAOP']};
+function aopBounds(kind,cur){
+  var a=autoAop(kind)||0;
+  var lo=Math.max(0,Math.round(a*0.5)),hi=Math.round(a*1.5);
+  if(!(hi>lo)){lo=0;hi=Math.max(100,Math.round((cur||0)*1.5)||100);}
+  if(cur!=null){lo=Math.min(lo,cur);hi=Math.max(hi,cur);}
+  return {lo:lo,hi:hi,st:1};   // step 1 so the slider lands exactly on the typed/auto value
+}
+function syncAopUI(kind,cur){
+  var ids=AOP_IDS[kind];if(!ids)return;
+  var s=document.getElementById(ids[0]),n=document.getElementById(ids[1]);if(!s||!n)return;
+  var b=aopBounds(kind,cur);
+  [s,n].forEach(function(e){e.min=b.lo;e.max=b.hi;e.step=b.st;});
+  if(document.activeElement!==s)s.value=cur;
+  if(document.activeElement!==n)n.value=cur;
+}
+function aopSync(kind,val){
+  var n=Math.round(parseFloat(val));
+  if(!isFinite(n)){AOP_OVR[kind]=null;}
+  else if(kind==='asu')AOP_OVR.asu=n;
+  else{
+    var Cw=(kind==='disp')?DISP:SR,w=segWeight(Cw)||1;
+    AOP_OVR[kind]=Math.round(n/w);
+    TGT_OVR[kind]=null;                                   // the target RATE is derived from this count
+    var tb=document.getElementById(Cw.trEl);if(tb)tb.value='';
+  }
+  var ids=AOP_IDS[kind];
+  if(ids&&isFinite(n)){[ids[0],ids[1]].forEach(function(id){var e=document.getElementById(id);if(e&&document.activeElement!==e)e.value=n;});}
+  schedule(function(){
+    if(kind==='asu')_asuRender();
+    else renderRate(kind==='disp'?DISP:SR);
+    if(activeTab()==='pub')renderPub();
+  });
+}
+// segIdx>0 = that sub-segment's own per-week override, stored directly.
+// segIdx 0 = an 'All'-tab total: NOT stored at level 0 — it is split across the sub-segments (spreadAllEdit) so
+// Σ(subs) == the typed total. Clearing the All cell clears that week on every sub (the exact inverse).
+// The Publish page's SR_Adj / Disp_Adj cells are All-level edits too and call in here with segIdx 0, so they take
+// the identical redistribution path. Publish is repainted when it is the active tab.
+function editRate(kind,segIdx,fw,val){
+  var n=parseFloat((''+val).replace(/,/g,''));var C=kind==='disp'?DISP:SR;segIdx=+segIdx;
+  if(segIdx===0){
+    if(isFinite(n))spreadAllEdit(C,fw,Math.round(n));
+    else{if(OVR[kind][0])delete OVR[kind][0][fw];subIdxs(C).forEach(function(si){if(OVR[kind][si])delete OVR[kind][si][fw];});}
+  }else{
+    OVR[kind][segIdx]=OVR[kind][segIdx]||{};
+    if(isFinite(n))OVR[kind][segIdx][fw]=Math.round(n);else delete OVR[kind][segIdx][fw];
+  }
+  pruneCmt();
+  renderRate(C);
+  if(activeTab()==='pub')renderPub();   // renderRate first — renderPub reads the freshly-set C._adj
+}
+function renderRate(C){
+  cmtPopClose(true);   // the rows below are rebuilt via innerHTML — commit + drop any open popover so none orphans
+  var nd=seriesOf(C.kind),fc=TL.fcStart;
+  var adjAsu=computeAsuRows().map(function(r){return r.adj;});   // P1: live adjusted-ASU driver
+  renderSegTabs(C);
+  // req 3.1: each segment tab carries its OWN modifier. Sub-segments (Unit A/B …) bend independently;
+  // the 'All' tab shows the SUM of the sub-segments, so Σ(sub adjustments) always equals the All total.
+  var segIdx=segCur(C),segs=segModsOf(C),sw=segWeight(C);
+  // slider shows this tab's own modifier; on 'All' it shows the weight-composite of the subs (unless mid-drag)
+  var _nid=C.kind==='disp'?'dI':'sI',_rid=C.kind==='disp'?'dS':'sS',_ni=document.getElementById(_nid),_ri=document.getElementById(_rid);
+  var shown=(segIdx===0)?compositeMod(C):segs[segIdx];
+  if(segIdx===0)segs[0]=shown;
+  if(_ni&&document.activeElement!==_ni&&document.activeElement!==_ri){_ni.value=shown;if(_ri)_ri.value=shown;}
+  // full total (all sub-segments, each bent by its own modifier) — used by the KPIs on 'All' and by Publish/export
+  var adjFull=sumSubs(C);   // req 1a: plain Σ(sub-segments) — All edits live IN the subs, so this IS the All total
+  var nds,adjs,adjAsus;
+  if(segIdx>0){nds=segBase(C,segIdx);adjs=bendSeg(C,segIdx);adjAsus=adjAsu.map(function(x){return Math.round(x*sw);});}
+  else{nds=sumSubsBase(C);adjs=adjFull;adjAsus=adjAsu.slice();}
+  var mo=TGT_OVR[C.kind];
+  var vis=visIdx();
+  if(!vis.length){document.getElementById(C.kpiId).innerHTML='';document.getElementById(C.tabId).innerHTML='';svgChart(C.chartId,[],[]);C._adj=adjFull;return;}
+  var _asuF=SC('asu',TL.asu);
+  var tAdj=0,tBase=0,sBaseAsu=0,sAdjAsu=0;vis.forEach(function(i){tAdj+=adjs[i];tBase+=nds[i];sBaseAsu+=_asuF[i]*sw;sAdjAsu+=adjAsus[i];});
+  // req 6: the per-week AOP target is now the primary input (auto = forecast-FY average, or typed in the
+  // control panel). The window total and the target RATE are both derived from it, so Gap still ties out.
+  // target internal scale: displayed% = target*100.
+  var tgtWeekly=aopVal(C.kind);
+  syncAopUI(C.kind,tgtWeekly);                 // slider + number box always show the live AOP target
+  var tgtN=Math.round(tgtWeekly*vis.length);   // AOP Target over the SELECTED time frame
+  var target=sAdjAsu?(tgtN/sAdjAsu*100):0;     // implied target rate — what the Target-rate box shows
+  var cp=chgPeriods();
+  function ap2(idxs){var a=0,b=0;idxs.forEach(function(i){a+=adjs[i];b+=nds[i];});return{adj:a,base:b};}
+  var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
+  function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
+  var actualsOnly=vis.every(function(i){return i<fc});
+  // req 1: adjusted cards/line/columns stay hidden until the modifier is actually changed (or a manual per-week edit exists)
+  var adjActive=segAdjActiveAt(C,segIdx);   // req 1.1.3: only THIS tab's own adjustment reveals its adjusted line/cards
+  var showAdj=!actualsOnly&&adjActive;
+  // v1 six-card set: DS Forecast, BTC Adjusted, AOP Target, MDR Rate, Adjusted Rate, Gap
+  // MDR (per adjustment template): metric_FY / avgASU_FY / 52. frate/arate/target below carry that rate
+  // (legacy internal scale); the display multiplies by 100 so it reads as a real percentage
+  // (rate 0.10 → 10%). gapN / gc / bar math stay on the internal scale — do not rescale those.
+  var frate=sBaseAsu?tBase/sBaseAsu*100:0, arate=sAdjAsu?tAdj/sAdjAsu*100:0;
+  var gapN=Math.round(tAdj)-tgtN;   // adjusted − target; ties to BTC Adjusted − AOP Target exactly
+  var gc=Math.abs(arate-target)<0.003?'var(--gn)':(arate>target?'var(--am)':'var(--rd)');
+  var u=C.kind==='disp'?'Disp':'SR';
+  document.getElementById(C.kpiId).innerHTML=
+    kpi(u+' DS Forecast',fmt(tBase),'',null,CB('base'))+
+    (showAdj?kpi(u+' BTC Adjusted',fmt(tAdj),'','color:var(--ac)',CB('adj')):'')+
+    kpi('AOP Target',fmt(tgtN),'')+
+    kpi('MDR Rate',(frate*100).toFixed(2)+'%','')+
+    (showAdj?kpi('Adjusted Rate',(arate*100).toFixed(2)+'%','','color:'+gc):'')+
+    (showAdj?kpi('Gap',(gapN>=0?'+':'')+fmt(gapN),'','color:'+gc):'');
+  // req 2 (revised): the Comment column exists only when at least one VISIBLE row actually carries an override.
+  // Same predicate the row builder uses below, so header and cells can never disagree; with no edits in the
+  // window the column is dropped entirely and fitTable hands its width back to the numeric columns.
+  var anyEd=showAdj&&vis.some(function(i){return i>=fc&&hasRateOvr(C.kind,segIdx,TL.fw[i]);});
+  var tb='';vis.forEach(function(i){var isA=i<fc,fwK=TL.fw[i];
+    // req 1a: the Adj cell is editable on EVERY tab, 'All' (segIdx 0) included — an All edit redistributes
+    var valCell=isA?'—':'<input class="ec" value="'+fmt(adjs[i])+'" onchange="editRate(\''+C.kind+'\','+segIdx+',\''+fwK+'\',this.value)">';
+    // the SIGN comes off the NUMBER, formatting comes after. Deriving it from fmt()'s output instead made
+    // '2,565' >= 0 a NaN comparison, so every delta of 1,000 or more silently lost its leading '+'.
+    var dN=adjs[i]-nds[i];
+    var delta=isA?'—':((dN>=0?'+':'')+fmt(dN));   // fmt() keeps the '-' on negatives, so no '+-' is possible
+    var edited=!isA&&hasRateOvr(C.kind,segIdx,fwK);
+    var cCell=anyEd?cmtCell(edited,getCmtRate(C.kind,segIdx,fwK),'rate',C.kind,segIdx,fwK):'';
+    tb+='<tr'+(isA?' class="act"':(edited?' class="edt"':''))+'><td class="l">'+shortFW(fwK)+'</td><td>'+fmt(nds[i])+'</td>'+(showAdj?'<td style="color:#ea580c">'+valCell+'</td><td>'+delta+'</td>'+cCell:'')+'</tr>';
+  });
+  document.getElementById(C.tabId).innerHTML=tb;
+  // hide the modifier slider block when the view has no forecast weeks
+  document.querySelectorAll('#'+(C.kind==='disp'?'vDisp':'vSr')+' .mb:not(.mb-aop)').forEach(function(e){e.style.display=actualsOnly?'none':'';});
+  // Update table header to hide adjusted columns when actuals-only
+  var thead=document.querySelector('#'+C.tabId).parentElement.querySelector('thead tr');
+  if(thead){
+    if(!showAdj){
+      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th>';
+      fitTable(C.tabId,1,0);
+    }else{
+      // header stays in lock-step with the row builder above: Comment is the LAST column, adjusted-only, and
+      // present only when some visible row is actually edited (anyEd)
+      thead.innerHTML='<th class="l">FW</th><th>'+(C.kind==='disp'?'DISP Actuals':'SR Actuals')+'</th><th>Adj '+(C.kind==='disp'?'Disp':'SRs')+'</th><th>Delta</th>'+(anyEd?'<th class="cmt" style="width:160px">Comment</th>':'');
+      fitTable(C.tabId,3,anyEd?160:0);
+    }
+  }
+  if(!actualsOnly){
+    document.getElementById(C.arEl).textContent=(arate*100).toFixed(2)+'%';
+    var tEl=document.getElementById(C.trEl);
+    if(tEl&&document.activeElement!==tEl){
+      if(mo!=null){tEl.value=mo.toFixed(2)+'%';tEl.placeholder='';}
+      else{tEl.value='';tEl.placeholder=(target*100).toFixed(2)+'%';}   // empty at start; auto value shown as hint
+    }
+    var aD=+(arate*100).toFixed(2),tD=+(target*100).toFixed(2),grP=+(aD-tD).toFixed(2);   // gap = shown adj% − shown target%
+    var gEl=document.getElementById(C.gapEl);gEl.textContent=(grP>=0?'+':'')+grP.toFixed(2)+'%';gEl.style.color=gc;
+    document.getElementById(C.barEl).style.width=Math.max(4,Math.min(100,arate?target/arate*100:0))+'%';
+  }
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
+  svgChart(C.cEl,lbl,[
+    {color:'#16a34a',fcColor:'#16a34a',name:C.dsName,data:vis.map(function(i){return nds[i];})},               // green throughout
+    {color:'#ea580c',name:C.adjName,seg:'forecast',data:showAdj?vis.map(function(i){return adjs[i];}):[]},      // orange, forecast only — hidden until adjusted
+    {color:'#b45309',dash:true,name:'AOP Target',data:lbl.map(function(){return tgtWeekly;})}
+  ],function(v){return fmt(v);},xlab);
+  // adjusted legend entry + one-shot pop reveal of the KPI row and table when the adjusted view first appears
+  document.querySelectorAll('#'+(C.kind==='disp'?'vDisp':'vSr')+' .adj-lg').forEach(function(e){e.style.display=showAdj?'':'none';});
+  var _tw=document.getElementById(C.tabId);popReveal(C.kind,showAdj,[document.getElementById(C.kpiId),_tw&&_tw.closest('.tw')]);
+  C._adj=adjFull;C._vis=vis;
+  requestAnimationFrame(positionTblResets);
+}
+// which: 'an' = Adj New Contracts, 'ba' = Adj APOS (both weekly FLOWS), 'aa' = Adj ASU (a running BALANCE — see
+// computeAsuRows). Reachable from the ASU page and from the Publish page's NC_Adj / APOS_Adj / ASU_Adj columns.
+function editAsu(fw,which,val){
+  var n=parseFloat((''+val).replace(/,/g,''));OVR.asu[fw]=OVR.asu[fw]||{};
+  if(isFinite(n))OVR.asu[fw][which]=Math.round(n);else delete OVR.asu[fw][which];
+  if(!Object.keys(OVR.asu[fw]).length)delete OVR.asu[fw];   // never leave an empty entry — the showAdj gates test Object.keys(OVR.asu).length
+  pruneCmt();
+  renderAsu();renderRate(DISP);renderRate(SR);
+  if(activeTab()==='pub')renderPub();                       // renderRate first — renderPub reads SR._adj / DISP._adj
+}
+// ---------- ASU chain — pure compute (shared by renderAsu + the disp/SR driver) ----------
+// New Contracts (blue), APOS Renewals (purple) drive the cumulative Adjusted ASU (orange).
+// Declines are DECOUPLED — a display-only, forecast-only series from a manual import; they never enter the ASU math.
+function computeAsuRows(){
+  if(!TL)return [];
+  // sliders 60–150, 100 = neutral; mult = value/100
+  var ncM=(+document.getElementById('ncI').value)/100,
+      apM=(+document.getElementById('apI').value)/100;
+  var fc=TL.fcStart,N=TL.fw.length,rows=[],ncCum=0,renCum=0,declCum=0,ovShift=0,ov=OVR.asu;
+  var A=SC('asu',TL.asu),NC=SC('nc',TL.nc),AP=SC('apos',TL.apos);   // allocation-filtered inputs
+  // APOS (like NC) uses a FLAT uniform multiplier on every forecast week — no ramp, no pivot week — so the
+  // adjustment is a constant % across the whole window.
+  for(var i=0;i<N;i++){
+    var base=A[i],an,ba,adjV,ncV,renV,aaJump=0;
+    // declines are display-only across the whole FY22–FY27 window; only forecast weeks feed declCum below
+    var decl=DECL_IMPORTED?(declAt(TL.fw[i])!=null?declAt(TL.fw[i]):(i>=fc?0:null)):null;
+    if(i<fc){an=NC[i];ba=AP[i];adjV=base;ncV=base;renV=base;}
+    else{
+      var o=ov[TL.fw[i]]||{};
+      an=(o.an!=null)?o.an:Math.round(NC[i]*ncM);
+      ba=(o.ba!=null)?o.ba:Math.round(AP[i]*apM);   // FLAT uniform multiplier on every forecast week
+      ncCum+=(an-NC[i]);renCum+=(ba-AP[i]);declCum+=(decl||0);   // declines subtract from the running adjusted ASU (never adjusted themselves)
+      ncV=base+ncCum;renV=base+renCum;
+      // req 1b: Adj ASU is a running BALANCE, not a weekly flow. An absolute override (o.aa) RE-ANCHORS the
+      // balance at that week and every LATER week keeps running from the new level via ovShift — so the edit
+      // propagates forward by a constant delta instead of spiking for one week and snapping back. A second,
+      // later override simply re-anchors again (ovShift is recomputed against the already-shifted balance).
+      adjV=base+ncCum+renCum-declCum+ovShift;
+      // aaJump = the net inflow injected by re-anchoring the balance this week. It is exactly the amount ovShift
+      // grows by, so the ASU-page inflow chart can show the Adj-ASU edit as a one-week spike (it returns to the
+      // normal inflow next week, since the new balance carries forward automatically). Card/table/Publish keep
+      // showing the BALANCE (adj); this term only feeds the flow-scale chart line so the edit is visible there.
+      if(o.aa!=null){aaJump=o.aa-adjV;ovShift+=aaJump;adjV=o.aa;}
+    }
+    rows.push({fw:TL.fw[i],base:base,decl:decl,nc:NC[i],apos:AP[i],
+               adjNew:an,btcApos:ba,adj:adjV,ncLine:ncV,renLine:renV,aaJump:aaJump});
+  }
+  return rows;
+}
+function renderAsu(){
+  cmtPopClose(true);   // rows are rebuilt via innerHTML below — commit + drop any open popover so none orphans
+  var fc=TL.fcStart,rows=computeAsuRows();
+  var vis=visIdx();
+  if(!vis.length){document.getElementById('kAsu').innerHTML='';document.getElementById('tAsu').innerHTML='';svgChart('cAsu',[],[]);ASU_ROWS=rows;return;}
+  var last=rows[vis[vis.length-1]],tAN=0,tBA=0,tNC=0,tAP=0,tDecl=0;vis.forEach(function(i){tAN+=rows[i].adjNew;tBA+=rows[i].btcApos;tNC+=rows[i].nc;tAP+=rows[i].apos;if(rows[i].decl!=null)tDecl+=rows[i].decl;});
+  var cp=chgPeriods();
+  function ap2(idxs){var an=0,ba=0,nc=0,ap=0,dc=0;idxs.forEach(function(i){an+=rows[i].adjNew;ba+=rows[i].btcApos;nc+=rows[i].nc;ap+=rows[i].apos;dc+=(rows[i].decl||0);});var li=idxs[idxs.length-1];return{base:rows[li].base,adj:rows[li].adj,adjNew:an,btcApos:ba,nc:nc,apos:ap,decl:dc};}
+  var A=(cp&&cp.a.length)?ap2(cp.a):null,B=(cp&&cp.b.length)?ap2(cp.b):null;
+  function CB(f){return (A&&B)?pc(A[f],B[f]):null;}
+  var actualsOnly=vis.every(function(i){return i<fc});
+  // req 1 + 3.2: per-metric reveal — show ONLY the adjusted line/card/column whose own modifier changed.
+  // Adj NC ← NC slider/edit; Adj APOS ← APOS slider/edit; Adj ASU ← any of NC/APOS OR imported declines (they subtract from ASU).
+  var ncM=+document.getElementById('ncI').value,apM=+document.getElementById('apI').value,ovAn=false,ovBa=false,ovAa=false;
+  Object.keys(OVR.asu).forEach(function(fw){var o=OVR.asu[fw]||{};if(o.an!=null)ovAn=true;if(o.ba!=null)ovBa=true;if(o.aa!=null)ovAa=true;});
+  var ncAdj=!actualsOnly&&(ncM!==100||ovAn),apAdj=!actualsOnly&&(apM!==100||ovBa);
+  var asuAdj=!actualsOnly&&(ncAdj||apAdj||DECL_IMPORTED||ovAa),anyAdj=asuAdj;   // req 1b: a direct Adj-ASU balance edit reveals the column too
+  var kEl=document.getElementById('kAsu');kEl.className='kr '+(DECL_IMPORTED?'kr4':'kr5');   // 4 cols when declines shown
+  var ph='<div class="kp" style="visibility:hidden"></div>';   // placeholder keeps forecast/adjusted columns aligned
+  kEl.innerHTML=
+    // row 1: actuals (+ Declines right of APOS when imported — forecast-only, no adjusted variant)
+    kpi('ASU Actuals',fmt(last.base),'',null,CB('base'))+
+    kpi('NC Actuals',fmt(tNC),'','color:var(--ac)',CB('nc'))+
+    kpi('APOS Actuals',fmt(tAP),'','color:var(--pu)',CB('apos'))+
+    (DECL_IMPORTED?kpi('Declines',fmt(tDecl),'','color:#8b0000',CB('decl')):'')+   // req 3: WoW/QoQ/YoY change badge
+    // row 2: only the adjusted metric(s) whose modifier changed; placeholders hold the rest of the grid in place
+    (anyAdj?
+      (asuAdj?kpi('Adjusted ASU',fmt(last.adj),'','color:#ea580c',CB('adj')):ph)+
+      (ncAdj?kpi('Adj NC',fmt(tAN),'','color:#0891b2',CB('adjNew')):ph)+
+      (apAdj?kpi('Adj APOS',fmt(tBA),'','color:#ac4073',CB('btcApos')):ph)+
+      (DECL_IMPORTED?ph:'')
+     :'');
+  // Comment column only when some VISIBLE row actually carries an ASU override (same predicate as the row builder)
+  var anyEdA=anyAdj&&vis.some(function(i){return i>=fc&&hasAsuOvr(rows[i].fw);});
+  var tb='';vis.forEach(function(i){var r=rows[i],isA=i<fc;
+    var anCell=isA?'—':'<input class="ec" value="'+r.adjNew+'" onchange="editAsu(\''+r.fw+'\',\'an\',this.value)">';
+    var baCell=isA?'—':'<input class="ec" value="'+r.btcApos+'" onchange="editAsu(\''+r.fw+'\',\'ba\',this.value)">';
+    // req 1b: Adj ASU is now an editable absolute BALANCE override, not derived read-only text
+    var adjAsuCell=isA?'—':'<input class="ec" value="'+fmt(r.adj)+'" onchange="editAsu(\''+r.fw+'\',\'aa\',this.value)">';
+    var declCol=DECL_IMPORTED?'<td>'+(r.decl==null?'—':fmt(r.decl))+'</td>':'';   // history + forecast, not editable; column stays default/black
+    var adjCols=(ncAdj?'<td style="color:var(--ac)">'+anCell+'</td>':'')+(apAdj?'<td style="color:var(--pu)">'+baCell+'</td>':'')+(asuAdj?'<td>'+adjAsuCell+'</td>':'');
+    var edited=!isA&&hasAsuOvr(r.fw);
+    var cCell=anyEdA?cmtCell(edited,getCmtAsu(r.fw),'asu','','',r.fw):'';
+    tb+='<tr'+(isA?' class="act"':(edited?' class="edt"':''))+'><td class="l">'+shortFW(r.fw)+'</td><td>'+fmt(r.base)+'</td><td>'+fmt(r.nc)+'</td><td>'+fmt(r.apos)+'</td>'+declCol+adjCols+cCell+'</tr>';});
+  document.getElementById('tAsu').innerHTML=tb;
+  // sliders are meaningless with no forecast weeks in view → hide them for actuals-only periods
+  document.querySelectorAll('#vAsu .mb:not(.mb-aop)').forEach(function(e){e.style.display=actualsOnly?'none':'';});
+  // Table header mirrors the per-metric adjusted columns above
+  var thead=document.querySelector('#tAsu').parentElement.querySelector('thead tr');
+  if(thead){
+    var dA=DECL_IMPORTED?'<th>Declines</th>':'';
+    thead.innerHTML='<th class="l">FW</th><th>ASU Actuals</th><th>NC Actuals</th><th>APOS Actuals</th>'+dA
+      +(ncAdj?'<th style="color:var(--ac)">Adj NC</th>':'')+(apAdj?'<th style="color:var(--pu)">Adj APOS</th>':'')+(asuAdj?'<th>Adj ASU</th>':'')
+      +(anyEdA?'<th class="cmt" style="width:120px">Comment</th>':'');   // lock-step with the row builder: last column, adjusted-only, edits-only
+    fitTable('tAsu',3+(DECL_IMPORTED?1:0)+(ncAdj?1:0)+(apAdj?1:0)+(asuAdj?1:0),anyEdA?120:0);
+  }
+  document.getElementById('aBase').textContent=fmt(last.base);
+  document.getElementById('aAdj').textContent=fmt(last.adj);
+  var lift=last.adj-last.base;var lEl=document.getElementById('aLift');lEl.textContent=(lift>=0?'+':'')+fmt(lift);lEl.style.color=lift>=0?'var(--gn)':'var(--rd)';
+  document.getElementById('aBar').style.width=Math.max(4,Math.min(100,last.adj?last.base/last.adj*100:0))+'%';
+  // AOP target for ASU. The ASU chart plots the weekly INFLOW (NC + APOS, minus declines on the adjusted
+  // line), so the target sits on that scale too — auto = the forecast-FY average of that inflow.
+  var aopW=aopVal('asu');
+  syncAopUI('asu',aopW);
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=axisLabels(vis);
+  // actuals baselines + adjusted lines (idx 3,4,5 carry empty data until an ASU modifier is changed — series slots
+  // stay in place so legend indices remain aligned). Declines: one forecast-only line, appended last, only when imported.
+  // Adj ASU (weekly composition) subtracts the week's declines so the line reflects the outflow, and adds aaJump
+  // so a direct Adj-ASU balance edit shows as a one-week inflow spike (card/table keep the balance); each Adj line
+  // shows only when its own metric changed (idx slots stay in place with empty data so legend indices align).
+  var aser=[
+    {color:'#4ade80',fcColor:'#4ade80',name:'ASU Actuals', data:vis.map(function(i){return rows[i].nc+rows[i].apos;})},
+    {color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Actuals',  data:vis.map(function(i){return rows[i].nc;})},
+    {color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Actuals',data:vis.map(function(i){return rows[i].apos;})},
+    {color:'#ea580c',name:'Adj ASU', seg:'forecast',       data:asuAdj?vis.map(function(i){return rows[i].adjNew+rows[i].btcApos-(rows[i].decl||0)+(rows[i].aaJump||0);}):[]},
+    {color:'#0891b2',name:'Adj NC',  seg:'forecast',       data:ncAdj?vis.map(function(i){return rows[i].adjNew;}):[]},
+    {color:'#ac4073',name:'Adj APOS',seg:'forecast',       data:apAdj?vis.map(function(i){return rows[i].btcApos;}):[]},
+    // req 6: flat AOP target line — same slot every render (index 6) so the legend indices stay aligned
+    // whether or not the Declines series (pushed after it) is present.
+    {color:'#b45309',dash:true,name:'AOP Target',          data:vis.map(function(){return aopW;})}
+  ];
+  if(DECL_IMPORTED)aser.push({color:'#8b0000',fcColor:'#8b0000',name:'Declines',data:vis.map(function(i){return rows[i].decl;})});   // full FY22–FY27 span; nulls hide weeks with no data
+  svgChart('cAsu',lbl,aser,function(v){return fmt(v);},xlab);
+  document.querySelectorAll('#vAsu .decl-lg').forEach(function(e){e.style.display=DECL_IMPORTED?'':'none';});   // Declines (forecast-only) — shown only when imported
+  document.querySelectorAll('#vAsu .adjasu-lg').forEach(function(e){e.style.display=asuAdj?'':'none';});
+  document.querySelectorAll('#vAsu .adjnc-lg').forEach(function(e){e.style.display=ncAdj?'':'none';});
+  document.querySelectorAll('#vAsu .adjap-lg').forEach(function(e){e.style.display=apAdj?'':'none';});
+  var rmBtn=document.getElementById('declRemoveBtn');if(rmBtn)rmBtn.style.display=DECL_IMPORTED?'':'none';
+  var _twA=document.getElementById('tAsu');popReveal('asu',anyAdj,[kEl,_twA&&_twA.closest('.tw')]);
+  ASU_ROWS=rows;
+  requestAnimationFrame(positionTblResets);
+}
+// ---------- handlers ----------
+function clampP(v){v=parseInt(v);if(isNaN(v))v=0;return Math.max(-100,Math.min(150,v));}
+function clampM(v){v=parseFloat(v);if(isNaN(v))v=100;return Math.max(60,Math.min(150,v));}   // disp/SR modifier: 100 = neutral, 60–150
+// coalesce rapid slider input events to one render per animation frame (smooth drag)
+var _raf=0,_rafFn=null;
+function schedule(fn){_rafFn=fn;if(_raf)return;_raf=requestAnimationFrame(function(){_raf=0;var f=_rafFn;_rafFn=null;if(f)f();});}
+// Mirror a value onto the range+number pair, but NEVER overwrite the input the user is actively editing —
+// otherwise every keystroke re-clamps the box (typing "8" → "60"), which made multi-digit entry impossible.
+function setPair(a,b,v){var ae=document.activeElement,ea=document.getElementById(a),eb=document.getElementById(b);if(ea&&ea!==ae)ea.value=v;if(eb&&eb!==ae)eb.value=v;}
+// Commit handler for the %-modifier number boxes (fires on blur / Enter): clamp + normalise the box text,
+// then apply. Live typing flows freely (setPair leaves the focused box alone); this tidies it up on commit.
+function clampBox(el,fn){el.value=clampM(el.value);fn(el.value);}
+// req 3.1: the slider writes to the ACTIVE segment's modifier; on the 'All' tab it sets every sub uniformly (master)
+function setSegMod(C,v){var mods=segModsOf(C),idx=segCur(C);mods[idx]=v;if(idx===0){for(var i=1;i<mods.length;i++)mods[i]=v;}}
+function dSync(v){v=clampM(v);setPair('dS','dI',v);setSegMod(DISP,v);schedule(function(){renderRate(DISP);});}
+function sSync(v){v=clampM(v);setPair('sS','sI',v);setSegMod(SR,v);schedule(function(){renderRate(SR);});}
+function clearTgtBox(id){var e=document.getElementById(id);if(e){e.value='';}}
+// req 1.1.2: Reset is per-TAB — it clears only the active segment's modifier + per-week edits.
+// On the 'All' tab it resets every sub-segment (All is the master view).
+function segReset(C){
+  var idx=segCur(C),mods=segModsOf(C);
+  if(idx>0){mods[idx]=100;delete OVR[C.kind][idx];delete CMT[C.kind][idx];}
+  else{for(var i=0;i<mods.length;i++)mods[i]=100;OVR[C.kind]={};CMT[C.kind]={};}   // 'All' also clears the All-level overrides + notes
+  pruneCmt();                                                                      // and any Publish note whose week is no longer edited
+  TGT_OVR[C.kind]=null;clearTgtBox(C.trEl);
+  AOP_OVR[C.kind]=null;
+  var rid=C.kind==='disp'?'dS':'sS',nid=C.kind==='disp'?'dI':'sI';setPair(rid,nid,100);
+  renderRate(C);
+  if(activeTab()==='pub')renderPub();
+}
+function dReset(){segReset(DISP);}
+function sReset(){segReset(SR);}
+// Table-only reset (req: separate from the control-panel Reset). Clears ONLY the per-week table edits +
+// their notes for the active metric — the BTC modifier/sliders, target rate and AOP override are left intact.
+// disp/sr respect the active segment tab exactly like segReset: a sub tab clears that segment, 'All' clears all.
+function tblReset(kind){
+  if(kind==='pub'){                                                         // Publish summary shows every metric → clear all per-week edits
+    OVR.disp={};OVR.sr={};OVR.asu={};CMT.disp={};CMT.sr={};CMT.asu={};CMT.pub={};pruneCmt();
+    renderRate(DISP);renderRate(SR);renderAsu();renderPub();
+    return;
+  }
+  if(kind==='asu'){
+    if(!Object.keys(OVR.asu).length&&!Object.keys(CMT.asu).length)return;   // nothing to clear
+    OVR.asu={};CMT.asu={};pruneCmt();
+    renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();
+    return;
+  }
+  var C=(kind==='disp')?DISP:SR,idx=segCur(C);
+  if(idx>0){delete OVR[C.kind][idx];delete CMT[C.kind][idx];}
+  else{OVR[C.kind]={};CMT[C.kind]={};}                                       // 'All' tab clears every sub-segment's edits
+  pruneCmt();
+  renderRate(C);
+  if(activeTab()==='pub')renderPub();
+}
+// ASU driver sliders — also refresh disp/SR rate denominators (MDR/ICR use the adjusted ASU)
+function _asuRender(){renderAsu();renderRate(DISP);renderRate(SR);}
+function ncSync(v){v=clampM(v);setPair('ncS','ncI',v);schedule(_asuRender);}
+function apSync(v){v=clampM(v);setPair('apS','apI',v);schedule(_asuRender);}
+function aReset(){OVR.asu={};CMT.asu={};pruneCmt();DECL_VALS={};DECL_IMPORTED=false;AOP_OVR.asu=null;['ncS','ncI','apS','apI'].forEach(function(id){document.getElementById(id).value=100;});var st=document.getElementById('declStatus');if(st)st.textContent='';_asuRender();if(activeTab()==='pub')renderPub();}
+// Import per-week Declines (forecast, expiring outflow) from a CSV/TXT — display-only, forecast-only, never adjusted.
+// Accepts "FW,value" (FW = 2027-W01 or 27-W01) or a bare value column (assigned to forecast weeks in order).
+// Values land in DECL_VALS[fw]; declines are shown only after this import.
+function importDeclines(file){
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var txt=''+(e.target.result||''),lines=txt.split(/\r?\n/),fc=TL.fcStart,n=0,vals={};
+    var map={},i;for(i=0;i<TL.fw.length;i++){map[TL.fw[i]]=i;map[shortFW(TL.fw[i])]=i;}
+    var seq=[];for(i=fc;i<TL.fw.length;i++)seq.push(i);var sp=0;
+    lines.forEach(function(ln){
+      ln=(''+ln).trim();if(!ln)return;
+      var parts=ln.split(/[,\t;]/);
+      var raw=(parts[parts.length-1]||'').replace(/[^0-9.\-]/g,'');
+      var num=parseFloat(raw);if(!isFinite(num))return;                 // skip headers / blanks
+      var key=(parts[0]||'').trim(),idx=null;
+      if(map[key]!=null)idx=map[key];
+      else if(key.length>2&&map[key.slice(2)]!=null)idx=map[key.slice(2)];
+      if(idx==null){if(sp<seq.length)idx=seq[sp++];else return;}
+      vals[TL.fw[idx]]=Math.round(num);n++;                              // FY22–FY27: history displays too; only forecast weeks feed the ASU math
+    });
+    if(n>0){DECL_VALS=vals;DECL_IMPORTED=true;}
+    var st=document.getElementById('declStatus');if(st)st.textContent=n?('Imported '+n+' week'+(n>1?'s':'')):'No rows matched';
+    renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();   // declines feed the ASU→MDR/ICR denominators
+  };
+  reader.readAsText(file);
+}
+// task 3.1: drop the imported declines file (returns ASU + downstream to no-declines state)
+function removeDeclines(){
+  DECL_VALS={};DECL_IMPORTED=false;
+  var st=document.getElementById('declStatus');if(st)st.textContent='';
+  renderAsu();renderRate(DISP);renderRate(SR);if(activeTab()==='pub')renderPub();
+}
+// Controls card collapses like the filter rail: card hides, chart goes full width, a floating ⚙ button reopens it.
+function toggleControls(btn){
+  var c=btn.closest('.card');if(!c)return;
+  c.classList.add('collapsed');
+  var row=c.closest('.row');if(row)row.classList.add('ctl-collapsed');
+  updateCtlReopen();reflowActiveCharts();
+}
+function expandControls(){
+  var view=document.querySelector('.view.on');if(!view)return;
+  view.querySelectorAll('.card.ctl.collapsed').forEach(function(c){c.classList.remove('collapsed');});
+  view.querySelectorAll('.row.ctl-collapsed').forEach(function(r){r.classList.remove('ctl-collapsed');});
+  updateCtlReopen();reflowActiveCharts();
+}
+function updateCtlReopen(){
+  var b=document.getElementById('ctlReopen');if(!b)return;
+  var view=document.querySelector('.view.on');
+  b.style.display=(view&&view.querySelector('.card.ctl.collapsed'))?'flex':'none';
+}
+// Reflow the charts to the current container width, then re-align the tables (their right edge tracks the
+// chart's plot-right). Runs SYNCHRONOUSLY first so plain tab/step nav — where the width is already final —
+// expands the table instantly, with NO visible lag. A single deferred pass then catches the case where a
+// 250ms rail/width CSS transition is still animating (the sync pass would measure an interim width); by the
+// time it fires the transition has settled, so the chart fills and the table expands to match.
+function reflowActiveCharts(){
+  function pass(){Object.keys(HC).forEach(function(k){try{HC[k].chart.reflow();}catch(e){}});positionTblResets();}
+  pass();                 // instant — kills the delay when nothing is transitioning (e.g. Step 2 → Step 1)
+  setTimeout(pass,360);   // again after any rail/width transition finishes
+}
+// Align each Steps table's reset button to its chart: RIGHT edge on the chart's plot-right (the rightmost
+// fiscal week), BOTTOM edge flush with the header row's bottom. Recomputed on every render / reflow / resize
+// so it survives filter changes, rail toggles and window resizes. Hidden views (0 width) are skipped and
+// repositioned when shown.
+function positionTblResets(){
+  ['cDisp','cSr','cAsu'].forEach(function(cwId){
+    var cw=document.getElementById(cwId);if(!cw)return;
+    var card=cw.closest('.card');if(!card)return;
+    var wrap=card.querySelector('.twwrap');if(!wrap)return;
+    var btn=wrap.querySelector('.tblreset');if(!btn)return;
+    var wr=wrap.getBoundingClientRect();if(!wr.width)return;
+    var hc=HC[cwId]&&HC[cwId].chart;
+    if(hc&&hc.plotWidth){
+      var cwr=cw.getBoundingClientRect();
+      var plotRightX=(cwr.left-wr.left)+hc.plotLeft+hc.plotWidth;        // px from wrap's left edge
+      var rightOff=Math.max(0,Math.round(wr.width-plotRightX));
+      btn.style.right=rightOff+'px';
+      var tw=wrap.querySelector('.tw');
+      if(tw)tw.style.paddingRight=(rightOff+btn.offsetWidth+6)+'px';     // keep the last column clear of the button
+    }
+    var hr=wrap.querySelector('thead tr');
+    if(hr){var top=Math.round(hr.getBoundingClientRect().bottom-wr.top-btn.offsetHeight);btn.style.top=Math.max(0,top)+'px';}
+  });
+}
+window.addEventListener('resize',function(){positionTblResets();});
+// ---------- step model (Step 1 ASU → Step 2 Disp/SR → Step 3 Publish), gated by locks ----------
+var STEP=1;
+// Step order: 1 = ASU driver → 2 = SRs & Dispatches → 3 = Publish. No gating — every step is always reachable.
+function maxStep(){return 3;}
+function activeTab(){var t=document.querySelector('.tab.on');return t?t.getAttribute('data-v'):'asu';}
+function setStep(n){
+  n=Math.max(1,Math.min(3,n));
+  STEP=n;
+  updateTabVisibility();
+  // req 4: entering the SR/Dispatch step always shows them in their DEFAULT view — the 'All' segment with
+  // every default line drawn (any legend isolation cleared). Filters are deliberately left untouched.
+  if(n===2)resetSegViews();
+  if(n===1)go('asu');                                          // Step 1 = ASU driver
+  else if(n===2){var a=activeTab();go((a==='disp')?'disp':'sr');}   // Step 2 = SRs/Dispatches (SRs default)
+  else go('pub');
+  updateStepper();
+}
+// req 4: back to the SR/Dispatch default view — 'All' segment, no isolated lines. Modifiers, per-week edits,
+// locks and the filter rail are all preserved; only the *view* resets.
+function resetSegViews(){
+  [SR,DISP].forEach(function(C){C._seg=0;});
+  if(!TL)return;
+  renderRate(SR);renderRate(DISP);
+  ['cSr','cDisp'].forEach(function(c){legClearIso(c);});
+}
+function navStep(dir){setStep(STEP+dir);}
+function updateTabVisibility(){
+  document.querySelectorAll('.tab').forEach(function(t){
+    var v=t.getAttribute('data-v');
+    t.style.display=((STEP===1&&v==='asu')||(STEP===2&&(v==='disp'||v==='sr'))||(STEP===3&&v==='pub'))?'block':'none';
+  });
+}
+// ---------- stepper + step-nav buttons ----------
+function updateStepper(){
+  var s1=document.getElementById('st1'),s2=document.getElementById('st2'),s3=document.getElementById('st3');
+  if(!s1)return;
+  s1.className='step'+(STEP===1?' on':(STEP>1?' done':''));    // Step 1 = ASU driver
+  s2.className='step'+(STEP===2?' on':(STEP>2?' done':''));    // Step 2 = SRs/Dispatches
+  s3.className='step'+(STEP===3?' on':'');
+  refreshNav();
+}
+function refreshNav(){
+  var prev=document.getElementById('prevStep'),next=document.getElementById('nextStep');
+  if(prev)prev.disabled=STEP<=1;
+  if(next)next.disabled=STEP>=3;
+}
+function showAlloc(which,totalUnits){
+  var a=TL.alloc,metric=which==='disp'?'Dispatches':'SRs',titles={region:'Region',coreupsell:'Core / Upsell',service:'Service Type'};
+  var h='<div class="ks" style="margin-bottom:14px">Published <b style="color:var(--gn)">'+fmt(totalUnits)+'</b> adjusted forecast '+metric+' (forecast window) — weighted-allocated down each dimension:</div>';
+  if(!a){h+='<div class="gate"><span>ⓘ</span><span>No allocation weights in this dataset.</span></div>';}
+  else{['region','coreupsell','service'].forEach(function(dk){
+    if(!a[dk])return;
+    h+='<div class="allocgrp"><h4>'+titles[dk]+'</h4><table><thead><tr><th class="l">Segment</th><th>Share</th><th>Allocated '+metric+'</th></tr></thead><tbody>';
+    Object.keys(a[dk]).forEach(function(v){var w=a[dk][v];h+='<tr><td class="l">'+v+'</td><td>'+(w*100).toFixed(1)+'%</td><td>'+fmt(Math.round(totalUnits*w))+'</td></tr>';});
+    h+='</tbody></table></div>';
+  });}
+  document.getElementById('allocTitle').textContent='Published '+metric+' allocation';
+  document.getElementById('allocBody').innerHTML=h;
+  document.getElementById('allocModal').classList.add('on');
+}
+function closeAlloc(){document.getElementById('allocModal').classList.remove('on');}
+function updateExportBtn(){
+  var currentTab=document.querySelector('.tab.on').getAttribute('data-v');
+  var b=document.getElementById('exportbtn');
+  var bp=document.getElementById('exportBtnPage');
+  var bothPub=true;   // req 2: no lock gate — export is always available on the Publish page
+  if(b)b.style.display=(currentTab==='pub'&&bothPub)?'inline-flex':'none';
+  if(bp)bp.disabled=!bothPub;
+}
+var _outDir=null;   // remembered outputs/ directory handle (File System Access API) — picked once, reused
+// ---------- CSV writing (single escaping path, shared by every export) ----------
+// The old exports joined raw values with commas and would have corrupted the file the moment a note contained a
+// comma, a quote or a newline. RFC-4180: quote the field when it holds any of those, and double embedded quotes.
+// Everything else is emitted bare so the numeric columns stay byte-identical to before.
+function csvCell(v){v=(v==null?'':''+v);return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function csvJoin(rows){return rows.map(function(r){return r.map(function(c){return csvCell(c);}).join(',');}).join('\n');}
+// SR / Dispatch notes are stored PER SEGMENT (CMT[kind][segIdx][fw]) but the export carries the All series, so one
+// cell has to represent the whole week: the All note first, then every sub-segment note that exists, each labelled
+// with its segment so the reader can tell them apart —  "All note | Parts+Labour: sub note".
+function rateNote(kind,fw){
+  var L=segList(kind),parts=[],all=getCmtRate(kind,0,fw),i,s;
+  if(all)parts.push(all);
+  for(i=1;i<L.length;i++){s=getCmtRate(kind,i,fw);if(s)parts.push(L[i].l+': '+s);}
+  return parts.join(' | ');
+}
+// One row builder for BOTH export paths, so the two can never drift apart. Each *_Comment column sits immediately
+// right of the adjusted column it annotates; the trailing bare "Comment" is the Publish-page note for that week.
+// The columns are ALWAYS present (blank when there is no note) so downstream parsing never shifts.
+function _csvRows(){
+  var vis=visIdx(),xSR=SC('sr',TL.sr),xDisp=SC('disp',TL.disp);
+  var rows=[['FW','ASU_Base','ASU_Adj','ASU_Comment','SR_DS','SR_Adj','SR_Comment','Disp_DS','Disp_Adj','Disp_Comment','Comment']];
+  vis.forEach(function(i){var ar=ASU_ROWS[i]||{},fw=TL.fw[i];
+    rows.push([fw,ar.base,ar.adj,getCmtAsu(fw),
+               xSR[i],(SR._adj?SR._adj[i]:''),rateNote('sr',fw),
+               xDisp[i],(DISP._adj?DISP._adj[i]:''),rateNote('disp',fw),
+               getCmtPub(fw)]);});
+  return rows;
+}
+function _exportCsv(){return csvJoin(_csvRows());}
+// req 2: the "Adjustment Cycle <FY>, Pass <n>" logic is unchanged — it stays the automatic default.
+// An optional override can replace the FY and/or the pass number; the header label follows it.
+// The saved file name defaults to that cycle name (auto or overridden), or to whatever the user types.
+// The override is edited IN PLACE in the header label (contenteditable) — no extra input box anywhere.
+var CYCLE_OVR=null;   // whole edited label, or null while it still matches the automatic one
+function autoCycleLabel(){return 'Adjustment Cycle '+(TL?TL.fy[TL.fcStart]:'')+', Pass '+PASS_COUNT;}
+function cycleLabelVal(){return CYCLE_OVR||autoCycleLabel();}
+function cycleBaseName(){
+  var s=cycleLabelVal().trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return 'btc-'+(s||'published');
+}
+// read the edited header text back into the override (blank → falls back to the automatic label)
+function readCycleEdit(){
+  var e=document.getElementById('cycleLabel');if(!e)return;
+  var t=e.textContent.trim();
+  CYCLE_OVR=(t&&t!==autoCycleLabel())?t:null;
+  syncExportPreview();
+}
+function initCycleEdit(){
+  var e=document.getElementById('cycleLabel');if(!e)return;
+  e.addEventListener('input',readCycleEdit);
+  e.addEventListener('blur',function(){if(!e.textContent.trim()){CYCLE_OVR=null;updateCycleLabel();}});
+  e.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();e.blur();}});
+  e.addEventListener('paste',function(ev){                       // keep it plain text — no pasted markup/styling
+    ev.preventDefault();
+    var t=(ev.clipboardData||window.clipboardData).getData('text').replace(/\s+/g,' ');
+    document.execCommand('insertText',false,t);
+  });
+}
+function exportFileName(){
+  var ov=document.getElementById('exportName');
+  if(ov&&ov.value.trim()){var nm=ov.value.trim().replace(/[\\/:*?"<>|]/g,'_');if(!/\.csv$/i.test(nm))nm+='.csv';return nm;}
+  return cycleBaseName()+'.csv';
+}
+function syncExportPreview(){
+  var el=document.getElementById('exportPreviewName');if(!el)return;
+  el.textContent=exportFileName();
+}
+async function exportPublished(){
+  if(!TL)return;
+  var csv=_exportCsv();
+  var name=exportFileName();
+  // secure-context path (localhost/https): write straight into the outputs/ folder, no download prompt after the first pick
+  if(window.showDirectoryPicker){
+    try{
+      if(!_outDir)_outDir=await window.showDirectoryPicker({id:'btc-outputs',mode:'readwrite'});
+      var fh=await _outDir.getFileHandle(name,{create:true}),w=await fh.createWritable();
+      await w.write(csv);await w.close();
+      await syncPassFromDir();                       // Pass# = existing export files in folder + 1
+      alert('Saved '+name+' — now on Pass '+PASS_COUNT+'.');return;
+    }catch(e){if(e&&e.name==='AbortError')return;}   // any other failure → fall through to plain download
+  }
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();
+  bumpPass();                                        // no folder handle → increment + persist locally
+}
+// ---------- Pass counter (4.3.1): reads the outputs/ folder when available, else localStorage ----------
+// req 2.3.1: Pass n is ALWAYS (number of exported files in the outputs folder) + 1 — empty folder → Pass 1.
+// Counts every .csv the tool writes, whatever the file was named (the name is user-overridable).
+async function syncPassFromDir(opts){
+  if(!_outDir){if(!(opts&&opts.quiet))bumpPass();return;}
+  var c=0;
+  try{for await(var e of _outDir.values()){if(e.kind==='file'&&/\.csv$/i.test(e.name))c++;}}catch(err){return;}
+  PASS_COUNT=c+1;persistPass();updateCycleLabel();
+}
+function bumpPass(){PASS_COUNT++;persistPass();updateCycleLabel();}
+// req: Pass n is ALWAYS (published files in the outputs folder) + 1. It must NOT persist across reloads —
+// a stored counter drifts upward on every export and no longer reflects the real file count. Nothing is
+// written to localStorage; the count is re-derived from the folder each time via syncPassFromDir(). The
+// no-folder download fallback still bumps in-session only, and any legacy stored value is cleared on boot.
+function persistPass(){try{localStorage.removeItem('btc_pass_count');}catch(e){}}
+function updateCycleLabel(){
+  var e=document.getElementById('cycleLabel');
+  if(e&&document.activeElement!==e)e.textContent=cycleLabelVal();   // don't clobber it mid-edit
+  syncExportPreview();
+}
+function renderPub(){
+  if(!TL)return;
+  cmtPopClose(true);   // rows are rebuilt via innerHTML below — commit + drop any open popover so none orphans
+  var fc=TL.fcStart,vis=visIdx().filter(function(i){return i>=fc;});
+  var fyLbl=TL.fy[TL.fcStart];
+  // req 3.1.4: the Declines CHART is merged into the New Contracts chart, which then spans two columns so the
+  // plot stretches across the width of both cards. The KPI cards stay separate (Declines sits right of NC).
+  var declCard=document.getElementById('cardPubDecline');if(declCard)declCard.style.display='none';
+  var ncCard=document.getElementById('cardPubNc'),hNc=document.getElementById('hPubNc');
+  if(ncCard)ncCard.style.gridColumn=DECL_IMPORTED?'span 2':'';
+  if(hNc)hNc.textContent=DECL_IMPORTED?'New Contracts & Declines - Forecast vs Adjusted':'New Contracts - Forecast vs Adjusted';
+  document.querySelectorAll('#vPub .pub-decl-lg').forEach(function(e){e.style.display=DECL_IMPORTED?'':'none';});
+  if(!vis.length){document.getElementById('kPub').innerHTML='';document.getElementById('tPub').innerHTML='';document.getElementById('tPubHead').innerHTML='';['cPubNc','cPubApos','cPubAsu','cPubDecline','cPubSr','cPubDisp'].forEach(function(c){svgChart(c,[],[]);});return;}
+  var rows=computeAsuRows();
+  var pNC=SC('nc',TL.nc),pAP=SC('apos',TL.apos),pSR=SC('sr',TL.sr),pDisp=SC('disp',TL.disp);   // allocation-filtered
+  // req 1 (all pages): adjusted cards/lines stay hidden until a modifier is changed (any page's modifier, or a manual edit)
+  var showAdj=(+document.getElementById('ncI').value!==100)||(+document.getElementById('apI').value!==100)||Object.keys(OVR.asu).length>0||segAdjActive(DISP)||segAdjActive(SR);
+  var fNC=0,aNC=0,fAP=0,aAP=0,fDisp=0,aDisp=0,fSR=0,aSR=0,fDecl=0;
+  vis.forEach(function(i){
+    fNC+=pNC[i];aNC+=rows[i].adjNew;
+    fAP+=pAP[i];aAP+=rows[i].btcApos;
+    fDisp+=pDisp[i];aDisp+=DISP._adj?DISP._adj[i]:0;
+    fSR+=pSR[i];aSR+=SR._adj?SR._adj[i]:0;
+    if(rows[i].decl!=null)fDecl+=rows[i].decl;
+  });
+  // ASU is a running BALANCE (a stock), not a weekly flow — NC/APOS/SR/Dispatch/Declines are flows and sum
+  // correctly, but summing ASU over 52 weeks counts the same installed base 52 times. The ASU page reports the
+  // end-of-window level (last.base / last.adj), so Publish reports the same quantity and the two now tie out.
+  var _lastR=rows[vis[vis.length-1]],fASU=_lastR.base,aASU=_lastR.adj,ASU_SUB='end of window';
+  // order NC, APOS, ASU, Declines(if imported), SR, Dispatch — row 1 forecast, row 2 adjusted below each.
+  document.getElementById('kPub').style.gridTemplateColumns='repeat('+(DECL_IMPORTED?6:5)+',minmax(0,1fr))';
+  // req 4.1.1: remember each chart's own KPI pair so the expanded view can show them inside the same box
+  PUB_KPI={
+    Nc:  [{l:'New Contracts ('+fyLbl+')',v:fNC,c:'#3a6ef0'}].concat(showAdj?[{l:'Adj New Contracts ('+fyLbl+')',v:aNC,c:'#ea580c'}]:[])
+          .concat(DECL_IMPORTED?[{l:'Declines ('+fyLbl+')',v:fDecl,c:'#8b0000'}]:[]),
+    Apos:[{l:'APOS Renewals ('+fyLbl+')',v:fAP,c:'#6d28d9'}].concat(showAdj?[{l:'Adj APOS Renewals ('+fyLbl+')',v:aAP,c:'#ea580c'}]:[]),
+    Asu: [{l:'ASU ('+fyLbl+')',v:fASU,c:'#16a34a',s:ASU_SUB}].concat(showAdj?[{l:'Adjusted ASU ('+fyLbl+')',v:aASU,c:'#ea580c',s:ASU_SUB}]:[]),
+    Sr:  [{l:'SRs ('+fyLbl+')',v:fSR,c:'#38bdf8'}].concat(showAdj?[{l:'Adjusted SRs ('+fyLbl+')',v:aSR,c:'#ea580c'}]:[]),
+    Disp:[{l:'Dispatches ('+fyLbl+')',v:fDisp,c:'#6b4423'}].concat(showAdj?[{l:'Adjusted Dispatches ('+fyLbl+')',v:aDisp,c:'#ea580c'}]:[])
+  };
+  // req 3.1.4.1: Declines card sits immediately right of New Contracts
+  document.getElementById('kPub').innerHTML=
+    kpi('New Contracts ('+fyLbl+')',fmt(fNC),'','color:#3a6ef0')+
+    (DECL_IMPORTED?kpi('Declines ('+fyLbl+')',fmt(fDecl),'','color:#8b0000'):'')+
+    kpi('APOS Renewals ('+fyLbl+')',fmt(fAP),'','color:#6d28d9')+
+    kpi('ASU ('+fyLbl+')',fmt(fASU),ASU_SUB,'color:#16a34a')+
+    kpi('SRs ('+fyLbl+')',fmt(fSR),'','color:#38bdf8')+
+    kpi('Dispatches ('+fyLbl+')',fmt(fDisp),'','color:#6b4423')+
+    (showAdj?
+      kpi('Adj New Contracts ('+fyLbl+')',fmt(aNC),'','color:#ea580c')+
+      (DECL_IMPORTED?'<div class="kp" style="visibility:hidden"></div>':'')+
+      kpi('Adj APOS Renewals ('+fyLbl+')',fmt(aAP),'','color:#ea580c')+
+      kpi('Adjusted ASU ('+fyLbl+')',fmt(aASU),ASU_SUB,'color:#ea580c')+
+      kpi('Adjusted SRs ('+fyLbl+')',fmt(aSR),'','color:#ea580c')+
+      kpi('Adjusted Dispatches ('+fyLbl+')',fmt(aDisp),'','color:#ea580c')
+      :'');
+  // summary table: same order — adjusted values (Declines = forecast, not adjusted)
+  // Comment column only when some VISIBLE Publish row actually carries an override (vis is already forecast-only)
+  var anyEdP=showAdj&&vis.some(function(i){return hasPubOvr(TL.fw[i]);});
+  document.getElementById('tPubHead').innerHTML='<th class="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>'+(DECL_IMPORTED?'<th>Declines</th>':'')+'<th>SR_Adj</th><th>Disp_Adj</th>'
+    +(anyEdP?'<th class="cmt" style="width:120px">Comment</th>':'');   // lock-step with the row builder below
+  fitTable('tPub',5+(DECL_IMPORTED?1:0),anyEdP?120:0);
+  // req 1c: every adjusted column is editable here and writes back into the SAME stores the source pages use —
+  // NC_Adj→OVR.asu[fw].an, APOS_Adj→.ba, ASU_Adj→.aa, and SR_Adj / Disp_Adj through editRate(kind,0,…) — i.e.
+  // they are All-level totals and get REDISTRIBUTED across that metric's sub-segments exactly like an edit typed
+  // on the SR/Dispatch 'All' tab. So an edit made on Publish shows up on the ASU / SR / Dispatch pages (including
+  // the individual Unit A/B … tabs) and vice-versa. Declines stay READ-ONLY:
+  // they are import-only and are never adjusted. Every row here is a forecast week (vis is filtered to i>=fc),
+  // so the "actuals are not editable" rule needs no extra guard on this page.
+  var tb='';
+  vis.forEach(function(i){
+    var fwK=TL.fw[i],r=rows[i],ed=hasPubOvr(fwK);
+    var cCell=anyEdP?cmtCell(ed,getCmtPub(fwK),'pub','','',fwK):'';
+    tb+='<tr'+(ed?' class="edt"':'')+'><td class="l">'+shortFW(fwK)+'</td>'
+      +'<td><input class="ec" value="'+fmt(r.adjNew)+'" onchange="editAsu(\''+fwK+'\',\'an\',this.value)"></td>'
+      +'<td><input class="ec" value="'+fmt(r.btcApos)+'" onchange="editAsu(\''+fwK+'\',\'ba\',this.value)"></td>'
+      +'<td><input class="ec" value="'+fmt(r.adj)+'" onchange="editAsu(\''+fwK+'\',\'aa\',this.value)"></td>'
+      +(DECL_IMPORTED?'<td>'+(r.decl==null?'—':fmt(r.decl))+'</td>':'')
+      +'<td><input class="ec" value="'+(SR._adj?fmt(SR._adj[i]):'')+'" onchange="editRate(\'sr\',0,\''+fwK+'\',this.value)"></td>'
+      +'<td><input class="ec" value="'+(DISP._adj?fmt(DISP._adj[i]):'')+'" onchange="editRate(\'disp\',0,\''+fwK+'\',this.value)"></td>'
+      +cCell+'</tr>';
+  });
+  document.getElementById('tPub').innerHTML=tb;
+  // req 3.1: keep ALL data points; only THIN the x-axis LABELS (start week + quarter-ends, or start/end quarter for long spans)
+  // req 4.1.4.1 / 4.1.5.5: expanded charts label every week and carry more y-axis values
+  var _expPub=!!(_expanded&&_expanded.closest&&_expanded.closest('.pubcharts'));
+  var lbl=vis.map(function(i){return shortFW(TL.fw[i]);}),xlab=_expPub?null:axisLabels(vis);
+  var _yT=_expPub?8:5;
+  // one spec per publish chart. ALL adjusted lines are the default orange; the FORECAST colours are what differ
+  // (NC blue, APOS purple, ASU green, Declines teal, SR pink, Disp gold — all distinct from each other).
+  var ADJ='#ea580c';
+  var specs=[
+    {key:'Nc',  title:'New Contracts - Forecast vs Adjusted', series:[{color:'#3a6ef0',fcColor:'#3a6ef0',name:'NC Forecast',data:vis.map(function(i){return pNC[i];})},{color:ADJ,fcColor:ADJ,name:'Adj NC',data:showAdj?vis.map(function(i){return rows[i].adjNew;}):[]}]},
+    {key:'Apos',title:'APOS Renewals - Forecast vs Adjusted',series:[{color:'#6d28d9',fcColor:'#6d28d9',name:'APOS Forecast',data:vis.map(function(i){return pAP[i];})},{color:ADJ,fcColor:ADJ,name:'Adj APOS',data:showAdj?vis.map(function(i){return rows[i].btcApos;}):[]}]},
+    {key:'Asu', title:'ASU - Forecast vs Adjusted',           series:[{color:'#16a34a',fcColor:'#16a34a',name:'ASU Forecast',data:vis.map(function(i){return rows[i].base;})},{color:ADJ,fcColor:ADJ,name:'Adj ASU',data:showAdj?vis.map(function(i){return rows[i].adj;}):[]}]}
+  ];
+  // Declines ride along on the NC chart (same plot, own colour) instead of owning a separate card
+  if(DECL_IMPORTED)specs[0].series.push({color:'#8b0000',fcColor:'#8b0000',name:'Declines',data:vis.map(function(i){return rows[i].decl;})});
+  specs.push({key:'Sr',  title:'SRs - Forecast vs Adjusted',        series:[{color:'#38bdf8',fcColor:'#38bdf8',name:'SR Forecast',data:vis.map(function(i){return pSR[i];})},{color:ADJ,fcColor:ADJ,name:'Adj SR',data:showAdj?vis.map(function(i){return SR._adj?SR._adj[i]:0;}):[]}]});
+  specs.push({key:'Disp',title:'Dispatches - Forecast vs Adjusted',series:[{color:'#6b4423',fcColor:'#6b4423',name:'Disp Forecast',data:vis.map(function(i){return pDisp[i];})},{color:ADJ,fcColor:ADJ,name:'Adj Disp',data:showAdj?vis.map(function(i){return DISP._adj?DISP._adj[i]:0;}):[]}]});
+  specs.forEach(function(s){svgChart('cPub'+s.key,lbl,s.series,function(v){return fmt(v);},xlab,{yTicks:_yT});});
+  svgChart('cPubDecline',[],[]);   // the standalone decline chart is retired — its series now lives on the NC chart
+  document.querySelectorAll('#vPub .pub-adj-lg').forEach(function(e){e.style.display=showAdj?'':'none';});
+  initLegends(PUB_CHARTS);   // req 2: click a legend entry to isolate that line, hover to highlight it
+  popReveal('pub',showAdj,[document.getElementById('kPub'),document.getElementById('tPub').closest('.tw')]);
+}
+// ---------- focus/expand: promote a chart card (Publish) or a chart+controls row (Steps 1&2) to a 40%-dim overlay ----------
+// Uses the SAME DOM element (no clones) so all controls/sliders keep working; collapsing restores the original size.
+var _expanded=null,PUB_KPI={};
+// req 4.1.1: a expanded publish chart shows its OWN KPI cards inside the same box, above the plot
+function pubKpiStrip(el){
+  var cv=el.querySelector&&el.querySelector('.cw');if(!cv)return;
+  var key=(cv.id||'').replace('cPub','');var d=PUB_KPI[key];if(!d||!d.length)return;
+  var h='';d.forEach(function(k){h+=kpi(k.l,fmt(k.v),k.s||'','color:'+k.c);});
+  var strip=document.createElement('div');
+  strip.className='kr expkpi';strip.id='expKpiStrip';
+  strip.style.gridTemplateColumns='repeat('+d.length+',minmax(0,1fr))';
+  strip.innerHTML=h;
+  var head=el.querySelector('h3');
+  if(head&&head.nextSibling)el.insertBefore(strip,head.nextSibling);else el.insertBefore(strip,el.firstChild);
+}
+function clearKpiStrip(){var s=document.getElementById('expKpiStrip');if(s&&s.parentNode)s.parentNode.removeChild(s);}
+// req 4: maximize (4 outward corner arrows) when collapsed, minimize (4 inward arrows) when expanded.
+var IC_EXPAND='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h4v4"></path><path d="M14 10l6 -6"></path><path d="M8 20H4v-4"></path><path d="M4 20l6 -6"></path><path d="M16 20h4v-4"></path><path d="M14 14l6 6"></path><path d="M8 4H4v4"></path><path d="M4 4l6 6"></path></svg>';
+var IC_COLLAPSE='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h4V5"></path><path d="M3 3l6 6"></path><path d="M5 15h4v4"></path><path d="M3 21l6 -6"></path><path d="M19 9h-4V5"></path><path d="M21 3l-6 6"></path><path d="M19 15h-4v4"></path><path d="M21 21l-6 -6"></path></svg>';
+function _setExpBtn(el,html){if(!el||!el.querySelector)return;var b=el.querySelector('.expandbtn');if(b){b.innerHTML=html;b.title=(html===IC_COLLAPSE)?'Collapse chart':'Expand chart';}}
+function toggleExpand(el){
+  if(!el)return;
+  if(_expanded===el){collapseExpand();return;}
+  if(_expanded)collapseExpand();
+  _expanded=el;el.classList.add('expanded');document.body.classList.add('expanding');
+  _setExpBtn(el,IC_COLLAPSE);
+  if(el.closest&&el.closest('.pubcharts')){pubKpiStrip(el);renderPub();}   // KPI strip + all-weeks / more-ticks re-render
+  reflowActiveCharts();
+}
+function collapseExpand(){
+  if(!_expanded)return;
+  var wasPub=!!(_expanded.closest&&_expanded.closest('.pubcharts'));
+  clearKpiStrip();
+  _setExpBtn(_expanded,IC_EXPAND);
+  _expanded.classList.remove('expanded');_expanded=null;document.body.classList.remove('expanding');
+  if(wasPub)renderPub();                                                   // back to thinned labels / 5 ticks
+  reflowActiveCharts();
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')collapseExpand();});
+var _lastTab=null;
+function go(v){
+  document.body.classList.toggle('on-pub',v==='pub');   // publish-only expanded-view button/funnel layout
+  ['Disp','Asu','Sr','Pub'].forEach(function(n){document.getElementById('v'+n).classList.toggle('on',n.toLowerCase()===v);});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-v')===v);});
+  if(v==='pub'){document.body.classList.remove('rail-open');pruneToForecast();renderRail();renderCtx();renderPub();syncPassFromDir({quiet:true});}   // Publish defaults to a collapsed filter rail (full-width charts); re-count the outputs folder on entering
+  else if(_lastTab==='pub'){F.fy=['FY26','FY27'];F.quarter=[];F.week=[];renderRail();applyFilters();}  // Steps 1&2 default back to FY26+FY27
+  else renderRail();                                     // task 7: refresh which filters are hidden for this tab's segment
+  renderCtx();
+  updateExportBtn();
+  updateCtlReopen();
+  _lastTab=v;
+  // A chart last drawn while its view was display:none renders at Highcharts' fallback width, so its table
+  // (padding/min-width derive from the chart's plotWidth) shows collapsed until something forces a reflow.
+  // Reflow the now-visible view's charts on every tab change so the table expands on first arrival — no need
+  // to bounce to another step and back. reflowActiveCharts() also re-runs positionTblResets after the reflow.
+  reflowActiveCharts();
+  requestAnimationFrame(positionTblResets);   // re-align the table reset button once the target view is visible
+}
+function toggleTheme(){
+  var dark=document.body.getAttribute('data-theme')==='dark';
+  document.body.setAttribute('data-theme',dark?'light':'dark');
+  var b=document.getElementById('themebtn');if(b)b.textContent=dark?'☾':'☀';
+  try{localStorage.setItem('btc_sim_theme',dark?'light':'dark');}catch(e){}
+  rethemeCharts();
+}
+function rethemeCharts(){                                  // destroy + rebuild so chart colours pick up the new theme
+  Object.keys(HC).forEach(function(k){try{HC[k].chart.destroy();}catch(e){}});HC={};
+  // HC is wiped wholesale, so EVERY chart that was alive has to be rebuilt — including the five Publish charts.
+  // Rebuilding only Steps 1&2 left cPubNc/cPubApos/cPubAsu/cPubSr/cPubDisp destroyed and their containers empty
+  // for as long as the user stayed on Step 3 (they only came back on the next renderPub, i.e. a page revisit).
+  // renderPub last, so it reads the C._adj that the two renderRate calls above have just refreshed.
+  if(TL){renderRate(DISP);renderRate(SR);renderAsu();if(activeTab()==='pub')renderPub();}
+}
+function applySavedTheme(){
+  var t;try{t=localStorage.getItem('btc_sim_theme');}catch(e){}
+  if(t==='dark'){document.body.setAttribute('data-theme','dark');var b=document.getElementById('themebtn');if(b)b.textContent='☀';}
+}
+// Direct per-page download. It emits the SAME schema as exportPublished() — same _csvRows() builder, same
+// escaping — so the two export paths cannot drift; `which` only picks the file name.
+// (It used to build its own per-metric column sets by hand with unescaped joins; that duplicate schema is gone.)
+function csv(which){
+  var c=_exportCsv(),a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([c],{type:'text/csv;charset=utf-8'}));a.download='btc-'+which+'.csv';a.click();}
+// ---------- LOB loader (build the active timeline TL) ----------
+function aggLob(keys){
+  var all=Object.keys(BTC);keys=(keys&&keys.length)?keys:all;if(!keys.length)return null;var f=BTC[keys[0]],N=f.fw.length;
+  function z(){var a=[];for(var i=0;i<N;i++)a.push(0);return a;}
+  var g={lob:(keys.length>=all.length?'All LOBs':keys.length+' LOBs'),category:'All',fcStart:f.fcStart,fw:f.fw.slice(),fy:f.fy.slice(),fq:f.fq.slice(),series:f.series.slice(),
+    asu:z(),disp:z(),sr:z(),nc:z(),apos:z(),dispTarget:0,srTarget:0,dispTargetN:0,srTargetN:0};   // declines are decoupled (imported, display-only) — not aggregated here
+  keys.forEach(function(k){var d=BTC[k];for(var i=0;i<N;i++){g.asu[i]+=d.asu[i];g.disp[i]+=d.disp[i];g.sr[i]+=d.sr[i];g.nc[i]+=d.nc[i];g.apos[i]+=d.apos[i];}});
+  var sd=0,ss=0,sa=0;for(var i=g.fcStart;i<N;i++){sd+=g.disp[i];ss+=g.sr[i];sa+=g.asu[i];}
+  g.dispTarget=sa?(sd/sa)*0.92:0;g.srTarget=sa?(ss/sa)*0.92:0;g.dispTargetN=Math.round(sd*0.92);g.srTargetN=Math.round(ss*0.92);
+  // P5: ASU-weighted merge of per-LOB allocation weights across the selection
+  var am={},tot=0,DIMS=['region','coreupsell','service'];
+  keys.forEach(function(k){var d=BTC[k];if(!d.alloc)return;var w=0;for(var i=d.fcStart;i<N;i++)w+=d.asu[i];tot+=w;
+    DIMS.forEach(function(dk){am[dk]=am[dk]||{};var src=d.alloc[dk]||{};Object.keys(src).forEach(function(v){am[dk][v]=(am[dk][v]||0)+src[v]*w;});});});
+  if(tot)DIMS.forEach(function(dk){if(am[dk]){var s=0;Object.keys(am[dk]).forEach(function(v){s+=am[dk][v];});if(s)Object.keys(am[dk]).forEach(function(v){am[dk][v]=Math.round(am[dk][v]/s*1e4)/1e4;});}});
+  g.alloc=am;
+  return g;
+}
+function currentLobs(){var all=Object.keys(BTC),sel=F.lob.filter(function(l){return BTC[l];});return sel.length?sel:all;}
+function loadLob(){
+  var sel=currentLobs();if(!sel.length)return;
+  TL=(sel.length===1)?BTC[sel[0]]:aggLob(sel);if(!TL)return;
+  SPLIT_FW=shortFW(TL.fw[TL.fcStart-1]);   // forecast recolor starts exactly where the modifier bend starts (fcStart)
+  OVR={disp:{},sr:{},asu:{}};   // absolute per-week edits don't carry across a data change; slider %s + locks/step DO
+  CMT={disp:{},sr:{},asu:{},pub:{}};   // the notes belong to those edits — they go with them
+  // req 1.2: imported declines are keyed by fiscal week, not by LOB — they SURVIVE a LOB change
+  // (they are scaled to the current selection by the allocation multiplier, like every other series).
+  renderRail();renderCtx();
+  renderRate(DISP);renderRate(SR);renderAsu();
+  updateCycleLabel();                          // set cycle FY + FQ + pass label for this LOB
+  updateTabVisibility();updateStepper();updateExportBtn();
+  go(activeTab());                             // re-render current tab — stay where you were (no jump back to ASU)
+}
+// ---------- boot: fetch the dataset ----------
+function boot(payload){
+  applySavedTheme();
+  DECL_FILE=(typeof window!=='undefined'&&window.BTC_DECLINES)?window.BTC_DECLINES:null;   // auto-pull declines if present
+  BTC=payload.data||{};
+  var lobs=payload.lobs||Object.keys(BTC);
+  var opts=payload.opts||{};
+  cfgOf('fy').opts     =['All'].concat(opts.fy||[]);
+  cfgOf('quarter').opts=['All'].concat(opts.quarter||[]);
+  cfgOf('week').opts   =['All'].concat(opts.week||[]);
+  cfgOf('lob').opts    =['All'].concat(lobs);
+  F.lob=[];
+  F.fy=['FY26','FY27'];
+  renderRail();
+  loadLob();
+  initLegends();
+  initCycleEdit();
+}
+function loadFail(e){
+  var el=document.getElementById('loadErr');el.style.display='block';
+  el.innerHTML='<b>Could not load BTC dataset</b> ('+e+').<br>Ensure <code>input/btc_data.js</code> sits next to this file. Regenerate with <code>python input/gen_ui_from_csv.py</code>.';
+}
+// Prefer the inline global (input/btc_data.js) — works from file://. Fall back to fetch when served over http.
+if(window.BTC_DATA){
+  try{boot(window.BTC_DATA)}catch(e){loadFail(e)}
+}else{
+  fetch('input/btc_data.json').then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}).then(boot).catch(loadFail);
+}
+</script>
+</body>
+</html>
