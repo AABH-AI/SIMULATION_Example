@@ -27,8 +27,8 @@ export const state = {
   DECL_SEG: { field: {}, tech: {} }, // field/tech declines read from the imported file's Segment column
   DECL_FILE: null,
   // ASU driver modifiers (were DOM #ncI / #apI)
-  ncMod: 0,
-  apMod: 0,
+  ncMod: { field: 0, tech: 0 }, // per-segment NC uplift %, neutral 0. All = field+tech (unlinked).
+  apMod: { field: 0, tech: 0 }, // per-segment APOS uplift %, neutral 0.
   // ASU field/tech split tab ('all' | 'field' | 'tech') — selects pre-split arrays from the dataset
   ASU_SEG: 'all',
   // per-metric segment config (element ids from original dropped)
@@ -338,28 +338,52 @@ export function aopSliderMax(kind) {
 }
 
 // ============================ ASU CHAIN (pure) ============================
-export function computeAsuRows(ncSrc, apSrc, ncKey, apKey) {
+// per-segment modifier value (uplift %, neutral 0)
+function asuMod(kind, seg) { const o = state[kind] || {}; return +(o[seg] || 0); }
+// forecast NC field/tech shares (~0.40/0.60) — used to show a weighted composite on the All tab
+function asuShares() {
+  const TL = state.TL, fc = TL.fcStart; let f = 0, t = 0;
+  for (let i = fc; i < TL.fw.length; i++) { f += TL.nc_field[i]; t += TL.nc_tech[i]; }
+  const s = f + t; return s ? { field: f / s, tech: t / s } : { field: 0.4, tech: 0.6 };
+}
+function compositeAsuMod(kind) { const w = asuShares(); return Math.round((asuMod(kind, 'field') * w.field + asuMod(kind, 'tech') * w.tech) * 4) / 4; }
+export function asuModShown(kind) { const s = state.ASU_SEG; return (s === 'field' || s === 'tech') ? asuMod(kind, s) : compositeAsuMod(kind); }
+// ASU rows for a view segment ('all' | 'field' | 'tech'). Field/Tech are adjusted INDEPENDENTLY by their own
+// ncMod/apMod; 'all' = field(adjusted) + tech(adjusted), so per-segment edits are reflected in the All view.
+// Per-week overrides (OVR.asu via Publish/editAsu) apply to the combined 'all' path only.
+export function computeAsuRows(seg) {
   const TL = state.TL; if (!TL) return [];
-  const ncM = 1 + (+state.ncMod) / 100, apM = 1 + (+state.apMod) / 100;
+  seg = ASU_SEG_LBL[seg] ? seg : 'all';
   const fc = TL.fcStart, N = TL.fw.length, rows = [];
-  let ncCum = 0, renCum = 0, declCum = 0, ovShift = 0; const ov = state.OVR.asu;
-  const A = SC('asu', TL.asu), NC = SC(ncKey || 'nc', ncSrc || TL.nc), AP = SC(apKey || 'apos', apSrc || TL.apos);
+  let ncCum = 0, renCum = 0, declCum = 0, ovShift = 0; const ov = state.OVR.asu, useOv = (seg === 'all');
+  const A = SC('asu', TL.asu);
+  const NCf = SC('nc_field', TL.nc_field), NCt = SC('nc_tech', TL.nc_tech);
+  const APf = SC('apos_field', TL.apos_field), APt = SC('apos_tech', TL.apos_tech);
+  const NCall = SC('nc', TL.nc), APall = SC('apos', TL.apos);
+  const ncMf = 1 + asuMod('ncMod', 'field') / 100, ncMt = 1 + asuMod('ncMod', 'tech') / 100;
+  const apMf = 1 + asuMod('apMod', 'field') / 100, apMt = 1 + asuMod('apMod', 'tech') / 100;
   for (let i = 0; i < N; i++) {
+    const NCa = seg === 'field' ? NCf[i] : seg === 'tech' ? NCt[i] : NCall[i];
+    const APa = seg === 'field' ? APf[i] : seg === 'tech' ? APt[i] : APall[i];
     const base = A[i]; let an, ba, adjV, ncV, renV, aaJump = 0;
     const decl = state.DECL_IMPORTED ? (declAt(TL.fw[i]) != null ? declAt(TL.fw[i]) : (i >= fc ? 0 : null)) : null;
-    if (i < fc) { an = NC[i]; ba = AP[i]; adjV = base; ncV = base; renV = base; }
+    if (i < fc) { an = NCa; ba = APa; adjV = base; ncV = base; renV = base; }
     else {
-      const o = ov[TL.fw[i]] || {};
+      const o = useOv ? (ov[TL.fw[i]] || {}) : {};
       // modifier effect ramps in as an S-curve across the forecast window (neutral at fc, full at the end)
       const r = scurveAt(i - fc, N - fc);
-      an = (o.an != null) ? o.an : Math.round(NC[i] * (1 + (ncM - 1) * r));
-      ba = (o.ba != null) ? o.ba : Math.round(AP[i] * (1 + (apM - 1) * r));
-      ncCum += (an - NC[i]); renCum += (ba - AP[i]); declCum += (decl || 0);
+      const anF = Math.round(NCf[i] * (1 + (ncMf - 1) * r)), anT = Math.round(NCt[i] * (1 + (ncMt - 1) * r));
+      const baF = Math.round(APf[i] * (1 + (apMf - 1) * r)), baT = Math.round(APt[i] * (1 + (apMt - 1) * r));
+      const anC = seg === 'field' ? anF : seg === 'tech' ? anT : (anF + anT);
+      const baC = seg === 'field' ? baF : seg === 'tech' ? baT : (baF + baT);
+      an = (o.an != null) ? o.an : anC;
+      ba = (o.ba != null) ? o.ba : baC;
+      ncCum += (an - NCa); renCum += (ba - APa); declCum += (decl || 0);
       ncV = base + ncCum; renV = base + renCum;
       adjV = base + ncCum + renCum - declCum + ovShift;
       if (o.aa != null) { aaJump = o.aa - adjV; ovShift += aaJump; adjV = o.aa; }
     }
-    rows.push({ fw: TL.fw[i], base, decl, nc: NC[i], apos: AP[i], adjNew: an, btcApos: ba, adj: adjV, ncLine: ncV, renLine: renV, aaJump });
+    rows.push({ fw: TL.fw[i], base, decl, nc: NCa, apos: APa, adjNew: an, btcApos: ba, adj: adjV, ncLine: ncV, renLine: renV, aaJump });
   }
   return rows;
 }
@@ -460,9 +484,7 @@ export function computeAsuView() {
   const TL = state.TL, fc = TL.fcStart, vis = visIdx();
   // field/tech split: read the pre-split arrays from the dataset (no ratio math here).
   const segK = ASU_SEG_LBL[state.ASU_SEG] ? state.ASU_SEG : 'all';
-  let rows = (segK === 'field') ? computeAsuRows(TL.nc_field, TL.apos_field, 'nc_field', 'apos_field')
-    : (segK === 'tech') ? computeAsuRows(TL.nc_tech, TL.apos_tech, 'nc_tech', 'apos_tech')
-    : computeAsuRows();
+  let rows = computeAsuRows(segK);
   // field/tech declines are READ from the imported file's Segment column (state.DECL_SEG); the app
   // does not compute the split. Fallback to the dataset NC fraction only if the file had no Segment column.
   if (segK !== 'all' && state.DECL_IMPORTED) {
@@ -486,9 +508,11 @@ export function computeAsuView() {
   const A = (cp && cp.a.length) ? ap2(cp.a) : null, B = (cp && cp.b.length) ? ap2(cp.b) : null;
   function CB(f) { return (A && B) ? pc(A[f], B[f]) : null; }
   const actualsOnly = vis.every((i) => i < fc);
-  const ncM = +state.ncMod, apM = +state.apMod; let ovAn = false, ovBa = false, ovAa = false; // neutral = 0
-  Object.keys(state.OVR.asu).forEach((fw) => { const o = state.OVR.asu[fw] || {}; if (o.an != null) ovAn = true; if (o.ba != null) ovBa = true; if (o.aa != null) ovAa = true; });
-  const ncAdj = !actualsOnly && (ncM !== 0 || ovAn), apAdj = !actualsOnly && (apM !== 0 || ovBa);
+  // adjustment active for the current view seg: field/tech = own mod; all = either sub-segment (neutral = 0)
+  const modActive = (kind) => (segK === 'field' || segK === 'tech') ? asuMod(kind, segK) !== 0 : (asuMod(kind, 'field') !== 0 || asuMod(kind, 'tech') !== 0);
+  let ovAn = false, ovBa = false, ovAa = false;
+  if (segK === 'all') Object.keys(state.OVR.asu).forEach((fw) => { const o = state.OVR.asu[fw] || {}; if (o.an != null) ovAn = true; if (o.ba != null) ovBa = true; if (o.aa != null) ovAa = true; });
+  const ncAdj = !actualsOnly && (modActive('ncMod') || ovAn), apAdj = !actualsOnly && (modActive('apMod') || ovBa);
   // declines are baked into both actuals and adjusted equally → they alone are NOT an adjustment
   // (adjusted would just equal actuals). Only a real NC/APOS/override adjustment reveals the adjusted view.
   const asuAdj = !actualsOnly && (ncAdj || apAdj || ovAa), anyAdj = asuAdj;
@@ -512,6 +536,7 @@ export function computeAsuView() {
     cb: { base: CB('base'), nc: CB('nc'), apos: CB('apos'), decl: CB('decl'), adj: CB('adj'), adjNew: CB('adjNew'), btcApos: CB('btcApos') },
     aopW, lift, chart: { labels: lbl, xlab, series: aser },
     seg: segK, segLabel: ASU_SEG_LBL[segK],
+    ncModShown: asuModShown('ncMod'), apModShown: asuModShown('apMod'),
   };
 }
 
@@ -525,7 +550,9 @@ export function computePubView() {
   if (!vis.length) return { empty: true, fyLbl, declImported: state.DECL_IMPORTED };
   const rows = computeAsuRows();
   const pNC = SC('nc', TL.nc), pAP = SC('apos', TL.apos), pSR = SC('sr', TL.sr), pDisp = SC('disp', TL.disp);
-  const showAdj = (+state.ncMod !== 0) || (+state.apMod !== 0) || Object.keys(state.OVR.asu).length > 0 || segAdjActive(state.DISP) || segAdjActive(state.SR);
+  const ncAny = asuMod('ncMod', 'field') !== 0 || asuMod('ncMod', 'tech') !== 0;
+  const apAny = asuMod('apMod', 'field') !== 0 || asuMod('apMod', 'tech') !== 0;
+  const showAdj = ncAny || apAny || Object.keys(state.OVR.asu).length > 0 || segAdjActive(state.DISP) || segAdjActive(state.SR);
   let fNC = 0, aNC = 0, fAP = 0, aAP = 0, fDisp = 0, aDisp = 0, fSR = 0, aSR = 0, fDecl = 0;
   vis.forEach((i) => {
     fNC += pNC[i]; aNC += rows[i].adjNew;
@@ -634,8 +661,10 @@ export function cycleBaseName() { const s = cycleLabelVal().trim().toLowerCase()
 // ============================ MUTATION ACTIONS (DOM-free) ============================
 export function clampM(v) { v = parseFloat(v); if (isNaN(v)) v = 0; return Math.max(0, Math.min(150, v)); }
 export function setAsuSeg(seg) { state.ASU_SEG = ASU_SEG_LBL[seg] ? seg : 'all'; }
-export function setNcMod(v) { state.ncMod = clampM(v); }
-export function setApMod(v) { state.apMod = clampM(v); }
+// route a slider change to the current ASU segment: Field/Tech set only themselves (unlinked); All sets both.
+function setAsuMod(kind, v) { v = clampM(v); const s = state.ASU_SEG; if (s === 'field' || s === 'tech') state[kind][s] = v; else { state[kind].field = v; state[kind].tech = v; } }
+export function setNcMod(v) { setAsuMod('ncMod', v); }
+export function setApMod(v) { setAsuMod('apMod', v); }
 export function setSegMod(kind, v) { const c = C(kind); v = clampM(v); const mods = segModsOf(c), idx = segCur(c); mods[idx] = v; if (idx === 0) { for (let i = 1; i < mods.length; i++) mods[i] = v; } }
 export function selectSeg(kind, i) {
   const c = C(kind); c._seg = i; i = segCur(c); const mods = segModsOf(c);
@@ -680,7 +709,7 @@ export function asuReset() {
   state.OVR.asu = {}; state.CMT.asu = {}; pruneCmt();
   // declines are dataset-baked (permanent) — reset clears only user adjustments, not declines.
   state.AOP_OVR.asu = null;
-  state.ncMod = 0; state.apMod = 0;
+  state.ncMod = { field: 0, tech: 0 }; state.apMod = { field: 0, tech: 0 };
 }
 export function tblReset(kind) {
   if (kind === 'pub') { state.OVR.disp = {}; state.OVR.sr = {}; state.OVR.asu = {}; state.CMT.disp = {}; state.CMT.sr = {}; state.CMT.asu = {}; state.CMT.pub = {}; pruneCmt(); return; }

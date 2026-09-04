@@ -158,8 +158,17 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       Disp 4104=avg Disp.
 - [x] Smoke neutral assertion rewritten (old one invalid under baked declines). Build green; smoke 17/17; 0 console errors.
 
+## UX round 7 — unlink ASU Field/Tech adjustments + deploy (2026-09-04)  ✅ DONE
+- [x] Committed + pushed round-6 work; rebased onto remote's deploy pipeline (GH Actions Pages); live-verified.
+- [x] ASU Field/Tech adjustments **unlinked**: `ncMod`/`apMod` → `{field,tech}`; `computeAsuRows(seg)` computes each sub
+      independently; **All = field(adj)+tech(adj)**; slider routes to active seg (All sets both); composite shown on All.
+      Verified Field +100 leaves Tech neutral; All = sum.
+- [x] Filter+adjustment scoping **verified** (no code change): Region=AMERICAS → allocMult 0.5084 scales nc via `SC()`,
+      bump affects only that slice; FY/qtr/week scope via `visIdx`. Confirmed adjustments hit only filtered values.
+- [x] Build green; smoke 17/17; browser + live verified; 0 console errors.
+
 ---
-**Now:** P0–P5 done + 6 UX rounds. Sliders 0-neutral uplift (0→150), reset-btn top-right, S-curve adjustments,
-declines baked, segment-aware ASU AOP. Branch `master-react_v2`, app at repo root.
+**Now:** P0–P5 done + 7 UX rounds. Sliders 0-neutral uplift, S-curve, baked declines, segment-aware + avg AOP,
+Field/Tech adjustments unlinked (All=sum), filter-scoped. Auto-deployed to GitHub Pages. Branch `master-react_v2`, app at root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`
 to restore `npm run dev`. Consider putting Publish's ASU_Adj on the same NC+APOS−Declines basis (page 1 only for now).

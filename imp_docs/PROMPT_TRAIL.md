@@ -485,3 +485,20 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   Build green; smoke 17/17.
 - **Files:** `src/engine/btcEngine.js`.
 - **Outcome:** SR/Disp AOP default is now the average of their own series (target-rate override intact). Not committed.
+
+## 2026-09-04 (cont.) — commit/push/deploy + ASU Field/Tech adjustments unlinked
+- **Asked:** commit + push + make live; then (new) ASU Field/Tech adjustments are linked — unlink them (one shouldn't
+  affect the other; individual adjustments calculated and reflected in All); verify filters+adjustments scope to filtered.
+- **Deploy:** remote `master-react_v2` had raced ahead with 5 commits (GitHub Actions `deploy-react-pages.yml` auto-Pages
+  deploy, landing page + `Landing.jsx`/`BtcApp.jsx` router, `vite.config.js base:'./'`, public assets). Rebased my feature
+  commit on top (only append-only `PROMPT_TRAIL.md` conflicted; kept both). Pushed → workflow built + deployed. Live-verified
+  https://aabh-ai.github.io/SIMULATION_Example/ (BTC card): sliders 0-default, Declines 1,538,556, JS/CSS hashes == local.
+- **Unlink:** `state.ncMod`/`apMod` scalar → `{field,tech}` objects. `computeAsuRows(seg)` rewritten (was
+  `(ncSrc,apSrc,ncKey,apKey)`): each sub adjusted by its own mod + S-curve; 'all' = field+tech sum; overrides on 'all' only.
+  `setAsuMod` routes slider to active seg (All sets both). Added `asuMod/asuShares/compositeAsuMod/asuModShown`; computeAsuView
+  returns `ncModShown/apModShown` (All = weighted composite); AsuView binds to them. Detection (`ncAdj/apAdj`, pub `showAdj`)
+  per-segment. `asuReset` resets both.
+- **Verified:** node + UI + live — Field +100 leaves Tech neutral; All = field+tech; composite shown on All. Filter scoping:
+  Region=AMERICAS allocMult 0.5084 scales nc, bump affects only that slice; FY/qtr/week scope via visIdx. No scoping change needed.
+- **Files:** `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smoke 17/17; 0 console errors.
+- **Outcome:** Field/Tech unlinked, All reflects both, filter scoping confirmed. (Being committed + pushed + deployed now.)

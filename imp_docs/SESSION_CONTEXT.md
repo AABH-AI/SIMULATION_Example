@@ -1,6 +1,27 @@
 # SESSION CONTEXT — current state
 
-_Last updated: 2026-09-04 (round 2)._
+_Last updated: 2026-09-04 (round 3)._
+
+## Latest changes (2026-09-04, round 3) — ASU Field/Tech adjustments UNLINKED — browser+live verified
+- **Per-segment ASU modifiers.** Was: single scalar `state.ncMod`/`apMod` applied to whichever seg was shown
+  (Field & Tech linked). Now: `ncMod`/`apMod` are `{field,tech}` objects (neutral 0 each). A slider change routes
+  to the active tab's segment (`setAsuMod`): **Field sets only field, Tech sets only tech (unlinked); All sets both**.
+- **All = field(adjusted) + tech(adjusted).** `computeAsuRows(seg)` (new signature, was `(ncSrc,apSrc,ncKey,apKey)`)
+  computes each sub with its own mod and S-curve; `an/ba` for 'all' = anF+anT / baF+baT, so per-segment edits are
+  reflected in All. Per-week overrides (`OVR.asu` via Publish/`editAsu`) apply to the 'all' path only.
+- **All slider shows a weighted composite** (`asuModShown`/`compositeAsuMod`, weighted by forecast NC share ≈0.40/0.60);
+  computeAsuView returns `ncModShown`/`apModShown`; AsuView binds sliders to those (was `state.ncMod`).
+- Detection updated: `computeAsuView` `ncAdj/apAdj` + `computePubView` `showAdj` now check per-segment mods. SR/Disp/Publish
+  ASU driver = `computeAsuRows()` ('all', combined). `asuReset` resets both segs to 0. `autoAop('asu')` unchanged (still
+  segment-aware avg via `asuSegKeys`).
+- **Verified (node + UI + live):** Field +100 → field Adj NC 2,525,082, **Tech stays 0/neutral (unaffected)**, All Adj NC
+  5,293,123 = field 2,525,082 + tech 2,768,041; All slider shows composite 40. Then Tech +50 → field unchanged, All=sum.
+- **Filter scoping VERIFIED:** filters + adjustments affect only the filtered slice. Region=AMERICAS → `allocMult 0.5084`
+  (`SC()` scales all nc/apos/etc by the selected dims' share), nc 4,613,383→2,345,446; a +100 NC bump then raised only the
+  Americas slice (3,209,406, still < full). FY/quarter/week filters scope via `visIdx` (visible-week totals). No code change
+  needed for scoping — it already works; confirmed. (Gotcha: region option values are UPPERCASE, e.g. 'AMERICAS'.)
+Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smoke 17/17; zero console errors.
+
 
 ## Latest changes (2026-09-04, round 2) — neutral=0 sliders / reset-btn move / seg AOP — browser-verified
 1. **Adjustment sliders: 0 = neutral, uplift-only.** Was 100=neutral (mult=value/100). Now `mult = 1 + value/100`

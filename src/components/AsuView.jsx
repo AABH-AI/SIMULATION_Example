@@ -37,7 +37,8 @@ export default function AsuView({ dark }) {
   // version keeps this reactive to store mutations
   void version;
   const v = useBtc.getState().computeAsuView();
-  const { ncMod, apMod } = state;
+  // per-segment (unlinked) modifier shown for the active All/Field/Tech tab
+  const ncMod = v.ncModShown, apMod = v.apModShown;
   const aopMax = useBtc.getState().aopSliderMax('asu');
   const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
 
