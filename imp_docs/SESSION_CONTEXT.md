@@ -1,6 +1,51 @@
 # SESSION CONTEXT — current state
 
-_Last updated: 2026-08-31._
+_Last updated: 2026-09-04 (round 2)._
+
+## Latest changes (2026-09-04, round 2) — neutral=0 sliders / reset-btn move / seg AOP — browser-verified
+1. **Adjustment sliders: 0 = neutral, uplift-only.** Was 100=neutral (mult=value/100). Now `mult = 1 + value/100`
+   (0→1×, 150→2.5×); default modifier value = 0; no decrease below baseline. Engine changed: `ncMod`/`apMod` init
+   0; `segModsOf`/`segReset`/`compositeMod` fallback 0; `clampM` NaN→0 (range still [0,150]); `bendSeg` mult=`1+v/100`;
+   `computeAsuRows` `ncM/apM = 1 + v/100`; adjustment-detection `!== 100`→`!== 0` (computeAsuView `ncAdj/apAdj`,
+   computePubView `showAdj`); `asuReset` sets 0. S-curve math unchanged (`1+(mult−1)*scurve`). Verified NC=150 →
+   ratio 1.00→1.77→2.50 across FY27; sliders load at 0.
+2. **Table reset button (`.tblreset`) moved to top-right gutter** (was overlapping the table, top:16px right:6px).
+   Now `top:-3px; right:-5px` in `btc.css` → right edge aligns with the chart expand button (1090≈1091), lower edge
+   aligns with the top of the table's value rows. `.twwrap .tw{padding-right:34px}` kept (gutter it sits in).
+3. **ASU AOP target is segment-aware** (Field/Tech lowered to their own NC+APOS averages). Added `asuSegKeys()`;
+   `autoAop('asu')` + `aopSliderMax('asu')` read `nc_field/apos_field` or `nc_tech/apos_tech` by `state.ASU_SEG`.
+   Verified: All 64249 → Field 25699 (0.400×) + Tech 38550 (0.600×) = All; slider max scales too.
+4. **SR/Disp AOP default = average of their OWN series** (revised after clarification). Was `rate × avg-ASU`
+   (`dispTarget/srTarget × avgASU`); now `autoAop` default = avg weekly `seriesOf(kind) × segWeight`, mirroring the
+   ASU AOP (= avg weekly NC+APOS). The **target-rate override** (`TGT_OVR`, the SMOD/ICR box) is kept: when a rate is
+   typed, AOP still = `rate × avg-ASU`. Verified SR 7321 = avg SR, Disp 4104 = avg Disp (were 6735 rate-based).
+   (`asuSegKeys` still gates the Field/Tech ASU averaging on `kind==='asu'`.)
+Files: `src/engine/btcEngine.js`, `src/btc.css`, `scripts/smoke.mjs` (neutral assertion rewritten — see note).
+NOTE: a smoke assertion ("neutral → adj balance == base") was silently invalid after last round's fw-key fix
+(baked declines make neutral adj = base − declines); replaced with "adjNew==nc & btcApos==apos on every forecast week".
+Build green; smoke 17/17; zero console errors (`vite preview` :5188).
+
+
+## Latest changes (2026-09-04) — sliders / s-curve / baked declines — browser-verified
+1. **Adjustment sliders 0–150** (were 60–150). Engine `clampM` lower bound `Math.max(60..)`→`Math.max(0..)`;
+   NC/APOS sliders (`AsuView.jsx` `Slider` default `min`) + Disp/SR seg-mod slider (`RateView.jsx`) `min` 60→0.
+   Verified: value 0 accepted (was floored at 60), Adj NC drops below actuals.
+2. **Adjustments ramp in as an S-curve** (were FLAT uniform % on every forecast week). Added `scurve(t)`=3t²−2t³
+   (smoothstep) + `scurveAt(k,len)` in `btcEngine.js`. Effect: `eff = 1+(mult−1)*scurveAt(i−fc, N−fc)` applied in
+   `computeAsuRows` (NC+APOS) and `bendSeg` (SR/Disp seg mods). Neutral at 1st forecast week, full modifier at horizon.
+   Verified @150: adjNew/nc ratio 1.000→1.257(mid)→1.500(last). NOTE: this CHANGES the P5 byte-identical CSV baseline
+   (intentional). The old `ramp()`=pow(x,8) stays defined but unused.
+3. **Declines BAKED into the dataset** (runtime import removed). `gen_ui_from_csv.py` reads `declines_dummy.csv` →
+   `payload.declines {total,field,tech}` keyed by full fw (short '22-W01'→full '2022-W01' via `opts.week` map). `boot()`
+   loads it into `DECL_VALS`/`DECL_SEG`, `DECL_IMPORTED` = true always. `asuReset` no longer clears declines (permanent).
+   Removed: AsuView Import/Remove UI + `onFile`/`fileRef`/`useRef`; engine `importDeclinesText`/`removeDeclines`; store
+   wraps for both. Also dropped `state.DECL_IMPORTED` from the ASU adjusted-reveal condition (declines hit actuals AND
+   adjusted equally → alone they're not an "adjustment"; Declines KPI/line still show via own flag). Verified: ASU
+   Actuals 3,620,423 = NC 4,613,383 + APOS 545,596 − Declines 1,538,556 (FY26+FY27 window).
+Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`, `src/components/RateView.jsx`, `src/store/useBtc.js`,
+`src/data/gen_ui_from_csv.py`, `src/data/btc_data.json` (regenerated, now carries `declines`).
+Build green; smoke 17/17; zero console errors (verified `vite preview` :5188).
+
 
 ## Layout NOW (repo restructured)
 App restructured to **repo root** (commit `7ce9178` "BTC Adjustment Simulator (React) as standalone

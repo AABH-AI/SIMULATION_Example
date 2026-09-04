@@ -95,8 +95,8 @@ export default function RateView({ kind, dark }) {
           {!v.actualsOnly && (
             <div className="mb blue"><h4 style={{ color: 'var(--ac)' }}>{u === 'Disp' ? 'Dispatches' : 'SRs'}</h4>
               <div className="sl sl-b">
-                <input type="range" min={60} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
-                <input type="number" min={60} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
+                <input type="range" min={0} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
+                <input type="number" min={0} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
                 <span style={{ fontWeight: 700, color: 'var(--ac)' }}>%</span>
               </div>
             </div>

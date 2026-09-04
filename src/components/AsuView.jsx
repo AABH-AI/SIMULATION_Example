@@ -1,7 +1,6 @@
 // AsuView.jsx — Step 1 ASU driver (vertical slice). Reads computeAsuView(); sliders drive ncMod/apMod
 // through the store; edits round-trip via editAsu. Chart via <BtcChart>. (Comment popover + legend
 // isolation deferred to P4.)
-import { useRef } from 'react';
 import { useBtc } from '../store/useBtc.js';
 import { fmt, shortFW, state, hasAsuOvr, getCmtAsu } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
@@ -9,7 +8,7 @@ import Kpi from './Kpi.jsx';
 import CommentCell from './CommentCell.jsx';
 import ExpandableCard from './ExpandableCard.jsx';
 
-function Slider({ cls, color, label, value, min = 60, max = 150, step = 0.25, onChange }) {
+function Slider({ cls, color, label, value, min = 0, max = 150, step = 0.25, onChange }) {
   return (
     <div className="mb blue" style={{ borderColor: color ? color + '55' : undefined }}>
       <h4 style={{ color }}>{label}</h4>
@@ -29,19 +28,16 @@ export default function AsuView({ dark }) {
   const editAsu = useBtc((s) => s.editAsu);
   const asuReset = useBtc((s) => s.asuReset);
   const aopSync = useBtc((s) => s.aopSync);
-  const importDeclinesText = useBtc((s) => s.importDeclinesText);
-  const removeDeclines = useBtc((s) => s.removeDeclines);
   const setCmtAsu = useBtc((s) => s.setCmtAsu);
   const stepTo = useBtc((s) => s.stepTo);
   const tblReset = useBtc((s) => s.tblReset);
   const setAsuSeg = useBtc((s) => s.setAsuSeg);
-  const fileRef = useRef(null);
   const ASU_SEGS = [{ k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'tech', l: 'Tech' }];
 
   // version keeps this reactive to store mutations
   void version;
   const v = useBtc.getState().computeAsuView();
-  const { ncMod, apMod, DECL_IMPORTED } = state;
+  const { ncMod, apMod } = state;
   const aopMax = useBtc.getState().aopSliderMax('asu');
   const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
 
@@ -51,14 +47,6 @@ export default function AsuView({ dark }) {
   const asuActuals = t.nc + t.apos - t.decl;
   const asuAdjusted = t.adjNew + t.btcApos - t.decl;
   const asuDelta = asuAdjusted - asuActuals;
-
-  function onFile(e) {
-    const f = e.target.files && e.target.files[0]; e.target.value = '';
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = (ev) => { importDeclinesText('' + (ev.target.result || '')); };
-    r.readAsText(f);
-  }
 
   return (
     <div className="view on">
@@ -128,14 +116,6 @@ export default function AsuView({ dark }) {
             <Slider cls="sl-b" color="var(--ac)" label="New Contracts" value={ncMod} onChange={setNcMod} />
             <Slider cls="sl-p" color="var(--pu)" label="APOS Renewals" value={apMod} onChange={setApMod} />
           </>}
-          <div className="mb" style={{ borderColor: 'rgba(139,0,0,.35)' }}>
-            <h4 style={{ color: '#8b0000' }}>Declines</h4>
-            <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={onFile} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn dis" style={{ flex: '0 0 auto', padding: '6px 12px' }} onClick={() => fileRef.current && fileRef.current.click()}>⇧ Import declines</button>
-              {DECL_IMPORTED && <button className="btn dis" style={{ flex: '0 0 auto', padding: '6px 12px' }} onClick={removeDeclines}>✕ Remove file</button>}
-            </div>
-          </div>
           <div className="mb amber mb-aop">
             <h4 style={{ color: 'var(--am)' }}>AOP Target</h4>
             <div className="sl sl-a"><input type="range" value={Math.min(v.aopW, aopMax)} min={0} max={aopMax} onChange={(e) => aopSync('asu', e.target.value)} /><input type="number" value={v.aopW} min={0} max={aopMax} onChange={(e) => aopSync('asu', e.target.value)} /></div>

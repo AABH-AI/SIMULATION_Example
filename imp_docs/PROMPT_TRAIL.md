@@ -429,3 +429,59 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   `BPA_FORCASTING_MOCK.HTML`'s 5-module dashboard remains undone and unstarted; revisit as its own project
   if wanted (a research pass sized it at roughly the same effort as the original BTC migration, dominated
   by the ~1200-line "Forecast Copilot" sub-module).
+
+## 2026-09-04 — sliders 0–150 + S-curve adjustments + declines baked into dataset
+- **Asked (3):** (1) adjustment sliders 60–150 → 0–150 (verify non-breakage); (2) forecast line adjustment should
+  move in an S-curve (as it was once) — all values; (3) add declines to the main dataset + remove the "Import
+  declines" option. Clarified: S-curve shape = **true smoothstep** (3t²−2t³); declines source = **declines_dummy.csv**.
+- **Investigation:** history — v1 html (`master/template_ui/btc_adjustment_simulator.html:547`) DID ramp via
+  `v*(1+(p/100)*ramp(i-fc,N))`, `ramp=pow(x,8)`; v2 html + the React port switched to FLAT uniform %. `ramp()` was
+  defined-but-unused in the port. So "as it was once" = restore a ramp; chose smoothstep over pow-8 per user.
+- **Done:**
+  - (1) `clampM` 60→0; `AsuView` `Slider` default `min` 60→0; `RateView` seg slider min 60→0. Verified 0 accepted.
+  - (2) Added `scurve(t)`=t²(3−2t) + `scurveAt(k,len)`; applied `eff=1+(mult−1)*scurveAt(i−fc,N−fc)` in
+    `computeAsuRows` (NC+APOS) and `bendSeg` (SR/Disp). Verified @ncMod=150: ratio 1.000→1.257→1.500 (slow-fast-slow,
+    full at horizon). Changes P5 CSV byte baseline (intentional).
+  - (3) `gen_ui_from_csv.py` bakes `declines_dummy.csv` → `payload.declines{total,field,tech}` (short-fw→full-fw
+    normalized via `opts.week`; first pass had 0 overlap because data uses '2022-W01' vs file '22-W01' — fixed).
+    `boot()` loads declines (always-on `DECL_IMPORTED`); `asuReset` keeps them; removed Import/Remove UI +
+    `onFile`/`useRef`, engine `importDeclinesText`/`removeDeclines`, store wraps. Dropped `DECL_IMPORTED` from the
+    adjusted-reveal trigger (fixed a smoke FAIL — declines alone no longer force "adjusted" since they hit both sides).
+    Verified: ASU Actuals 3,620,423 = 4,613,383 + 545,596 − 1,538,556.
+- **Verify:** `npm run build` green; smoke 17/17; browser (`vite preview` :5188) — no import buttons, Declines KPI
+  1,538,556, sliders min=0, s-curve ramp confirmed via engine dump, zero console errors.
+- **Files:** `src/engine/btcEngine.js`, `src/components/AsuView.jsx`, `src/components/RateView.jsx`,
+  `src/store/useBtc.js`, `src/data/gen_ui_from_csv.py`, `src/data/btc_data.json` (regenerated).
+- **Outcome:** all 3 in + verified. Not committed (left to user).
+
+## 2026-09-04 (cont.) — neutral=0 sliders + reset-btn reposition + segment-aware ASU AOP
+- **Asked (4):** (1) sliders default start at 0; adjustments move 0→150 (clarified: 0 = neutral, uplift-only,
+  mult = 1 + value/100 → 150 = 2.5×; loses decrease); (2) move table reset button right — right edge aligned with
+  chart expand button, lower edge aligned with the start of the table's value rows; (3) ASU Field/Tech AOP targets
+  lowered to their values' averages; (4) SR/Disp AOP targets NOT averaged.
+- **Done:**
+  - (1) neutral flipped 100→0 across engine: `ncMod`/`apMod` init 0, `segModsOf`/`segReset`/`compositeMod`,
+    `clampM` NaN→0, `bendSeg`+`computeAsuRows` mult=`1+value/100`, detection `!==100`→`!==0` (computeAsuView,
+    computePubView). Verified NC=150 ratio 1.00→1.77→2.50.
+  - (2) `.tblreset` `top:16px;right:6px` → `top:-3px;right:-5px`; verified right 1090≈expand 1091, bottom==values top.
+  - (3) `asuSegKeys()` + seg-aware `autoAop('asu')`/`aopSliderMax('asu')`. Verified All 64249 = Field 25699 (.400)
+    + Tech 38550 (.600).
+  - (4) SR/Disp branch untouched (gated on kind==='asu'). Verified SR AOP 6735 full.
+- **Smoke fix:** the "neutral → adj balance == base" assertion was silently invalid since last round's declines
+  fw-key fix (baked declines make neutral adj = base − declines; it only passed earlier when keys had 0 overlap).
+  Rewrote it to "adjNew==nc & btcApos==apos on every forecast week". Now genuinely 17/17.
+- **Files:** `src/engine/btcEngine.js`, `src/btc.css`, `scripts/smoke.mjs`.
+- **Verify:** build green; smoke 17/17; browser (`vite preview` :5188, viewport 1440) — all 4 confirmed, zero console errors.
+- **Outcome:** all 4 in + verified. Not committed.
+
+## 2026-09-04 (cont.) — SR/Disp AOP default → average of own series
+- **Asked:** "why no change in sr/dispatch aop?" then "make aop target the average". Clarified that ALL AOP targets
+  were already weekly averages, but SR/Disp used `rate × avg-ASU` (not the average of the SR/Disp values themselves,
+  unlike ASU AOP = avg NC+APOS). User wants SR/Disp AOP = the average of their own values. Also answered "wtf is
+  target rate?" — the SMOD/MDR (Disp) & ICR (SR) lever that expresses the AOP target as a ratio to ASU (rate × ASU).
+- **Done:** `autoAop` else-branch (sr/disp) — DEFAULT (no `TGT_OVR`) now returns avg weekly `seriesOf(kind)×segWeight`;
+  the target-rate override path (`mo != null` → `rate × avg-ASU`) kept unchanged so the SMOD/ICR box still works.
+- **Verified:** SR autoAop 7321 == avg weekly SR; Disp 4104 == avg weekly Disp (both match; were 6735 rate-based).
+  Build green; smoke 17/17.
+- **Files:** `src/engine/btcEngine.js`.
+- **Outcome:** SR/Disp AOP default is now the average of their own series (target-rate override intact). Not committed.

@@ -4,7 +4,7 @@
 // The React store (useBtc.js) wraps this for reactivity; components read compute*() results.
 //
 // Fidelity notes carried from source:
-//  - modifier 100 = neutral (60..150). FLAT uniform % across the whole forecast window (no ramp).
+//  - modifier 0 = neutral (0..150), uplift-only: mult = 1 + value/100 (0→1×, 150→2.5×). Effect ramps in as an S-curve.
 //  - Adj ASU is a running BALANCE (o.aa re-anchors via ovShift). NC/APOS/SR/Disp are flows.
 //  - 'All' segment total = Σ(sub-segments); an All edit is redistributed down (spreadAllEdit / largest-remainder).
 //  - AOP target auto = mean over the forecast FY. Gap = BTC Adjusted − AOP Target.
@@ -27,8 +27,8 @@ export const state = {
   DECL_SEG: { field: {}, tech: {} }, // field/tech declines read from the imported file's Segment column
   DECL_FILE: null,
   // ASU driver modifiers (were DOM #ncI / #apI)
-  ncMod: 100,
-  apMod: 100,
+  ncMod: 0,
+  apMod: 0,
   // ASU field/tech split tab ('all' | 'field' | 'tech') — selects pre-split arrays from the dataset
   ASU_SEG: 'all',
   // per-metric segment config (element ids from original dropped)
@@ -47,6 +47,11 @@ function C(kind) { return kind === 'disp' ? state.DISP : state.SR; }
 
 // ============================ HELPERS ============================
 export function ramp(i, N) { return N > 1 ? Math.pow(i / (N - 1), 8) : 0; }
+// smoothstep S-curve easing 3t²−2t³ (t clamped 0..1). Used to fade a modifier's effect in across
+// the forecast window: neutral at the first forecast week, full modifier at the last. scurveAt maps a
+// forecast index k (0-based from fcStart) over a window of `len` weeks to its eased fraction.
+export function scurve(t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return t * t * (3 - 2 * t); }
+export function scurveAt(k, len) { return len > 1 ? scurve(k / (len - 1)) : 1; }
 export function fmt(n) { return Number(Math.round(n)).toLocaleString('en-US'); }
 export function shortFW(l) { return ('' + l).slice(2); }
 export function setOf(a) { const o = {}; a.forEach((x) => { o[x] = 1; }); return o; }
@@ -202,18 +207,20 @@ export function segList(kind) {
   return [{ l: 'All', w: 1 }, { l: 'Parts', w: P / tot }, { l: 'Parts+Labour', w: PL / tot }, { l: 'Labour Only', w: LO / tot }];
 }
 function segCur(c) { const L = segList(c.kind); let i = c._seg || 0; if (!(i >= 0 && i < L.length)) { i = 0; c._seg = 0; } return i; }
-function segModsOf(c) { const L = segList(c.kind); segCur(c); if (!c._segMods || c._segMods.length !== L.length) c._segMods = L.map(() => 100); return c._segMods; }
+function segModsOf(c) { const L = segList(c.kind); segCur(c); if (!c._segMods || c._segMods.length !== L.length) c._segMods = L.map(() => 0); return c._segMods; }
 function subIdxs(c) { const L = segList(c.kind), a = []; for (let i = 1; i < L.length; i++) a.push(i); return a; }
 function hasSubs(c) { return subIdxs(c).length > 0; }
 export function segWeight(c) { const L = segList(c.kind), i = segCur(c); return L[i] ? L[i].w : 1; }
 function seriesOf(kind) { return SC(kind, kind === 'disp' ? state.TL.disp : state.TL.sr); }
 function bendSeg(c, segIdx) {
-  const nd = seriesOf(c.kind), fc = state.TL.fcStart, L = segList(c.kind), w = L[segIdx] ? L[segIdx].w : 1;
-  const mult = segModsOf(c)[segIdx] / 100, ov = (state.OVR[c.kind] && state.OVR[c.kind][segIdx]) || {};
+  const nd = seriesOf(c.kind), fc = state.TL.fcStart, N = nd.length, L = segList(c.kind), w = L[segIdx] ? L[segIdx].w : 1;
+  const mult = 1 + segModsOf(c)[segIdx] / 100, ov = (state.OVR[c.kind] && state.OVR[c.kind][segIdx]) || {};
   return nd.map((v, i) => {
     const vb = v * w;
     if (i < fc) return Math.round(vb);
-    const a = Math.round(vb * mult);
+    // modifier effect ramps in as an S-curve across the forecast window (neutral at fc, full at the end)
+    const r = scurveAt(i - fc, N - fc);
+    const a = Math.round(vb * (1 + (mult - 1) * r));
     const o = ov[state.TL.fw[i]]; return (o != null ? o : a);
   });
 }
@@ -242,8 +249,8 @@ function segBase(c, segIdx) { const nd = seriesOf(c.kind), L = segList(c.kind), 
 function sumSubsBase(c) { if (!hasSubs(c)) return segBase(c, 0); let out = null; subIdxs(c).forEach((si) => { const s = segBase(c, si); out = out ? out.map((x, i) => x + s[i]) : s.slice(); }); return out || seriesOf(c.kind).slice(); }
 function segAdjActiveAt(c, idx) {
   const mods = segModsOf(c), ov = (state.OVR[c.kind] && state.OVR[c.kind][idx]) || {};
-  if (idx > 0) return mods[idx] !== 100 || Object.keys(ov).length > 0;
-  if (!hasSubs(c)) return mods[0] !== 100 || Object.keys(ov).length > 0;
+  if (idx > 0) return mods[idx] !== 0 || Object.keys(ov).length > 0;
+  if (!hasSubs(c)) return mods[0] !== 0 || Object.keys(ov).length > 0;
   for (let i = 1; i < mods.length; i++) if (segAdjActiveAt(c, i)) return true;
   return false;
 }
@@ -252,7 +259,7 @@ function compositeMod(c) {
   if (!hasSubs(c)) return segModsOf(c)[0];
   const mods = segModsOf(c), L = segList(c.kind); let s = 0, w = 0;
   subIdxs(c).forEach((si) => { s += mods[si] * L[si].w; w += L[si].w; });
-  return w ? Math.round((s / w) * 4) / 4 : 100;
+  return w ? Math.round((s / w) * 4) / 4 : 0;
 }
 
 // ============================ OVERRIDE / COMMENT PREDICATES ============================
@@ -275,20 +282,36 @@ export function pruneCmt() {
 }
 
 // ============================ AOP TARGET ============================
+// NC/APOS dataset array keys for the active ASU segment (All / Field / Tech).
+function asuSegKeys() {
+  const segK = state.ASU_SEG;
+  if (segK === 'field') return ['nc_field', 'apos_field'];
+  if (segK === 'tech') return ['nc_tech', 'apos_tech'];
+  return ['nc', 'apos'];
+}
 export function autoAop(kind) {
   const TL = state.TL; if (!TL) return 0;
   const fcFY = TL.fy[TL.fcStart], idx = [];
   for (let i = TL.fcStart; i < TL.fw.length; i++) if (TL.fy[i] === fcFY) idx.push(i);
   if (!idx.length) return 0;
   if (kind === 'asu') {
-    const NC = SC('nc', TL.nc), AP = SC('apos', TL.apos); let sf = 0;
+    // ASU AOP target follows the active segment: All / Field / Tech use their own NC+APOS averages,
+    // so Field/Tech targets are lowered to ~40% / ~60% of the full-ASU target. (SR/Disp are unaffected.)
+    const [ncK, apK] = asuSegKeys();
+    const NC = SC(ncK, TL[ncK]), AP = SC(apK, TL[apK]); let sf = 0;
     idx.forEach((i) => { sf += NC[i] + AP[i]; });
     return Math.round(sf / idx.length);
   }
-  const c = C(kind), sw = segWeight(c), A = SC('asu', TL.asu);
-  const mo = state.TGT_OVR[kind], rate = (mo != null) ? (mo / 100) : ((kind === 'disp' ? TL.dispTarget : TL.srTarget) * 100);
-  let sa = 0; idx.forEach((i) => { sa += A[i] * sw; });
-  return Math.round(rate / 100 * (sa / idx.length));
+  const c = C(kind), sw = segWeight(c), mo = state.TGT_OVR[c.kind];
+  if (mo != null) {
+    // explicit target-rate override → rate × average weekly ASU (unchanged)
+    const A = SC('asu', TL.asu); let sa = 0; idx.forEach((i) => { sa += A[i] * sw; });
+    return Math.round((mo / 100) / 100 * (sa / idx.length));
+  }
+  // default AOP target = average weekly value of this metric's OWN forecast series (SR / Dispatches),
+  // mirroring the ASU AOP (= average weekly NC+APOS). No longer rate × avg-ASU.
+  const DS = seriesOf(c.kind); let sd = 0; idx.forEach((i) => { sd += DS[i] * sw; });
+  return Math.round(sd / idx.length);
 }
 export function aopVal(kind) {
   if (state.AOP_OVR[kind] == null) return autoAop(kind);
@@ -309,7 +332,7 @@ export function aopSliderMax(kind) {
   const fcFY = TL.fy[TL.fcStart]; const w = [];
   for (let i = TL.fcStart; i < TL.fw.length; i++) if (TL.fy[i] === fcFY) w.push(i);
   let mx = 0;
-  if (kind === 'asu') { const NC = SC('nc', TL.nc), AP = SC('apos', TL.apos); w.forEach((i) => { mx = Math.max(mx, NC[i] + AP[i]); }); }
+  if (kind === 'asu') { const [ncK, apK] = asuSegKeys(); const NC = SC(ncK, TL[ncK]), AP = SC(apK, TL[apK]); w.forEach((i) => { mx = Math.max(mx, NC[i] + AP[i]); }); }
   else { const c = C(kind), sw = segWeight(c), DS = seriesOf(kind); w.forEach((i) => { mx = Math.max(mx, DS[i] * sw); }); }
   return Math.max(1, Math.round(mx * 1.5));
 }
@@ -317,7 +340,7 @@ export function aopSliderMax(kind) {
 // ============================ ASU CHAIN (pure) ============================
 export function computeAsuRows(ncSrc, apSrc, ncKey, apKey) {
   const TL = state.TL; if (!TL) return [];
-  const ncM = (+state.ncMod) / 100, apM = (+state.apMod) / 100;
+  const ncM = 1 + (+state.ncMod) / 100, apM = 1 + (+state.apMod) / 100;
   const fc = TL.fcStart, N = TL.fw.length, rows = [];
   let ncCum = 0, renCum = 0, declCum = 0, ovShift = 0; const ov = state.OVR.asu;
   const A = SC('asu', TL.asu), NC = SC(ncKey || 'nc', ncSrc || TL.nc), AP = SC(apKey || 'apos', apSrc || TL.apos);
@@ -327,8 +350,10 @@ export function computeAsuRows(ncSrc, apSrc, ncKey, apKey) {
     if (i < fc) { an = NC[i]; ba = AP[i]; adjV = base; ncV = base; renV = base; }
     else {
       const o = ov[TL.fw[i]] || {};
-      an = (o.an != null) ? o.an : Math.round(NC[i] * ncM);
-      ba = (o.ba != null) ? o.ba : Math.round(AP[i] * apM);
+      // modifier effect ramps in as an S-curve across the forecast window (neutral at fc, full at the end)
+      const r = scurveAt(i - fc, N - fc);
+      an = (o.an != null) ? o.an : Math.round(NC[i] * (1 + (ncM - 1) * r));
+      ba = (o.ba != null) ? o.ba : Math.round(AP[i] * (1 + (apM - 1) * r));
       ncCum += (an - NC[i]); renCum += (ba - AP[i]); declCum += (decl || 0);
       ncV = base + ncCum; renV = base + renCum;
       adjV = base + ncCum + renCum - declCum + ovShift;
@@ -461,10 +486,12 @@ export function computeAsuView() {
   const A = (cp && cp.a.length) ? ap2(cp.a) : null, B = (cp && cp.b.length) ? ap2(cp.b) : null;
   function CB(f) { return (A && B) ? pc(A[f], B[f]) : null; }
   const actualsOnly = vis.every((i) => i < fc);
-  const ncM = +state.ncMod, apM = +state.apMod; let ovAn = false, ovBa = false, ovAa = false;
+  const ncM = +state.ncMod, apM = +state.apMod; let ovAn = false, ovBa = false, ovAa = false; // neutral = 0
   Object.keys(state.OVR.asu).forEach((fw) => { const o = state.OVR.asu[fw] || {}; if (o.an != null) ovAn = true; if (o.ba != null) ovBa = true; if (o.aa != null) ovAa = true; });
-  const ncAdj = !actualsOnly && (ncM !== 100 || ovAn), apAdj = !actualsOnly && (apM !== 100 || ovBa);
-  const asuAdj = !actualsOnly && (ncAdj || apAdj || state.DECL_IMPORTED || ovAa), anyAdj = asuAdj;
+  const ncAdj = !actualsOnly && (ncM !== 0 || ovAn), apAdj = !actualsOnly && (apM !== 0 || ovBa);
+  // declines are baked into both actuals and adjusted equally → they alone are NOT an adjustment
+  // (adjusted would just equal actuals). Only a real NC/APOS/override adjustment reveals the adjusted view.
+  const asuAdj = !actualsOnly && (ncAdj || apAdj || ovAa), anyAdj = asuAdj;
   const anyEdA = anyAdj && vis.some((i) => i >= fc && hasAsuOvr(rows[i].fw));
   const aopW = aopVal('asu');
   const lbl = vis.map((i) => shortFW(TL.fw[i])), xlab = axisLabels(vis);
@@ -498,7 +525,7 @@ export function computePubView() {
   if (!vis.length) return { empty: true, fyLbl, declImported: state.DECL_IMPORTED };
   const rows = computeAsuRows();
   const pNC = SC('nc', TL.nc), pAP = SC('apos', TL.apos), pSR = SC('sr', TL.sr), pDisp = SC('disp', TL.disp);
-  const showAdj = (+state.ncMod !== 100) || (+state.apMod !== 100) || Object.keys(state.OVR.asu).length > 0 || segAdjActive(state.DISP) || segAdjActive(state.SR);
+  const showAdj = (+state.ncMod !== 0) || (+state.apMod !== 0) || Object.keys(state.OVR.asu).length > 0 || segAdjActive(state.DISP) || segAdjActive(state.SR);
   let fNC = 0, aNC = 0, fAP = 0, aAP = 0, fDisp = 0, aDisp = 0, fSR = 0, aSR = 0, fDecl = 0;
   vis.forEach((i) => {
     fNC += pNC[i]; aNC += rows[i].adjNew;
@@ -558,6 +585,11 @@ export function loadLob() {
 }
 export function boot(payload) {
   state.DECL_FILE = (typeof window !== 'undefined' && window.BTC_DECLINES) ? window.BTC_DECLINES : null;
+  // declines are baked into the dataset (no runtime import). Load them once at boot; always present.
+  const dc = payload.declines || {};
+  state.DECL_VALS = dc.total ? { ...dc.total } : {};
+  state.DECL_SEG = { field: dc.field ? { ...dc.field } : {}, tech: dc.tech ? { ...dc.tech } : {} };
+  state.DECL_IMPORTED = Object.keys(state.DECL_VALS).length > 0;
   state.BTC = payload.data || {};
   const lobs = payload.lobs || Object.keys(state.BTC);
   const o = payload.opts || {};
@@ -600,7 +632,7 @@ export function cycleLabelVal() { return state.CYCLE_OVR || autoCycleLabel(); }
 export function cycleBaseName() { const s = cycleLabelVal().trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); return 'btc-' + (s || 'published'); }
 
 // ============================ MUTATION ACTIONS (DOM-free) ============================
-export function clampM(v) { v = parseFloat(v); if (isNaN(v)) v = 100; return Math.max(60, Math.min(150, v)); }
+export function clampM(v) { v = parseFloat(v); if (isNaN(v)) v = 0; return Math.max(0, Math.min(150, v)); }
 export function setAsuSeg(seg) { state.ASU_SEG = ASU_SEG_LBL[seg] ? seg : 'all'; }
 export function setNcMod(v) { state.ncMod = clampM(v); }
 export function setApMod(v) { state.apMod = clampM(v); }
@@ -639,15 +671,16 @@ export function aopSync(kind, val) {
 }
 export function segReset(kind) {
   const c = C(kind), idx = segCur(c), mods = segModsOf(c);
-  if (idx > 0) { mods[idx] = 100; delete state.OVR[c.kind][idx]; delete state.CMT[c.kind][idx]; }
-  else { for (let i = 0; i < mods.length; i++) mods[i] = 100; state.OVR[c.kind] = {}; state.CMT[c.kind] = {}; }
+  if (idx > 0) { mods[idx] = 0; delete state.OVR[c.kind][idx]; delete state.CMT[c.kind][idx]; }
+  else { for (let i = 0; i < mods.length; i++) mods[i] = 0; state.OVR[c.kind] = {}; state.CMT[c.kind] = {}; }
   pruneCmt();
   state.TGT_OVR[c.kind] = null; state.AOP_OVR[c.kind] = null;
 }
 export function asuReset() {
   state.OVR.asu = {}; state.CMT.asu = {}; pruneCmt();
-  state.DECL_VALS = {}; state.DECL_IMPORTED = false; state.AOP_OVR.asu = null;
-  state.ncMod = 100; state.apMod = 100;
+  // declines are dataset-baked (permanent) — reset clears only user adjustments, not declines.
+  state.AOP_OVR.asu = null;
+  state.ncMod = 0; state.apMod = 0;
 }
 export function tblReset(kind) {
   if (kind === 'pub') { state.OVR.disp = {}; state.OVR.sr = {}; state.OVR.asu = {}; state.CMT.disp = {}; state.CMT.sr = {}; state.CMT.asu = {}; state.CMT.pub = {}; pruneCmt(); return; }
@@ -678,33 +711,6 @@ export function pruneToForecast() {
   F.quarter = F.quarter.filter((q) => fcQ[q]);
   F.week = F.week.filter((w) => fcW[w]);
 }
-// declines import — accepts raw CSV/TXT text (component reads the File).
-// Columns: FW, Declines[, Segment]. When a Segment column (Field/Tech) is present the field/tech
-// split is READ from the file (portable, no ratio math in code); the total per week is field+tech.
-export function importDeclinesText(txt) {
-  const TL = state.TL, fc = TL.fcStart; let n = 0;
-  const vals = {}, segVals = { field: {}, tech: {} };
-  const map = {}; for (let i = 0; i < TL.fw.length; i++) { map[TL.fw[i]] = i; map[shortFW(TL.fw[i])] = i; }
-  const seq = []; for (let i = fc; i < TL.fw.length; i++) seq.push(i); let sp = 0;
-  ('' + txt).split(/\r?\n/).forEach((ln) => {
-    ln = ('' + ln).trim(); if (!ln) return;
-    const parts = ln.split(/[,\t;]/);
-    // Declines is the 2nd column when present, else the last; Segment (if any) is the 3rd.
-    const declRaw = (parts.length >= 2 ? parts[1] : parts[parts.length - 1]) || '';
-    const num = parseFloat(('' + declRaw).replace(/[^0-9.-]/g, '')); if (!isFinite(num)) return;
-    const seg = (parts[2] || '').trim().toLowerCase();
-    const key = (parts[0] || '').trim(); let idx = null;
-    if (map[key] != null) idx = map[key];
-    else if (key.length > 2 && map[key.slice(2)] != null) idx = map[key.slice(2)];
-    if (idx == null) { if (sp < seq.length) idx = seq[sp++]; else return; }
-    const fw = TL.fw[idx], v = Math.round(num);
-    vals[fw] = (vals[fw] || 0) + v;                       // total = field + tech
-    if (seg === 'field' || seg === 'tech') segVals[seg][fw] = (segVals[seg][fw] || 0) + v;
-    n++;
-  });
-  if (n > 0) { state.DECL_VALS = vals; state.DECL_SEG = segVals; state.DECL_IMPORTED = true; }
-  return n;
-}
-export function removeDeclines() { state.DECL_VALS = {}; state.DECL_SEG = { field: {}, tech: {} }; state.DECL_IMPORTED = false; }
+// declines are baked into the dataset at boot (see boot()); runtime CSV import was removed.
 export function setStep(n) { state.STEP = Math.max(1, Math.min(3, n)); }
 export function setTab(v) { state.activeTab = v; }

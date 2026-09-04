@@ -95,8 +95,27 @@ def uniq(seq):
     return out
 opts = {"fy": uniq(first["fy"]), "quarter": uniq(first["fq"]), "week": first["fw"][:]}
 
+# declines — baked into the dataset (was a runtime CSV import). Read declines_dummy.csv
+# (FW,Declines,Segment) → per-week total + field/tech maps. Global series keyed by fiscal week
+# (not per-LOB); the app scales it by the active filter selection at read time (allocMult).
+DECL_CSV = os.path.join(HERE, "declines_dummy.csv")
+# declines file uses short fiscal weeks ('22-W01'); the dataset uses full weeks ('2022-W01').
+# Map short → full so baked declines line up with the timeline (mirrors the old importer's shortFW match).
+short2full = {w[2:]: w for w in opts["week"]}
+decl_total, decl_field, decl_tech = {}, {}, {}
+with open(DECL_CSV, newline="", encoding="utf-8") as f:
+    for r in csv.DictReader(f):
+        raw = r["FW"].strip()
+        fw = raw if raw in short2full.values() else short2full.get(raw, raw)
+        v = int(round(float(r["Declines"])))
+        seg = (r.get("Segment") or "").strip().lower()
+        decl_total[fw] = decl_total.get(fw, 0) + v
+        if seg == "field":  decl_field[fw] = decl_field.get(fw, 0) + v
+        elif seg == "tech": decl_tech[fw]  = decl_tech.get(fw, 0) + v
+declines = {"total": decl_total, "field": decl_field, "tech": decl_tech}
+
 payload = {"generated_from": "btc_raw_dataset.csv", "forecast_window": "FY27 (bent); FY22-27 timeline",
-           "lobs": LOBS, "opts": opts, "data": data}
+           "lobs": LOBS, "opts": opts, "data": data, "declines": declines}
 
 with open(os.path.join(HERE, "btc_data.json"), "w", encoding="utf-8") as f:
     json.dump(payload, f, separators=(",", ":"))

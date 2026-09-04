@@ -56,7 +56,10 @@ label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing
 .tw{overflow:auto;max-height:300px;margin-top:12px}
 .twwrap{position:relative}
 .twwrap .tw{padding-right:34px}
-.tblreset{position:absolute;top:16px;right:6px;z-index:7;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer}
+/* sits in the top-right gutter above the table: right edge aligned with the chart expand button
+   (twwrap content-right is card-padding(14px) inside the card, expand btn is 8px in → -5px offset),
+   lower edge aligned with the top of the table's value rows (table top − button height + thead ≈ -3px). */
+.tblreset{position:absolute;top:-3px;right:-5px;z-index:7;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer}
 .tblreset:hover{border-color:var(--ac);color:var(--ac)}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right;position:sticky;top:0}

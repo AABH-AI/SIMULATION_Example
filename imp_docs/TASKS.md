@@ -136,8 +136,30 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       (Tech 60% + Field 40%); `importDeclinesText` reads Segment → `DECL_SEG`; `computeAsuView` uses file values
       (nc-fraction fallback for old files). Verified both files: 40/60 exact, field+tech==all.
 
+## UX round 5 — sliders / S-curve / baked declines (2026-09-04)  ✅ DONE
+- [x] Adjustment sliders 60–150 → **0–150** (`clampM` lower bound; `AsuView` Slider default min; `RateView` seg min).
+      Verified value 0 accepted, adjusted drops.
+- [x] Adjustments ramp as an **S-curve** (smoothstep 3t²−2t³) instead of flat uniform %. `scurve`/`scurveAt` applied in
+      `computeAsuRows` (NC+APOS) + `bendSeg` (SR/Disp). Verified ratio 1.000→1.257→1.500 across FY27. (Changes P5 CSV baseline.)
+- [x] Declines **baked into `btc_data.json`** (`gen_ui_from_csv.py` reads `declines_dummy.csv`; short→full fw). `boot`
+      loads it; import/remove UI + engine `importDeclinesText`/`removeDeclines` + store wraps removed. Verified
+      ASU Actuals 3,620,423 = NC+APOS−1,538,556. Dropped `DECL_IMPORTED` from adjusted-reveal (fixed smoke).
+- [x] Build green; smoke 17/17; browser-verified :5188, zero console errors.
+
+## UX round 6 — neutral=0 sliders / reset-btn move / segment AOP (2026-09-04)  ✅ DONE
+- [x] Sliders: **0 = neutral, uplift-only** (`mult = 1 + value/100`, 150 = 2.5×), default value 0. Neutral flipped
+      100→0 across engine (init/clampM/bendSeg/computeAsuRows/detection/reset). Verified NC=150 ratio 1.00→1.77→2.50.
+- [x] Table **reset button** moved to top-right gutter (`.tblreset` top:-3px right:-5px): right edge aligned with the
+      chart expand button, lower edge aligned with the top of the table's value rows. Verified 1090≈1091, bottom==values top.
+- [x] **ASU Field/Tech AOP** targets lowered to segment averages (`asuSegKeys` + seg-aware `autoAop`/`aopSliderMax`).
+      Verified All 64249 = Field 25699 (.400) + Tech 38550 (.600).
+- [x] **SR/Disp AOP** default → **average of their own series** (revised): `autoAop` default = avg weekly
+      `seriesOf(kind)×segWeight` (was rate × avg-ASU); target-rate override (SMOD/ICR) kept. Verified SR 7321=avg SR,
+      Disp 4104=avg Disp.
+- [x] Smoke neutral assertion rewritten (old one invalid under baked declines). Build green; smoke 17/17; 0 console errors.
+
 ---
-**Now:** P0–P5 done + 4 UX rounds. FULL parity + NC/APOS field/tech split (dataset + declines files) +
-ASU=NC+APOS−Declines on page 1. Branch `master-react_v2`, app at repo root.
+**Now:** P0–P5 done + 6 UX rounds. Sliders 0-neutral uplift (0→150), reset-btn top-right, S-curve adjustments,
+declines baked, segment-aware ASU AOP. Branch `master-react_v2`, app at repo root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`
 to restore `npm run dev`. Consider putting Publish's ASU_Adj on the same NC+APOS−Declines basis (page 1 only for now).

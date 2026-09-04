@@ -19,15 +19,18 @@ let rate = E.computeRate('disp');
 ok(rate.showAdj === false, 'disp: neutral modifier → adjusted hidden');
 const asu0 = E.computeAsuView();
 ok(asu0.asuAdj === false, 'asu: neutral → adjusted hidden');
-const baseAsu = asu0.totals.adj;
-ok(baseAsu === asu0.totals.base, 'asu: neutral → adj balance == base balance');
+// neutral = no NC/APOS bend: every forecast row's adjusted NC/APOS equals its actual (declines are
+// baked into the dataset and reduce adj on both sides, so adj != base — that is expected, not neutral).
+const rows0 = E.computeAsuRows(), fc0 = s.TL.fcStart;
+const neutralNoBend = rows0.slice(fc0).every((r) => r.adjNew === r.nc && r.btcApos === r.apos);
+ok(neutralNoBend, 'asu: neutral → adjNew==nc & btcApos==apos on every forecast week');
 
-// 3. bend NC up +20% → ASU lift positive
+// 3. bend NC up (neutral = 0; 120 = +120% uplift) → ASU lift positive
 E.setNcMod(120);
 const asu1 = E.computeAsuView();
 ok(asu1.ncAdj === true, 'asu: NC mod 120 → NC adjusted revealed');
-ok(asu1.lift > 0, 'asu: NC +20% → positive lift (' + E.fmt(asu1.lift) + ')');
-E.setNcMod(100);
+ok(asu1.lift > 0, 'asu: NC +120% → positive lift (' + E.fmt(asu1.lift) + ')');
+E.setNcMod(0);
 
 // 4. dispatch modifier 130 → adjusted > base, gap ties out (adj − target)
 E.setSegMod('disp', 130);
@@ -50,7 +53,7 @@ ok(editedRow && editedRow.adj === 999999, 'disp: All-tab edit → All total == t
 E.segReset('disp');
 
 // 6. ASU balance re-anchor (o.aa) propagates forward
-E.setNcMod(100);
+E.setNcMod(0);
 const av = E.computeAsuView();
 const fwA = av.rows.find((r, i) => i >= s.TL.fcStart).fw;
 E.editAsu(fwA, 'aa', 5000000);

@@ -39,8 +39,6 @@ export const useBtc = create((set) => {
     tblReset: wrap(E.tblReset),
     toggleMulti: wrap(E.toggleMulti),
     resetFilters: wrap(E.resetFilters),
-    importDeclinesText: wrap(E.importDeclinesText),
-    removeDeclines: wrap(E.removeDeclines),
     setCycleOvr: wrap(E.setCycleOvr),
     setCmtRate: wrap(E.setCmtRate),
     setCmtAsu: wrap(E.setCmtAsu),
