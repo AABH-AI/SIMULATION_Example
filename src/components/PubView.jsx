@@ -93,11 +93,11 @@ export default function PubView({ dark }) {
       {/* summary table + export panel */}
       <div className="row">
         <div className="card">
-          <h3><span>Publish summary — adjusted forecast</span></h3>
-          {/* same icon buttons as pages 1-2: ↺ reset, eye "View edits" stacked below it */}
-          <div className="twwrap">
-          <button className="tblreset" onClick={() => { tblReset('pub'); setViewEd(false); }} title="Reset table edits (also leaves View edits)">↺</button>
-          <TblViewBtn on={viewEd} onClick={() => setViewEd((x) => !x)} />
+          {/* header buttons (original spot): eye "View edits" then ↺ reset — same icons as pages 1-2 */}
+          <h3><span>Publish summary — adjusted forecast</span><span className="hdbtns">
+            <TblViewBtn on={viewEd} onClick={() => setViewEd((x) => !x)} />
+            <button className="tblreset" onClick={() => { tblReset('pub'); setViewEd(false); }} title="Reset table edits (also leaves View edits)">↺</button>
+          </span></h3>
           <div className="tw">
             <table>
               <thead><tr>
@@ -119,7 +119,6 @@ export default function PubView({ dark }) {
                 ))}
               </tbody>
             </table>
-          </div>
           </div>
         </div>
 

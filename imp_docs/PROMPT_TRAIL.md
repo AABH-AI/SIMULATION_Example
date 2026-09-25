@@ -621,3 +621,15 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   stacked icon buttons, EcInput comma-free editing, reset exits View edits) committed as one commit on
   `master-react_v2`; remote had no new commits; pushed → GitHub Pages workflow deploys. `.claude/` + generated
   `src/data/btc_data.js` left untracked.
+
+## 2026-09-25 (cont. 13) — Publish View/Reset buttons back in the header
+- **Asked:** move the Publish view/reset edits buttons back to where they were (never asked to move them right).
+- **Done:** PubView: eye + ↺ icons back in the "Publish summary" card header (`.hdbtns`, eye then ↺), `.twwrap`
+  wrapper removed (table full width); CSS `.hdbtns .tblview,.hdbtns .tblreset{position:static}`. Pages 1–2 unchanged.
+- **Verified:** both 26×26 in the header, same top, right-aligned to header edge, table 636/636 full width; View edits
+  filters (52→1), ↺ clears + exits view; smoke 17/17. Not committed.
+
+## 2026-09-25 (cont. 14) — docs + commit + push
+- **Asked:** update docs, commit, push.
+- **Done:** committed round 13 (Publish View/Reset icons back in the card header) on `master-react_v2`; pushed →
+  GitHub Pages workflow deploys. `.claude/` + generated `src/data/btc_data.js` left untracked.

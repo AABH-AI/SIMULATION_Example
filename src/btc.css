@@ -66,6 +66,7 @@ label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing
 .tblview{position:absolute;top:27px;right:-5px;z-index:7;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer;padding:0}
 .tblview:hover{border-color:var(--ac);color:var(--ac)}
 .tblview.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.hdbtns .tblview,.hdbtns .tblreset{position:static} /* Publish: same icons, in the card header instead of the table gutter */
 td.noed{text-align:center;color:var(--t3);font-family:var(--ui);padding:14px 8px}
 /* edited cell: input + note icon on its right (spacer on unedited cells keeps inputs aligned) */
 .ecw{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;width:100%}

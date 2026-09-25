@@ -184,6 +184,7 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       under the ↺ reset on ALL tables incl. Publish (same icons/size/edges). Inputs content-sized (no clipping).
 - [x] Table inputs: commas shown, stripped while editing, re-added on commit (EcInput); unchanged blur = no edit.
 - [x] ↺ Reset edits exits View edits (all 4 tables).
+- [x] Publish eye + ↺ icons back in the card header (original spot), not the table gutter.
       Publish toggle rows kept on one line at narrow widths.
 
 ---

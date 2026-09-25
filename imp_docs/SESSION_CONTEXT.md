@@ -59,10 +59,11 @@ Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smo
   an/ba/aa + `hasAnyRateOvr('sr'|'disp')`. Notes stay ONE per week per table (CMT.asu / CMT[kind][seg] / CMT.pub),
   shared by that row's edited cells → CSV comment columns unchanged.
 - **View edits** toggle (filters table to edited weeks; "No edited weeks in this selection." when none).
-  ALL tables (ASU, SR, Disp, Publish) use the same icon pair in `.twwrap`: ↺ `.tblreset` (top:-3px) with the eye
-  `TblViewBtn.jsx` `.tblview` stacked 4px BELOW it (top:27px), both 26×26, right:-5px → identical left/right edges;
-  `.twwrap .tw` padding-right 34px. (Round 8: Publish's old text buttons "View edits"/"Reset edits" replaced by the
-  icons; `.reset-btn.tbl` rule removed.) Local state per table (resets on tab change). The ↺ reset also turns View
+  Same icons on every table (eye `TblViewBtn.jsx` + ↺ `.tblreset`, both 26×26). Pages 1–2 (ASU, SR, Disp): in
+  `.twwrap` beside the table, ↺ top:-3px with the eye stacked 4px BELOW it (top:27px), right:-5px → identical edges;
+  `.twwrap .tw` padding-right 34px. **Publish: in the card HEADER (`h3 .hdbtns`, the original spot of its old text
+  buttons), eye then ↺ side by side** (`.hdbtns .tblview,.hdbtns .tblreset{position:static}`); table full width, no
+  gutter. Do NOT move Publish's buttons into the table gutter (user correction, round 12). Local state per table (resets on tab change). The ↺ reset also turns View
   edits OFF (`setViewEd(false)`), so a reset lands back on the full table, not an empty filtered one.
 - **`EcInput.jsx`** = every editable table cell (8 sites: ASU an/ba, rate adj, Publish an/ba/aa/sr/disp). Shows the
   value WITH commas (page-1 Adj NC/APOS were raw before); focus strips commas + selects; blur commits and the cell
