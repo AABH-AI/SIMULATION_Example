@@ -1,7 +1,7 @@
 // RateView.jsx — shared SR / Dispatches rate sheet (Step 2). Driven by `kind` ('sr'|'disp').
 // Mirrors renderRate(): segment tabs, 6-card KPIs, chart, editable Adj table, modifier/AOP/target controls.
 import { useBtc } from '../store/useBtc.js';
-import { fmt, shortFW, getCmtRate } from '../engine/btcEngine.js';
+import { fmt, shortFW, getCmtRate, MOD_MIN, MOD_MAX } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
 import CommentCell from './CommentCell.jsx';
@@ -95,8 +95,8 @@ export default function RateView({ kind, dark }) {
           {!v.actualsOnly && (
             <div className="mb blue"><h4 style={{ color: 'var(--ac)' }}>{u === 'Disp' ? 'Dispatches' : 'SRs'}</h4>
               <div className="sl sl-b">
-                <input type="range" min={0} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
-                <input type="number" min={0} max={150} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
+                <input type="range" min={MOD_MIN} max={MOD_MAX} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
+                <input type="number" min={MOD_MIN} max={MOD_MAX} step={0.25} value={v.shown} onChange={(e) => setSegMod(kind, e.target.value)} />
                 <span style={{ fontWeight: 700, color: 'var(--ac)' }}>%</span>
               </div>
             </div>

@@ -96,8 +96,7 @@ def uniq(seq):
 opts = {"fy": uniq(first["fy"]), "quarter": uniq(first["fq"]), "week": first["fw"][:]}
 
 # declines — baked into the dataset (was a runtime CSV import). Read declines_dummy.csv
-# (FW,Declines,Segment) → per-week total + field/tech maps. Global series keyed by fiscal week
-# (not per-LOB); the app scales it by the active filter selection at read time (allocMult).
+# (FW,Declines,Segment) → per-week total + field/tech maps (global), then split per LOB below.
 DECL_CSV = os.path.join(HERE, "declines_dummy.csv")
 # declines file uses short fiscal weeks ('22-W01'); the dataset uses full weeks ('2022-W01').
 # Map short → full so baked declines line up with the timeline (mirrors the old importer's shortFW match).
@@ -112,10 +111,30 @@ with open(DECL_CSV, newline="", encoding="utf-8") as f:
         decl_total[fw] = decl_total.get(fw, 0) + v
         if seg == "field":  decl_field[fw] = decl_field.get(fw, 0) + v
         elif seg == "tech": decl_tech[fw]  = decl_tech.get(fw, 0) + v
-declines = {"total": decl_total, "field": decl_field, "tech": decl_tech}
+# Split the global declines across LOBs so the LOB filter (and every other filter) narrows them: each week's
+# field/tech declines are allocated to LOBs by that LOB's share of the week's field/tech NC+APOS (largest
+# remainder → the LOB values sum exactly to the file's weekly value). Weeks absent from the file stay None.
+# Per LOB: decl_field / decl_tech / decl (= field + tech). Other filters (region, BU, ...) scale them in the
+# app via allocMult, same as NC/APOS; FY/quarter/week filters slice the timeline.
+def alloc_lr(total, shares):
+    s = sum(shares)
+    if s <= 0: shares, s = [1] * len(shares), len(shares)
+    raw = [total * x / s for x in shares]; out = [int(x // 1) for x in raw]
+    rem = total - sum(out)
+    for i in sorted(range(len(raw)), key=lambda i: (-(raw[i] - out[i]), i))[:rem]: out[i] += 1
+    return out
+for seg, src in (("field", decl_field), ("tech", decl_tech)):
+    for lob in LOBS: data[lob]["decl_" + seg] = [None] * len(opts["week"])
+    for wi, fw in enumerate(opts["week"]):
+        if fw not in src: continue
+        shares = [data[l]["nc_" + seg][wi] + data[l]["apos_" + seg][wi] for l in LOBS]
+        for l, v in zip(LOBS, alloc_lr(src[fw], shares)): data[l]["decl_" + seg][wi] = v
+for lob in LOBS:
+    d = data[lob]
+    d["decl"] = [None if (f is None and t is None) else (f or 0) + (t or 0) for f, t in zip(d["decl_field"], d["decl_tech"])]
 
 payload = {"generated_from": "btc_raw_dataset.csv", "forecast_window": "FY27 (bent); FY22-27 timeline",
-           "lobs": LOBS, "opts": opts, "data": data, "declines": declines}
+           "lobs": LOBS, "opts": opts, "data": data}
 
 with open(os.path.join(HERE, "btc_data.json"), "w", encoding="utf-8") as f:
     json.dump(payload, f, separators=(",", ":"))

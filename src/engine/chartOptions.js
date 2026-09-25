@@ -1,6 +1,6 @@
 // chartOptions.js — pure builder: svgChart(labels, series, yfmt, xlab, opts) → Highcharts options.
 // Faithful port of the svgChart config (actual/forecast zone recolor, seg-split series, dashed target,
-// niceScale y-axis, in-chart shared tooltip with positioner). No DOM. Consumed by <BtcChart>.
+// niceScale y-axis, shared tooltip positioned outside the plot). No DOM. Consumed by <BtcChart>.
 import { fmt, niceScale } from './btcEngine.js';
 
 const FONT_UI = "'Plus Jakarta Sans',sans-serif";
@@ -91,31 +91,33 @@ export function buildChartOptions(labels, series, yfmt, xlab, opts, dark, splitF
       labels: { formatter: function () { return yfmt(this.value); }, style: { color: T.axis, fontSize: '9px', fontFamily: FONT_MO } },
     },
     tooltip: {
-      shared: true, useHTML: true, outside: false, hideDelay: 0, backgroundColor: '#0d1020', borderWidth: 0, borderRadius: 6, shadow: false, padding: 9,
-      style: { color: '#fff', fontFamily: FONT_MO, fontSize: '10px' },
+      // rendered OUTSIDE the chart SVG (outside:true) so it can sit clear of the plot: above the chart box, else
+      // below it, never over the lines. zIndex clears the expanded-card overlay (85). No slide animation: the box
+      // jumps straight to its new spot as the crosshair moves.
+      shared: true, useHTML: true, outside: true, animation: false, hideDelay: 0, backgroundColor: '#0d1020', borderWidth: 0, borderRadius: 6, shadow: false, padding: 9,
+      style: { color: '#fff', fontFamily: FONT_MO, fontSize: '10px', zIndex: 100 },
       positioner: function (w, h, pt) {
-        const ch = this.chart, gap = 12;
+        // coordinates are chart-relative; Highcharts adds the page offset for outside tooltips and draws the label
+        // `distance` px inside its container, so every box position below is shifted back by d.
+        const ch = this.chart, gap = 6, d = this.distance || 0, r = ch.container.getBoundingClientRect();
+        const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
         const cx = ch.plotLeft + (pt.plotX || 0);
-        const loX = cx - w / 2 - 4, hiX = cx + w / 2 + 4;
-        let topY = Infinity, botY = -Infinity;
-        ch.series.forEach((s) => {
-          if (!s.visible || !s.points) return;
-          s.points.forEach((p) => {
-            if (p.plotX == null || p.plotY == null) return;
-            const pxc = ch.plotLeft + p.plotX;
-            if (pxc >= loX && pxc <= hiX) { const pyc = ch.plotTop + p.plotY; if (pyc < topY) topY = pyc; if (pyc > botY) botY = pyc; }
-          });
-        });
-        if (!isFinite(topY)) { topY = botY = ch.plotTop + (pt.plotY || 0); }
-        let x = cx - w / 2;
-        let y = topY - h - gap;
-        if (y < ch.plotTop + 2) y = botY + gap;
-        x = Math.max(2, Math.min(x, ch.chartWidth - w - 2));
-        y = Math.max(2, Math.min(y, ch.chartHeight - h - 2));
-        return { x, y };
+        // horizontally: centred on the crosshair, kept inside the viewport
+        const bx = Math.max(4 - r.left, Math.min(cx - w / 2, vw - r.left - w - 4));
+        let by;
+        if (r.top - h - gap >= 4) by = -h - gap;                                  // above the chart
+        else if (r.bottom + gap + h <= vh - 4) by = ch.chartHeight + gap;         // else below it
+        else {
+          // no room above or below (e.g. expanded chart filling the screen): plot corner opposite the cursor
+          const leftHalf = cx < ch.plotLeft + ch.plotWidth / 2;
+          return { x: (leftHalf ? ch.plotLeft + ch.plotWidth - w - 4 : ch.plotLeft + 4) - d, y: ch.plotTop + 4 - d };
+        }
+        return { x: bx - d, y: by - d };
       },
       formatter: function () {
-        let h = '<div style="opacity:.65;margin-bottom:4px">' + this.x + '</div>';
+        // header = the fiscal week label (this.x is the category INDEX on Highcharts 12+, e.g. 0..103)
+        const pi = this.points && this.points.length ? this.points[0].point.x : this.x;
+        let h = '<div style="opacity:.65;margin-bottom:4px">' + (labels[pi] != null ? labels[pi] : this.x) + '</div>';
         h += '<div style="display:grid;grid-template-columns:auto auto;column-gap:18px;row-gap:3px;align-items:center">';
         this.points.forEach((p) => {
           const uo = p.series.userOptions, col = (splitPos >= 0 && p.point.x > splitPos && uo._fc) ? uo._fc : uo._ac;

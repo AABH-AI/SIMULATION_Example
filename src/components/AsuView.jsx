@@ -2,13 +2,13 @@
 // through the store; edits round-trip via editAsu. Chart via <BtcChart>. (Comment popover + legend
 // isolation deferred to P4.)
 import { useBtc } from '../store/useBtc.js';
-import { fmt, shortFW, state, hasAsuOvr, getCmtAsu } from '../engine/btcEngine.js';
+import { fmt, shortFW, state, hasAsuOvr, getCmtAsu, MOD_MIN, MOD_MAX } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
 import CommentCell from './CommentCell.jsx';
 import ExpandableCard from './ExpandableCard.jsx';
 
-function Slider({ cls, color, label, value, min = 0, max = 150, step = 0.25, onChange }) {
+function Slider({ cls, color, label, value, min = MOD_MIN, max = MOD_MAX, step = 0.25, onChange }) {
   return (
     <div className="mb blue" style={{ borderColor: color ? color + '55' : undefined }}>
       <h4 style={{ color }}>{label}</h4>

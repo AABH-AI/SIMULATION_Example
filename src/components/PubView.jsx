@@ -7,6 +7,9 @@ import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
 import CommentCell from './CommentCell.jsx';
 
+// height of the Publish All/Field/Tech toggle row (.pubseg: 22px buttons + 6px margin in btc.css)
+const PUBSEG_H = 28;
+
 export default function PubView({ dark }) {
   const version = useBtc((s) => s.version);
   const editAsu = useBtc((s) => s.editAsu);
@@ -16,13 +19,22 @@ export default function PubView({ dark }) {
   const setCmtPub = useBtc((s) => s.setCmtPub);
   const stepTo = useBtc((s) => s.stepTo);
   const cycleBaseName = useBtc((s) => s.cycleBaseName);
+  const setPubSeg = useBtc((s) => s.setPubSeg);
   const [fileName, setFileName] = useState('');
   void version;
   const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
 
   const v = useBtc.getState().computePubView();
   if (v.empty) return <div className="view on"><div className="card">No forecast weeks to publish.</div></div>;
-  const k = v.kpi, fy = v.fyLbl, di = v.declImported;
+  const k = v.kpi, p = v.pct, fy = v.fyLbl, di = v.declImported;
+  // NC / APOS KPIs follow their chart's All/Field/Tech toggle; the segment is named in the label when not All
+  const ncS = v.ncSeg === 'all' ? '' : ' · ' + v.ncSegLabel, apS = v.apSeg === 'all' ? '' : ' · ' + v.apSegLabel;
+  const SEGS = [{ k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'tech', l: 'Tech' }];
+  const segToggle = (which, cur) => (
+    <div className="segbar pubseg">
+      {SEGS.map((sg) => <button key={sg.k} className={'segt' + (cur === sg.k ? ' on' : '')} onClick={() => setPubSeg(which, sg.k)}>{sg.l}</button>)}
+    </div>
+  );
 
   const sanit = (s) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   const saveName = (fileName.trim() ? (sanit(fileName) || 'published') : cycleBaseName()) + '.csv';
@@ -34,20 +46,20 @@ export default function PubView({ dark }) {
       </div>
 
       {/* KPI row */}
-      <div className="kr" style={{ gridTemplateColumns: `repeat(${di ? 6 : 5},minmax(0,1fr))` }}>
-        <Kpi label={`New Contracts (${fy})`} value={fmt(k.fNC)} style={{ color: '#3a6ef0' }} />
-        {di && <Kpi label={`Declines (${fy})`} value={fmt(k.fDecl)} style={{ color: '#8b0000' }} />}
-        <Kpi label={`APOS Renewals (${fy})`} value={fmt(k.fAP)} style={{ color: '#6d28d9' }} />
-        <Kpi label={`ASU (${fy})`} value={fmt(k.fASU)} sub="end of window" style={{ color: '#16a34a' }} />
+      <div className="kr pubk" style={{ gridTemplateColumns: `repeat(${di ? 6 : 5},minmax(0,1fr))` }}>
+        <Kpi label={`New Contracts${ncS} (${fy})`} value={fmt(k.fNC)} style={{ color: '#3a6ef0' }} />
+        {di && <Kpi label={`Declines${ncS} (${fy})`} value={fmt(k.fDecl)} style={{ color: '#8b0000' }} />}
+        <Kpi label={`APOS Renewals${apS} (${fy})`} value={fmt(k.fAP)} style={{ color: '#6d28d9' }} />
+        <Kpi label={`ASU (${fy})`} value={fmt(k.fASU)} style={{ color: '#16a34a' }} />
         <Kpi label={`SRs (${fy})`} value={fmt(k.fSR)} style={{ color: '#38bdf8' }} />
         <Kpi label={`Dispatches (${fy})`} value={fmt(k.fDisp)} style={{ color: '#6b4423' }} />
         {v.showAdj && <>
-          <Kpi label={`Adj New Contracts (${fy})`} value={fmt(k.aNC)} style={{ color: '#ea580c' }} />
+          <Kpi label={`Adj New Contracts${ncS} (${fy})`} value={fmt(k.aNC)} style={{ color: '#ea580c' }} pct={p.nc} flatZero />
           {di && <Kpi hidden />}
-          <Kpi label={`Adj APOS Renewals (${fy})`} value={fmt(k.aAP)} style={{ color: '#ea580c' }} />
-          <Kpi label={`Adjusted ASU (${fy})`} value={fmt(k.aASU)} sub="end of window" style={{ color: '#ea580c' }} />
-          <Kpi label={`Adjusted SRs (${fy})`} value={fmt(k.aSR)} style={{ color: '#ea580c' }} />
-          <Kpi label={`Adjusted Dispatches (${fy})`} value={fmt(k.aDisp)} style={{ color: '#ea580c' }} />
+          <Kpi label={`Adj APOS Renewals${apS} (${fy})`} value={fmt(k.aAP)} style={{ color: '#ea580c' }} pct={p.ap} flatZero />
+          <Kpi label={`Adjusted ASU (${fy})`} value={fmt(k.aASU)} style={{ color: '#ea580c' }} pct={p.asu} flatZero />
+          <Kpi label={`Adjusted SRs (${fy})`} value={fmt(k.aSR)} style={{ color: '#ea580c' }} pct={p.sr} flatZero />
+          <Kpi label={`Adjusted Dispatches (${fy})`} value={fmt(k.aDisp)} style={{ color: '#ea580c' }} pct={p.disp} flatZero />
         </>}
       </div>
 
@@ -56,7 +68,10 @@ export default function PubView({ dark }) {
         {v.specs.map((s) => (
           <div className="card" key={s.key} style={s.key === 'Nc' && di ? { gridColumn: 'span 2' } : undefined}>
             <h3>{s.title}</h3>
-            <BtcChart labels={v.chart.labels} series={s.series} xlab={v.chart.xlab} opts={{ yTicks: 5 }} dark={dark} height={200} />
+            {s.key === 'Nc' && segToggle('nc', v.ncSeg)}
+            {s.key === 'Apos' && segToggle('ap', v.apSeg)}
+            {/* NC/APOS lose PUBSEG_H to the toggle row; the other charts grow by it so every card matches */}
+            <BtcChart labels={v.chart.labels} series={s.series} xlab={v.chart.xlab} opts={{ yTicks: 5 }} dark={dark} height={s.key === 'Nc' || s.key === 'Apos' ? 200 : 200 + PUBSEG_H} />
           </div>
         ))}
       </div>

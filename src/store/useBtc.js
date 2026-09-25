@@ -28,6 +28,7 @@ export const useBtc = create((set) => {
     setNcMod: wrap(E.setNcMod),
     setApMod: wrap(E.setApMod),
     setAsuSeg: wrap(E.setAsuSeg),
+    setPubSeg: wrap(E.setPubSeg),
     setSegMod: wrap(E.setSegMod),
     selectSeg: wrap(E.selectSeg),
     editRate: wrap(E.editRate),

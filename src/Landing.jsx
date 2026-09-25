@@ -18,7 +18,7 @@ export default function Landing({ onOpenBtc }) {
           <button type="button" className="primary-card" style={{ '--card-accent': '#0d9488' }} onClick={onOpenBtc}>
             <div className="card-tag">BTC Simulator ✦</div>
             <div className="card-title">BTC Adjustments <span className="new-badge">New</span></div>
-            <div className="card-desc">Bend-The-Curve adjustment simulator — reconcile the statistical forecast to SMOD / AOP targets across ASUs, SRs, and Dispatches with live sliders (−150%…+150%, 0 = forecast) and per-week manual overrides.</div>
+            <div className="card-desc">Bend-The-Curve adjustment simulator — reconcile the statistical forecast to SMOD / AOP targets across ASUs, SRs, and Dispatches with live sliders (−50%…+100%, 0 = forecast) and per-week manual overrides.</div>
             <div className="card-footer">
               <span className="card-file">React app</span>
               <span className="card-cta">Open →</span>

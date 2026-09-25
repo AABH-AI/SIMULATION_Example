@@ -502,3 +502,53 @@ Newest at bottom. One entry per session. Never rewrite past entries.
   Region=AMERICAS allocMult 0.5084 scales nc, bump affects only that slice; FY/qtr/week scope via visIdx. No scoping change needed.
 - **Files:** `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smoke 17/17; 0 console errors.
 - **Outcome:** Field/Tech unlinked, All reflects both, filter scoping confirmed. (Being committed + pushed + deployed now.)
+
+## 2026-09-25 — negative sliders + Publish Field/Tech toggle mockups
+- **Asked:** (1) negative value sliders for pages 1 and 2, range -50% to 100%, build + double verify. (2) Tech/Field
+  buttons inside NC and APOS charts on Publish — mockups of placement only.
+- **Done (1):** engine `MOD_MIN=-50/MOD_MAX=100`, `clampM` uses them; AsuView Slider + RateView inputs bound to them;
+  Landing copy "−50%…+100%". Comments updated (uplift → adjustment).
+- **Verified (1):** pass 1 node — smoke 17/17 + 19 negative checks all PASS. Pass 2 browser (`vite preview` :5173) —
+  typed negatives accepted on NC/APOS/Field/SR/Disp, -80 clamps to -50, Field/Tech stay unlinked with negatives,
+  Disp -50 = 377,785 matches node, gap ties out, 0 console errors. Build green.
+- **Done (2):** inline mockup, 3 placements (A header-right segmented toggle, B own row under title, C floating
+  top-right in plot) on both the wide NC card and narrow APOS card. Not built.
+- **Files:** `src/engine/btcEngine.js`, `src/components/AsuView.jsx`, `src/components/RateView.jsx`, `src/Landing.jsx`,
+  `.claude/launch.json` (+vite-preview). Not committed.
+
+## 2026-09-25 (cont.) — build Publish Field/Tech toggles (B) + chart heights + KPI cards
+- **Asked:** build option B; grow all charts to match; KPI cards −10% height; drop "end of window" on ASU/Adj ASU;
+  adjusted cards get arrow + % change in red/green; verify with all filters + the new toggles.
+- **Done:** engine `PUB_SEG` + `setPubSeg` + `segAsuRows` helper; computePubView seg-aware NC/APOS/Declines + `pct`;
+  PubView toggle rows, seg labels, pct badges, chart heights (NC/APOS 200 + 28 row; others 228); Kpi `flatZero`;
+  btc.css `.pubseg`, `.pubk`. Measured before/after: KPI 74.4→67px; cards 294.4→322.4px.
+- **Verified:** build green; smoke 17/17; node 2,032/2,034 (2 fails = pre-existing Adj-ASU declines basis + LOB
+  declines scaling, reported to user); browser real clicks on all 12 filters, toggles, badges; 0 console errors.
+- **Files:** `src/engine/btcEngine.js`, `src/store/useBtc.js`, `src/components/PubView.jsx`, `src/components/Kpi.jsx`,
+  `src/btc.css`. Not committed.
+
+## 2026-09-25 (cont. 2) — declines both sides, per-LOB declines, KPI badge layout
+- **Asked:** (1) declines reflected in both actual and adjusted ASU; (2) all KPI cards: arrow + % to the right,
+  font 60% of value; (3) declines work with the LOB filter and all other filters.
+- **Done:** engine base = raw ASU − cum declines (adj unchanged in effect); page-2 MDR denominator on the same basis;
+  pipeline splits declines per LOB by NC+APOS share (`decl*` arrays), engine reads per-LOB + allocMult; Kpi `.kvrow`.
+  Also fixed two rounding mismatches that made neutral badges non-zero (All = field+tech; Publish SR/Disp forecast =
+  sumSubsBase).
+- **Verified:** node 105/105; smoke 17/17; build green; browser (LOB/region/warranty/combos, toggles, 3 pages) 0 errors.
+- **Files:** `src/data/gen_ui_from_csv.py`, `src/data/btc_data.json` (regenerated; only `decl*` added, `declines` key
+  dropped), `src/engine/btcEngine.js`, `src/components/Kpi.jsx`, `src/btc.css`. Not committed.
+
+## 2026-09-25 (cont. 3) — chart tooltips
+- **Asked:** hover box overlaps chart lines → move it out of the way (all charts, all pages); fiscal weeks in charts
+  show 0-103 → show actual fiscal week.
+- **Done:** `src/engine/chartOptions.js` only — tooltip header uses `labels[point.x]` (Highcharts 12+ `this.x` = index);
+  tooltip `outside:true` + positioner above chart / below / corner fallback, offset for label distance, zIndex 100,
+  animation off.
+- **Verified:** build green, smoke 17/17, hover probes on every chart (P1, SR, Disp, Publish ×5, expanded, scrolled):
+  0 plot overlaps, 0 off-screen, headers = fiscal weeks, 0 console errors. Not committed.
+
+## 2026-09-25 (cont. 4) — docs + commit + push
+- **Asked:** update docs, commit, push.
+- **Done:** refreshed SESSION_CONTEXT (deployment now live, next-steps, note on remote 695cb4d re-enabling Disp seg
+  tabs) + TASKS Now line. Single commit of the session's work; rebased onto remote 695cb4d (no conflict); rebuilt +
+  smoke re-run on the combined tree before pushing. `.claude/` and generated `src/data/btc_data.js` left untracked.

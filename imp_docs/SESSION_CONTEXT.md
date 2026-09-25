@@ -23,7 +23,60 @@ _Last updated: 2026-09-04 (round 3)._
 Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smoke 17/17; zero console errors.
 
 
-## Latest changes (2026-09-04, round 2) — neutral=0 sliders / reset-btn move / seg AOP — browser-verified
+## Latest changes (2026-09-25) — negative sliders (-50..+100) + Publish Field/Tech + KPI badges — node + browser verified
+- **All modifier sliders (page 1 NC/APOS, page 2 SR/Disp) now range -50%..+100%**, 0 = neutral. `mult = 1 + v/100`
+  → -50 = 0.5×, 100 = 2×. Single source: engine `export const MOD_MIN = -50, MOD_MAX = 100`; `clampM` clamps to it;
+  `AsuView` `Slider` defaults + `RateView` range/number inputs read MOD_MIN/MOD_MAX. Landing card text → "−50%…+100%".
+  No other math change (S-curve `1+(mult−1)*r` and `!== 0` detection already sign-agnostic).
+- Verified node: smoke 17/17 + 19 ad-hoc negative checks (NC -50 → last week adjNew = 0.5× nc, first fc week neutral;
+  Field APOS -25 leaves Tech 0, All composite -10; SR/Disp -50 → adj < base, gap ties out; ±999 clamps; Publish reflects).
+  Verified UI (`vite preview` :5173, launch config `vite-preview` added): typed -30/-12.5/-40/-50 accepted, typed -80 →
+  -50, range min/max -50/100 on both pages, Disp -50 → 377,785 (== node), 0 console errors.
+- **Publish All/Field/Tech toggles (option B, built):** own row under the NC + APOS card titles. Engine
+  `state.PUB_SEG {nc,ap}` + `setPubSeg(which,seg)` (store `setPubSeg`); independent of each other and page-1 `ASU_SEG`.
+  `computePubView` uses `segAsuRows(ncSeg)` (new helper = computeAsuRows + seg declines, extracted from computeAsuView)
+  for NC chart/KPIs + Declines, `computeAsuRows(apSeg)` for APOS; ASU/SR/Disp + summary table stay on All. Labels
+  get "· Field/Tech" when not All. Returns `pct {nc,ap,asu,sr,disp}` (adj vs forecast), `ncSeg/apSeg(+Label)`.
+- **Publish charts:** toggle row `.pubseg` = 22px + 6px = `PUBSEG_H 28` (PubView const); NC/APOS keep 200px chart,
+  ASU/SR/Disp → 228px → all cards 294.4→322.4px, chart bottoms aligned per title-line count.
+- **Publish KPI cards:** `.kr.pubk .kp{height:67px}` (was 74.4, −10%), tighter padding/margins, `.ks` hidden;
+  "end of window" sub removed from ASU + Adjusted ASU. Adjusted cards show ▲/▼ % vs forecast in green/red
+  (`Kpi` new `flatZero` prop: |pct|<0.05 → grey "0.0%", no arrow).
+- Verified: node 2,032 checks (16 filter combos × 4 adjustment scenarios × All/Field/Tech: field+tech=all, chart==KPI,
+  pct math/sign, toggles don't touch ASU/SR/Disp, NC/APOS independent). Browser: real filter clicks on all 12 filters
+  + stacked combos, sums tie (±7 rounding), badge colours correct, 0 console errors.
+
+## Chart tooltips (2026-09-25, round 4) — browser-verified, all charts all pages
+- **Header showed 0..103** (category INDEX: Highcharts 12+ passes `this.x` = index on category axes). `chartOptions.js`
+  formatter now prints `labels[points[0].point.x]` → fiscal week (e.g. `26-W52`, same shortFW as axis/tables).
+- **Tooltip moved off the plot:** `outside: true` (rendered outside the SVG), positioner puts it ABOVE the chart box,
+  else BELOW if no viewport room above, else (full-screen expanded chart) plot corner opposite the cursor; x centred on
+  the crosshair, clamped to viewport. Compensates Highcharts drawing the outside label `distance` (16px) inside its
+  container. `style.zIndex: 100` (> expanded overlay 85). `animation: false` (box jumps, no slide lag).
+- Verified by synthetic hover on P1 (top + scrolled), SR, Disp, 5 Publish charts (top + scrolled), expanded: zero plot
+  overlap, never off-screen, follows crosshair. NOTE for testing: synthetic MouseEvent pageY ignores scroll → pass
+  clientY + scrollY; dispatch `mouseenter` first so Highcharts drops its cached chartPosition.
+
+## Declines on both ASU sides + per-LOB declines + KPI badge layout (2026-09-25, round 3) — verified
+- **Declines reduce BOTH actual and adjusted ASU.** `computeAsuRows`: `base = rawBase − declCum` in the forecast
+  window (row also carries `rawBase`); `adj = base + ncCum + renCum + ovShift` → neutral adj == base. Flows to Publish
+  ASU KPI + ASU Forecast chart, CSV `ASU_Base`, page-2 MDR-rate denominator (`computeRate` sBaseAsu = net base; was raw
+  `SC('asu')`) → neutral MDR rate == adjusted rate (SR MDR 12.84%→13.51%). Publish neutral: ASU 5,202,192 == Adj ASU.
+- **Declines follow LOB + every filter.** `gen_ui_from_csv.py` splits each week's field/tech declines across LOBs by
+  the LOB's field/tech NC+APOS share (largest remainder; Σ LOBs == file exactly, 624/624 week×seg) → per-LOB
+  `decl`/`decl_field`/`decl_tech` arrays (null = no file row); payload `declines` key removed. Engine: `declAt(i, seg)`
+  reads TL arrays × `allocMult` (region/BU/warranty/service/core/wo/fqm/gcfa, same as NC); `aggLob` sums them;
+  `DECL_IMPORTED` = any LOB has declines; `DECL_VALS`/`DECL_SEG`/`DECL_FILE` + `segAsuRows` removed (computeAsuRows(seg)
+  now uses seg declines directly). E.g. Server Line B declines 9,357 (was all-LOB 1,153,269).
+- **Rounding tie-outs:** All NC/APOS/declines = scaled field + scaled tech (was `SC('nc')` rounded as a whole → neutral
+  All drifted ±1/week under allocMult filters); Publish SR/Disp forecast = `sumSubsBase` (== page-2 DS Forecast; raw
+  series differed by sub-segment rounding, e.g. Disp 213,415 vs 213,408 → false ▼ badge).
+- **KPI badge:** all pages — `.kvrow` flex row, value left, ▲/▼ % right, `.kchg` 11.4px (60% of `.kv` 19px). Page 1/2
+  cards 63.4px (badge no longer its own line); Publish stays 67px.
+- Verified: node 105/105 (neutral equality, LOB sums vs JSON, Σ per-LOB == all, allocMult scaling + decl/NC ratio on 10
+  filters, FY/Q/week slicing, combos, field+tech==all exact); smoke 17/17; browser real filters + toggles, 0 errors.
+
+## Earlier changes (2026-09-04, round 2) — neutral=0 sliders / reset-btn move / seg AOP — browser-verified
 1. **Adjustment sliders: 0 = neutral, uplift-only.** Was 100=neutral (mult=value/100). Now `mult = 1 + value/100`
    (0→1×, 150→2.5×); default modifier value = 0; no decrease below baseline. Engine changed: `ncMod`/`apMod` init
    0; `segModsOf`/`segReset`/`compositeMod` fallback 0; `clampM` NaN→0 (range still [0,150]); `bendSeg` mult=`1+v/100`;
@@ -301,12 +354,16 @@ isn't valid browser JS). Fixed by a different session (Claude Code, working from
 `master_html`): `vite.config.js` → `base: './'`; added `.github/workflows/deploy-react-pages.yml` (build +
 `actions/upload-pages-artifact` + `actions/deploy-pages` on push to this branch — dist/ stays gitignored,
 nothing committed back). Verified locally (`npm run build` + `vite preview`) — full render, zero console
-errors. **Not yet pushed** — needs the repo's Pages Source flipped from "Deploy from a branch" to "GitHub
-Actions" for the workflow to take effect; both that and the push itself are pending owner sign-off.
+errors. Now LIVE: every push to `master-react_v2` auto-builds + deploys via the workflow
+(https://aabh-ai.github.io/SIMULATION_Example/). dist/ still gitignored.
 
 ## Next (optional)
 - README, pin `highcharts@11.4.8` (currently 13.0.2), code-split the ~743 KB JS bundle (build warns >500 KB).
 - Rename repo folder without `#` to restore `npm run dev` + hot reload.
+- Local check without dev server: `.claude/launch.json` `vite-preview` (build first) → http://localhost:5173.
+- `src/data/btc_data.js` is re-emitted by `gen_ui_from_csv.py` but not imported and not tracked — ignore/delete.
+- Remote commit 695cb4d (other session, 2026-09-10) re-enabled the Disp Parts / Parts+Labour / Labour Only tabs
+  (`RateView.jsx` dropped `disabled={i>0}`) — supersedes the round-3 "disabled" note above.
 
 ## Open risks (see plan §5 for fixes)
 - R1 File System Access API export (Chromium/secure-context only) — has Blob fallback.

@@ -167,8 +167,20 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
       bump affects only that slice; FY/qtr/week scope via `visIdx`. Confirmed adjustments hit only filtered values.
 - [x] Build green; smoke 17/17; browser + live verified; 0 console errors.
 
+## UX round 8 — negative sliders + Publish Field/Tech mockups (2026-09-25)
+- [x] Sliders **-50..+100** on pages 1 + 2 (`MOD_MIN/MOD_MAX` in engine, `clampM`, AsuView/RateView inputs). Node + UI verified.
+- [x] All/Field/Tech buttons on Publish NC + APOS charts (option B: own row under title) — `PUB_SEG`, `segAsuRows`.
+- [x] All Publish charts +28px to match the toggle row; KPI cards −10% (67px); "end of window" removed;
+      adjusted KPI cards ▲/▼ % vs forecast (green/red, grey 0.0%). Verified across all filters + toggles.
+- [x] Declines on both actual + adjusted ASU (base net of cum declines; Publish, CSV, page-2 MDR denominator).
+- [x] Declines per LOB (pipeline split by NC+APOS share) → follow LOB + all filters; All = field+tech exact.
+- [x] KPI badge right of value, 11.4px (60% of value), all pages. Publish SR/Disp forecast = page-2 DS basis.
+- [x] Chart tooltips: header = fiscal week (was index 0..103); box rendered outside the plot (above/below chart), all charts.
+
 ---
-**Now:** P0–P5 done + 7 UX rounds. Sliders 0-neutral uplift, S-curve, baked declines, segment-aware + avg AOP,
-Field/Tech adjustments unlinked (All=sum), filter-scoped. Auto-deployed to GitHub Pages. Branch `master-react_v2`, app at root.
+**Now:** P0–P5 done + 8 UX rounds. Sliders -50..+100 (0 neutral), S-curve; declines per LOB, net of BOTH actual +
+adjusted ASU; Publish NC/APOS All/Field/Tech toggles; KPI ▲/▼ badges right of value; chart tooltips outside the plot
+with fiscal-week headers. Field/Tech adjustments unlinked (All = field+tech exact), filter-scoped. Auto-deployed to
+GitHub Pages on push. Branch `master-react_v2`, app at root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`
-to restore `npm run dev`. Consider putting Publish's ASU_Adj on the same NC+APOS−Declines basis (page 1 only for now).
+to restore `npm run dev`.
