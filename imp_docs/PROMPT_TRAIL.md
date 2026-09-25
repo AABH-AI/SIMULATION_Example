@@ -575,3 +575,49 @@ Newest at bottom. One entry per session. Never rewrite past entries.
 - **Done:** TASKS "Now" line updated; committed rounds 5–6 (Publish ASU Field/Tech toggle, Labor spelling, Publish
   Dispatches segment toggle) as one commit on `master-react_v2`; no new remote commits to integrate; pushed →
   GitHub Pages workflow deploys. `.claude/` + generated `src/data/btc_data.js` left untracked.
+
+## 2026-09-25 (cont. 8) — y-axis isolate, View edits, per-cell note icons
+- **Asked:** (1) ASU chart: isolating APOS (low counts) drew a flat line — y-axis must adjust; (2) all tables: add
+  "view edits" button left of "remove edits", same size; remove the Comments column, put a comment icon right of
+  every edited cell (expanded view + delete unchanged); (3) verify, no breakage.
+- **Done:** BtcChart `yValues` via getColumn('y') + isolation re-apply effect; CommentCell → CommentIcon; TblViewBtn;
+  engine `hasAsuOvrOf`; AsuView/RateView/PubView tables; CSS (.tblview/.ecw/.cmi/.noed/.reset-btn.tbl, pubseg nowrap).
+  Found + fixed during verification: Publish "Reset edits" wrapping (35px) next to View edits; Publish toggle rows
+  wrapping at 1024px.
+- **Verified:** build green, smoke 17/17, oxlint clean for changed files; browser: isolate rescale (P1, SR, Publish,
+  kept after slider change), icons only on edited cells (P1 NC/APOS/ASU, SR, Disp Parts Only→All, Publish all 5
+  cols), popover read/edit/save/delete incl. expanded card (z 200), View edits filter + empty state + reset,
+  Controls Reset unchanged 45px, Publish buttons 76×22, toggle rows 1 line at 1280/1024/900; 0 console errors.
+  Not committed.
+
+## 2026-09-25 (cont. 9) — same View/Reset icons everywhere, stacked
+- **Asked:** Publish View edits / Reset edits looked different from pages 1–2 → use the same icons, replace the text
+  buttons; pages 1–2: move View edits below the reset button, edge-aligned.
+- **Done:** PubView table wrapped in `.twwrap` with ↺ + `TblViewBtn` (text buttons removed); `.tblview` top:27px
+  right:-5px (below ↺), gutter back to 34px; `.reset-btn.tbl` CSS removed. Found + fixed: table inputs clipping at
+  1024px (icon slot) → `ecStyle.js` content-width inputs on all 8 editable-cell sites.
+- **Verified:** all 4 tables — both buttons 26×26, edges Δ0/Δ0, gap 4px, 13px clear of table, View edits filters +
+  Reset clears; 0 clipped inputs, tables fit at 1280/1024/900; smoke 17/17; 0 console errors. Not committed.
+
+## 2026-09-25 (cont. 10) — commas off while editing, back on commit
+- **Asked:** when editing values remove the commas; when edited add them back.
+- **Done:** new `src/components/EcInput.jsx` used by all 8 editable table cells (focus strips commas + selects, blur
+  commits → formatted, Enter/Esc, commit only on real change); `ecStyle.js` folded in + deleted; unused
+  `commitEnter` removed from AsuView/PubView.
+- **Verified (real clicks/keys + scripted):** Publish ASU_Adj `5,267,832` → `5267832` while editing → unchanged Tab =
+  no edit; `5300000`+Enter → `5,300,000` edited + icon; Esc cancels; clearing removes the edit. Page 1 (now `28,105`
+  formatted) + SR same; pasted `7,654` parses. Build green, smoke 17/17, lint clean (only pre-existing FilterRail
+  warning), 0 console errors. Not committed.
+
+## 2026-09-25 (cont. 11) — reset exits View edits
+- **Asked:** when Reset edits is clicked, move out of the View edits view.
+- **Done:** ↺ `.tblreset` onClick = tblReset(...) + setViewEd(false) in AsuView, RateView, PubView.
+- **Verified:** all 4 tables — edit → View edits (1 row) → ↺ → view off, full table (104/104/104/52 rows), 0 edits;
+  eye toggle still toggles; smoke 17/17. Controls-panel Reset left unchanged. Not committed.
+
+## 2026-09-25 (cont. 12) — docs + commit + push
+- **Asked:** update docs, commit, push.
+- **Done:** TASKS "Now" line updated; rounds 7–11 (y-axis isolate fix, note icons per edited cell, View edits,
+  stacked icon buttons, EcInput comma-free editing, reset exits View edits) committed as one commit on
+  `master-react_v2`; remote had no new commits; pushed → GitHub Pages workflow deploys. `.claude/` + generated
+  `src/data/btc_data.js` left untracked.

@@ -1,11 +1,14 @@
 // AsuView.jsx — Step 1 ASU driver (vertical slice). Reads computeAsuView(); sliders drive ncMod/apMod
 // through the store; edits round-trip via editAsu. Chart via <BtcChart>. (Comment popover + legend
 // isolation deferred to P4.)
+import { useState } from 'react';
 import { useBtc } from '../store/useBtc.js';
-import { fmt, shortFW, state, hasAsuOvr, getCmtAsu, MOD_MIN, MOD_MAX } from '../engine/btcEngine.js';
+import { fmt, shortFW, state, hasAsuOvr, hasAsuOvrOf, getCmtAsu, MOD_MIN, MOD_MAX } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
-import CommentCell from './CommentCell.jsx';
+import CommentIcon from './CommentIcon.jsx';
+import EcInput from './EcInput.jsx';
+import TblViewBtn from './TblViewBtn.jsx';
 import ExpandableCard from './ExpandableCard.jsx';
 
 function Slider({ cls, color, label, value, min = MOD_MIN, max = MOD_MAX, step = 0.25, onChange }) {
@@ -33,6 +36,7 @@ export default function AsuView({ dark }) {
   const tblReset = useBtc((s) => s.tblReset);
   const setAsuSeg = useBtc((s) => s.setAsuSeg);
   const ASU_SEGS = [{ k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'tech', l: 'Tech' }];
+  const [viewEd, setViewEd] = useState(false); // "View edits": table shows only edited weeks
 
   // version keeps this reactive to store mutations
   void version;
@@ -40,7 +44,6 @@ export default function AsuView({ dark }) {
   // per-segment (unlinked) modifier shown for the active All/Field/Tech tab
   const ncMod = v.ncModShown, apMod = v.apModShown;
   const aopMax = useBtc.getState().aopSliderMax('asu');
-  const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
 
   if (v.empty) return <div className="card">No forecast weeks in this selection.</div>;
   const t = v.totals, cb = v.cb;
@@ -48,6 +51,10 @@ export default function AsuView({ dark }) {
   const asuActuals = t.nc + t.apos - t.decl;
   const asuAdjusted = t.adjNew + t.btcApos - t.decl;
   const asuDelta = asuAdjusted - asuActuals;
+  // note icon right of an edited cell (one note per week, shared by that row's edited cells); spacer keeps inputs aligned
+  const note = (fw, edited) => (edited ? <CommentIcon read={() => getCmtAsu(fw)} write={(val) => setCmtAsu(fw, val)} /> : <span className="cmi-sp" />);
+  const shownIdx = viewEd ? v.vis.filter((i) => i >= state.TL.fcStart && hasAsuOvr(v.rows[i].fw)) : v.vis;
+  const nCols = 5 + (v.declImported ? 1 : 0) + (v.ncAdj ? 1 : 0) + (v.apAdj ? 1 : 0) + (v.asuAdj ? 1 : 0);
 
   return (
     <div className="view on">
@@ -76,7 +83,8 @@ export default function AsuView({ dark }) {
           <h3>ASU Forecast — Base vs Adjusted</h3>
           <BtcChart labels={v.chart.labels} series={v.chart.series} xlab={v.chart.xlab} dark={dark} />
           <div className="twwrap">
-          <button className="tblreset" onClick={() => tblReset('asu')} title="Reset table edits">↺</button>
+          <button className="tblreset" onClick={() => { tblReset('asu'); setViewEd(false); }} title="Reset table edits (also leaves View edits)">↺</button>
+          <TblViewBtn on={viewEd} onClick={() => setViewEd((x) => !x)} />
           <div className="tw">
             <table>
               <thead><tr>
@@ -85,10 +93,10 @@ export default function AsuView({ dark }) {
                 {v.ncAdj && <th style={{ color: 'var(--ac)' }}>Adj NC</th>}
                 {v.apAdj && <th style={{ color: 'var(--pu)' }}>Adj APOS</th>}
                 {v.asuAdj && <th>Adj ASU</th>}
-                {v.anyEdA && <th className="cmt" style={{ width: 120 }}>Comment</th>}
               </tr></thead>
               <tbody>
-                {v.vis.map((i) => {
+                {viewEd && !shownIdx.length && <tr><td className="noed" colSpan={nCols}>No edited weeks in this selection.</td></tr>}
+                {shownIdx.map((i) => {
                   const r = v.rows[i], isA = i < state.TL.fcStart;
                   const edited = !isA && hasAsuOvr(r.fw);
                   return (
@@ -97,10 +105,9 @@ export default function AsuView({ dark }) {
                       <td>{v.segLabel}</td>
                       <td>{fmt(r.nc + r.apos - (r.decl || 0))}</td><td>{fmt(r.nc)}</td><td>{fmt(r.apos)}</td>
                       {v.declImported && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
-                      {v.ncAdj && <td style={{ color: 'var(--ac)' }}>{isA ? '—' : <input className="ec" defaultValue={r.adjNew} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} />}</td>}
-                      {v.apAdj && <td style={{ color: 'var(--pu)' }}>{isA ? '—' : <input className="ec" defaultValue={r.btcApos} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} />}</td>}
-                      {v.asuAdj && <td>{isA ? '—' : fmt(r.adjNew + r.btcApos - (r.decl || 0))}</td>}
-                      {v.anyEdA && <CommentCell edited={edited} read={() => getCmtAsu(r.fw)} write={(val) => setCmtAsu(r.fw, val)} />}
+                      {v.ncAdj && <td style={{ color: 'var(--ac)' }}>{isA ? '—' : <span className="ecw"><EcInput value={r.adjNew} key={'an' + r.fw + version} onCommit={(val) => editAsu(r.fw, 'an', val)} />{note(r.fw, hasAsuOvrOf(r.fw, 'an'))}</span>}</td>}
+                      {v.apAdj && <td style={{ color: 'var(--pu)' }}>{isA ? '—' : <span className="ecw"><EcInput value={r.btcApos} key={'ba' + r.fw + version} onCommit={(val) => editAsu(r.fw, 'ba', val)} />{note(r.fw, hasAsuOvrOf(r.fw, 'ba'))}</span>}</td>}
+                      {v.asuAdj && <td>{isA ? '—' : <span className="ecw">{fmt(r.adjNew + r.btcApos - (r.decl || 0))}{note(r.fw, hasAsuOvrOf(r.fw, 'aa'))}</span>}</td>}
                     </tr>
                   );
                 })}

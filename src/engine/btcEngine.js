@@ -283,6 +283,8 @@ function compositeMod(c) {
 export function hasAnyRateOvr(kind, fw) { const s = state.OVR[kind] || {}; for (const k in s) { if (s[k] && s[k][fw] != null) return true; } return false; }
 export function hasRateOvr(kind, segIdx, fw) { if (+segIdx === 0) return hasAnyRateOvr(kind, fw); const m = state.OVR[kind] && state.OVR[kind][segIdx]; return !!(m && m[fw] != null); }
 export function hasAsuOvr(fw) { const o = state.OVR.asu[fw]; return !!(o && (o.an != null || o.ba != null || o.aa != null)); }
+// one ASU cell of a week edited? which = 'an' (Adj NC) | 'ba' (Adj APOS) | 'aa' (Adj ASU)
+export function hasAsuOvrOf(fw, which) { const o = state.OVR.asu[fw]; return !!(o && o[which] != null); }
 export function hasPubOvr(fw) { return hasAsuOvr(fw) || hasAnyRateOvr('sr', fw) || hasAnyRateOvr('disp', fw); }
 export function getCmtRate(kind, segIdx, fw) { const m = state.CMT[kind] && state.CMT[kind][segIdx]; return (m && m[fw]) || ''; }
 export function getCmtAsu(fw) { return state.CMT.asu[fw] || ''; }

@@ -179,10 +179,17 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
 - [x] Publish ASU chart All/Field/Tech toggle (ASU split 40/60 in the dataset like NC/APOS; f+t == all exact).
 - [x] "Labour" → "Labor" in UI (display only; data keys unchanged); "Parts" tab → "Parts Only".
 - [x] Publish Dispatches toggle All / P.O / P+L / L.O (Σ segments == All exact; == page-2 segment KPIs).
+- [x] Legend isolate/hover y-axis rescale fixed for Highcharts 13 (getColumn('y')) + kept across re-renders.
+- [x] Tables: Comment column → note icon right of each edited cell (CommentIcon); "View edits" eye toggle stacked
+      under the ↺ reset on ALL tables incl. Publish (same icons/size/edges). Inputs content-sized (no clipping).
+- [x] Table inputs: commas shown, stripped while editing, re-added on commit (EcInput); unchanged blur = no edit.
+- [x] ↺ Reset edits exits View edits (all 4 tables).
+      Publish toggle rows kept on one line at narrow widths.
 
 ---
 **Now:** P0–P5 done + 8 UX rounds. Sliders -50..+100 (0 neutral), S-curve; declines per LOB, net of BOTH actual +
-adjusted ASU; Publish NC/APOS/ASU All/Field/Tech toggles + Dispatches All/P.O/P+L/L.O toggle; "Labor" spelling in UI; KPI ▲/▼ badges right of value; chart tooltips outside the plot
+adjusted ASU; Publish NC/APOS/ASU All/Field/Tech toggles + Dispatches All/P.O/P+L/L.O toggle; "Labor" spelling in UI; KPI ▲/▼ badges right of value; chart tooltips outside the plot; legend-isolate
+y-axis rescales (HC13 getColumn); tables: note icon per edited cell, eye View-edits under ↺ reset, comma-free editing (EcInput)
 with fiscal-week headers. Field/Tech adjustments unlinked (All = field+tech exact), filter-scoped. Auto-deployed to
 GitHub Pages on push. Branch `master-react_v2`, app at root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`

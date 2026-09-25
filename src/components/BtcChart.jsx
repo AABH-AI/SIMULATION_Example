@@ -11,9 +11,15 @@ import { fmt, niceScale, state } from '../engine/btcEngine.js';
 import HcReactPkg from 'highcharts-react-official';
 const HighchartsReact = HcReactPkg.HighchartsReact || HcReactPkg.default || HcReactPkg;
 
+// y values of a series. Highcharts 12+ dropped `series.yData` (data lives in a DataTable → getColumn('y')); without
+// this the isolate/hover rescale saw no values and the y-axis never adjusted (e.g. APOS alone drew a flat line).
+function yValues(s) {
+  if (typeof s.getColumn === 'function') { const c = s.getColumn('y'); if (c && c.length) return c; }
+  return s.yData || (s.options && s.options.data) || [];
+}
 function visibleYRange(ch) {
   const vals = [];
-  ch.series.forEach((s) => { if (!s.visible) return; (s.yData || []).forEach((v) => { if (v != null && isFinite(v)) vals.push(v); }); });
+  ch.series.forEach((s) => { if (!s.visible) return; Array.prototype.forEach.call(yValues(s), (v) => { if (v != null && isFinite(v)) vals.push(v); }); });
   if (!vals.length) return null;
   let mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
   const mag = Math.max(Math.abs(mn), Math.abs(mx)), pos = (mn >= 0);
@@ -48,6 +54,10 @@ export default function BtcChart({ labels, series, xlab, opts, dark = false, hei
     const r = visibleYRange(ch); if (r) ch.yAxis[0].update({ min: r.min, max: r.max, tickInterval: r.step || undefined }, false);
     ch.redraw(false);
   }, []);
+
+  // options rebuild (slider / filter / data change) resets the y-axis to the full range: re-apply an active isolation
+  // so the rescaled axis sticks.
+  useEffect(() => { if (Object.keys(iso).length) applyIso(iso); }, [options, applyIso, iso]);
 
   const legHover = useCallback((idx) => {
     const ch = chartRef.current && chartRef.current.chart; if (!ch) return;

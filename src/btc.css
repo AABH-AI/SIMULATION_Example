@@ -56,12 +56,26 @@ label.lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing
 .dis{background:#f1f5f9;color:var(--t2);border-color:var(--bd)}.dis:hover{background:var(--t2);color:#fff}
 .tw{overflow:auto;max-height:300px;margin-top:12px}
 .twwrap{position:relative}
-.twwrap .tw{padding-right:34px}
+.twwrap .tw{padding-right:34px} /* gutter for the ↺ reset + eye View-edits button column */
 /* sits in the top-right gutter above the table: right edge aligned with the chart expand button
    (twwrap content-right is card-padding(14px) inside the card, expand btn is 8px in → -5px offset),
    lower edge aligned with the top of the table's value rows (table top − button height + thead ≈ -3px). */
 .tblreset{position:absolute;top:-3px;right:-5px;z-index:7;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer}
 .tblreset:hover{border-color:var(--ac);color:var(--ac)}
+/* View edits toggle: same box + right edge as .tblreset, stacked 4px below it */
+.tblview{position:absolute;top:27px;right:-5px;z-index:7;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:7px;background:var(--cd);color:var(--t2);cursor:pointer;padding:0}
+.tblview:hover{border-color:var(--ac);color:var(--ac)}
+.tblview.on{background:var(--ac);border-color:var(--ac);color:#fff}
+td.noed{text-align:center;color:var(--t3);font-family:var(--ui);padding:14px 8px}
+/* edited cell: input + note icon on its right (spacer on unedited cells keeps inputs aligned) */
+.ecw{display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;width:100%}
+.ecw .ec{flex:0 0 auto;max-width:none} /* width set inline by EcInput = value length (never clips) */
+.cmi,.cmi-sp{flex:0 0 18px;width:18px;height:18px}
+.cmi{display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:4px;background:none;color:var(--t3);cursor:pointer}
+.cmi path{fill:none}
+.cmi:hover{border-color:var(--bd);color:var(--ac)}
+.cmi.has{color:var(--ac)}
+.cmi.has path{fill:currentColor;fill-opacity:.25}
 table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
 th{background:var(--sf);color:var(--t2);font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right;position:sticky;top:0}
 th.l{text-align:left}
@@ -106,6 +120,12 @@ tr.edt td{background:#eef4ff}
 /* publish NC/APOS All/Field/Tech toggle row (height 22 + margin 6 = PUBSEG_H in PubView.jsx) */
 .pubseg{margin:0 0 6px;gap:4px}
 .pubseg .segt{height:22px;padding:0 10px;font-size:10px;border-radius:6px}
+/* keep the toggle row on ONE line (a wrap would break the equal chart heights): narrow cards (~155px at a 1024px
+   window) tighten the button padding; below that the buttons shrink rather than wrap */
+.pubseg{flex-wrap:nowrap}
+.pubseg .segt{flex:0 1 auto;min-width:0;overflow:hidden;justify-content:center}
+.pubcharts .card{container-type:inline-size}
+@container (max-width:210px){.pubseg{gap:3px}.pubseg .segt{padding:0 4px}}
 /* publish KPI cards: 10% shorter (74.4px → 67px), no sub line */
 .pubk .kp{height:67px;padding:8px 13px}
 .pubk .kl{margin-bottom:5px}

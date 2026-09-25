@@ -2,10 +2,12 @@
 // CSV export. Mirrors renderPub(). Edits round-trip into the same stores as the source pages.
 import { useState } from 'react';
 import { useBtc } from '../store/useBtc.js';
-import { fmt, shortFW, getCmtPub } from '../engine/btcEngine.js';
+import { fmt, shortFW, getCmtPub, hasAsuOvrOf, hasAnyRateOvr } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
-import CommentCell from './CommentCell.jsx';
+import CommentIcon from './CommentIcon.jsx';
+import EcInput from './EcInput.jsx';
+import TblViewBtn from './TblViewBtn.jsx';
 
 // height of the Publish All/Field/Tech toggle row (.pubseg: 22px buttons + 6px margin in btc.css)
 const PUBSEG_H = 28;
@@ -23,8 +25,10 @@ export default function PubView({ dark }) {
   const cycleBaseName = useBtc((s) => s.cycleBaseName);
   const setPubSeg = useBtc((s) => s.setPubSeg);
   const [fileName, setFileName] = useState('');
+  const [viewEd, setViewEd] = useState(false); // "View edits": table shows only edited weeks
   void version;
-  const commitEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } };
+  // note icon right of an edited cell (one note per week, shared by that row's edited cells); spacer keeps inputs aligned
+  const note = (fw, edited) => (edited ? <CommentIcon read={() => getCmtPub(fw)} write={(val) => setCmtPub(fw, val)} /> : <span className="cmi-sp" />);
 
   const v = useBtc.getState().computePubView();
   if (v.empty) return <div className="view on"><div className="card">No forecast weeks to publish.</div></div>;
@@ -89,29 +93,33 @@ export default function PubView({ dark }) {
       {/* summary table + export panel */}
       <div className="row">
         <div className="card">
-          <h3><span>Publish summary — adjusted forecast</span><span className="hdbtns"><button className="btn dis reset-btn" onClick={() => tblReset('pub')}>Reset edits</button></span></h3>
+          <h3><span>Publish summary — adjusted forecast</span></h3>
+          {/* same icon buttons as pages 1-2: ↺ reset, eye "View edits" stacked below it */}
+          <div className="twwrap">
+          <button className="tblreset" onClick={() => { tblReset('pub'); setViewEd(false); }} title="Reset table edits (also leaves View edits)">↺</button>
+          <TblViewBtn on={viewEd} onClick={() => setViewEd((x) => !x)} />
           <div className="tw">
             <table>
               <thead><tr>
                 <th className="l">FW</th><th>NC_Adj</th><th>APOS_Adj</th><th>ASU_Adj</th>
                 {di && <th>Declines</th>}<th>SR_Adj</th><th>Disp_Adj</th>
-                {v.anyEdP && <th className="cmt" style={{ width: 120 }}>Comment</th>}
               </tr></thead>
               <tbody>
-                {v.tableRows.map((r) => (
+                {viewEd && !v.tableRows.some((r) => r.edited) && <tr><td className="noed" colSpan={di ? 7 : 6}>No edited weeks in this selection.</td></tr>}
+                {(viewEd ? v.tableRows.filter((r) => r.edited) : v.tableRows).map((r) => (
                   <tr key={r.fw} className={r.edited ? 'edt' : ''}>
                     <td className="l">{shortFW(r.fw)}</td>
-                    <td><input className="ec" defaultValue={fmt(r.adjNew)} key={'an' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'an', e.target.value)} onKeyDown={commitEnter} /></td>
-                    <td><input className="ec" defaultValue={fmt(r.btcApos)} key={'ba' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'ba', e.target.value)} onKeyDown={commitEnter} /></td>
-                    <td><input className="ec" defaultValue={fmt(r.adj)} key={'aa' + r.fw + version} onBlur={(e) => editAsu(r.fw, 'aa', e.target.value)} onKeyDown={commitEnter} /></td>
+                    <td><span className="ecw"><EcInput value={r.adjNew} key={'an' + r.fw + version} onCommit={(val) => editAsu(r.fw, 'an', val)} />{note(r.fw, hasAsuOvrOf(r.fw, 'an'))}</span></td>
+                    <td><span className="ecw"><EcInput value={r.btcApos} key={'ba' + r.fw + version} onCommit={(val) => editAsu(r.fw, 'ba', val)} />{note(r.fw, hasAsuOvrOf(r.fw, 'ba'))}</span></td>
+                    <td><span className="ecw"><EcInput value={r.adj} key={'aa' + r.fw + version} onCommit={(val) => editAsu(r.fw, 'aa', val)} />{note(r.fw, hasAsuOvrOf(r.fw, 'aa'))}</span></td>
                     {di && <td>{r.decl == null ? '—' : fmt(r.decl)}</td>}
-                    <td><input className="ec" defaultValue={r.sr === '' ? '' : fmt(r.sr)} key={'sr' + r.fw + version} onBlur={(e) => editRate('sr', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
-                    <td><input className="ec" defaultValue={r.disp === '' ? '' : fmt(r.disp)} key={'dp' + r.fw + version} onBlur={(e) => editRate('disp', 0, r.fw, e.target.value)} onKeyDown={commitEnter} /></td>
-                    {v.anyEdP && <CommentCell edited={r.edited} read={() => getCmtPub(r.fw)} write={(val) => setCmtPub(r.fw, val)} />}
+                    <td><span className="ecw"><EcInput value={r.sr} key={'sr' + r.fw + version} onCommit={(val) => editRate('sr', 0, r.fw, val)} />{note(r.fw, hasAnyRateOvr('sr', r.fw))}</span></td>
+                    <td><span className="ecw"><EcInput value={r.disp} key={'dp' + r.fw + version} onCommit={(val) => editRate('disp', 0, r.fw, val)} />{note(r.fw, hasAnyRateOvr('disp', r.fw))}</span></td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
 

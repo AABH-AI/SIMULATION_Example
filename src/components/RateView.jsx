@@ -1,10 +1,13 @@
 // RateView.jsx — shared SR / Dispatches rate sheet (Step 2). Driven by `kind` ('sr'|'disp').
 // Mirrors renderRate(): segment tabs, 6-card KPIs, chart, editable Adj table, modifier/AOP/target controls.
+import { useState } from 'react';
 import { useBtc } from '../store/useBtc.js';
 import { fmt, shortFW, getCmtRate, MOD_MIN, MOD_MAX } from '../engine/btcEngine.js';
 import BtcChart from './BtcChart.jsx';
 import Kpi from './Kpi.jsx';
-import CommentCell from './CommentCell.jsx';
+import CommentIcon from './CommentIcon.jsx';
+import EcInput from './EcInput.jsx';
+import TblViewBtn from './TblViewBtn.jsx';
 import ExpandableCard from './ExpandableCard.jsx';
 
 export default function RateView({ kind, dark }) {
@@ -20,6 +23,7 @@ export default function RateView({ kind, dark }) {
   const stepTo = useBtc((s) => s.stepTo);
   const tblReset = useBtc((s) => s.tblReset);
   void version;
+  const [viewEd, setViewEd] = useState(false); // "View edits": table shows only edited weeks
 
   const v = useBtc.getState().computeRate(kind);
   const aopMax = useBtc.getState().aopSliderMax(kind);
@@ -65,22 +69,23 @@ export default function RateView({ kind, dark }) {
           <h3>{u === 'Disp' ? 'Dispatches' : 'SRs'} — DS vs Adjusted vs Target</h3>
           <BtcChart labels={v.chart.labels} series={v.chart.series} xlab={v.chart.xlab} dark={dark} />
           <div className="twwrap">
-          <button className="tblreset" onClick={() => tblReset(kind)} title="Reset table edits">↺</button>
+          <button className="tblreset" onClick={() => { tblReset(kind); setViewEd(false); }} title="Reset table edits (also leaves View edits)">↺</button>
+          <TblViewBtn on={viewEd} onClick={() => setViewEd((x) => !x)} />
           <div className="tw">
             <table>
               <thead>
                 {v.showAdj
-                  ? <tr><th className="l">FW</th><th>{dsName}</th><th>{adjHdr}</th><th>Delta</th>{v.anyEd && <th className="cmt" style={{ width: 160 }}>Comment</th>}</tr>
+                  ? <tr><th className="l">FW</th><th>{dsName}</th><th>{adjHdr}</th><th>Delta</th></tr>
                   : <tr><th className="l">FW</th><th>{dsName}</th></tr>}
               </thead>
               <tbody>
-                {v.rows.map((r) => (
+                {viewEd && !v.rows.some((r) => r.edited) && <tr><td className="noed" colSpan={v.showAdj ? 4 : 2}>No edited weeks in this selection.</td></tr>}
+                {(viewEd ? v.rows.filter((r) => r.edited) : v.rows).map((r) => (
                   <tr key={r.fw} className={r.isA ? 'act' : (r.edited ? 'edt' : '')}>
                     <td className="l">{shortFW(r.fw)}</td>
                     <td>{fmt(r.base)}</td>
-                    {v.showAdj && <><td style={{ color: '#ea580c' }}>{r.isA ? '—' : <input className="ec" defaultValue={fmt(r.adj)} key={'r' + r.fw + version} onBlur={(e) => editRate(kind, v.segIdx, r.fw, e.target.value)} onKeyDown={commitEnter} />}</td>
-                      <td>{r.isA ? '—' : ((r.delta >= 0 ? '+' : '') + fmt(r.delta))}</td>
-                      {v.anyEd && <CommentCell edited={r.edited} read={() => getCmtRate(kind, v.segIdx, r.fw)} write={(val) => setCmtRate(kind, v.segIdx, r.fw, val)} />}</>}
+                    {v.showAdj && <><td style={{ color: '#ea580c' }}>{r.isA ? '—' : <span className="ecw"><EcInput value={r.adj} key={'r' + r.fw + version} onCommit={(val) => editRate(kind, v.segIdx, r.fw, val)} />{r.edited ? <CommentIcon read={() => getCmtRate(kind, v.segIdx, r.fw)} write={(val) => setCmtRate(kind, v.segIdx, r.fw, val)} /> : <span className="cmi-sp" />}</span>}</td>
+                      <td>{r.isA ? '—' : ((r.delta >= 0 ? '+' : '') + fmt(r.delta))}</td></>}
                   </tr>
                 ))}
               </tbody>

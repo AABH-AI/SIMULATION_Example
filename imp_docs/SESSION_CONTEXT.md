@@ -46,6 +46,33 @@ Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smo
   pct math/sign, toggles don't touch ASU/SR/Disp, NC/APOS independent). Browser: real filter clicks on all 12 filters
   + stacked combos, sums tie (±7 rounding), badge colours correct, 0 console errors.
 
+## Legend-isolate y-axis + table View edits + per-cell note icons (2026-09-25, round 7) — browser-verified
+- **Y-axis rescale fixed (all charts):** `BtcChart.visibleYRange` read `series.yData`, which Highcharts 12+ removed
+  (DataTable) → isolate/hover never rescaled (APOS alone = flat line). New `yValues(s)` = `s.getColumn('y')` (fallback
+  yData / options.data). Plus an effect re-applies an active isolation after an options rebuild (slider/filter change
+  used to reset the axis to the full range). Verified APOS Actuals isolate −100k–200k → 4,000–7,000; SR AOP isolate.
+- **Comment column removed** (ASU, SR/Disp, Publish tables). `CommentCell.jsx` → **`CommentIcon.jsx`** (git mv): 18px
+  note icon rendered to the RIGHT of every edited cell (`.ecw` input+icon wrapper; `.cmi-sp` spacer on unedited
+  editable cells keeps inputs aligned). Same popover: click = read (empty → edit), click again/dbl-click = edit,
+  Enter saves, Esc cancels, Delete wipes. Icon filled (`.cmi.has`) when a note exists; hover title = note.
+  Per-cell edited flags: ASU `hasAsuOvrOf(fw, 'an'|'ba'|'aa')` (new engine export); rate = `r.edited`; Publish
+  an/ba/aa + `hasAnyRateOvr('sr'|'disp')`. Notes stay ONE per week per table (CMT.asu / CMT[kind][seg] / CMT.pub),
+  shared by that row's edited cells → CSV comment columns unchanged.
+- **View edits** toggle (filters table to edited weeks; "No edited weeks in this selection." when none).
+  ALL tables (ASU, SR, Disp, Publish) use the same icon pair in `.twwrap`: ↺ `.tblreset` (top:-3px) with the eye
+  `TblViewBtn.jsx` `.tblview` stacked 4px BELOW it (top:27px), both 26×26, right:-5px → identical left/right edges;
+  `.twwrap .tw` padding-right 34px. (Round 8: Publish's old text buttons "View edits"/"Reset edits" replaced by the
+  icons; `.reset-btn.tbl` rule removed.) Local state per table (resets on tab change). The ↺ reset also turns View
+  edits OFF (`setViewEd(false)`), so a reset lands back on the full table, not an empty filtered one.
+- **`EcInput.jsx`** = every editable table cell (8 sites: ASU an/ba, rate adj, Publish an/ba/aa/sr/disp). Shows the
+  value WITH commas (page-1 Adj NC/APOS were raw before); focus strips commas + selects; blur commits and the cell
+  re-renders formatted; Enter commits, Esc cancels; ONLY a real change commits (focus-and-leave used to create an
+  override = false "edited" + note icon). Clearing a cell removes the override. Width = formatted length (mono:
+  (len+1)ch + 12px; `.ecw .ec` max-width none) — replaces `ecStyle.js` (deleted); fixes the 1024px clipping
+  (Publish ASU_Adj 7-digit). Verified 0 clipped on all 4 tables at 1280/1024/900.
+- **Publish toggle rows never wrap:** `.pubseg` nowrap + container query (`.pubcharts .card{container-type:inline-size}`,
+  ≤210px → gap 3px, padding 4px). Verified one line, unclipped at 1280/1024/900px (was 2 lines at 1024 → heights broke).
+
 ## Labor spelling + Publish Dispatches segment toggle (2026-09-25, round 6) — node + browser verified
 - **"Labour" → "Labor" (display only).** `segList('disp')` labels: `Parts Only` (was "Parts"), `Parts+Labor`,
   `Labor Only`, plus short `s` labels `P.O` / `P+L` / `L.O`. Service Type filter: `labOf('service', o)` shows "Labor";
@@ -272,7 +299,7 @@ NOTE: editing a hook's deps mid-session logs a dev-only Fast-Refresh "deps chang
 - btc.css: expand overlay + modal styles.
 Verified: expand fills to overlay + Escape collapses; allocation modal shows 3 dims (Americas 50.8% → 193,544), × closes.
 
-## Components (8; AllocationModal deleted)
+## Components (AllocationModal deleted; CommentCell → CommentIcon + TblViewBtn added 2026-09-25)
 AsuView, BtcChart, CommentCell, ExpandableCard, FilterRail, Kpi, PubView, RateView.
 Engine: `src/engine/btcEngine.js` (state+compute+actions), `src/engine/chartOptions.js` (Highcharts builder).
 Store: `src/store/useBtc.js`. Data: `src/data/btc_data.json`. Smoke: `scripts/smoke.mjs`.

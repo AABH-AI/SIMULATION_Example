@@ -1,11 +1,17 @@
-// CommentCell.jsx — per-row note cell + floating popover (portal). Mirrors cmtOpen/cmtPos/cmtKey/cmtPopClose.
-// Cell shows a one-line preview; the full note opens in a fixed-position popover anchored to the cell.
-// Single click = read popover; double click / click when open = edit (textarea, Enter saves, Esc cancels, Delete wipes).
-// `read()` returns the stored note; `write(v)` persists it (store-wrapped, bumps version).
+// CommentIcon.jsx — note icon shown to the right of an edited table cell + floating popover (portal).
+// Mirrors cmtOpen/cmtPos/cmtKey/cmtPopClose. The icon is filled when a note exists (hover = note text).
+// Click = read popover (or straight to edit when empty); double click / click when open = edit (textarea,
+// Enter saves, Esc cancels, Delete wipes). `read()` returns the stored note; `write(v)` persists it.
 import { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function CommentCell({ edited, read, write }) {
+const ICON = (
+  <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+    <path d="M2.5 3h11a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H8l-3.2 2.6V11.5H2.5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+  </svg>
+);
+
+export default function CommentIcon({ read, write }) {
   const [mode, setMode] = useState(null); // null | 'read' | 'edit'
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const cellRef = useRef(null);
@@ -30,7 +36,7 @@ export default function CommentCell({ edited, read, write }) {
   useLayoutEffect(() => { if (mode) place(); }, [mode, place]);
   useLayoutEffect(() => {
     if (!mode) return;
-    function onDoc(e) { if (e.target.closest && (e.target.closest('.cmpop') || e.target.closest('.cmp'))) return; close(true); }
+    function onDoc(e) { if (e.target.closest && (e.target.closest('.cmpop') || e.target.closest('.cmi'))) return; close(true); }
     function onScroll() { close(true); }
     function onResize() { close(true); }
     document.addEventListener('mousedown', onDoc, true);
@@ -49,11 +55,10 @@ export default function CommentCell({ edited, read, write }) {
     else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); setMode(null); }
   }
 
-  if (!edited) return <td className="cmt" />;
-
-  const preview = val
-    ? <div className="cmp" onClick={() => setMode(mode === 'read' ? 'edit' : 'read')} onDoubleClick={() => setMode('edit')} ref={cellRef}>{val}</div>
-    : <div className="cmp add" onClick={() => setMode('edit')} onDoubleClick={() => setMode('edit')} ref={cellRef}>Add a note…</div>;
+  const icon = (
+    <button type="button" className={'cmi' + (val ? ' has' : '')} ref={cellRef} title={val || 'Add a note'} aria-label={val ? 'View note' : 'Add a note'}
+      onClick={() => setMode(val ? (mode === 'read' ? 'edit' : 'read') : 'edit')} onDoubleClick={() => setMode('edit')}>{ICON}</button>
+  );
 
   const popover = mode && createPortal(
     <div className={'cmpop' + (mode === 'edit' ? ' edit' : '')} ref={popRef} style={{ left: pos.x, top: pos.y }}>
@@ -70,5 +75,5 @@ export default function CommentCell({ edited, read, write }) {
     document.body,
   );
 
-  return <td className="cmt">{preview}{popover}</td>;
+  return <>{icon}{popover}</>;
 }
