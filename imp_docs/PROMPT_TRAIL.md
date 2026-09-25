@@ -552,3 +552,26 @@ Newest at bottom. One entry per session. Never rewrite past entries.
 - **Done:** refreshed SESSION_CONTEXT (deployment now live, next-steps, note on remote 695cb4d re-enabling Disp seg
   tabs) + TASKS Now line. Single commit of the session's work; rebased onto remote 695cb4d (no conflict); rebuilt +
   smoke re-run on the combined tree before pushing. `.claude/` and generated `src/data/btc_data.js` left untracked.
+
+## 2026-09-25 (cont. 5) — Publish ASU All/Field/Tech toggle
+- **Asked:** add the All/Field/Tech buttons to the Publish ASU chart.
+- **Done:** dataset ASU split 40/60 (`asu_field`/`asu_tech`, same synthetic rule as NC/APOS); engine per-seg ASU base
+  (All = field + tech), `PUB_SEG.asu`; PubView toggle row + labels; chart heights keep all cards equal.
+- **Verified:** build green; smoke 17/17; node 630/630; browser (toggle clicks, stacked filters, f+t == all exact),
+  0 console errors.
+- **Files:** `src/data/gen_ui_from_csv.py`, `src/data/btc_data.json`, `src/engine/btcEngine.js`,
+  `src/components/PubView.jsx`. Not committed.
+
+## 2026-09-25 (cont. 6) — Labor spelling + Publish Dispatches segments
+- **Asked:** (1) rename "labour" across the UI (confirmed via question: → US "Labor"); (2) Publish Dispatches chart:
+  add the 3 Dispatches segments as P.O / P+L / L.O; rename "Parts" → "Parts Only".
+- **Done:** `segList` labels + short labels, `labOf` service display; `PUB_SEG.disp` + seg-aware Disp in
+  `computePubView`; PubView toggle row + labels.
+- **Verified:** build green; smoke 17/17; node 495/500 (5 expected: zero-dispatch slice); browser; 0 console errors.
+- **Files:** `src/engine/btcEngine.js`, `src/components/PubView.jsx`. Not committed.
+
+## 2026-09-25 (cont. 7) — docs + commit + push
+- **Asked:** update docs, commit, push.
+- **Done:** TASKS "Now" line updated; committed rounds 5–6 (Publish ASU Field/Tech toggle, Labor spelling, Publish
+  Dispatches segment toggle) as one commit on `master-react_v2`; no new remote commits to integrate; pushed →
+  GitHub Pages workflow deploys. `.claude/` + generated `src/data/btc_data.js` left untracked.

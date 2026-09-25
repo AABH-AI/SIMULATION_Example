@@ -176,10 +176,13 @@ Maintained by Claude. Map to plan phases P0–P5. Mark: [x] done, [~] doing, [ ]
 - [x] Declines per LOB (pipeline split by NC+APOS share) → follow LOB + all filters; All = field+tech exact.
 - [x] KPI badge right of value, 11.4px (60% of value), all pages. Publish SR/Disp forecast = page-2 DS basis.
 - [x] Chart tooltips: header = fiscal week (was index 0..103); box rendered outside the plot (above/below chart), all charts.
+- [x] Publish ASU chart All/Field/Tech toggle (ASU split 40/60 in the dataset like NC/APOS; f+t == all exact).
+- [x] "Labour" → "Labor" in UI (display only; data keys unchanged); "Parts" tab → "Parts Only".
+- [x] Publish Dispatches toggle All / P.O / P+L / L.O (Σ segments == All exact; == page-2 segment KPIs).
 
 ---
 **Now:** P0–P5 done + 8 UX rounds. Sliders -50..+100 (0 neutral), S-curve; declines per LOB, net of BOTH actual +
-adjusted ASU; Publish NC/APOS All/Field/Tech toggles; KPI ▲/▼ badges right of value; chart tooltips outside the plot
+adjusted ASU; Publish NC/APOS/ASU All/Field/Tech toggles + Dispatches All/P.O/P+L/L.O toggle; "Labor" spelling in UI; KPI ▲/▼ badges right of value; chart tooltips outside the plot
 with fiscal-week headers. Field/Tech adjustments unlinked (All = field+tech exact), filter-scoped. Auto-deployed to
 GitHub Pages on push. Branch `master-react_v2`, app at root.
 **Next (optional):** README, pin `highcharts@11.4.8`, code-split ~743 KB bundle, rename folder without `#`

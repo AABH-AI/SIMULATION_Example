@@ -28,8 +28,8 @@ export const state = {
   apMod: { field: 0, tech: 0 }, // per-segment APOS adjustment % (-50..100), neutral 0.
   // ASU field/tech split tab ('all' | 'field' | 'tech') — selects pre-split arrays from the dataset
   ASU_SEG: 'all',
-  // Publish NC / APOS chart All/Field/Tech toggles (independent of each other and of page 1's ASU_SEG)
-  PUB_SEG: { nc: 'all', ap: 'all' },
+  // Publish NC / APOS / ASU chart All/Field/Tech toggles (independent of each other and of page 1's ASU_SEG)
+  PUB_SEG: { nc: 'all', ap: 'all', asu: 'all', disp: 0 }, // disp = Dispatches segment index (0 All, 1 P.O, 2 P+L, 3 L.O)
   // per-metric segment config (element ids from original dropped)
   DISP: { kind: 'disp', _seg: 0, _segMods: null, _adj: null, _vis: null, unit: 'Dispatches', tgtLbl: 'SMOD', rateLbl: 'MDR ×100', dsName: 'DISP Actuals', adjName: 'Adj Disp' },
   SR: { kind: 'sr', _seg: 0, _segMods: null, _adj: null, _vis: null, unit: 'SRs', tgtLbl: 'ICR', rateLbl: 'ICR ×100', dsName: 'SR Actuals', adjName: 'Adj SRs' },
@@ -72,7 +72,13 @@ export const FILTERS = [
   { k: 'gcfa', label: 'GCFA Type', multi: true, opts: ['All', 'GCFA', 'non-GCFA', 'Unknown'] },
 ];
 export function cfgOf(k) { for (let i = 0; i < FILTERS.length; i++) if (FILTERS[i].k === k) return FILTERS[i]; }
-export function labOf(k, o) { return ((k === 'week' || k === 'quarter') && o !== 'All') ? ('' + o).slice(2) : o; }
+// display label for a filter option. Service Type option VALUES keep the dataset spelling ("Labour", matched against
+// the alloc keys); only the shown text uses US "Labor".
+export function labOf(k, o) {
+  if ((k === 'week' || k === 'quarter') && o !== 'All') return ('' + o).slice(2);
+  if (k === 'service') return ('' + o).replace(/Labour/g, 'Labor');
+  return o;
+}
 
 // ============================ FILTER ENGINE ============================
 export function visIdx() {
@@ -214,7 +220,8 @@ export function segList(kind) {
   let P = s['Parts Only'], PL = s['Parts + Labour'], LO = s['Labour Only'];
   if (P == null && PL == null && LO == null) { P = PL = LO = 1 / 3; } else { P = P || 0; PL = PL || 0; LO = LO || 0; }
   const tot = (P + PL + LO) || 1;
-  return [{ l: 'All', w: 1 }, { l: 'Parts', w: P / tot }, { l: 'Parts+Labour', w: PL / tot }, { l: 'Labour Only', w: LO / tot }];
+  // l = page-2 tab label, s = short label for the Publish Dispatches toggle. (Data keys above keep "Labour".)
+  return [{ l: 'All', s: 'All', w: 1 }, { l: 'Parts Only', s: 'P.O', w: P / tot }, { l: 'Parts+Labor', s: 'P+L', w: PL / tot }, { l: 'Labor Only', s: 'L.O', w: LO / tot }];
 }
 function segCur(c) { const L = segList(c.kind); let i = c._seg || 0; if (!(i >= 0 && i < L.length)) { i = 0; c._seg = 0; } return i; }
 function segModsOf(c) { const L = segList(c.kind); segCur(c); if (!c._segMods || c._segMods.length !== L.length) c._segMods = L.map(() => 0); return c._segMods; }
@@ -366,7 +373,10 @@ export function computeAsuRows(seg) {
   seg = ASU_SEG_LBL[seg] ? seg : 'all';
   const fc = TL.fcStart, N = TL.fw.length, rows = [];
   let ncCum = 0, renCum = 0, declCum = 0, ovShift = 0; const ov = state.OVR.asu, useOv = (seg === 'all');
-  const A = SC('asu', TL.asu);
+  // ASU base per segment (dataset asu_field / asu_tech, 40/60 like NC/APOS); All = scaled field + scaled tech so
+  // Field + Tech == All exactly under every filter. Falls back to the unsplit asu if the dataset has no split.
+  const ASf = TL.asu_field ? SC('asu_field', TL.asu_field) : null, ASt = TL.asu_tech ? SC('asu_tech', TL.asu_tech) : null;
+  const A = (ASf && ASt) ? (seg === 'field' ? ASf : seg === 'tech' ? ASt : ASf.map((v, i) => v + ASt[i])) : SC('asu', TL.asu);
   const NCf = SC('nc_field', TL.nc_field), NCt = SC('nc_tech', TL.nc_tech);
   const APf = SC('apos_field', TL.apos_field), APt = SC('apos_tech', TL.apos_tech);
   const ncMf = 1 + asuMod('ncMod', 'field') / 100, ncMt = 1 + asuMod('ncMod', 'tech') / 100;
@@ -549,11 +559,17 @@ export function computePubView() {
   computeRate('sr'); computeRate('disp');
   if (!vis.length) return { empty: true, fyLbl, declImported: state.DECL_IMPORTED };
   const rows = computeAsuRows();
-  // NC / APOS charts + KPIs follow their own All/Field/Tech toggle (PUB_SEG); ASU/SR/Disp + table stay on All.
-  const ncSeg = ASU_SEG_LBL[state.PUB_SEG.nc] ? state.PUB_SEG.nc : 'all', apSeg = ASU_SEG_LBL[state.PUB_SEG.ap] ? state.PUB_SEG.ap : 'all';
-  const rowsNc = ncSeg === 'all' ? rows : computeAsuRows(ncSeg), rowsAp = apSeg === 'all' ? rows : computeAsuRows(apSeg);
-  // forecast SR/Disp = Σ sub-segment bases (same as page 2's DS Forecast), so it rounds like the adjusted side
-  const pSR = sumSubsBase(state.SR), pDisp = sumSubsBase(state.DISP);
+  // NC / APOS / ASU charts + KPIs follow their own All/Field/Tech toggle (PUB_SEG); SR/Disp + table stay on All.
+  const segOf = (k) => (ASU_SEG_LBL[state.PUB_SEG[k]] ? state.PUB_SEG[k] : 'all');
+  const ncSeg = segOf('nc'), apSeg = segOf('ap'), asuSeg = segOf('asu');
+  const rowsFor = (sg) => (sg === 'all' ? rows : computeAsuRows(sg));
+  const rowsNc = rowsFor(ncSeg), rowsAp = rowsFor(apSeg), rowsAsu = rowsFor(asuSeg);
+  // forecast SR/Disp = Σ sub-segment bases (same as page 2's DS Forecast), so it rounds like the adjusted side.
+  // Dispatches follow the Publish Disp toggle: 0 = All (Σ subs), else that segment's own base / adjusted series.
+  const dispSegs = segList('disp'), dispSeg = (state.PUB_SEG.disp > 0 && state.PUB_SEG.disp < dispSegs.length) ? state.PUB_SEG.disp : 0;
+  const pSR = sumSubsBase(state.SR);
+  const pDisp = dispSeg ? segBase(state.DISP, dispSeg) : sumSubsBase(state.DISP);
+  const aDispS = dispSeg ? bendSeg(state.DISP, dispSeg) : state.DISP._adj;
   const ncAny = asuMod('ncMod', 'field') !== 0 || asuMod('ncMod', 'tech') !== 0;
   const apAny = asuMod('apMod', 'field') !== 0 || asuMod('apMod', 'tech') !== 0;
   const showAdj = ncAny || apAny || Object.keys(state.OVR.asu).length > 0 || segAdjActive(state.DISP) || segAdjActive(state.SR);
@@ -561,11 +577,11 @@ export function computePubView() {
   vis.forEach((i) => {
     fNC += rowsNc[i].nc; aNC += rowsNc[i].adjNew;
     fAP += rowsAp[i].apos; aAP += rowsAp[i].btcApos;
-    fDisp += pDisp[i]; aDisp += state.DISP._adj ? state.DISP._adj[i] : 0;
+    fDisp += pDisp[i]; aDisp += aDispS ? aDispS[i] : 0;
     fSR += pSR[i]; aSR += state.SR._adj ? state.SR._adj[i] : 0;
     if (rowsNc[i].decl != null) fDecl += rowsNc[i].decl;
   });
-  const _lastR = rows[vis[vis.length - 1]], fASU = _lastR.base, aASU = _lastR.adj;
+  const _lastR = rowsAsu[vis[vis.length - 1]], fASU = _lastR.base, aASU = _lastR.adj;
   const anyEdP = showAdj && vis.some((i) => hasPubOvr(TL.fw[i]));
   const _expPub = false; // expand overlay is P4
   const lbl = vis.map((i) => shortFW(TL.fw[i])), xlab = _expPub ? null : axisLabels(vis);
@@ -573,11 +589,11 @@ export function computePubView() {
   const specs = [
     { key: 'Nc', title: 'New Contracts - Forecast vs Adjusted', series: [{ color: '#3a6ef0', fcColor: '#3a6ef0', name: 'NC Forecast', data: vis.map((i) => rowsNc[i].nc) }, { color: ADJ, fcColor: ADJ, name: 'Adj NC', data: showAdj ? vis.map((i) => rowsNc[i].adjNew) : [] }] },
     { key: 'Apos', title: 'APOS Renewals - Forecast vs Adjusted', series: [{ color: '#6d28d9', fcColor: '#6d28d9', name: 'APOS Forecast', data: vis.map((i) => rowsAp[i].apos) }, { color: ADJ, fcColor: ADJ, name: 'Adj APOS', data: showAdj ? vis.map((i) => rowsAp[i].btcApos) : [] }] },
-    { key: 'Asu', title: 'ASU - Forecast vs Adjusted', series: [{ color: '#16a34a', fcColor: '#16a34a', name: 'ASU Forecast', data: vis.map((i) => rows[i].base) }, { color: ADJ, fcColor: ADJ, name: 'Adj ASU', data: showAdj ? vis.map((i) => rows[i].adj) : [] }] },
+    { key: 'Asu', title: 'ASU - Forecast vs Adjusted', series: [{ color: '#16a34a', fcColor: '#16a34a', name: 'ASU Forecast', data: vis.map((i) => rowsAsu[i].base) }, { color: ADJ, fcColor: ADJ, name: 'Adj ASU', data: showAdj ? vis.map((i) => rowsAsu[i].adj) : [] }] },
   ];
   if (state.DECL_IMPORTED) specs[0].series.push({ color: '#8b0000', fcColor: '#8b0000', name: 'Declines', data: vis.map((i) => rowsNc[i].decl) });
   specs.push({ key: 'Sr', title: 'SRs - Forecast vs Adjusted', series: [{ color: '#38bdf8', fcColor: '#38bdf8', name: 'SR Forecast', data: vis.map((i) => pSR[i]) }, { color: ADJ, fcColor: ADJ, name: 'Adj SR', data: showAdj ? vis.map((i) => (state.SR._adj ? state.SR._adj[i] : 0)) : [] }] });
-  specs.push({ key: 'Disp', title: 'Dispatches - Forecast vs Adjusted', series: [{ color: '#6b4423', fcColor: '#6b4423', name: 'Disp Forecast', data: vis.map((i) => pDisp[i]) }, { color: ADJ, fcColor: ADJ, name: 'Adj Disp', data: showAdj ? vis.map((i) => (state.DISP._adj ? state.DISP._adj[i] : 0)) : [] }] });
+  specs.push({ key: 'Disp', title: 'Dispatches - Forecast vs Adjusted', series: [{ color: '#6b4423', fcColor: '#6b4423', name: 'Disp Forecast', data: vis.map((i) => pDisp[i]) }, { color: ADJ, fcColor: ADJ, name: 'Adj Disp', data: showAdj ? vis.map((i) => (aDispS ? aDispS[i] : 0)) : [] }] });
   const tableRows = vis.map((i) => ({
     i, fw: TL.fw[i], edited: hasPubOvr(TL.fw[i]),
     adjNew: rows[i].adjNew, btcApos: rows[i].btcApos, adj: rows[i].adj, decl: rows[i].decl,
@@ -589,7 +605,8 @@ export function computePubView() {
     kpi: { fNC, aNC, fAP, aAP, fASU, aASU, fSR, aSR, fDisp, aDisp, fDecl },
     // adjusted-vs-forecast % change for the adjusted KPI cards
     pct: { nc: pc(fNC, aNC), ap: pc(fAP, aAP), asu: pc(fASU, aASU), sr: pc(fSR, aSR), disp: pc(fDisp, aDisp) },
-    ncSeg, apSeg, ncSegLabel: ASU_SEG_LBL[ncSeg], apSegLabel: ASU_SEG_LBL[apSeg],
+    dispSeg, dispSegs: dispSegs.map((x, i) => ({ i, s: x.s || x.l })), dispSegLabel: dispSegs[dispSeg].s || dispSegs[dispSeg].l,
+    ncSeg, apSeg, asuSeg, ncSegLabel: ASU_SEG_LBL[ncSeg], apSegLabel: ASU_SEG_LBL[apSeg], asuSegLabel: ASU_SEG_LBL[asuSeg],
     specs, chart: { labels: lbl, xlab }, tableRows,
   };
 }
@@ -599,10 +616,10 @@ function aggLob(keys) {
   const all = Object.keys(state.BTC); keys = (keys && keys.length) ? keys : all; if (!keys.length) return null;
   const f = state.BTC[keys[0]], N = f.fw.length;
   const z = () => { const a = []; for (let i = 0; i < N; i++) a.push(0); return a; };
-  const g = { lob: (keys.length >= all.length ? 'All LOBs' : keys.length + ' LOBs'), category: 'All', fcStart: f.fcStart, fw: f.fw.slice(), fy: f.fy.slice(), fq: f.fq.slice(), series: f.series.slice(), asu: z(), disp: z(), sr: z(), nc: z(), apos: z(), nc_field: z(), nc_tech: z(), apos_field: z(), apos_tech: z(), dispTarget: 0, srTarget: 0, dispTargetN: 0, srTargetN: 0 };
+  const g = { lob: (keys.length >= all.length ? 'All LOBs' : keys.length + ' LOBs'), category: 'All', fcStart: f.fcStart, fw: f.fw.slice(), fy: f.fy.slice(), fq: f.fq.slice(), series: f.series.slice(), asu: z(), disp: z(), sr: z(), nc: z(), apos: z(), nc_field: z(), nc_tech: z(), apos_field: z(), apos_tech: z(), asu_field: z(), asu_tech: z(), dispTarget: 0, srTarget: 0, dispTargetN: 0, srTargetN: 0 };
   // declines: sum the per-LOB arrays; a week stays null only if every selected LOB has no value
   ['decl', 'decl_field', 'decl_tech'].forEach((dk) => { g[dk] = f[dk] ? f.fw.map((_, i) => { let s = null; keys.forEach((k) => { const v = state.BTC[k][dk] && state.BTC[k][dk][i]; if (v != null) s = (s || 0) + v; }); return s; }) : null; });
-  keys.forEach((k) => { const d = state.BTC[k]; for (let i = 0; i < N; i++) { g.asu[i] += d.asu[i]; g.disp[i] += d.disp[i]; g.sr[i] += d.sr[i]; g.nc[i] += d.nc[i]; g.apos[i] += d.apos[i]; g.nc_field[i] += (d.nc_field ? d.nc_field[i] : 0); g.nc_tech[i] += (d.nc_tech ? d.nc_tech[i] : 0); g.apos_field[i] += (d.apos_field ? d.apos_field[i] : 0); g.apos_tech[i] += (d.apos_tech ? d.apos_tech[i] : 0); } });
+  keys.forEach((k) => { const d = state.BTC[k]; for (let i = 0; i < N; i++) { g.asu[i] += d.asu[i]; g.disp[i] += d.disp[i]; g.sr[i] += d.sr[i]; g.nc[i] += d.nc[i]; g.apos[i] += d.apos[i]; g.nc_field[i] += (d.nc_field ? d.nc_field[i] : 0); g.nc_tech[i] += (d.nc_tech ? d.nc_tech[i] : 0); g.apos_field[i] += (d.apos_field ? d.apos_field[i] : 0); g.apos_tech[i] += (d.apos_tech ? d.apos_tech[i] : 0); g.asu_field[i] += (d.asu_field ? d.asu_field[i] : 0); g.asu_tech[i] += (d.asu_tech ? d.asu_tech[i] : 0); } });
   let sd = 0, ss = 0, sa = 0; for (let i = g.fcStart; i < N; i++) { sd += g.disp[i]; ss += g.sr[i]; sa += g.asu[i]; }
   g.dispTarget = sa ? (sd / sa) * 0.92 : 0; g.srTarget = sa ? (ss / sa) * 0.92 : 0; g.dispTargetN = Math.round(sd * 0.92); g.srTargetN = Math.round(ss * 0.92);
   const am = {}; let tot = 0; const DIMS = ['region', 'coreupsell', 'service'];
@@ -668,7 +685,10 @@ export function cycleBaseName() { const s = cycleLabelVal().trim().toLowerCase()
 export const MOD_MIN = -50, MOD_MAX = 100;
 export function clampM(v) { v = parseFloat(v); if (isNaN(v)) v = 0; return Math.max(MOD_MIN, Math.min(MOD_MAX, v)); }
 export function setAsuSeg(seg) { state.ASU_SEG = ASU_SEG_LBL[seg] ? seg : 'all'; }
-export function setPubSeg(which, seg) { if (which === 'nc' || which === 'ap') state.PUB_SEG[which] = ASU_SEG_LBL[seg] ? seg : 'all'; }
+export function setPubSeg(which, seg) {
+  if (which === 'nc' || which === 'ap' || which === 'asu') state.PUB_SEG[which] = ASU_SEG_LBL[seg] ? seg : 'all';
+  else if (which === 'disp') { const i = +seg, n = segList('disp').length; state.PUB_SEG.disp = (i >= 0 && i < n) ? i : 0; }
+}
 // route a slider change to the current ASU segment: Field/Tech set only themselves (unlinked); All sets both.
 function setAsuMod(kind, v) { v = clampM(v); const s = state.ASU_SEG; if (s === 'field' || s === 'tech') state[kind][s] = v; else { state[kind].field = v; state[kind].tech = v; } }
 export function setNcMod(v) { setAsuMod('ncMod', v); }

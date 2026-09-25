@@ -12,7 +12,7 @@ from collections import defaultdict, OrderedDict
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV  = os.path.join(HERE, "btc_raw_dataset.csv")
 SMOD_BEND = 0.92
-# field/tech split of New Contract + APOS Renewal (synthetic — no source column exists).
+# field/tech split of New Contract + APOS Renewal + ASU (synthetic — no source column exists).
 # tech = 1 - field. Lives here in the dataset pipeline, NOT in the app engine.
 FIELD_SHARE = 0.40
 TECH_SHARE  = 0.60
@@ -69,6 +69,9 @@ for lob in LOBS:
     nc_tech    = [x-f for x,f in zip(nc, nc_field)]
     apos_field = [round(x*FIELD_SHARE) for x in apos]
     apos_tech  = [x-f for x,f in zip(apos, apos_field)]
+    # ASU (installed-base balance) split with the same 40/60 rule so Field/Tech views have their own ASU
+    asu_field  = [round(x*FIELD_SHARE) for x in asu]
+    asu_tech   = [x-f for x,f in zip(asu, asu_field)]
     # P4 Ships Forecast: synthesised gross-shipment driver, ~15% above net new contracts.
     # Deterministic (pure function of nc). Feeds ASU as a distinct adjustable inflow; no raw
     # ships column exists in the master, so this is a derived component (like Dispatches/SRs).
@@ -81,6 +84,7 @@ for lob in LOBS:
         "fw": wks, "fy": fy, "fq": fq, "series": series,
         "asu": asu, "disp": disp, "sr": sr, "nc": nc, "apos": apos, "exp": exp, "ships": ships,
         "nc_field": nc_field, "nc_tech": nc_tech, "apos_field": apos_field, "apos_tech": apos_tech,
+        "asu_field": asu_field, "asu_tech": asu_tech,
         "dispTarget": round((sD/sA)*SMOD_BEND, 5) if sA else 0, "dispTargetN": round(sD*SMOD_BEND),
         "srTarget":   round((sS/sA)*SMOD_BEND, 5) if sA else 0, "srTargetN":   round(sS*SMOD_BEND),
         "alloc": alloc_for(lob),

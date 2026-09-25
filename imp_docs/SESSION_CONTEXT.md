@@ -46,6 +46,32 @@ Files: `src/engine/btcEngine.js`, `src/components/AsuView.jsx`. Build green; smo
   pct math/sign, toggles don't touch ASU/SR/Disp, NC/APOS independent). Browser: real filter clicks on all 12 filters
   + stacked combos, sums tie (±7 rounding), badge colours correct, 0 console errors.
 
+## Labor spelling + Publish Dispatches segment toggle (2026-09-25, round 6) — node + browser verified
+- **"Labour" → "Labor" (display only).** `segList('disp')` labels: `Parts Only` (was "Parts"), `Parts+Labor`,
+  `Labor Only`, plus short `s` labels `P.O` / `P+L` / `L.O`. Service Type filter: `labOf('service', o)` shows "Labor";
+  option VALUES and dataset alloc keys keep "Labour" (matched in `weightsFor`) — don't rename those.
+- **Publish Dispatches toggle:** `PUB_SEG.disp` (index 0 All / 1 P.O / 2 P+L / 3 L.O) + `setPubSeg('disp', i)`;
+  `computePubView` Disp KPIs + chart = `segBase`/`bendSeg` of that segment (All = `sumSubsBase` / `DISP._adj`); returns
+  `dispSeg`, `dispSegs`, `dispSegLabel`. PubView toggle row on the Dispatches card (`SEG_CHARTS` +Disp → only SRs chart
+  is 228px); labels "Dispatches · P.O". Summary table / CSV stay on All.
+- Verified: node 495/500 (5 = zero-dispatch slice → no % badge, correct): Σ segments == All (KPIs + every chart
+  point), Publish seg == page-2 seg KPIs, toggle leaves NC/ASU/SR, badge signs per-seg; browser: labels, Service
+  filter still filters, sums tie, cards 322.4px, 0 console errors.
+
+## Publish ASU All/Field/Tech toggle (2026-09-25, round 5) — node + browser verified
+- **Data:** `gen_ui_from_csv.py` splits ASU with the same synthetic 40/60 rule as NC/APOS → per-LOB `asu_field` /
+  `asu_tech` (field = round 40%, tech = remainder, exact). No other JSON field changed. (`btc_raw_dataset_segmented.csv`
+  still zeroes ASU on Field rows — pipeline side-output only, not read by the app.)
+- **Engine:** `computeAsuRows(seg)` base = `SC('asu_field'|'asu_tech')`; All = scaled field + scaled tech (Field + Tech
+  == All exactly under every filter; falls back to `asu` if no split). `aggLob` sums the split. `PUB_SEG.asu` +
+  `setPubSeg('asu', seg)`; `computePubView` ASU KPIs + ASU chart use `rowsAsu`; returns `asuSeg/asuSegLabel`.
+  Per-week ASU overrides (OVR.asu, Publish table) still apply to All only — Field/Tech views ignore them.
+- **UI:** `PubView` toggle row on the ASU card (`SEG_CHARTS {Nc,Apos,Asu}` keep 200px chart; SR/Disp 228px → all
+  cards 322.4px); labels "ASU · Field", "Adjusted ASU · Field".
+- Verified: node 630/630 (5 slider scenarios × 14 filter sets: f+t==all exact for balance/adjusted/every chart point,
+  toggles independent, neutral forecast==adjusted per seg, badge signs); browser clicks + LOB/region/warranty/quarter
+  stacks tie exactly; 0 console errors.
+
 ## Chart tooltips (2026-09-25, round 4) — browser-verified, all charts all pages
 - **Header showed 0..103** (category INDEX: Highcharts 12+ passes `this.x` = index on category axes). `chartOptions.js`
   formatter now prints `labels[points[0].point.x]` → fiscal week (e.g. `26-W52`, same shortFW as axis/tables).

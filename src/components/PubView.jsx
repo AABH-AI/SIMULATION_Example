@@ -9,6 +9,8 @@ import CommentCell from './CommentCell.jsx';
 
 // height of the Publish All/Field/Tech toggle row (.pubseg: 22px buttons + 6px margin in btc.css)
 const PUBSEG_H = 28;
+// Publish charts that carry an All/Field/Tech toggle row
+const SEG_CHARTS = { Nc: 1, Apos: 1, Asu: 1, Disp: 1 };
 
 export default function PubView({ dark }) {
   const version = useBtc((s) => s.version);
@@ -29,6 +31,8 @@ export default function PubView({ dark }) {
   const k = v.kpi, p = v.pct, fy = v.fyLbl, di = v.declImported;
   // NC / APOS KPIs follow their chart's All/Field/Tech toggle; the segment is named in the label when not All
   const ncS = v.ncSeg === 'all' ? '' : ' · ' + v.ncSegLabel, apS = v.apSeg === 'all' ? '' : ' · ' + v.apSegLabel;
+  const asuS = v.asuSeg === 'all' ? '' : ' · ' + v.asuSegLabel;
+  const dispS = v.dispSeg === 0 ? '' : ' · ' + v.dispSegLabel;
   const SEGS = [{ k: 'all', l: 'All' }, { k: 'field', l: 'Field' }, { k: 'tech', l: 'Tech' }];
   const segToggle = (which, cur) => (
     <div className="segbar pubseg">
@@ -50,16 +54,16 @@ export default function PubView({ dark }) {
         <Kpi label={`New Contracts${ncS} (${fy})`} value={fmt(k.fNC)} style={{ color: '#3a6ef0' }} />
         {di && <Kpi label={`Declines${ncS} (${fy})`} value={fmt(k.fDecl)} style={{ color: '#8b0000' }} />}
         <Kpi label={`APOS Renewals${apS} (${fy})`} value={fmt(k.fAP)} style={{ color: '#6d28d9' }} />
-        <Kpi label={`ASU (${fy})`} value={fmt(k.fASU)} style={{ color: '#16a34a' }} />
+        <Kpi label={`ASU${asuS} (${fy})`} value={fmt(k.fASU)} style={{ color: '#16a34a' }} />
         <Kpi label={`SRs (${fy})`} value={fmt(k.fSR)} style={{ color: '#38bdf8' }} />
-        <Kpi label={`Dispatches (${fy})`} value={fmt(k.fDisp)} style={{ color: '#6b4423' }} />
+        <Kpi label={`Dispatches${dispS} (${fy})`} value={fmt(k.fDisp)} style={{ color: '#6b4423' }} />
         {v.showAdj && <>
           <Kpi label={`Adj New Contracts${ncS} (${fy})`} value={fmt(k.aNC)} style={{ color: '#ea580c' }} pct={p.nc} flatZero />
           {di && <Kpi hidden />}
           <Kpi label={`Adj APOS Renewals${apS} (${fy})`} value={fmt(k.aAP)} style={{ color: '#ea580c' }} pct={p.ap} flatZero />
-          <Kpi label={`Adjusted ASU (${fy})`} value={fmt(k.aASU)} style={{ color: '#ea580c' }} pct={p.asu} flatZero />
+          <Kpi label={`Adjusted ASU${asuS} (${fy})`} value={fmt(k.aASU)} style={{ color: '#ea580c' }} pct={p.asu} flatZero />
           <Kpi label={`Adjusted SRs (${fy})`} value={fmt(k.aSR)} style={{ color: '#ea580c' }} pct={p.sr} flatZero />
-          <Kpi label={`Adjusted Dispatches (${fy})`} value={fmt(k.aDisp)} style={{ color: '#ea580c' }} pct={p.disp} flatZero />
+          <Kpi label={`Adjusted Dispatches${dispS} (${fy})`} value={fmt(k.aDisp)} style={{ color: '#ea580c' }} pct={p.disp} flatZero />
         </>}
       </div>
 
@@ -70,8 +74,14 @@ export default function PubView({ dark }) {
             <h3>{s.title}</h3>
             {s.key === 'Nc' && segToggle('nc', v.ncSeg)}
             {s.key === 'Apos' && segToggle('ap', v.apSeg)}
-            {/* NC/APOS lose PUBSEG_H to the toggle row; the other charts grow by it so every card matches */}
-            <BtcChart labels={v.chart.labels} series={s.series} xlab={v.chart.xlab} opts={{ yTicks: 5 }} dark={dark} height={s.key === 'Nc' || s.key === 'Apos' ? 200 : 200 + PUBSEG_H} />
+            {s.key === 'Asu' && segToggle('asu', v.asuSeg)}
+            {s.key === 'Disp' && (
+              <div className="segbar pubseg">
+                {v.dispSegs.map((sg) => <button key={sg.i} className={'segt' + (v.dispSeg === sg.i ? ' on' : '')} onClick={() => setPubSeg('disp', sg.i)}>{sg.s}</button>)}
+              </div>
+            )}
+            {/* charts with a toggle row lose PUBSEG_H to it; the others grow by it so every card matches */}
+            <BtcChart labels={v.chart.labels} series={s.series} xlab={v.chart.xlab} opts={{ yTicks: 5 }} dark={dark} height={SEG_CHARTS[s.key] ? 200 : 200 + PUBSEG_H} />
           </div>
         ))}
       </div>
